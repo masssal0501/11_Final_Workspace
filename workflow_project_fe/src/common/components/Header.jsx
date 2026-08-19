@@ -11,7 +11,7 @@ function Header() {
     // return 구문
     return (
         <div>
-            <h1 align="center">Welcome to React Manager</h1>
+            <h1 align="center">WorkFlow</h1>
 
             <br/><br/>
 
@@ -20,13 +20,19 @@ function Header() {
                     <Link to="/">HOME</Link>
                 </div>
                 <div>
-                    <Link to="/member/list">회원관리</Link>
+                    <Link to="/placeInfo/list">여행지역/정보</Link>
                 </div>
                 <div>
-                    <Link to="/notice/list">공지사항관리</Link>
+                    <Link to="/task/list">업무</Link>
                 </div>
                 <div>
-                    <Link to="/board/list">일반게시판관리</Link>
+                    <Link to="/cost/list">비용/정산</Link>
+                </div>
+                <div>
+                    <Link to="/workcation/list">워케이션</Link>
+                </div>
+                <div>
+                    <Link to="/notice/list">공지사항</Link>
                 </div>
             </div>
         </div>
