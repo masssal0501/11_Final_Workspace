@@ -7,6 +7,11 @@ import LoginForm from './common/components/LoginForm';
 import FindIDForm from './common/components/FindIDForm';
 import FindPWForm from './common/components/FindPWForm';
 
+import HubListComponent from './hub/components/HubListComponent';
+import HubEnrollFormComponent from './hub/components/HubEnrollFormComponent';
+import HubDetailComponent from './hub/components/HubDetailComponent';
+import HubUpdateFormComponent from './hub/components/HubUpdateFormComponent';
+
 import { Routes, Route, Navigate } from "react-router-dom";
 
 function App() {
@@ -42,6 +47,12 @@ function App() {
 
           <div className="content">
             로그인 성공
+            <Routes>
+              <Route path="/hub/list" element={ <HubListComponent /> }></Route>
+              <Route path="/hub/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
+              <Route path="/hub/detail/:hubno" element={ <HubDetailComponent /> }></Route>
+              <Route path="hub/updateForm" element={ <HubUpdateFormComponent />}></Route>
+            </Routes>
           </div>
 
         <Footer />

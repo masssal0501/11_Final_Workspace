@@ -1,0 +1,27 @@
+#AI {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 40px;
+    padding: 13.5px 25.5px;
+    background-color: #0091FF;
+    color: white;
+    border: none;
+    font-size: large;
+}
+
+#AI:hover {
+    background-color: #0084e9;
+}
+
+.list-area {
+    box-sizing: border-box;
+    width: 100%;
+    border-bottom: 10px border black;
+}
+
+p {
+    font-size: x-large;
+}
+
+.list-area tr {
+    cursor: pointer;
+}
