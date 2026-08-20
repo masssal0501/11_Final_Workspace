@@ -1,24 +1,54 @@
-import '../styles/Footer.css';
+import "../styles/Footer.css";
 
-// 모든 페이지 하단에 들어갈 Footer 컴포넌트
 function Footer() {
+  return (
+    <footer className="wf-footer">
+      <div className="wf-footer-inner">
 
-    return (
-        <div>
-            <div className="footer-area">
-                <hr/>
-                <div id="footer_1">
-                    
-                </div>
-                <div id="footer_2">
-                    
-                </div>
-                <div id="footer_3">
-                    
-                </div>
-            </div>
+        {/* Footer Brand */}
+        <div className="wf-footer-brand">
+          <div className="wf-footer-logo">
+            <span>W</span>
+            <strong>WorkFlow</strong>
+          </div>
+
+          <p>
+            Work & Vacation Flow
+          </p>
         </div>
-    );
+
+        {/* Footer Links */}
+        <div className="wf-footer-links">
+
+          <a href="/terms">
+            이용약관
+          </a>
+
+          <a
+            href="/privacy"
+            className="important"
+          >
+            개인정보처리방침
+          </a>
+
+          <a href="/help">
+            고객센터
+          </a>
+
+          <a href="/faq">
+            자주 묻는 질문
+          </a>
+
+        </div>
+
+        {/* Copyright */}
+        <div className="wf-footer-copyright">
+          © 2026 WorkFlow. All rights reserved.
+        </div>
+
+      </div>
+    </footer>
+  );
 }
 
 export default Footer;

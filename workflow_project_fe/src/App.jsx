@@ -1,21 +1,32 @@
 import { useState } from 'react'
 import './App.css'
+import './common/styles/common.css'
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
-import LoginForm from './login/component/LoginForm';
-import FindIDForm from './login/component/FindIDForm';
-import FindPWForm from './login/component/FindPWForm';
+// import LoginForm from './login/component/LoginForm';
+// import FindIDForm from './login/component/FindIDForm';
+// import FindPWForm from './login/component/FindPWForm';
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
+// import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 
 function App() {
 
   const [loginUser, setLoginUser] = useState(sessionStorage.getItem("loginUser"));
 
-  if(loginUser != null) { // 권한으로 분기점 샏성해야함 (추후 "==" 으로 수정)
+  /* 헤더, 푸터 확인용, 추후 삭제 */
+  return( 
+    <div>
+      <Header/>
+      test
+      <Footer/>
+    </div>
+  )
+
+
+  if(loginUser == null) { // 권한으로 분기점 샏성해야함 (추후 "==" 으로 수정)
   
     return(
       <div className="content">
