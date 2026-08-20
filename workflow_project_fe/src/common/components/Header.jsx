@@ -1,53 +1,120 @@
-import { Link } from "react-router-dom";
-
+import { useState } from "react";
 import "../styles/Header.css";
 
-// 헤더를 나타내는 컴포넌트 - 모든 페이지 상단에 위치
-// (기존의 menubar.jsp 에 대응됨)
 function Header() {
+  const [activeMenu, setActiveMenu] = useState("dashboard");
 
-    // 실행할 구문
+  const menus = [
+    {
+      id: "dashboard",
+      label: "대시보드",
+      icon: "⌂",
+      path: "/",
+    },
+    {
+      id: "workcation",
+      label: "워케이션 신청",
+      icon: "▣",
+      path: "/workcation",
+    },
+    {
+      id: "task",
+      label: "업무 관리",
+      icon: "☷",
+      path: "/task",
+    },
+    {
+      id: "expense",
+      label: "비용 관리",
+      icon: "₩",
+      path: "/expense",
+    },
+    {
+      id: "leave",
+      label: "근태 관리",
+      icon: "▣",
+      path: "/attendance",
+    },
+    {
+      id: "notice",
+      label: "공지사항",
+      icon: "♢",
+      path: "/notice",
+    },
+    {
+      id: "place",
+      label: "장소/거점",
+      icon: "⌖",
+      path: "/place",
+    },
+  ];
 
-    // return 구문
-    return (
-        <div>
-            <h1 align="center">WorkFlow</h1>
+  const handleMenuClick = (menu) => {
+    setActiveMenu(menu.id);
+    // React Router를 사용한다면 navigate(menu.path) 사용
+  };
 
-            <br/><br/>
+  return (
+    <header className="wf-header">
+      <div className="wf-header-inner">
 
-            <div className="navi">
-                <div>
-                    <Link to="/">HOME</Link>
-                </div>
-                <div>
-                    <Link to="/placeInfo/list">여행지역/정보</Link>
-                </div>
-                <div>
-                    <Link to="/task/list">업무</Link>
-                </div>
-                <div>
-                    <Link to="/cost/list">비용/정산</Link>
-                </div>
-                <div>
-                    <Link to="/workcation/list">워케이션</Link>
-                </div>
-                <div>
-                    <Link to="/notice/list">공지사항</Link>
-                </div>
-            </div>
+        {/* Logo */}
+        <div className="wf-logo">
+          <div className="wf-logo-mark">
+            <span className="logo-w logo-w-blue">W</span>
+          </div>
+
+          <span className="wf-logo-text">WorkFlow</span>
         </div>
-    );
+
+        {/* Navigation */}
+        <nav className="wf-nav">
+          {menus.map((menu) => (
+            <button
+              key={menu.id}
+              className={`wf-nav-item ${
+                activeMenu === menu.id ? "active" : ""
+              }`}
+              onClick={() => handleMenuClick(menu)}
+            >
+              <span className="wf-nav-icon">{menu.icon}</span>
+              <span>{menu.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Header Right */}
+        <div className="wf-header-actions">
+
+          {/* Notification */}
+          <button className="wf-notification">
+            <span className="notification-icon">♧</span>
+            <span className="notification-badge">3</span>
+          </button>
+
+          {/* Profile */}
+          <button className="wf-profile">
+            <div className="wf-profile-image">
+              김
+            </div>
+
+            <div className="wf-profile-info">
+              <div className="wf-profile-name">
+                김민준 <span>사원</span>
+              </div>
+
+              <div className="wf-profile-department">
+                마케팅팀
+              </div>
+            </div>
+
+            <span className="wf-profile-arrow">⌄</span>
+          </button>
+
+        </div>
+      </div>
+    </header>
+  );
 }
 
-// 내보내기
 export default Header;
-
-/*
- *  * 브라우저 창에 보이는 URL 주소 VS 백엔드와 통신할 때 쓰이는 URL 주소
- *  - 브라우저 창에 보이는 URL 주소 : 예전에 쓴대로 도메인/기능 이런식으로 명시적으로 작성
- *                                  사용자 눈에 보이는 주소임
- *    예) /member/list, /member/detail/x, /member/enrollForm 등
- *  - 백엔드와 통신할 때 쓰이는 URL 주소 : REST API 형식으로 작성
- *                                       사용자 눈에 안보이는 주소임
- *    예) /members, /members/x 등
- */
