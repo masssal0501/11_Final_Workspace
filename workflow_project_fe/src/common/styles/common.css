@@ -1,0 +1,446 @@
+/* ========================================
+   WorkFlow Common CSS
+======================================== */
+
+:root {
+  /* Main Colors */
+  --wf-primary: #1769d5;
+  --wf-primary-dark: #0f4f9f;
+  --wf-primary-light: #eaf3ff;
+
+  /* Brand Colors */
+  --wf-blue: #2878e8;
+  --wf-green: #35b59c;
+  --wf-mint: #63c9ad;
+  --wf-purple: #8567e8;
+  --wf-orange: #f59b32;
+
+  /* Text */
+  --wf-text-primary: #142d50;
+  --wf-text-secondary: #52627a;
+  --wf-text-muted: #8793a4;
+
+  /* Background */
+  --wf-bg: #f6f9fc;
+  --wf-white: #ffffff;
+
+  /* Border */
+  --wf-border: #e5ebf2;
+
+  /* Status */
+  --wf-success: #23a978;
+  --wf-success-bg: #e7f8f1;
+
+  --wf-warning: #e99924;
+  --wf-warning-bg: #fff4df;
+
+  --wf-danger: #ed6262;
+  --wf-danger-bg: #fff0f0;
+
+  --wf-info: #3979dc;
+  --wf-info-bg: #eaf2ff;
+
+  /* Shadow */
+  --wf-shadow-sm:
+    0 2px 8px rgba(25, 55, 90, 0.05);
+
+  --wf-shadow:
+    0 6px 20px rgba(25, 55, 90, 0.07);
+
+  --wf-shadow-lg:
+    0 12px 30px rgba(25, 55, 90, 0.1);
+
+  /* Radius */
+  --wf-radius-sm: 8px;
+  --wf-radius: 12px;
+  --wf-radius-lg: 16px;
+  --wf-radius-xl: 20px;
+}
+
+
+/* ========================================
+   Reset
+======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+
+  background: var(--wf-bg);
+
+  color: var(--wf-text-primary);
+
+  font-family:
+    "Pretendard",
+    "Noto Sans KR",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+
+/* ========================================
+   App Layout
+======================================== */
+
+#root {
+  min-height: 100vh;
+}
+
+.wf-app {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.wf-main {
+  flex: 1;
+
+  width: 100%;
+}
+
+
+/* ========================================
+   Page Container
+======================================== */
+
+.wf-container {
+  width: 100%;
+  max-width: 1440px;
+
+  margin: 0 auto;
+
+  padding: 36px 40px;
+}
+
+
+/* ========================================
+   Page Header
+======================================== */
+
+.wf-page-header {
+  margin-bottom: 28px;
+}
+
+.wf-page-title {
+  margin: 0;
+
+  color: var(--wf-text-primary);
+
+  font-size: 28px;
+  font-weight: 800;
+
+  letter-spacing: -0.8px;
+}
+
+.wf-page-description {
+  margin: 7px 0 0;
+
+  color: var(--wf-text-muted);
+
+  font-size: 14px;
+}
+
+
+/* ========================================
+   Card
+======================================== */
+
+.wf-card {
+  background: var(--wf-white);
+
+  border: 1px solid rgba(228, 235, 243, 0.8);
+
+  border-radius: var(--wf-radius-lg);
+
+  box-shadow: var(--wf-shadow-sm);
+}
+
+.wf-card:hover {
+  box-shadow: var(--wf-shadow);
+}
+
+
+/* ========================================
+   Card Header
+======================================== */
+
+.wf-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 22px 24px 14px;
+}
+
+.wf-card-title {
+  margin: 0;
+
+  color: var(--wf-text-primary);
+
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.wf-card-more {
+  border: none;
+  background: transparent;
+
+  color: var(--wf-primary);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+/* ========================================
+   Grid
+======================================== */
+
+.wf-grid {
+  display: grid;
+
+  gap: 20px;
+}
+
+.wf-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.wf-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.wf-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+
+/* ========================================
+   Status Badge
+======================================== */
+
+.wf-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 54px;
+
+  padding: 4px 10px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.wf-badge-primary {
+  color: var(--wf-info);
+  background: var(--wf-info-bg);
+}
+
+.wf-badge-success {
+  color: var(--wf-success);
+  background: var(--wf-success-bg);
+}
+
+.wf-badge-warning {
+  color: var(--wf-warning);
+  background: var(--wf-warning-bg);
+}
+
+.wf-badge-danger {
+  color: var(--wf-danger);
+  background: var(--wf-danger-bg);
+}
+
+
+/* ========================================
+   Button
+======================================== */
+
+.wf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 42px;
+
+  padding: 0 18px;
+
+  border-radius: 9px;
+
+  border: 1px solid transparent;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.wf-btn:active {
+  transform: translateY(1px);
+}
+
+.wf-btn-primary {
+  color: #ffffff;
+  background: var(--wf-primary);
+}
+
+.wf-btn-primary:hover {
+  background: var(--wf-primary-dark);
+}
+
+.wf-btn-outline {
+  color: var(--wf-primary);
+  background: #ffffff;
+  border-color: #cbdcf2;
+}
+
+.wf-btn-outline:hover {
+  background: var(--wf-primary-light);
+}
+
+
+/* ========================================
+   Form
+======================================== */
+
+.wf-form-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  margin-bottom: 18px;
+}
+
+.wf-label {
+  color: var(--wf-text-primary);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wf-input,
+.wf-select,
+.wf-textarea {
+  width: 100%;
+
+  border: 1px solid #dce4ed;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: var(--wf-text-primary);
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.wf-input,
+.wf-select {
+  height: 44px;
+
+  padding: 0 13px;
+}
+
+.wf-textarea {
+  min-height: 120px;
+
+  padding: 12px 13px;
+
+  resize: vertical;
+}
+
+.wf-input:focus,
+.wf-select:focus,
+.wf-textarea:focus {
+  border-color: var(--wf-primary);
+
+  box-shadow:
+    0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+
+/* ========================================
+   Responsive
+======================================== */
+
+@media (max-width: 1200px) {
+
+  .wf-container {
+    padding: 32px 24px;
+  }
+
+  .wf-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wf-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+@media (max-width: 768px) {
+
+  .wf-container {
+    padding: 24px 18px;
+  }
+
+  .wf-grid-2,
+  .wf-grid-3,
+  .wf-grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .wf-page-title {
+    font-size: 24px;
+  }
+}
