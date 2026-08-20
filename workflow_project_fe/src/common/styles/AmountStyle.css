@@ -1,0 +1,176 @@
+/* 공통 컨테이너 */
+.amount-container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.amount-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #333333;
+}
+
+/* 테이블 스타일 */
+.amount-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.amount-table th,
+.amount-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* 테이블 헤더 - 사원용 / 관리자용 색상 분리 */
+.user-table-header th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+}
+
+.admin-table-header th {
+  background-color: #e8f4fe;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+/* 정렬 및 상태 표시 */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-R { background-color: #fff3cd; color: #856404; } /* 검토중 */
+.status-A { background-color: #d4edda; color: #155724; } /* 승인됨 */
+.status-J { background-color: #f8d7da; color: #721c24; } /* 반려됨 */
+.status-H { background-color: #e2e3e5; color: #383d41; } /* 보류됨 */
+.status-C { background-color: #e9ecef; color: #6c757d; } /* 취소됨 */
+
+/* 버튼 스타일 */
+.btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-right: 4px;
+}
+
+.btn-edit { background-color: #4caf50; color: white; }
+.btn-edit:hover { background-color: #45a049; }
+
+.btn-cancel { background-color: #f44336; color: white; }
+.btn-cancel:hover { background-color: #da190b; }
+
+.btn-approve { background-color: #2196f3; color: white; }
+.btn-approve:hover { background-color: #0b7dda; }
+
+.btn-reject { background-color: #ff9800; color: white; }
+.btn-reject:hover { background-color: #e68a00; }
+
+.btn-hold { background-color: #9e9e9e; color: white; }
+.btn-hold:hover { background-color: #757575; }
+
+.text-disabled {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+}
+
+/* AmountStyle.css 하단에 추가 */
+.detail-box {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 24px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.info-label {
+  width: 120px;
+  font-weight: bold;
+  color: #555;
+}
+
+.info-value {
+  flex: 1;
+  color: #333;
+}
+
+.comment-row {
+  flex-direction: column;
+}
+
+.info-comment {
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  white-space: pre-wrap;
+}
+
+.file-section {
+  display: flex;
+  align-items: flex-start;
+}
+
+.file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-item {
+  margin-bottom: 4px;
+}
+
+.file-link {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.file-link:hover {
+  color: #0056b3;
+}
+
+.no-file {
+  color: #888;
+  margin: 0;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: flex-end;
+}
