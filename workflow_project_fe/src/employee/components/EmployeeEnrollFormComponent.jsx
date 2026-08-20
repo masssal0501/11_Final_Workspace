@@ -10,11 +10,16 @@ function EmployeeEnrollFormComponent() {
         <div className="enrollForm">
             <h2>직원 등록</h2>
 
-            <table border={1}>
+            <table>
                 <tbody>
                     <tr>
                         <th>아이디</th>
-                        <td><input type="text" /><button type="button">중복확인</button></td>
+                        <td>
+                            <div className="idInputGroup">
+                                <input type="text" />
+                                <button type="button">중복확인</button>
+                            </div>
+                        </td>
                         <th>직책</th>
                         <td>
                             <select name="role" id="role">
@@ -25,8 +30,8 @@ function EmployeeEnrollFormComponent() {
                         </td>
                     </tr>
                     <tr>
-                        <th>사번</th>
-                        <td>자동생성</td>
+                        <th>이름</th>
+                        <td><input type="text" name="name" id="name" /></td>
                         <th>부서</th>
                         <td>
                             <select name="department" id="department">
@@ -40,8 +45,27 @@ function EmployeeEnrollFormComponent() {
                         </td>
                     </tr>
                     <tr>
-                        <th>이름</th>
-                        <td><input type="text" name="name" id="name" /></td>
+                        <th>연락처</th>
+                        <td>
+                            <input
+                                type="tel"
+                                className="tel"
+                                maxLength={3}
+                                onInput={handleNumberOnly}
+                            />&nbsp;-&nbsp;
+                            <input
+                                type="tel"
+                                className="tel"
+                                maxLength={4}
+                                onInput={handleNumberOnly}
+                            />&nbsp;-&nbsp;
+                            <input
+                                type="tel"
+                                className="tel"
+                                maxLength={4}
+                                onInput={handleNumberOnly}
+                            />
+                        </td>
                         <th>직위</th>
                         <td>
                             <select name="job" id="job">
@@ -51,29 +75,6 @@ function EmployeeEnrollFormComponent() {
                                 <option value="J4">차장</option>
                                 <option value="J5">부장</option>
                             </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>연락처</th>
-                        <td colSpan={3}>
-                            <input
-                                type="tel"
-                                className="tel"
-                                maxLength={3}
-                                onInput={handleNumberOnly}
-                            /> - 
-                            <input
-                                type="tel"
-                                className="tel"
-                                maxLength={4}
-                                onInput={handleNumberOnly}
-                            /> - 
-                            <input
-                                type="tel"
-                                className="tel"
-                                maxLength={4}
-                                onInput={handleNumberOnly}
-                            />
                         </td>
                     </tr>
                     <tr>

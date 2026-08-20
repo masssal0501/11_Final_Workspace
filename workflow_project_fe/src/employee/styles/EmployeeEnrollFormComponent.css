@@ -1,10 +1,514 @@
-/* 연락처 number Input 증감 버튼 미표시 */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* ========================================
+   WorkFlow Employee Enroll
+======================================== */
+
+.enrollForm {
+    width: 100%;
+    max-width: 1000px;
+
+    margin: 50px auto;
+    padding: 40px 45px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #e5ebf2;
+    border-radius: 20px;
+
+    box-shadow:
+        0 10px 30px rgba(25, 55, 90, 0.07);
+
+    color: #142d50;
 }
 
-input.tel{
-  width: 50px;
+
+/* ========================================
+   Title
+======================================== */
+
+.enrollForm h2 {
+    margin: 0 0 30px;
+
+    color: #142d50;
+
+    font-size: 26px;
+    font-weight: 800;
+
+    letter-spacing: -0.8px;
+}
+
+.enrollForm h2::before {
+    content: "";
+
+    display: inline-block;
+
+    width: 5px;
+    height: 24px;
+
+    margin-right: 10px;
+
+    vertical-align: -3px;
+
+    border-radius: 4px;
+
+    background: linear-gradient(
+        180deg,
+        #2878e8,
+        #35b59c
+    );
+}
+
+
+/* ========================================
+   Table
+======================================== */
+
+.enrollForm table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    border-top: 3px solid #18365f;
+
+    font-size: 14px;
+}
+
+
+/* ========================================
+   Table Header
+======================================== */
+
+.enrollForm th {
+    width: 13%;
+
+    padding: 17px 16px;
+
+    background: #f5f8fc;
+
+    border-right: 1px solid #e0e7ef;
+    border-bottom: 1px solid #e0e7ef;
+
+    color: #344a68;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+
+/* ========================================
+   Table Data
+======================================== */
+
+.enrollForm td {
+    padding: 12px 14px;
+
+    border-bottom: 1px solid #e0e7ef;
+
+    background: #ffffff;
+
+    color: #52627a;
+
+    line-height: 1.5;
+}
+
+
+/* ========================================
+   Input
+======================================== */
+
+.enrollForm input[type="text"],
+.enrollForm input[type="email"],
+.enrollForm input[type="tel"] {
+    height: 40px;
+
+    padding: 0 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dce4ed;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #142d50;
+
+    font-size: 13px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+/* Input Width */
+
+.enrollForm input[type="text"],
+.enrollForm input[type="email"] {
+    width: 100%;
+}
+
+
+/* ========================================
+   Input Focus
+======================================== */
+
+.enrollForm input[type="text"]:focus,
+.enrollForm input[type="email"]:focus,
+.enrollForm input[type="tel"]:focus {
+    border-color: #1769d5;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+
+/* ========================================
+   Telephone
+======================================== */
+
+.enrollForm .tel {
+    width: 85px;
+
+    text-align: center;
+}
+
+
+/* ========================================
+   Select
+======================================== */
+
+.enrollForm select {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 34px 0 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dce4ed;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+
+    color: #142d50;
+
+    font-size: 13px;
+
+    outline: none;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.enrollForm select:focus {
+    border-color: #1769d5;
+
+    box-shadow:
+        0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+
+/* ========================================
+   Auto Generated Employee Number
+======================================== */
+
+.enrollForm td:has(select),
+.enrollForm td {
+    vertical-align: middle;
+}
+
+
+/*
+ * "자동생성" 텍스트가 들어가는 영역을
+ * 조금 더 명확하게 표현
+ */
+.enrollForm td {
+    font-weight: 500;
+}
+
+
+/* ========================================
+   Duplicate Check Button
+======================================== */
+
+.enrollForm td button[type="button"] {
+    height: 40px;
+
+    margin-left: 8px;
+    padding: 0 13px;
+
+    border: 1px solid #cbdcf2;
+    border-radius: 8px;
+
+    background: #f4f8fd;
+
+    color: #1769d5;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.enrollForm td button[type="button"]:hover {
+    background: #eaf3ff;
+
+    border-color: #a9c8ed;
+}
+
+/* 중복확인버튼 줄바꿈 방지 */
+.idInputGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.idInputGroup input {
+    flex: 1;
+}
+
+.idInputGroup button {
+    flex-shrink: 0;
+}
+
+/* ========================================
+   Bottom Buttons
+======================================== */
+
+.enrollForm > button {
+    min-width: 110px;
+    height: 44px;
+
+    margin-top: 28px;
+    padding: 0 22px;
+
+    border-radius: 9px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.1s ease;
+}
+
+
+/* 돌아가기 */
+
+.enrollForm > button[type="button"] {
+    float: left;
+
+    border: 1px solid #d6e0eb;
+
+    background: #ffffff;
+
+    color: #52627a;
+}
+
+.enrollForm > button[type="button"]:hover {
+    background: #f5f8fc;
+
+    border-color: #c5d1df;
+}
+
+
+/* 계정 생성 */
+
+.enrollForm > button[type="submit"] {
+    float: right;
+
+    border: 1px solid #1769d5;
+
+    background: #1769d5;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 4px 10px rgba(23, 105, 213, 0.15);
+}
+
+.enrollForm > button[type="submit"]:hover {
+    background: #0f4f9f;
+
+    border-color: #0f4f9f;
+
+    box-shadow:
+        0 6px 15px rgba(23, 105, 213, 0.22);
+}
+
+.enrollForm > button:active {
+    transform: translateY(1px);
+}
+
+
+/*
+ * float 때문에 카드 높이가 무너지지 않도록
+ */
+.enrollForm::after {
+    content: "";
+
+    display: block;
+
+    clear: both;
+}
+
+
+/* ========================================
+   Placeholder
+======================================== */
+
+.enrollForm input::placeholder {
+    color: #a0aaba;
+}
+
+
+/* ========================================
+   Disabled
+======================================== */
+
+.enrollForm input:disabled,
+.enrollForm select:disabled {
+    background: #f5f7fa;
+
+    color: #8793a4;
+
+    cursor: not-allowed;
+}
+
+
+/* ========================================
+   Tablet
+======================================== */
+
+@media (max-width: 800px) {
+
+    .enrollForm {
+        margin: 30px 20px;
+        padding: 32px 25px;
+
+        max-width: none;
+    }
+
+    .enrollForm table {
+        font-size: 13px;
+    }
+
+    .enrollForm th {
+        width: 15%;
+
+        padding: 14px 8px;
+
+        font-size: 12px;
+    }
+
+    .enrollForm td {
+        padding: 10px 8px;
+    }
+
+    .enrollForm .tel {
+        width: 70px;
+    }
+}
+
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 600px) {
+
+    .enrollForm {
+        margin: 20px 12px;
+        padding: 28px 18px;
+
+        border-radius: 16px;
+    }
+
+    .enrollForm h2 {
+        margin-bottom: 22px;
+
+        font-size: 22px;
+    }
+
+    .enrollForm h2::before {
+        width: 4px;
+        height: 20px;
+    }
+
+    /*
+     * 모바일에서는 4열 테이블을
+     * 세로형으로 변경
+     */
+
+    .enrollForm table,
+    .enrollForm tbody,
+    .enrollForm tr,
+    .enrollForm th,
+    .enrollForm td {
+        display: block;
+        width: 100%;
+    }
+
+    .enrollForm tr {
+        margin-bottom: 15px;
+
+        border: 1px solid #e0e7ef;
+        border-radius: 8px;
+
+        overflow: hidden;
+    }
+
+    .enrollForm th {
+        padding: 10px 12px;
+
+        border-right: none;
+
+        background: #f5f8fc;
+
+        text-align: left;
+    }
+
+    .enrollForm td {
+        padding: 10px 12px;
+
+        border-bottom: none;
+    }
+
+    .enrollForm .tel {
+        width: 28%;
+    }
+
+    .enrollForm td button[type="button"] {
+        padding: 0 10px;
+    }
+
+    .enrollForm > button {
+        min-width: 0;
+
+        margin-top: 20px;
+        padding: 0 15px;
+    }
 }
