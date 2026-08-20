@@ -1,0 +1,30 @@
+th {
+    background-color: #EAEAEA;
+}
+
+table * {
+    text-align: center;
+    margin: auto;
+}
+
+tr:first-child{
+    border-top: 1px solid black;
+}
+
+tr {
+    border-bottom: 1px solid #bcbcbc;
+}
+
+.back {
+    background-color : black;
+    color : white;
+    border-radius : 20px;
+    padding : 3px 10px;
+    float: right;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

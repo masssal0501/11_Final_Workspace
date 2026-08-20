@@ -7,10 +7,11 @@ import LoginForm from './login/component/LoginForm';
 import FindIDForm from './login/component/FindIDForm';
 import FindPWForm from './login/component/FindPWForm';
 
-import HubListComponent from './hub/components/HubListComponent';
-import HubEnrollFormComponent from './hub/components/HubEnrollFormComponent';
-import HubDetailComponent from './hub/components/HubDetailComponent';
-import HubUpdateFormComponent from './hub/components/HubUpdateFormComponent';
+import HubListComponent from './placeinfo/components/HubListComponent';
+import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
+import HubDetailComponent from './placeinfo/components/HubDetailComponent';
+import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
+import AIComponent from './placeinfo/components/AIComponent';
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -43,10 +44,11 @@ function App() {
           <div className="content">
             로그인 성공
             <Routes>
-              <Route path="/hub/list" element={ <HubListComponent /> }></Route>
-              <Route path="/hub/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
-              <Route path="/hub/detail/:hubno" element={ <HubDetailComponent /> }></Route>
-              <Route path="hub/updateForm" element={ <HubUpdateFormComponent />}></Route>
+              <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
+              <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
+              <Route path="/placeInfo/detail/:hubno" element={ <HubDetailComponent /> }></Route>
+              <Route path="/placeInfo/updateForm" element={ <HubUpdateFormComponent />}></Route>
+              <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
             </Routes>
           </div>
         <Routes>

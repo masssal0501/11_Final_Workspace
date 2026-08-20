@@ -12,16 +12,10 @@
     background-color: #0084e9;
 }
 
-.list-area {
-    box-sizing: border-box;
-    width: 100%;
-    border-bottom: 10px border black;
-}
-
 p {
     font-size: x-large;
 }
 
-.list-area tr {
+.table tr {
     cursor: pointer;
 }
