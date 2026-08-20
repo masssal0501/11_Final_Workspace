@@ -22,6 +22,9 @@ function App() {
       <Header/>
       <Routes>
         <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />}></Route>
+        <Route path="/login" element={<LoginForm />}></Route>
+          <Route path="/login/findID" element={<FindIDForm />}></Route>
+          <Route path="/login/findPW" element={<FindPWForm />}></Route>
       </Routes>
       <Footer/>
     </div>
