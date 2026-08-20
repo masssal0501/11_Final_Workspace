@@ -103,6 +103,8 @@ page-btn:focus {
     border: none;
     height: 45px;
     width: 400px;
+    padding-left: 16px;
+    padding-right: 16px;
 }
 .search-input:focus{
     outline:none;   
@@ -127,6 +129,20 @@ page-btn:focus {
     transition: background-color 0.25s ease;
 }
 
+.insert-task{
+    border: none;
+    border-radius: 8px;
+    height: 45px;
+    padding: 0 12px 0 12px;
+}
+.insert-task:hover{
+    cursor: pointer;
+    color: white;
+    font-size: 17px;
+    background-color: #27C7B9;
+    transition: 0.3s;
+}
+
 
 .status-badge {
     /*진행도뱃지*/
@@ -146,7 +162,7 @@ page-btn:focus {
 .status-blue {background-color: rgb(31, 121, 255);}/*완료요청*/
 .status-green {background-color: rgb(1, 177, 39);}/*업무 완료*/
 
-#up-btn button {
+.up-btn button {
     /*수정삭제버튼*/
     margin: 3px;
 }
