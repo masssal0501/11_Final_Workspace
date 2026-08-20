@@ -101,7 +101,7 @@ function AIComponent() {
                 />
                 
                 {/* 전송 버튼 */}
-                <button type="submit" className="confirm" onClick={ Chatting >
+                <button type="submit" className="confirm" onClick={ Chatting }>
                     확인
                 </button>
             </form>
