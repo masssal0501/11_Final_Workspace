@@ -12,9 +12,12 @@ function PlaceList() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const searchKeyword = searchParams.get("keyword") || "";
+    const searchType = searchParams.get("type") || "";
+    const searchRegion = searchParams.get("region") || "";
     const cpage = parseInt(searchParams.get("cpage")) || 1;
 
     const [pageList, setPageList] = useState([]);
+
 
     useEffect(() => {
 
@@ -24,21 +27,25 @@ function PlaceList() {
             searchPlaceList();
         }
 
-    }, [cpage, searchKeyword]);
+    }, [cpage, searchKeyword, searchType, searchRegion]);
 
 
-    // 전체 지역 정보 목록 조회
+    // 장소 정보 목록 조회
     const selectPlaceList = async () => {
 
         try {
 
-            const response = await placeApi.getPlaceList(cpage);
+            const response = await placeApi.getPlaceList(
+                cpage,
+                searchType,
+                searchRegion
+            );
 
             handleResponse(response);
 
         } catch (error) {
 
-            console.log("지역 정보 목록 조회용 ajax 통신 실패");
+            console.log("장소 정보 목록 조회용 ajax 통신 실패");
 
         }
 
@@ -53,6 +60,36 @@ function PlaceList() {
     };
 
 
+    // 장소 유형 필터 변경
+    const handleTypeChange = (e) => {
+
+        const type = e.target.value;
+
+        setSearchParams({
+            cpage: 1,
+            keyword: searchKeyword,
+            type: type,
+            region: searchRegion
+        });
+
+    };
+
+
+    // 지역 필터 변경
+    const handleRegionChange = (e) => {
+
+        const region = e.target.value;
+
+        setSearchParams({
+            cpage: 1,
+            keyword: searchKeyword,
+            type: searchType,
+            region: region
+        });
+
+    };
+
+
     // 검색 버튼 클릭
     const handleClick = (e) => {
 
@@ -60,27 +97,31 @@ function PlaceList() {
 
         setSearchParams({
             cpage: 1,
-            keyword: keyword
+            keyword: keyword,
+            type: searchType,
+            region: searchRegion
         });
 
     };
 
 
-    // 지역 정보 검색
+    // 장소 정보 검색
     const searchPlaceList = async () => {
 
         try {
 
             const response = await placeApi.searchPlaceList(
                 cpage,
-                searchKeyword
+                searchKeyword,
+                searchType,
+                searchRegion
             );
 
             handleResponse(response);
 
         } catch (error) {
 
-            console.log("지역 정보 검색용 ajax 통신 실패");
+            console.log("장소 정보 검색용 ajax 통신 실패");
 
         }
 
@@ -125,7 +166,9 @@ function PlaceList() {
 
                         setSearchParams({
                             cpage: cpage - 1,
-                            keyword: searchKeyword
+                            keyword: searchKeyword,
+                            type: searchType,
+                            region: searchRegion
                         });
 
                     }}
@@ -165,7 +208,9 @@ function PlaceList() {
 
                             setSearchParams({
                                 cpage: p,
-                                keyword: searchKeyword
+                                keyword: searchKeyword,
+                                type: searchType,
+                                region: searchRegion
                             });
 
                         }}
@@ -202,7 +247,9 @@ function PlaceList() {
 
                         setSearchParams({
                             cpage: cpage + 1,
-                            keyword: searchKeyword
+                            keyword: searchKeyword,
+                            type: searchType,
+                            region: searchRegion
                         });
 
                     }}
@@ -229,8 +276,28 @@ function PlaceList() {
             {/* 검색 영역 */}
             <div className="place-search">
 
-                <select>
-                    <option>전체</option>
+
+                {/* 장소 유형 필터 */}
+                <select
+                    value={searchType}
+                    onChange={handleTypeChange}
+                >
+                    <option value="">전체</option>
+                    <option value="4">체험 프로그램</option>
+                    <option value="5">맛집</option>
+                    <option value="6">관광지</option>
+                </select>
+
+
+                {/* 지역 필터 */}
+                <select
+                    value={searchRegion}
+                    onChange={handleRegionChange}
+                >
+                    <option value="">전체</option>
+                    <option value="강원도">강원도</option>
+                    <option value="부산">부산</option>
+                    <option value="제주도">제주도</option>
                 </select>
 
 
@@ -238,7 +305,7 @@ function PlaceList() {
 
                     <input
                         type="text"
-                        placeholder="지역명을 입력해주세요"
+                        placeholder="장소명을 입력해주세요"
                         value={keyword}
                         onChange={handleChange}
                     />
@@ -260,7 +327,7 @@ function PlaceList() {
             <hr />
 
 
-            {/* 지역 정보 목록 */}
+            {/* 장소 정보 목록 */}
             <div>
 
                 {placeList.map((place) => (
