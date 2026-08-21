@@ -49,5 +49,7 @@ public class Place {
 	@Column(name="HUB_TYPE", nullable=false)
 	private int hubType;
 	
+	@Column(name="STATUS", columnDefinition="CHAR(1) DEFAULT 'Y'")
+	private String status;	
 
 }

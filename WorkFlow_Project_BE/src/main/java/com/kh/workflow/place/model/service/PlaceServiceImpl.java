@@ -2,33 +2,46 @@ package com.kh.workflow.place.model.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.kh.workflow.place.model.dao.PlaceDao;
 import com.kh.workflow.place.model.vo.Place;
+
 
 public class PlaceServiceImpl implements PlaceService {
 
+	@Autowired
+	private PlaceDao placeDao;
+	
+	@Transactional(readOnly=true)
 	@Override
 	public List<Place> selectPlaceList() {
-		return null;
+		return placeDao.findByStatusOrderByHubNoDesc("Y");
 	}
 
+	@Transactional(readOnly=true)
 	@Override
 	public Place selectPlace(int hubNo) {
-		return null;
+		return placeDao.findByHubNoAndStatus(hubNo, "Y");
 	}
 
+	@Transactional
 	@Override
 	public Place insertPlace(Place p) {
-		return null;
+		return placeDao.save(p);
 	}
 
+	@Transactional
 	@Override
 	public Place updatePlace(Place p) {
-		return null;
+		return placeDao.save(p);
 	}
 
+	@Transactional
 	@Override
 	public int deletePlace(int hubNo) {
-		return 0;
+		return placeDao.deletePlace(hubNo);
 	}
 
 }
