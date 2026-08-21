@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { programApi } from "../../api/programApi";
-import WorkcationProgramItem from "./WorkcationProgramItem";
+import { placeApi } from "../../api/placeApi";
+import PlaceItem from "./PlaceItem";
 
-function WorkcationProgramList() {
+function PlaceList() {
 
-    const [programList, setProgramList] = useState([]);
+    const [placeList, setPlaceList] = useState([]);
     const [keyword, setKeyword] = useState("");
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -19,26 +19,26 @@ function WorkcationProgramList() {
     useEffect(() => {
 
         if (searchKeyword === "") {
-            selectProgramList();
+            selectPlaceList();
         } else {
-            searchProgramList();
+            searchPlaceList();
         }
 
     }, [cpage, searchKeyword]);
 
 
-    // 전체 체험프로그램 목록 조회
-    const selectProgramList = async () => {
+    // 전체 지역 정보 목록 조회
+    const selectPlaceList = async () => {
 
         try {
 
-            const response = await programApi.getProgramList(cpage);
+            const response = await placeApi.getPlaceList(cpage);
 
             handleResponse(response);
 
         } catch (error) {
 
-            console.log("체험 프로그램 목록 조회용 ajax 통신 실패");
+            console.log("지역 정보 목록 조회용 ajax 통신 실패");
 
         }
 
@@ -66,12 +66,12 @@ function WorkcationProgramList() {
     };
 
 
-    // 체험프로그램 검색
-    const searchProgramList = async () => {
+    // 지역 정보 검색
+    const searchPlaceList = async () => {
 
         try {
 
-            const response = await programApi.searchProgramList(
+            const response = await placeApi.searchPlaceList(
                 cpage,
                 searchKeyword
             );
@@ -80,7 +80,7 @@ function WorkcationProgramList() {
 
         } catch (error) {
 
-            console.log("체험 프로그램 검색용 ajax 통신 실패");
+            console.log("지역 정보 검색용 ajax 통신 실패");
 
         }
 
@@ -92,8 +92,8 @@ function WorkcationProgramList() {
 
         const item = response.list;
 
-        // DB에서 받아온 데이터를 programList에 저장
-        setProgramList(item);
+        // DB에서 받아온 데이터를 placeList에 저장
+        setPlaceList(item);
 
 
         // 페이징 정보
@@ -221,13 +221,13 @@ function WorkcationProgramList() {
 
     return (
 
-        <div className="program-list">
+        <div className="place-list">
 
-            <h2>체험프로그램 목록</h2>
+            <h2>지역 정보 목록</h2>
 
 
             {/* 검색 영역 */}
-            <div className="program-search">
+            <div className="place-search">
 
                 <select>
                     <option>전체</option>
@@ -238,7 +238,7 @@ function WorkcationProgramList() {
 
                     <input
                         type="text"
-                        placeholder="체험프로그램 이름을 입력해주세요"
+                        placeholder="지역명을 입력해주세요"
                         value={keyword}
                         onChange={handleChange}
                     />
@@ -260,14 +260,14 @@ function WorkcationProgramList() {
             <hr />
 
 
-            {/* 체험프로그램 목록 */}
+            {/* 지역 정보 목록 */}
             <div>
 
-                {programList.map((program) => (
+                {placeList.map((place) => (
 
-                    <WorkcationProgramItem
-                        key={program.hubNo}
-                        item={program}
+                    <PlaceItem
+                        key={place.hubNo}
+                        item={place}
                     />
 
                 ))}
@@ -288,4 +288,4 @@ function WorkcationProgramList() {
 
 }
 
-export default WorkcationProgramList;
+export default PlaceList;

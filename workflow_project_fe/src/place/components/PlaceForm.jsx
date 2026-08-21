@@ -1,26 +1,26 @@
 import { useNavigate } from "react-router-dom";
 
-function WorkcationProgramForm() {
+function PlaceForm() {
 
     const navigate = useNavigate();
 
     return (
         <div>
-            <h2>체험 프로그램 등록</h2>
+            <h2>지역 정보 등록</h2>
 
             <hr />
 
             <form>
                 <div>
-                    <h4>프로그램명 :</h4>
+                    <h4>지역명 :</h4>
                     <input
                         type="text"
-                        name="programName"
-                        id="programName"
-                        placeholder="프로그램명을 입력해주세요."
+                        name="hubName"
+                        id="hubName"
+                        placeholder="지역명을 입력해주세요."
                     />
 
-                    <h4>위치 :</h4>
+                    <h4>주소 :</h4>
                     <input
                         type="text"
                         name="hubAddress"
@@ -36,11 +36,11 @@ function WorkcationProgramForm() {
                         placeholder="전화번호를 입력해주세요."
                     />
 
-                    <h4>프로그램 설명 :</h4>
+                    <h4>지역 설명 :</h4>
                     <textarea
                         name="description"
                         id="description"
-                        placeholder="프로그램 설명을 입력해주세요."
+                        placeholder="지역 설명을 입력해주세요."
                     />
                 </div>
             </form>
@@ -54,4 +54,4 @@ function WorkcationProgramForm() {
     );
 }
 
-export default WorkcationProgramForm;
+export default PlaceForm;

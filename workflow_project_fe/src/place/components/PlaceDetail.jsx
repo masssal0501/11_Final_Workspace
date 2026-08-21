@@ -1,65 +1,65 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { programApi } from "../../api/programApi";
+import { placeApi } from "../../api/placeApi";
 
-function WorkcationProgramDetail() {
+function PlaceDetail() {
 
     const { hubNo } = useParams();
 
     const navigate = useNavigate();
 
-    const [program, setProgram] = useState(null);
+    const [place, setPlace] = useState(null);
 
     // 관리자 여부 확인
     const role = localStorage.getItem("role");
     const isAdmin = role === "ADMIN";
 
     useEffect(() => {
-        selectProgramDetail();
+        selectPlaceDetail();
     }, [hubNo]);
 
-    const selectProgramDetail = async () => {
+    const selectPlaceDetail = async () => {
 
         try {
-            const response = await programApi.getProgramDetail(hubNo);
-            setProgram(response);
+            const response = await placeApi.getPlaceDetail(hubNo);
+            setPlace(response);
         } catch (error) {
-            console.log("체험 프로그램 상세조회 실패");
+            console.log("지역 정보 상세조회 실패");
         }
     };
 
-    if (!program) {
+    if (!place) {
         return <div>로딩중...</div>;
     }
 
     return (
         <div>
-            <h2>체험 프로그램 상세조회</h2>
+            <h2>지역 정보 상세조회</h2>
 
             <hr />
 
             <div>
 
-                <div className="program-info">
+                <div className="place-info">
 
                     <p>
-                        {program.programName}
+                        {place.hubName}
                     </p>
 
                     <p>
-                        <h4>위치 : </h4>
-                        {program.hubAddress}
+                        <h4>주소 : </h4>
+                        {place.hubAddress}
                     </p>
 
                     <p>
                         <h4>전화번호 : </h4>
-                        {program.phone}
+                        {place.phone}
                     </p>
 
                     <p>
-                        <h4>프로그램 설명 : </h4>
-                        {program.description}
+                        <h4>지역 설명 : </h4>
+                        {place.description}
                     </p>
 
                 </div>
@@ -71,7 +71,7 @@ function WorkcationProgramDetail() {
                 {/* 관리자에게만 수정하기 버튼 표시 */}
                 {isAdmin && (
                     <button
-                        onClick={() => navigate(`/workcation/program/${hubNo}/edit`)}
+                        onClick={() => navigate(`/place/${hubNo}/edit`)}
                     >
                         수정하기
                     </button>
@@ -87,4 +87,4 @@ function WorkcationProgramDetail() {
     );
 }
 
-export default WorkcationProgramDetail;
+export default PlaceDetail;

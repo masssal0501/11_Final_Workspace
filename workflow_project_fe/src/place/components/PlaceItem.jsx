@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-function WorkcationProgramItem(props) {
+function PlaceItem(props) {
 
     const navigate = useNavigate();
 
@@ -9,7 +9,7 @@ function WorkcationProgramItem(props) {
     return (
         <div
             onClick={() => {
-                navigate(`/workcation/program/detail/${item.hubNo}`);
+                navigate(`/place/detail/${item.hubNo}`);
             }}
         >
             <div>{item.hubNo}</div>
@@ -21,4 +21,4 @@ function WorkcationProgramItem(props) {
     );
 }
 
-export default WorkcationProgramItem;
+export default PlaceItem;

@@ -2,10 +2,10 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8080/api/TRV-004/place';
 
-export const programApi = {
+export const placeApi = {
 
-    // 체험프로그램 목록 조회
-    getProgramList: async (cpage) => {
+    // 지역 정보 목록 조회
+    getPlaceList: async (cpage) => {
 
         const response = await axios.get(BASE_URL, {
             params: {
@@ -17,8 +17,8 @@ export const programApi = {
     },
 
 
-    // 체험프로그램 검색
-    searchProgramList: async (cpage, keyword) => {
+    // 지역 정보 검색
+    searchPlaceList: async (cpage, keyword) => {
 
         const response = await axios.get(`${BASE_URL}/search`, {
             params: {
@@ -31,8 +31,8 @@ export const programApi = {
     },
 
 
-    // 체험프로그램 상세 조회
-    getProgramDetail: async (hubNo) => {
+    // 지역 정보 상세 조회
+    getPlaceDetail: async (hubNo) => {
 
         const response = await axios.get(`${BASE_URL}/${hubNo}`);
 
