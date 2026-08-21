@@ -4,13 +4,16 @@ import './common/styles/common.css'
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
-import LoginForm from './login/component/LoginForm';
-import FindIDForm from './login/component/FindIDForm';
-import FindPWForm from './login/component/FindPWForm';
+import LoginForm from './employee/components/LoginForm';
+import FindIDForm from './employee/components/FindIDForm';
+import FindPWForm from './employee/components/FindPWForm';
+import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
+
+import ChangePWForm from './employee/components/ChangePWForm';
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
+
 
 function App() {
 
@@ -25,6 +28,7 @@ function App() {
         <Route path="/login" element={<LoginForm />}></Route>
           <Route path="/login/findID" element={<FindIDForm />}></Route>
           <Route path="/login/findPW" element={<FindPWForm />}></Route>
+          <Route path="/changePW" element={<ChangePWForm />}></Route>
       </Routes>
       <Footer/>
     </div>
@@ -53,6 +57,7 @@ function App() {
 
         <Routes>
           <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />}></Route>
+          <Route path="/changePW" element={<ChangePWForm />}></Route>
         </Routes>
 
         <Footer />

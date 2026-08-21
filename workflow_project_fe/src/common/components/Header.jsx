@@ -1,16 +1,43 @@
 import { useState } from "react";
 import "../styles/Header.css";
+import { Link, useNavigate } from "react-router-dom";
+import { logout } from "../../employee/api/employeeApi";
 
 function Header() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
+  const navigate = useNavigate();
+
+    const handleLogout = async () => {
+
+        try {
+
+            await logout();
+
+        } catch (error) {
+
+            console.error(
+                "로그아웃 API 실패:",
+                error
+            );
+
+        } finally {
+
+            // JWT 삭제
+            localStorage.removeItem(
+                "accessToken"
+            );
+
+            // 사용자 정보 삭제
+            localStorage.removeItem(
+                "user"
+            );
+
+            navigate("/login");
+        }
+    };
+
   const menus = [
-    {
-      id: "dashboard",
-      label: "대시보드",
-      icon: "⌂",
-      path: "/",
-    },
     {
       id: "workcation",
       label: "워케이션 신청",
@@ -24,16 +51,10 @@ function Header() {
       path: "/task",
     },
     {
-      id: "expense",
+      id: "amount",
       label: "비용 관리",
       icon: "₩",
-      path: "/expense",
-    },
-    {
-      id: "leave",
-      label: "근태 관리",
-      icon: "▣",
-      path: "/attendance",
+      path: "/amount",
     },
     {
       id: "notice",
@@ -42,10 +63,10 @@ function Header() {
       path: "/notice",
     },
     {
-      id: "place",
+      id: "hub",
       label: "장소/거점",
       icon: "⌖",
-      path: "/place",
+      path: "/hub",
     },
   ];
 
@@ -60,10 +81,11 @@ function Header() {
 
         {/* Logo */}
         <div className="wf-logo">
-          <div className="wf-logo-mark">
-            <span className="logo-w logo-w-blue">W</span>
-          </div>
-
+          <Link to="/">
+            <div className="wf-logo-mark">
+              <span className="logo-w logo-w-blue">W</span>
+            </div>
+          </Link>
           <span className="wf-logo-text">WorkFlow</span>
         </div>
 
@@ -87,10 +109,10 @@ function Header() {
         <div className="wf-header-actions">
 
           {/* Notification */}
-          <button className="wf-notification">
+          {/* <button className="wf-notification">
             <span className="notification-icon">♧</span>
             <span className="notification-badge">3</span>
-          </button>
+          </button> */}
 
           {/* Profile */}
           <button className="wf-profile">

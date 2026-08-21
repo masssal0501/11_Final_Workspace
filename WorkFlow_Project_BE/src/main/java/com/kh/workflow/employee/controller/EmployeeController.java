@@ -18,6 +18,8 @@ import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.LoginRequest;
+import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.service.EmployeeService;
 
 import lombok.RequiredArgsConstructor;
@@ -57,14 +59,20 @@ public class EmployeeController {
 
     // USR-002
     @PostMapping("/login")
-    public ResponseEntity<EmployeeResponse> login(
-            @RequestParam String empId,
-            @RequestParam String empPwd
+    public ResponseEntity<LoginResponse> login(
+    		@RequestBody LoginRequest request
     ) {
+    	
+    	LoginResponse response = employeeService.login(request);
 
-        return ResponseEntity.ok(
-                employeeService.login(empId, empPwd)
-        );
+        return ResponseEntity.ok(response);
+    }
+    
+    // USR-003
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+
+        return ResponseEntity.ok().build();
     }
 
 

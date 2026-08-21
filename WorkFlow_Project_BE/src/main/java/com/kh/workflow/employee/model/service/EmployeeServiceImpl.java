@@ -7,11 +7,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.workflow.config.jwt.JwtUtil;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.LoginRequest;
+import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.mail.MailService;
 
@@ -31,6 +34,8 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     private final MailService mailService;
 	
+    private final JwtUtil jwtUtil;
+    
     // =========================================================
     // USR-001
     // 계정 등록
@@ -217,13 +222,10 @@ public class EmployeeServiceImpl implements EmployeeService{
     // =========================================================
 
     @Override
-    public EmployeeResponse login(
-            String empId,
-            String empPwd
-    ) {
+    public LoginResponse login(LoginRequest request) {
 
         Employee employee =
-        		employeeDao.findByEmpId(empId)
+        		employeeDao.findByEmpId(request.getEmpId())
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "아이디 또는 비밀번호가 올바르지 않습니다."
@@ -242,7 +244,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(
-                empPwd,
+        		request.getPassword(),
                 employee.getEmpPwd()
         )) {
 
@@ -252,7 +254,22 @@ public class EmployeeServiceImpl implements EmployeeService{
         }
 
 
-        return convertToResponse(employee);
+        // JWT 생성
+        String accessToken = jwtUtil.generateToken(
+                employee.getEmpId(),
+                employee.getAuthCode(),
+                employee.getEmpNo()
+        );
+
+        return new LoginResponse(
+                accessToken,
+                employee.getEmpNo(),
+                employee.getEmpId(),
+                employee.getEmpName(),
+                employee.getAuthCode(),
+                employee.getDepId(),
+                employee.getJobCode()
+        );
     }
 
 

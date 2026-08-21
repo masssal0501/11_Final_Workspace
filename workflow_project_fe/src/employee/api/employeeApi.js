@@ -35,15 +35,31 @@ export const checkEmpIdDuplicate = async (empId) => {
  * USR-002
  * 사용자 로그인
  */
-export const loginEmployee = async (empId, empPwd) => {
+export const login = async (loginData) => {
 
     const response = await axiosInstance.post(
         "/employees/login",
-        null,
+        loginData
+    );
+
+    return response.data;
+};
+
+/*
+ * USR-003
+ * 사용자 로그아웃
+ */
+export const logout = async () => {
+
+    const token =
+        localStorage.getItem("accessToken");
+
+    const response = await axiosInstance.post(
+        "/employees/logout",
+        {},
         {
-            params: {
-                empId,
-                empPwd,
+            headers: {
+                Authorization: `Bearer ${token}`,
             },
         }
     );
@@ -51,6 +67,27 @@ export const loginEmployee = async (empId, empPwd) => {
     return response.data;
 };
 
+/*
+ * USR-004
+ * 비밀번호 재설정
+ */
+export const changePassword = async () => {
+
+    const token =
+        localStorage.getItem("accessToken");
+
+    const response = await axiosInstance.post(
+        `${API_BASE_URL}/employees/password`,
+        data,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    return response.data;
+};
 
 /*
  * USR-005

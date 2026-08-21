@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +12,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.kh.workflow.config.jwt.JwtAuthenticationFilter;
+
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -22,24 +28,85 @@ public class SecurityConfig {
     }
 
     // Spring Security 설정
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(
+//            HttpSecurity http
+//    ) throws Exception {
+//
+//        http
+//            // CORS 활성화
+//            .cors(cors -> {})
+//
+//            // CSRF 비활성화
+//            .csrf(csrf -> csrf.disable())
+//
+//            // 현재는 모든 요청 허용
+//            .authorizeHttpRequests(auth ->
+//                auth.anyRequest().permitAll()
+//            );
+//
+//        return http.build();
+//    }
+    
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter
     ) throws Exception {
 
-        http
-            // CORS 활성화
-            .cors(cors -> {})
+        return http
 
-            // CSRF 비활성화
-            .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
 
-            // 현재는 모든 요청 허용
-            .authorizeHttpRequests(auth ->
-                auth.anyRequest().permitAll()
-            );
+                .csrf(csrf -> csrf.disable())
 
-        return http.build();
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // CORS Preflight
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        // 로그인
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/employees/login"
+                        ).permitAll()
+                        
+                        // 로그아웃
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/logout"
+                    	).authenticated()
+
+                        // 아이디 중복 확인
+                        .requestMatchers(
+                                "/employees/checkId"
+                        ).permitAll()
+
+                        // 직원 등록
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/employees"
+                        ).permitAll()
+
+                        // 나머지는 JWT 필요
+                        .anyRequest().authenticated()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                .build();
     }
 
     // CORS 설정
