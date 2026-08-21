@@ -12,7 +12,5 @@ public class EmployeeCreateResponse {
 	private String empId;
 	
 	private String empName;
-	
-	private String email;
 
 }

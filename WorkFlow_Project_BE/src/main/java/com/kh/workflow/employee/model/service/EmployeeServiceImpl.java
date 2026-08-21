@@ -38,6 +38,90 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
+    public EmployeeCreateResponse createEmployee(EmployeeCreateRequest request) {
+
+    	// 사번(로그인 아이디) 중복 확인
+        if (employeeDao.existsByEmpId(
+                request.getEmpId()
+        )) {
+
+            throw new IllegalArgumentException(
+                    "이미 등록된 사번입니다."
+            );
+        }
+
+
+        // 이메일 중복 확인
+        if (request.getEmail() != null
+                && employeeDao.existsByEmail(
+                        request.getEmail()
+                )) {
+
+            throw new IllegalArgumentException(
+                    "이미 등록된 이메일입니다."
+            );
+        }
+
+
+        // 임시 비밀번호 생성
+        String temporaryPassword =
+                passwordGenerator.generate(10);
+
+
+        // BCrypt 암호화
+        String encodedPassword =
+                passwordEncoder.encode(
+                        temporaryPassword
+                );
+    	
+        // 1. Request DTO → Entity
+        Employee employee = new Employee();
+
+        employee.setEmpId(request.getEmpId());
+        employee.setEmpPwd(encodedPassword);
+        employee.setEmpName(request.getEmpName());
+        employee.setPhone(request.getPhone());
+        employee.setEmail(request.getEmail());
+        employee.setAddress(request.getAddress());
+        employee.setDepId(request.getDepId());
+        employee.setAuthCode(request.getAuthCode());
+        employee.setJobCode(request.getJobCode());
+
+        // 2. 디버깅
+        System.out.println("===== 직원 등록 데이터 =====");
+        System.out.println("empId    : " + employee.getEmpId());
+        System.out.println("empName  : " + employee.getEmpName());
+        System.out.println("depId    : " + employee.getDepId());
+        System.out.println("authCode : " + employee.getAuthCode());
+        System.out.println("jobCode  : " + employee.getJobCode());
+        System.out.println("password  : " + temporaryPassword);
+        System.out.println("===========================");
+
+        // 3. Entity 저장
+        Employee savedEmployee = employeeDao.save(employee);
+
+        // 임시 비밀번호 이메일 발송
+        if (savedEmployee.getEmail() != null) {
+
+            mailService.sendTemporaryPassword(
+                    savedEmployee.getEmail(),
+                    savedEmployee.getEmpName(),
+                    savedEmployee.getEmpId(),
+                    temporaryPassword
+            );
+        }
+        
+        // 4. Response DTO 반환
+        return new EmployeeCreateResponse(
+                savedEmployee.getEmpNo(),
+                savedEmployee.getEmpId(),
+                savedEmployee.getEmpName()
+        );
+    }
+    
+    /*
+    @Override
+    @Transactional
     public EmployeeCreateResponse createEmployee(
             EmployeeCreateRequest request
     ) {
@@ -93,6 +177,13 @@ public class EmployeeServiceImpl implements EmployeeService{
                         .jobCode(request.getJobCode())
                         .build();
 
+        System.out.println("===== 직원 등록 데이터 =====");
+        System.out.println("empId    : " + employee.getEmpId());
+        System.out.println("empName  : " + employee.getEmpName());
+        System.out.println("depId    : " + employee.getDepId());
+        System.out.println("authCode : " + employee.getAuthCode());
+        System.out.println("jobCode  : " + employee.getJobCode());
+        System.out.println("===========================");
 
         // DB 저장
         Employee savedEmployee =
@@ -109,15 +200,9 @@ public class EmployeeServiceImpl implements EmployeeService{
                     temporaryPassword
             );
         }
-
-
-        return new EmployeeCreateResponse(
-                savedEmployee.getEmpNo(),
-                savedEmployee.getEmpId(),
-                savedEmployee.getEmpName(),
-                savedEmployee.getEmail()
-        );
     }
+    
+    */
     
     @Override
     public boolean checkEmpIdDuplicate (String empId) {

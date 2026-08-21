@@ -137,7 +137,7 @@ function EmployeeEnrollFormComponent() {
         try {
 
             const result =
-                await createEmployee(form);
+                await createEmployee(submitData);
 
             console.log(
                 "계정 생성 성공:",
@@ -183,9 +183,10 @@ function EmployeeEnrollFormComponent() {
                             <th>직책</th>
                             <td>
                                 <select name="authCode" value={form.authCode} onChange={handleChange}>
-                                    <option value="staff">평사원</option>
-                                    <option value="manager">부서장</option>
-                                    <option value="admin">관리자</option>
+                                    <option value="" disabled hidden selected>선택</option>
+                                    <option value="STAFF">평사원</option>
+                                    <option value="MANAGER">부서장</option>
+                                    <option value="ADMIN">관리자</option>
                                 </select>
                             </td>
                         </tr>
@@ -195,6 +196,7 @@ function EmployeeEnrollFormComponent() {
                             <th>부서</th>
                             <td>
                                 <select name="depId" value={form.depId} onChange={handleChange}>
+                                    <option value="" disabled hidden selected>선택</option>
                                     <option value="D1">기획</option>
                                     <option value="D2">디자인</option>
                                     <option value="D3">FE 개발</option>
@@ -235,6 +237,7 @@ function EmployeeEnrollFormComponent() {
                             <th>직위</th>
                             <td>
                                 <select name="jobCode" id="jobCode" value={form.jobCode} onChange={handleChange}>
+                                    <option value="" disabled hidden selected>선택</option>
                                     <option value="J1">사원</option>
                                     <option value="J2">대리</option>
                                     <option value="J3">과장</option>

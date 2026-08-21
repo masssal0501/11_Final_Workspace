@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,69 +14,47 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
-	
-	// BCryptPasswordEncoder 를 빈으로 등록해주는 메소드
+
+    // 비밀번호 암호화
     @Bean
     public PasswordEncoder passwordEncoder() {
-
         return new BCryptPasswordEncoder();
     }
-	
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-		
-		return http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-				   .csrf(csrf -> csrf.disable())
-				   .build();
-	}
-    
-    /*
-	@Bean
-	public SecurityFilterChain securityFilterChain(
-	        HttpSecurity http
-	) throws Exception {
 
-	    http
-        .cors(cors -> {})
+    // Spring Security 설정
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
-        .csrf(csrf -> csrf.disable())
+        http
+            // CORS 활성화
+            .cors(cors -> {})
 
-        .authorizeHttpRequests(auth -> auth
+            // CSRF 비활성화
+            .csrf(csrf -> csrf.disable())
 
-            // CORS Preflight
-            .requestMatchers(HttpMethod.OPTIONS, "/**")
-            .permitAll()
+            // 현재는 모든 요청 허용
+            .authorizeHttpRequests(auth ->
+                auth.anyRequest().permitAll()
+            );
 
-            // 로그인
-            .requestMatchers("/employees/login")
-            .permitAll()
+        return http.build();
+    }
 
-            // 아이디 중복 확인
-            .requestMatchers("/employees/checkId")
-            .permitAll()
-
-            // 계정 등록
-            .requestMatchers(HttpMethod.POST, "/employees")
-            .permitAll() // 추후 권한 설정
-
-            .anyRequest()
-            .authenticated()
-        );
-
-	    return http.build();
-	}
-	*/
-	
-	@Bean
+    // CORS 설정
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
+        // React 개발 서버
         configuration.setAllowedOrigins(
                 List.of("http://localhost:5173")
         );
 
+        // 허용 HTTP Method
         configuration.setAllowedMethods(
                 List.of(
                         "GET",
@@ -89,10 +66,12 @@ public class SecurityConfig {
                 )
         );
 
+        // 허용 Header
         configuration.setAllowedHeaders(
                 List.of("*")
         );
 
+        // 쿠키/인증정보 허용
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
@@ -105,6 +84,4 @@ public class SecurityConfig {
 
         return source;
     }
-	
-	
 }
