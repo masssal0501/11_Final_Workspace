@@ -100,6 +100,8 @@ function ChangePWForm() {
                     <input
                         type="password"
                         placeholder="현재 비밀번호를 입력하세요"
+                        value={form.currentPassword}
+                        onChange={handleChange}
                     />
                 </div>
 
@@ -109,6 +111,8 @@ function ChangePWForm() {
                     <input
                         type="password"
                         placeholder="변경할 비밀번호를 입력하세요"
+                        value={form.newPassword}
+                        onChange={handleChange}
                     />
                 </div>
 
@@ -118,11 +122,13 @@ function ChangePWForm() {
                     <input
                         type="password"
                         placeholder="변경할 비밀번호를 다시 입력하세요"
+                        value={form.confirmPassword}
+                        onChange={handleChange}
                     />
                 </div>
 
                 {/* action */}
-                <button type="button">
+                <button type="button" onClick={handleSubmit}>
                     비밀번호 재설정
                 </button>
 

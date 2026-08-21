@@ -96,6 +96,10 @@ public class SecurityConfig {
                                 HttpMethod.POST,
                                 "/employees"
                         ).permitAll()
+                        
+                        .requestMatchers(
+                            "/employees/password"
+                        ).authenticated()
 
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()

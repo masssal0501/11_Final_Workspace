@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.workflow.config.jwt.JwtUtil;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
@@ -300,47 +301,86 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
-    public void resetPassword(
-            Integer empNo
+    public void changePassword(
+    		String empId, ChangePasswordRequest request
     ) {
 
         Employee employee =
-        		employeeDao.findById(empNo)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 사용자입니다."
-                                )
-                        );
-
-
-        // 새로운 임시 비밀번호 생성
-        String temporaryPassword =
-                passwordGenerator.generate(10);
-
-
-        // BCrypt 암호화
-        String encodedPassword =
-                passwordEncoder.encode(
-                        temporaryPassword
+                employeeDao.findByEmpId(empId)
+                .orElseThrow(() ->
+                    new IllegalArgumentException(
+                        "사용자를 찾을 수 없습니다."
+                    )
                 );
 
+        // 현재 비밀번호 검증
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                employee.getEmpPwd()
+        )) {
+
+            throw new IllegalArgumentException(
+                "현재 비밀번호가 일치하지 않습니다."
+            );
+        }
+
+        // 새 비밀번호 암호화
+        String encodedPassword =
+                passwordEncoder.encode(
+                    request.getNewPassword()
+                );
 
         employee.setEmpPwd(encodedPassword);
 
-        employee.setPwChgRequired(true);
+        // 비밀번호 변경 필요 상태 해제
+        employee.setPwChgRequired(false);
 
-
-        // 이메일 발송
-        if (employee.getEmail() != null) {
-
-            mailService.sendTemporaryPassword(
-                    employee.getEmail(),
-                    employee.getEmpName(),
-                    employee.getEmpId(),
-                    temporaryPassword
-            );
-        }
+        employeeDao.save(employee);
     }
+    
+//    @Override
+//    @Transactional
+//    public void resetPassword(
+//            Integer empNo
+//    ) {
+//
+//        Employee employee =
+//        		employeeDao.findById(empNo)
+//                        .orElseThrow(() ->
+//                                new IllegalArgumentException(
+//                                        "존재하지 않는 사용자입니다."
+//                                )
+//                        );
+//
+//
+//        // 새로운 임시 비밀번호 생성
+//        String temporaryPassword =
+//                passwordGenerator.generate(10);
+//
+//
+//        // BCrypt 암호화
+//        String encodedPassword =
+//                passwordEncoder.encode(
+//                        temporaryPassword
+//                );
+//
+//
+//        employee.setEmpPwd(encodedPassword);
+//
+//        employee.setPwChgRequired(true);
+//
+//
+//        // 이메일 발송
+//        if (employee.getEmail() != null) {
+//
+//            mailService.sendTemporaryPassword(
+//                    employee.getEmail(),
+//                    employee.getEmpName(),
+//                    employee.getEmpId(),
+//                    temporaryPassword
+//            );
+//        }
+//    }
 
 
     // =========================================================
