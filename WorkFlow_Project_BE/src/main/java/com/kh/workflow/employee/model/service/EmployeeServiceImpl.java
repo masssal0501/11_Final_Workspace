@@ -120,7 +120,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
     
     @Override
-    public boolean checkEmpidDuplicate (String empId) {
+    public boolean checkEmpIdDuplicate (String empId) {
     	
     	return employeeDao.existsByEmpId(empId);
     }

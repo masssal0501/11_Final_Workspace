@@ -18,7 +18,7 @@ public interface EmployeeService {
     );
     
     // 아이디 중복 확인
-    boolean checkEmpidDuplicate(String empId);
+    boolean checkEmpIdDuplicate(String empId);
 
 
     /*

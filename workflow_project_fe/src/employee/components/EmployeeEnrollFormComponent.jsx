@@ -228,7 +228,7 @@ function EmployeeEnrollFormComponent() {
                                     className="tel"
                                     name="phone3"
                                     maxLength={4}
-                                    value={form.phone2}
+                                    value={form.phone3}
                                     onChange={handlePhoneChange}
                                 />
                             </td>
