@@ -17,12 +17,12 @@ function FindPWForm() {
                 </div>
 
                 <div className="subtitle">
-                    비밀번호 찾기
+                    아이디 찾기
                 </div>
 
-                {/* 아이디 */}
+                {/* 이름 */}
                 <div className="loginInputGroup">
-                    <label>아이디</label>
+                    <label>이름</label>
                     <input
                         type="text"
                         placeholder="이름을 입력하세요"
@@ -40,7 +40,7 @@ function FindPWForm() {
 
                 {/* action */}
                 <button type="button">
-                    비밀번호 재설정
+                    확인
                 </button>
 
                 {/* Find */}
@@ -51,8 +51,8 @@ function FindPWForm() {
 
                     <span>|</span>
 
-                    <Link to="/login/findID">
-                        아이디 찾기
+                    <Link to="/login/findPW">
+                        비밀번호 찾기
                     </Link>
                 </div>
 

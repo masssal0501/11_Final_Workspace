@@ -2,7 +2,7 @@
    WorkFlow ERP Database Initialization Script
    MySQL 8.x / MySQL Workbench
    BY ChatGPT 
-   AT 2026-08-20
+   AT 2026-08-19
    ========================================================= */
 
 
@@ -91,7 +91,7 @@ CREATE TABLE employee (
     emp_pwd VARCHAR(100) NOT NULL COMMENT '암호화 비밀번호',
     emp_name VARCHAR(20) NOT NULL COMMENT '사용자 이름',
     phone VARCHAR(13) NULL COMMENT '(-) 포함',
-    email VARCHAR(100) NULL,
+    email VARCHAR(50) NULL,
     address VARCHAR(300) NULL,
 
     join_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -101,9 +101,7 @@ CREATE TABLE employee (
         COMMENT '퇴사일시',
 
     status VARCHAR(1) NOT NULL DEFAULT 'Y'
-        COMMENT 'Y 재직, N 퇴사, R 휴직, V 휴가',
-
-	pw_chg_required	BOOLEAN	NOT NULL	COMMENT '최초 생성시 변경 필수 요구',
+        COMMENT 'Y 재직, N 퇴사, R 휴직',
 
     dep_id CHAR(2) NOT NULL COMMENT '부서 PK',
     auth_code VARCHAR(20) NOT NULL COMMENT '권한 PK',
