@@ -294,7 +294,7 @@
    Bottom Buttons
 ======================================== */
 
-.enrollForm > button {
+.enrollForm > form > button {
     min-width: 110px;
     height: 44px;
 
@@ -318,7 +318,7 @@
 
 /* 돌아가기 */
 
-.enrollForm > button[type="button"] {
+.enrollForm > form > button[type="button"] {
     float: left;
 
     border: 1px solid #d6e0eb;
@@ -328,7 +328,7 @@
     color: #52627a;
 }
 
-.enrollForm > button[type="button"]:hover {
+.enrollForm > form > button[type="button"]:hover {
     background: #f5f8fc;
 
     border-color: #c5d1df;
@@ -337,7 +337,7 @@
 
 /* 계정 생성 */
 
-.enrollForm > button[type="submit"] {
+.enrollForm > form > button[type="submit"] {
     float: right;
 
     border: 1px solid #1769d5;
@@ -350,7 +350,7 @@
         0 4px 10px rgba(23, 105, 213, 0.15);
 }
 
-.enrollForm > button[type="submit"]:hover {
+.enrollForm > form > button[type="submit"]:hover {
     background: #0f4f9f;
 
     border-color: #0f4f9f;
@@ -359,7 +359,7 @@
         0 6px 15px rgba(23, 105, 213, 0.22);
 }
 
-.enrollForm > button:active {
+.enrollForm > form > button:active {
     transform: translateY(1px);
 }
 
