@@ -1,11 +1,12 @@
 package com.kh.workflow.amount.vo;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Date;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +26,7 @@ public class Amount {
     private Integer workcationNo;        // workcation_no (FK)
 
     // ===== 1:N 자식 리스트 관계 =====
-    private List<Item> itemList;     // amount_item 테이블 리스트
+    private List<Item> itemList = new ArrayList<Item>();    // amount_item 테이블 리스트
     private List<File> fileList;     // amount_file 테이블 리스트
     private String empName; // 사원 이름 (JOIN용)
     // =========================================================
@@ -41,7 +42,11 @@ public class Amount {
         private String itemApproved;     // item_approved
         private String itemDescription;  // item_description
         private Integer amountNo;            // amount_no (FK)
-
+        private Integer amount;
+        
+       
+        
+        
         // ===== 1:N 자식 리스트 관계 =====
         private List<Sponsor> sponsorList; // amount_list 테이블 리스트
     }

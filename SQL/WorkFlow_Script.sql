@@ -377,7 +377,7 @@ CREATE TABLE amount (
 CREATE TABLE amount_item (
     item_no INT NOT NULL AUTO_INCREMENT,
 
-    item_type VARCHAR(15) NOT NULL
+    amountamountitem_type VARCHAR(15) NOT NULL
         COMMENT 'S 숙박, T 교통, E 체험, F 식비, V 차량, O 기타',
 
     item_date TIMESTAMP NOT NULL
@@ -400,6 +400,7 @@ CREATE TABLE amount_item (
         REFERENCES amount (amount_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE amount_item ADD COLUMN amount INT NOT NULL DEFAULT 0 COMMENT '비용 상세 항목 금액';
 
 /* 지원금 목록 */
 CREATE TABLE amount_list (
@@ -747,3 +748,22 @@ VALUES
    ========================================================= */
 
 SELECT 'WorkFlow DB initialization completed.' AS result;
+
+
+-- 1) 사원(employee) 데이터 생성 (workcation_info 참조용)
+INSERT INTO employee (
+    emp_no, emp_id, emp_pwd, emp_name, phone, email, address, 
+    join_at, status, dep_id, auth_code, job_code
+) VALUES (
+    1, 'testuser', '1234', '홍길동', '010-1234-5678', 'test@workflow.com', '서울',
+    NOW(), 'Y', 'D4', 'ADMIN', 'J1'
+) ON DUPLICATE KEY UPDATE emp_no = emp_no;
+
+-- 2) 워케이션(workcation_info) 1번 데이터 생성
+INSERT INTO workcation_info (
+    workcation_no, workcation_title, work_plan, start_at, end_at, 
+    approver_state, emp_no
+) VALUES (
+    1, '테스트 워케이션', '기능 테스트용', NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY),
+    'A', 1
+) ON DUPLICATE KEY UPDATE workcation_no = workcation_no;

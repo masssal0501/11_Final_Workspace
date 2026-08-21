@@ -9,7 +9,7 @@ export default function AmountDetail() {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 📌 승인 입력 폼을 위한 상태값 정의
+  // 승인 입력 폼 상태값 정의
   const [approvedAmount, setApprovedAmount] = useState('');
   const [comment, setComment] = useState('');
   const [sponsorName, setSponsorName] = useState('회사지원금');
@@ -37,37 +37,6 @@ export default function AmountDetail() {
     fetchDetail();
   }, [amountNo]);
 
-  // 📌 승인 처리 핸들러
-  const handleApprovalSubmit = async (e) => {
-    e.preventDefault();
-
-    const parsedApprovedAmt = Number(approvedAmount);
-    const parsedSponsorAmt = Number(sponsorAmount);
-
-    if (isNaN(parsedApprovedAmt) || parsedApprovedAmt < 0) {
-      alert('올바른 승인 금액을 입력해 주세요.');
-      return;
-    }
-
-    try {
-      await amountApi.updateApproval(
-        detail.amountNo, 
-        'A', // 승인 상태로 변경
-        parsedApprovedAmt, 
-        comment, 
-        sponsorName, 
-        parsedSponsorAmt, 
-        sponsorStatus, 
-        remark
-      );
-      alert('승인 및 지원금 반영이 완료되었습니다.');
-      window.location.reload();
-    } catch (error) {
-      console.error('결재 처리 실패:', error);
-      alert('처리에 실패했습니다.');
-    }
-  };
-
   if (loading) return <div className="amount-container">로딩 중...</div>;
   if (!detail) return <div className="amount-container">조회된 데이터가 없습니다.</div>;
 
@@ -82,8 +51,55 @@ export default function AmountDetail() {
     return statusMap[status] || status;
   };
 
-  // 📌 수정/승인 가능 상태: 검토중('R')이거나 보류('H')일 때 허용
   const canEditable = detail.status === 'R' || detail.status === 'H';
+
+  // 계산 로직
+  const totalExistingSponsorAmount = detail.itemList?.reduce((sum, item) => {
+    const itemSponsors = item.sponsorList || [];
+    return sum + itemSponsors.reduce((sSum, sponsor) => sSum + (sponsor.amount || 0), 0);
+  }, 0) || 0;
+
+  const currentApproved = Number(approvedAmount) || 0;
+  const currentSponsor = canEditable ? (Number(sponsorAmount) || 0) : totalExistingSponsorAmount;
+  const grandTotal = currentApproved + currentSponsor;
+
+  // 승인 처리 핸들러
+  const handleApprovalSubmit = async (e) => {
+    e.preventDefault();
+
+    const parsedApprovedAmt = Number(approvedAmount) || 0;
+    const parsedSponsorAmt = Number(sponsorAmount) || 0;
+    const requestedAmt = Number(detail.requestedAmount) || 0;
+    
+    // 📌 회사 승인 금액 + 지원금 합산이 신청 금액을 초과하는지 검증
+    if (grandTotal > requestedAmt) {
+      alert(`경고: 회사 승인 금액과 지원금의 합계(${grandTotal.toLocaleString()}원)가 신청 금액(${requestedAmt.toLocaleString()}원)을 초과할 수 없습니다.`);
+      return;
+    }
+
+    if (isNaN(parsedApprovedAmt) || parsedApprovedAmt < 0) {
+      alert('올바른 회사 승인 금액을 입력해 주세요.');
+      return;
+    }
+
+    try {
+      await amountApi.updateApproval(
+        detail.amountNo, 
+        'A', 
+        parsedApprovedAmt, 
+        comment, 
+        sponsorName, 
+        parsedSponsorAmt, 
+        sponsorStatus, 
+        remark
+      );
+      alert('승인 및 지원금 반영이 완료되었습니다.');
+      window.location.reload();
+    } catch (error) {
+      console.error('결재 처리 실패:', error);
+      alert('처리에 실패했습니다.');
+    }
+  };
 
   return (
     <div className="amount-container">
@@ -108,9 +124,9 @@ export default function AmountDetail() {
           <span className="info-value">{detail.requestedAmount?.toLocaleString()} 원</span>
         </div>
 
-        {/* 4. 승인 금액 */}
+        {/* 4. 회사 승인 금액 */}
         <div className="info-row">
-          <span className="info-label">승인 금액</span>
+          <span className="info-label">회사 승인 금액</span>
           <span className="info-value">
             {canEditable ? (
               <input 
@@ -118,7 +134,8 @@ export default function AmountDetail() {
                 value={approvedAmount} 
                 onChange={(e) => setApprovedAmount(e.target.value)}
                 required
-                style={{ padding: '6px', width: '200px', border: '1px solid #ccc', borderRadius: '4px' }}
+                className="sponsor-input"
+                style={{ width: '200px' }}
               />
             ) : (
               detail.approvedAmount ? `${detail.approvedAmount.toLocaleString()} 원` : '-'
@@ -126,26 +143,66 @@ export default function AmountDetail() {
           </span>
         </div>
 
-        {/* 5. 신청 사유 / 결재 의견 */}
+        {/* 실시간 경고 표시 */}
+        {grandTotal > (detail.requestedAmount || 0) && (
+          <div className="warning-text">
+            ⚠️ 주의: 회사 승인 금액과 지원금 합계가 신청 금액을 초과했습니다.
+          </div>
+        )}
+
+        {/* 4-1. 총합산 금액 (회사승인금액 + 지원금) 표시 영역 */}
+        <div className="grand-total-row">
+          <span className="grand-total-label">총합산 금액 (회사승인+지원)</span>
+          <span className="grand-total-value">
+            {grandTotal.toLocaleString()} 원
+          </span>
+        </div>
+
+      
+
+        {/* 5. 비용 항목 종류 및 상세 내용 */}
         <div className="info-row comment-row">
-          <span className="info-label">신청 사유 / 의견</span>
-          {canEditable ? (
-            <textarea 
-              value={comment} 
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="결재 의견이나 반려/승인 사유를 입력하세요."
-              rows="3"
-              style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', marginTop: '5px' }}
-            />
-          ) : (
-            <div className="info-comment">{detail.amountComment || '사유 없음'}</div>
-          )}
+          <span className="info-label" style={{ width: '100%', marginBottom: '8px' }}>비용 항목 및 상세 내용</span>
+          
+          <div className="info-comment">
+            {detail?.itemList && detail.itemList.length > 0 ? (
+              detail.itemList.map((item, index) => {
+                const typeMap = {
+                  'S': '숙박',
+                  'T': '교통',
+                  'E': '식비',
+                  'F': '체험',
+                  'V': '공간대여',
+                  'O': '기타'
+                };
+                const label = typeMap[item.itemType];
+                const isLast = index === detail.itemList.length - 1;
+
+                return (
+                  <div key={index} className={`item-row ${isLast ? 'last' : ''}`}>
+                    {label && (
+                      <span className="item-badge">
+                        {label}
+                      </span>
+                    )}
+                    {item.itemDescription && (
+                      <span className="item-desc">
+                        {item.itemDescription}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <span style={{ color: '#666' }}>{detail.amountComment || '사유 없음'}</span>
+            )}
+          </div>
         </div>
 
         {/* 6. 첨부파일 목록 */}
-        <div className="file-section">
+        <div className="file-section info-row">
           <span className="info-label">첨부 파일</span>
-          <div className="file-list-wrapper">
+          <div className="file-list-wrapper info-value">
             {detail.fileList && detail.fileList.length > 0 ? (
               <ul className="file-list">
                 {detail.fileList.map((file) => (
@@ -164,48 +221,48 @@ export default function AmountDetail() {
 
         {/* 7. 지원금 입력 및 내역 영역 */}
         <div className="file-section" style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px', flexDirection: 'column' }}>
-          <span className="info-label" style={{ marginBottom: '10px' }}>지원금 관련 정보</span>
+          <span className="info-label" style={{ marginBottom: '10px', width: '100%' }}>지원금 관련 정보</span>
           
           {canEditable ? (
-            <div style={{ background: '#fff', padding: '15px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }}>
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'inline-block', width: '100px', fontSize: '14px', color: '#555' }}>지원기관명:</label>
+            <div className="sponsor-form-box">
+              <div className="sponsor-input-row">
+                <label className="sponsor-label">지원기관명:</label>
                 <input 
                   type="text" 
                   value={sponsorName} 
                   onChange={(e) => setSponsorName(e.target.value)} 
-                  style={{ padding: '5px', width: '200px', border: '1px solid #ccc', borderRadius: '4px' }}
+                  className="sponsor-input"
                 />
               </div>
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'inline-block', width: '100px', fontSize: '14px', color: '#555' }}>지원금액:</label>
+              <div className="sponsor-input-row">
+                <label className="sponsor-label">지원금액:</label>
                 <input 
                   type="number" 
                   value={sponsorAmount} 
                   onChange={(e) => setSponsorAmount(e.target.value)} 
-                  style={{ padding: '5px', width: '200px', border: '1px solid #ccc', borderRadius: '4px' }}
+                  className="sponsor-input"
                 />
               </div>
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'inline-block', width: '100px', fontSize: '14px', color: '#555' }}>지급 상태:</label>
+              <div className="sponsor-input-row">
+                <label className="sponsor-label">지급 상태:</label>
                 <select 
                   value={sponsorStatus} 
                   onChange={(e) => setSponsorStatus(e.target.value)}
-                  style={{ padding: '5px', width: '212px', border: '1px solid #ccc', borderRadius: '4px' }}
+                  className="sponsor-select"
                 >
                   <option value="PAID">지급</option>
                   <option value="UNPAID">미지급</option>
                   <option value="HOLD">보류</option>
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'inline-block', width: '100px', fontSize: '14px', color: '#555' }}>특이사항:</label>
+              <div className="sponsor-input-row">
+                <label className="sponsor-label">특이사항:</label>
                 <input 
                   type="text" 
                   value={remark} 
                   onChange={(e) => setRemark(e.target.value)} 
                   placeholder="특이사항 입력"
-                  style={{ padding: '5px', width: 'calc(100% - 110px)', border: '1px solid #ccc', borderRadius: '4px' }}
+                  className="sponsor-input-flex"
                 />
               </div>
             </div>
@@ -214,7 +271,7 @@ export default function AmountDetail() {
               {detail.itemList && detail.itemList.some(item => item.sponsorList && item.sponsorList.length > 0) ? (
                 detail.itemList.map(item => 
                   item.sponsorList?.map((sponsor, idx) => (
-                    <div key={idx} style={{ background: '#fff', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '8px' }}>
+                    <div key={idx} className="sponsor-card">
                       <p><strong>지원기관:</strong> {sponsor.sponsorName || '미지정'}</p>
                       <p><strong>지원금액:</strong> {sponsor.amount?.toLocaleString()} 원</p>
                       <p><strong>지급상태:</strong> {sponsor.status === 'PAID' ? '지급완료' : sponsor.status === 'HOLD' ? '보류' : '미지급'}</p>
@@ -223,7 +280,7 @@ export default function AmountDetail() {
                   ))
                 )
               ) : (
-                <p className="no-file">적용된 지원금 내역이 없습니다.</p>
+                <p className="no-sponsor-text">적용된 지원금 내역이 없습니다. (지원금 미적용)</p>
               )}
             </div>
           )}
@@ -235,7 +292,7 @@ export default function AmountDetail() {
             목록으로
           </button>
           {canEditable && (
-            <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#007bff', color: '#fff', padding: '8px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button type="submit" className="btn btn-primary btn-approve">
               승인 및 지원금 반영
             </button>
           )}

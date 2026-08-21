@@ -8,6 +8,7 @@
     <!-- =========================================================
          ResultMap (1:N 및 N:1 계층 매핑)
          ========================================================= -->
+  
     <resultMap id="amountResultMap" type="com.kh.workflow.amount.vo.Amount">
         <id property="amountNo" column="amount_no" />
         <result property="requestedAmount" column="requested_amount" />
@@ -33,6 +34,7 @@
     <resultMap id="amountItemResultMap" type="com.kh.workflow.amount.vo.Amount$Item">
         <id property="itemNo" column="item_no" />
         <result property="itemType" column="item_type" />
+        <result property="amount" column="item_amount" /> <!-- 📌 별칭을 item_amount로 확실히 매핑 -->
         <result property="itemDate" column="item_date" />
         <result property="itemApproved" column="item_approved" />
         <result property="itemDescription" column="item_description" />
@@ -64,6 +66,38 @@
 
 
     <!-- =========================================================
+         SELECT 쿼리 (별칭 명확화)
+         ========================================================= -->
+    <sql id="selectAmountWithDetails">
+        SELECT 
+            a.amount_no, a.requested_amount, a.approved_amount, a.requested_at, 
+            a.approved_at, a.created_at, a.updated_at, a.status, a.amount_comment, a.workcation_no,
+            
+            e.emp_name,
+            
+            ai.item_no, 
+            ai.item_type, 
+            ai.amount AS item_amount, <!-- 📌 컬럼 충돌 방지를 위해 AS item_amount 별칭 부여 -->
+            ai.item_date, 
+            ai.item_approved, 
+            ai.item_description,
+            ai.amount_no AS item_amount_no,
+            
+            al.amount_no AS sponsor_amount_no, al.sponsor_name, al.amount AS sponsor_amount, 
+            al.payment_date, al.status AS sponsor_status, al.remark, al.item_no AS sponsor_item_no,
+            
+            af.amountattachment_no, af.file_path, af.origin_name, af.change_name, 
+            af.updated_at AS file_updated_at, af.status AS file_status, af.amount_no AS file_amount_no
+        FROM amount a
+        LEFT JOIN workcation_info w ON a.workcation_no = w.workcation_no
+        LEFT JOIN employee e ON w.emp_no = e.emp_no
+        LEFT JOIN amount_item ai ON a.amount_no = ai.amount_no
+        LEFT JOIN amount_list al ON ai.item_no = al.item_no AND a.amount_no = al.amount_no
+        LEFT JOIN amount_file af ON a.amount_no = af.amount_no AND af.status = 'Y'
+    </sql>
+
+
+    <!-- =========================================================
          INSERT 쿼리
          ========================================================= -->
 
@@ -79,11 +113,13 @@
 	</insert>
 
     <!-- 2. 비용 상세 항목 등록 -->
+    <!-- 2. 비용 기존 등록 쿼리 수정 -->
+    <!-- 2. 비용 상세 항목 등록 -->
     <insert id="insertAmountItem" parameterType="com.kh.workflow.amount.vo.Amount$Item" useGeneratedKeys="true" keyProperty="itemNo">
         INSERT INTO amount_item (
-            item_type, item_date, item_approved, item_description, amount_no
+            item_type, amount, item_date, item_approved, item_description, amount_no
         ) VALUES (
-            #{itemType}, COALESCE(#{itemDate}, NOW()), #{itemApproved}, #{itemDescription}, #{amountNo}
+            #{itemType}, #{amount}, COALESCE(#{itemDate}, NOW()), #{itemApproved}, #{itemDescription}, #{amountNo}
         )
     </insert>
 
@@ -110,29 +146,7 @@
     <!-- =========================================================
          SELECT 쿼리
          ========================================================= -->
-    <sql id="selectAmountWithDetails">
-        SELECT 
-            a.amount_no, a.requested_amount, a.approved_amount, a.requested_at, 
-            a.approved_at, a.created_at, a.updated_at, a.status, a.amount_comment, a.workcation_no,
-            
-            e.emp_name,
-            
-            ai.item_no, ai.item_type, ai.item_date, ai.item_approved, ai.item_description,
-            ai.amount_no AS item_amount_no,
-            
-            al.amount_no AS sponsor_amount_no, al.sponsor_name, al.amount AS sponsor_amount, 
-            al.payment_date, al.status AS sponsor_status, al.remark, al.item_no AS sponsor_item_no,
-            
-            af.amountattachment_no, af.file_path, af.origin_name, af.change_name, 
-            af.updated_at AS file_updated_at, af.status AS file_status, af.amount_no AS file_amount_no
-        FROM amount a
-        LEFT JOIN workcation_info w ON a.workcation_no = w.workcation_no
-        LEFT JOIN employee e ON w.emp_no = e.emp_no
-        LEFT JOIN amount_item ai ON a.amount_no = ai.amount_no
-        LEFT JOIN amount_list al ON ai.item_no = al.item_no AND a.amount_no = al.amount_no
-        LEFT JOIN amount_file af ON a.amount_no = af.amount_no AND af.status = 'Y'
-    </sql>
-
+    
     <!-- 5. 단건 상세 조회 (이 하나만 유지) -->
     <select id="selectAmountById" parameterType="int" resultMap="amountResultMap">
         <include refid="selectAmountWithDetails" />
@@ -164,11 +178,17 @@
     </update>
     
     <update id="updateAmount" parameterType="com.kh.workflow.amount.vo.Amount">
-        UPDATE amount
-        SET requested_amount = #{requestedAmount},
-            amount_comment = #{amountComment}
+    UPDATE amount
+    SET requested_amount = #{requestedAmount},
+        amount_comment = #{amountComment}
+    WHERE amount_no = #{amountNo}
+</update>
+
+<!-- 특정 비용 신청 번호에 속한 상세 항목 전체 삭제 -->
+    <delete id="deleteAmountItemsByAmountNo" parameterType="int">
+        DELETE FROM amount_item
         WHERE amount_no = #{amountNo}
-    </update>
+    </delete>
     
     <delete id="deleteFile" parameterType="int">
         DELETE FROM amount_file
@@ -231,5 +251,18 @@
         GROUP BY DATE_FORMAT(requested_at, '%Y-%m')
         ORDER BY month ASC
     </select>
+    
+    <!-- 4. 항목별 지출 금액 -->
+	<select id="getItemStatistics" resultType="map">
+	    SELECT
+	        ai.item_type AS itemType,
+	        SUM(ai.amount) AS amount
+	    FROM amount_item ai
+	    JOIN amount a
+	        ON ai.amount_no = a.amount_no
+	    WHERE a.status = 'A'
+	    GROUP BY ai.item_type
+	    ORDER BY ai.item_type
+	</select>
 
 </mapper>

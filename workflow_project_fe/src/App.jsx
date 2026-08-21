@@ -26,7 +26,9 @@ function App() {
       
 
       {/* 📌 비용 신청 페이지 경로 추가 */}
-      <Route path="/cost/apply" element={<AmountForm workcationNo={1} />} />
+      <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
+
+      <Route path="/cost/apply" element={<AmountForm />} />
 
       {/* 📌 비용 정산 상세 페이지 라우트 추가 */}
         <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />

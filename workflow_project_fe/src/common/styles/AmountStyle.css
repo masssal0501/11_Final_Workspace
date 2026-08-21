@@ -174,3 +174,251 @@
   display: flex;
   justify-content: flex-end;
 }
+
+/* --- 추가된 상세 페이지 전용 스타일 --- */
+
+/* 경고 문구 스타일 */
+.warning-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-bottom: 10px;
+  text-align: right;
+  font-weight: 500;
+}
+
+/* 총 정산 합산 박스 */
+.grand-total-row {
+  background-color: #f0fdf4;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.grand-total-label {
+  color: #166534;
+  font-weight: bold;
+  width: 120px;
+}
+
+.grand-total-value {
+  color: #15803d;
+  font-weight: bold;
+  font-size: 16px;
+  flex: 1;
+}
+
+/* 비용 항목 리스트 내부 스타일 */
+.item-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #eee;
+}
+
+.item-row.last {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.item-badge {
+  font-weight: bold;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.item-desc {
+  color: #333;
+  font-size: 14px;
+}
+
+/* 지원금 입력 폼 박스 */
+.sponsor-form-box {
+  background: #fff;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.sponsor-input-row {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.sponsor-input-row:last-child {
+  margin-bottom: 0;
+}
+
+.sponsor-label {
+  display: inline-block;
+  width: 100px;
+  font-size: 14px;
+  color: #555;
+}
+
+.sponsor-input {
+  padding: 6px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.sponsor-input-flex {
+  padding: 6px;
+  width: calc(100% - 110px);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.sponsor-select {
+  padding: 6px;
+  width: 212px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* 등록된 지원금 카드 */
+.sponsor-card {
+  background: #fff;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.sponsor-card p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.no-sponsor-text {
+  color: #888;
+  font-style: italic;
+  margin: 0;
+}
+
+/* AmountForm.css */
+.amount-form-container {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.amount-form-container h2 {
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.total-amount-box {
+  background: #eef2f5;
+  padding: 15px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-amount-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0066cc;
+}
+
+.form-divider {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.item-card {
+  background: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.btn-add-item {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-remove-item {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 38px;
+}
+
+.btn-submit {
+  width: 100%;
+  background-color: #007bff;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.btn-submit:hover {
+  background-color: #0056b3;
+}

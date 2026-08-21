@@ -64,6 +64,7 @@ public class AmountServiceImpl implements AmountService {
 
     @Override
     public Amount selectAmountById(int amountNo) {
+        // resultMap이 조인된 쿼리 결과를 보고 itemList, fileList 등을 알아서 매핑해서 채워줍니다!
         return amountDao.selectAmountById(amountNo);
     }
 
@@ -95,20 +96,18 @@ public class AmountServiceImpl implements AmountService {
     @Override
     @Transactional
     public void updateAmount(Amount amount, MultipartFile file) {
-        // 1. 기존 데이터 조회
+        // 1. 기존 데이터 조회 및 검증
         Amount existing = amountDao.selectAmountById(amount.getAmountNo());
         if (existing == null) {
             throw new IllegalArgumentException("존재하지 않는 비용 신청 건입니다.");
         }
 
-        // 승인, 반려, 취소된 건은 수정 불가
         if ("A".equals(existing.getStatus()) || "J".equals(existing.getStatus()) || "C".equals(existing.getStatus())) {
             throw new IllegalArgumentException("승인, 반려 또는 취소된 신청 건은 수정할 수 없습니다.");
         }
 
-        // 2. 새 파일이 첨부된 경우 기존 파일 삭제 및 신규 파일 저장
+        // 2. 파일 수정 로직 (기존 유지)
         if (file != null && !file.isEmpty()) {
-            // 기존 파일 물리 삭제 및 DB 삭제
             if (existing.getFileList() != null && !existing.getFileList().isEmpty()) {
                 for (Amount.File f : existing.getFileList()) {
                     File targetFile = new File("C:/upload/receipts/" + f.getChangeName());
@@ -120,21 +119,16 @@ public class AmountServiceImpl implements AmountService {
             }
 
             try {
-                // 새 파일 물리 저장 경로 설정
                 String uploadDir = "C:/upload/receipts/";
                 File dir = new File(uploadDir);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
+                if (!dir.exists()) dir.mkdirs();
 
                 String originalFilename = file.getOriginalFilename();
                 String savedFilename = UUID.randomUUID().toString() + "_" + originalFilename;
                 
-                // 📌 대상 파일 객체 생성 후 transferTo 실행
                 File destFile = new File(uploadDir + savedFilename);
                 file.transferTo(destFile);
 
-                // 새 파일 정보 등록
                 Amount.File newFile = new Amount.File();
                 newFile.setAmountNo(amount.getAmountNo());
                 newFile.setOriginName(originalFilename);
@@ -142,16 +136,32 @@ public class AmountServiceImpl implements AmountService {
                 newFile.setFilePath("/upload/receipts/" + savedFilename);
 
                 amountDao.insertAmountFile(newFile);
-
             } catch (Exception e) {
                 throw new RuntimeException("파일 수정 중 오류가 발생했습니다: " + e.getMessage());
             }
         }
 
-      
-
-        // 3. 금액 및 사유 등 기본 정보 업데이트
+        // 3. 메인 비용 정보 업데이트
         amountDao.updateAmount(amount);
+
+        // 📌 4. 상세 항목(itemList) 수정 반영: 기존 항목 삭제 후 새로 등록
+        amountDao.deleteAmountItemsByAmountNo(amount.getAmountNo());
+
+        if (amount.getItemList() != null && !amount.getItemList().isEmpty()) {
+            for (Amount.Item item : amount.getItemList()) {
+                item.setAmountNo(amount.getAmountNo());
+                amountDao.insertAmountItem(item);
+                
+                // 지원금 리스트가 있다면 함께 처리
+                if (item.getSponsorList() != null && !item.getSponsorList().isEmpty()) {
+                    for (Amount.Sponsor sponsor : item.getSponsorList()) {
+                        sponsor.setAmountNo(amount.getAmountNo());
+                        sponsor.setItemNo(item.getItemNo());
+                        amountDao.insertAmountSponsor(sponsor);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -180,23 +190,24 @@ public class AmountServiceImpl implements AmountService {
         amount.setAmountComment(comment);
         amountDao.updateApprovalStatus(amount);
 
-        // 2. 만약 '승인(A)' 상태이고 지원금 정보가 있다면 amount_list에 등록/수정
-        if ("A".equals(status) && sponsorAmount > 0) {
-            // 먼저 해당 amount_no에 연결된 item_no가 있는지 확인 필요 (예시로 첫 번째 item_no를 가져온다고 가정)
-            // 실제 구현에 맞게 item_no를 조회하거나 전달받아야 합니다.
-            Integer itemNo = amountDao.findFirstItemNoByAmountNo(amountNo); 
+        // 2. '승인(A)' 상태일 때 지원금 처리
+        if ("A".equals(status)) {
+            // 📌 지원금 기관명이 있거나 금액이 입력된 경우에만 처리 (0원 허용 또는 선택적 입력)
+            if (sponsorName != null && !sponsorName.trim().isEmpty()) {
+                Integer itemNo = amountDao.findFirstItemNoByAmountNo(amountNo); 
 
-            if (itemNo != null) {
-                Amount.Sponsor sponsor = new Amount.Sponsor();
-                sponsor.setAmountNo(amountNo);
-                sponsor.setItemNo(itemNo);
-                sponsor.setSponsorName(sponsorName);
-                sponsor.setAmount(sponsorAmount);
-                sponsor.setStatus(sponsorStatus != null ? sponsorStatus : "UNPAID");
-                sponsor.setRemark(remark);
-                
-                // MyBatis 쿼리로 INSERT 또는 DUPLICATE KEY UPDATE 처리
-                amountDao.upsertAmountSponsor(sponsor);
+                if (itemNo != null) {
+                    Amount.Sponsor sponsor = new Amount.Sponsor();
+                    sponsor.setAmountNo(amountNo);
+                    sponsor.setItemNo(itemNo);
+                    sponsor.setSponsorName(sponsorName);
+                    sponsor.setAmount(sponsorAmount); // 0원도 허용
+                    sponsor.setStatus(sponsorStatus != null ? sponsorStatus : "UNPAID");
+                    sponsor.setRemark(remark);
+                    
+                    // MyBatis 쿼리로 INSERT 또는 DUPLICATE KEY UPDATE 처리
+                    amountDao.upsertAmountSponsor(sponsor);
+                }
             }
         }
     }
@@ -219,7 +230,7 @@ public class AmountServiceImpl implements AmountService {
         response.put("monthlyData", amountDao.getMonthlyStatistics());
         
         // (참고) 항목별 지출 데이터는 현재 항목 테이블 구조에 맞춰 추후 추가 가능
-        response.put("itemData", new ArrayList<>()); // 임시 빈 배열
+        response.put("itemData", amountDao.getItemStatistics());
 
         return response;
     }

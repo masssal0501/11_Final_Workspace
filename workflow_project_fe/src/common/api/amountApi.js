@@ -46,17 +46,21 @@ export const amountApi = {
     return response.data;
   },
 
-  // 결재 상태 변경 (관리자)
-  updateApproval: async (amountNo, status, approvedAmount, comment) => {
-    const response = await axios.patch(`${BASE_URL}/${amountNo}/approval`, null, {
-      params: {
-        status,
-        approvedAmount,
-        comment,
-      },
-    });
-    return response.data;
-  },
+  // 결재 상태 변경 및 지원금 반영 (관리자)
+updateApproval: async (amountNo, status, approvedAmount, comment, sponsorName, sponsorAmount, sponsorStatus, remark) => {
+  const response = await axios.patch(`${BASE_URL}/${amountNo}/approval`, null, {
+    params: {
+      status,
+      approvedAmount,
+      comment,
+      sponsorName,
+      sponsorAmount,
+      sponsorStatus,
+      remark,
+    },
+  });
+  return response.data;
+},
 
   getStatisticsData: async () => {
     const response = await axios.get('/api/v1/amounts/statistics');

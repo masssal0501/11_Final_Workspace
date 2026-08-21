@@ -20,15 +20,15 @@ export default function UserAmountList({ workcationNo }) {
     fetchAmountList();
   }, [workcationNo]);
 
-  // 📌 수정 버튼 클릭 시 작성 페이지로 이동하며 기존 데이터 전달
+  // 📌 수정 버튼 클릭 시 /cost/apply/[번호]로 이동
   const handleEdit = (item) => {
+    console.log("🔥 handleEdit 실행");
+    console.log("수정할 item:", item);
     if (['A', 'J', 'C'].includes(item.status)) {
       alert('승인, 반려 또는 취소된 내역은 수정할 수 없습니다.');
       return;
     }
-
-    // state 객체로 선택된 항목 데이터를 넘김
-    navigate('/cost/apply', { state: { editData: item } });
+    navigate(`/cost/apply/${item.amountNo}`);
   };
 
   const handleCancel = async (amountNo) => {
@@ -65,6 +65,7 @@ export default function UserAmountList({ workcationNo }) {
     <div className="amount-container">
       <div className="amount-header">
         <h2 className="amount-title">내 비용 정산 신청 내역 (사원용)</h2>
+        {/* 신규 등록은 번호 없는 /cost/apply로 이동 */}
         <button className="btn btn-primary" onClick={() => navigate('/cost/apply')}>
           + 비용 신청하기
         </button>
