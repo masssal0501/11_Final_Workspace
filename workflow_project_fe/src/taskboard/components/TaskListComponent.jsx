@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import TaskStatusBadge, {getProgressByStatus} from "./TaskStatusBadge";
-import TaskProgressBar from "./TaskProgressBar";
+import TaskStatusBadge from "./TaskStatusBadge";
 
 import '../styles/TaskList.css';
 
@@ -14,7 +13,7 @@ function TaskListComponent() {
     const [keyword, setKeyword] = useState('');
     const [searchType, setSearchType] = useState('all');
     const [searchParams, setSearchParams] = useSearchParams();
-
+    
     const searchCondition = searchParams.get("condition") || "all";
     const searchKeyword = searchParams.get("keyword") || "";
     const cpage = parseInt(searchParams.get("cpage")) || 1;
@@ -120,7 +119,7 @@ function TaskListComponent() {
 
 
 
-        //1)tbody에 들어갈 tr 생성
+        //1)tbody에 들어갈 td 생성
         const items = response.data.list;
 
         const trArr = items.map((item, index) => (
@@ -130,7 +129,7 @@ function TaskListComponent() {
                 <td>{item.title}</td>
                 <td>{item.writer}</td>
                 <td className="text align-middle">
-                    <TaskProgressBar progress={getProgressByStatus(item.status)}/>
+                    <TaskStatusBadge status={item.status} />
                 </td>
                 <td>{item.date}</td>
 

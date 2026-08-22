@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import TaskStatusBadge, {getProgressByStatus} from './TaskStatusBadge';
+import TaskStatusBadge, { getProgressByStatus } from './TaskStatusBadge';
 import TaskProgressBar from './TaskProgressBar';
 
 import '../styles/TaskDetail.css';
@@ -11,25 +11,22 @@ function TaskDetailComponent() {
     const params = useParams();
     const currentId = params.taskNo;
     const navigate = useNavigate();
-    
-        const [task, setTask] = useState({
-                                            taskNo:"",
-                                            taskTitle:"",
-                                            taskContent:"",
-                                            taskWriter:"",
-                                            deptname:"",
-                                            /*tasktime_at:"",
-                                            taskend_at:"",*/
-                                            status:"",
-                                            progress:0,
-                                            originName:"",
-                                            changeName:"",
-                                            
-        })
+
+    const [task, setTask] = useState({
+        taskNo: "",
+        taskTitle: "",
+        taskContent: "",
+        taskWriter: "",
+        deptname: "",
+        status: "",
+        progress: 0,
+        originName: "",
+        changeName: ""
+
+    });
 
     useEffect(() => {
         const selectTask = async () => {
-
             try {
 
                 //더미데이터 DB시 삭제
@@ -54,14 +51,14 @@ function TaskDetailComponent() {
                 ];
 
                 const targetTask = allDummyList.find(item => item.taskNo === Number(currentId));
-                                
-                if (targetTask){
+
+                if (targetTask) {
                     //TaskStatusBadge 에서 받아온 함수로 계산
                     const calculatedProgress = targetTask.progress !== undefined
-                            ?  targetTask.progress
-                            : getProgressByStatus(targetTask.status);
+                        ? targetTask.progress
+                        : getProgressByStatus(targetTask.status);
 
-                    setTask({...targetTask, progress:calculatedProgress});                
+                    setTask({ ...targetTask, progress: calculatedProgress });
                 } else {
                     //조회 내용이 없을 시
                     alert("존재하지않는 글입니다.");
@@ -94,7 +91,7 @@ function TaskDetailComponent() {
                         </tr>
                         <tr>
                             <th>작성자</th>
-                            <td style={{width:"500px"}}>
+                            <td style={{ width: "500px" }}>
                                 {task.taskWriter}
                             </td>
                             <th>담당부서</th>
@@ -102,16 +99,28 @@ function TaskDetailComponent() {
                         </tr>
                         <tr>
                             <th>진행도</th>
-                            <td></td>
                             <td colSpan={2}>
-                                <TaskProgressBar progress={task.progress}/>
+                                <div className='progressBar'>
+                                    {/**프로그래스 바 막대 */}
+                                    <div style={{ flexGrow: 1 }}>
+                                        <TaskProgressBar progress={task.progress} />
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div className='statusBadge'>
+                                    {/**진행도수치 기반 뱃지 */}
+                                    <TaskStatusBadge progress={task.progress} status={task.status} />
+                                </div>
                             </td>
                         </tr>
                         <tr>
-                            <td colSpan={4} style={{height:"250px"}}>
-                               <textarea className="content-area"
-                                            value={task.taskContent ||''}
-                                            readOnly/>
+                            <td colSpan={4} style={{ height: "250px" }}>
+                                <textarea
+                                    className="content-area"
+                                    value={task.taskContent || ''}
+                                    readOnly
+                                />
                             </td>
                         </tr>
                         <tr>
