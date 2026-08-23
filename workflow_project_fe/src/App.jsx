@@ -8,6 +8,7 @@ import TaskListComponent from './taskboard/components/TaskListComponent'
 import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
+import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />}/>
 
           <Route path="/workcation/list" element={<WorkcationListComponent/>}/>
+          <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent/>}/>
         </Routes>
 
       </div>

@@ -13,7 +13,7 @@ function TaskListComponent() {
     const [keyword, setKeyword] = useState('');
     const [searchType, setSearchType] = useState('all');
     const [searchParams, setSearchParams] = useSearchParams();
-    
+
     const searchCondition = searchParams.get("condition") || "all";
     const searchKeyword = searchParams.get("keyword") || "";
     const cpage = parseInt(searchParams.get("cpage")) || 1;
@@ -103,7 +103,7 @@ function TaskListComponent() {
             const dummyResponse = {
                 data: {
                     list: [
-                        { taskNo: 3, title: `[${searchCondition}] ${searchKeyword} 검색결과`, writer: "작성자3", status: "진행중1~50%", date: "2026-08-19" }
+                        { taskNo: 3, title: `[${searchCondition}] ${searchKeyword} 검색결과`, writer: "작성자3", status: "진행 중 (1 ~ 50%)", date: "2026-08-19" }
                     ],
                     pi: { startPage: 1, endPage: 5, maxPage: 10 }
                 }
@@ -178,56 +178,42 @@ function TaskListComponent() {
 
     //return 구문
     return (
-        <div style={{ width: "1000px", margin: "auto" }}>
-            <br /><br />
+        <div className="content-area">
             <h2 align="center">업무 목록 조회</h2>
-            <br /><br />
 
-            {/* 검색창 영역 */}
-            <div align="center" className="search-area">
-                <form className="input-group">
+            <div className="task-btnset">
+
+                <form className="search-form">
                     {/*드롭다운*/}
-                    <div className="dropdown">
-                        <button
-                            className="btn btn-outline-secondary dropdown-toggle custom-dropdown-btn shadow-none"
-                            type="button"
-                            data-bs-toggle="dropdown">
-                            {searchType === "all" ? "전체" : searchType === "title" ? "제목" : "작성자"}
-                        </button>
+                    <select
+                        className="list-drop"
+                        value={searchType}
+                        onChange={(e) => setSearchType(e.target.value)}>
+                        <option value="all">전체</option>
+                        <option value="title">제목</option>
+                        <option value="writer">작성자</option>
+                        <option value="status">진행도</option>
+                    </select>
 
-                        <ul className="dropdown-menu custom-dropdown-menu">
-                            <li>
-                                <button className="dropdown-item" type="button" onClick={() => setSearchType("all")}>
-                                    전체
-                                </button>
-                            </li>
-                            <li>
-                                <button className="dropdown-item" type="button" onClick={() => setSearchType("title")}>
-                                    제목
-                                </button>
-                            </li>
-                            <li>
-                                <button className="dropdown-item" type="button" onClick={() => setSearchType("writer")}>
-                                    작성자
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    {/*검색창&버튼 */}
+                    {/*검색창 */}
                     <input className="search-input"
                         type="text"
                         name="keyword"
                         placeholder="내용을 입력하세요"
                         value={keyword}
                         onChange={handleChange} />
+
+                    {/*검색버튼 */}
                     <button className="search-btn"
                         type="submit"
-                        onClick={handleClick}>검색</button>
+                        onClick={handleClick}>검색
+                    </button>
                 </form>
+
             </div>
             <br /><br />
             {/* 게시글 목록을 보여주는 리스트 영역 */}
-            <table className="list-area table table-hover">
+            <table className="list-area">
                 <thead>
                     <tr>
                         <th width="150">번호</th>
@@ -239,8 +225,6 @@ function TaskListComponent() {
                 </thead>
                 <tbody>{dataList}</tbody>
             </table>
-            <br></br>
-
 
             {/* 페이징바 영역 */}
             <div align="center" className="paging-area">{pageList}</div>

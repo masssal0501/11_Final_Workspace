@@ -1,44 +1,82 @@
-.custom-dropdown-menu {
-    /*드롭다운 전체박스*/
-    border-radius: 8px !important;
-    border: 1px solid #27C7B9 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    padding: 6px !important;
-    min-width: 100px !important;
+.content-area {
+    width: 1000px;
 }
 
-.custom-dropdown-btn {
-    border: none !important;
-    background-color: #f1f3f5 !important;
-    width: 95px !important;
+/*정렬용 컨테이너*/
+.task-btnset {
+    display: flex;
+    justify-content: center;
+}
+
+/*폼 내부 요소*/
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/*드롭다운 전체박스*/
+.list-drop {
     height: 45px;
-    color: #333 !important;
-    font-size: 18px !important;
-
+    border-radius: 8px;
+    border: 1px solid #27C7B9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 6px;
+    min-width: 100px;
 }
 
-.custom-dropdown-btn:hover/*클릭시*/,
-.custom-dropdown-btn:focus/*클릭후 스타일유지*/ {
+/*클릭시*/
+
+.list-drop:hover {
     background-color: #27C7B9 !important;
     border-color: #27C7B9 !important;
-    color: #ffffff !important;
+    color: #010101 !important;
 }
 
-.custom-dropdown-menu .dropdown-item {
-    /*드롭다운 세부항목*/
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-size: 17px;
+/*클릭후 스타일유지*/
+.list-drop:focus {
+    background-color: #f8fafa !important;
+
+}
+
+/*검색창*/
+.search-input {
+    border-radius: 9px;
+    background-color: #f1f3f5;
+    border: none;
+    height: 45px;
+    width: 400px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+/*검색창 활성화시 아웃라인 커스텀*/
+.search-input:focus {
+    outline: none;
+    border: 1.5px solid #27C7B9;
+}
+
+.search-btn {
+    /*검색버튼*/
+    border: none;
+    background-color: #f1f3f5;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 18px;
     color: #333;
-    transition: background-color 0.12s ease;
+    width: 80px;
+    height: 45px;
 }
 
-.custom-dropdown-menu .dropdown-item:hover {
-    /*항목 회색 음영 및 글자색 변환*/
-    background-color: #f5f6f8 !important;
-    color: #27C7B9 !important;
-    font: bold;
-    font-weight: 600;
+.search-btn:hover {
+    background-color: #27C7B9;
+    color: #ffffff;
+    transition: background-color 0.25s ease;
+}
+
+.up-btn button {
+    /*수정삭제버튼*/
+    margin: 3px;
 }
 
 .page-btn {
@@ -75,75 +113,6 @@ page-btn:focus {
 }
 
 
-.list-area {
-    /*테이블 전체*/
-    width: 1000px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.list-area td {
-    /*게시글 리스트*/
-    vertical-align: middle;
-    padding: 5px;
-    cursor: pointer;
-}
-
-.search-area form {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.search-input {
-    /*검색창*/
-    margin: 0 10px 0 10px !important;
-    border-radius: 9px !important;
-    background-color: #f1f3f5;
-    border: none;
-    height: 45px;
-    width: 400px;
-    padding-left: 16px;
-    padding-right: 16px;
-}
-.search-input:focus{
-    outline:none;   
-    border:1.5px solid #27C7B9; 
-}
-
-.search-btn{
-    /*검색버튼*/
-    border:none;
-    background-color: #f1f3f5;
-    border-radius: 8px !important;
-    padding: 0 10px !important;
-    font-size: 18px ;
-    color: #333;
-    width: 80px;
-    height:45px;
-}
-
-.search-btn:hover{
-    background-color: #27C7B9;
-    color: #ffffff;
-    transition: background-color 0.25s ease;
-}
-
-.insert-task{
-    border: none;
-    border-radius: 8px;
-    height: 45px;
-    padding: 0 12px 0 12px;
-}
-.insert-task:hover{
-    cursor: pointer;
-    color: white;
-    font-size: 17px;
-    background-color: #27C7B9;
-    transition: 0.3s;
-}
-
-
 .status-badge {
     /*진행도뱃지*/
     margin: auto;
@@ -156,13 +125,28 @@ page-btn:focus {
     white-space: nowrap;
 }
 
-.status-gray {background-color: rgb(117, 117, 117);}/*업무준비*/
-.status-red {background-color: red;}/*1~50*/
-.status-yellow {background-color: rgb(255, 166, 0);}/*51-100*/
-.status-blue {background-color: rgb(31, 121, 255);}/*완료요청*/
-.status-green {background-color: rgb(1, 177, 39);}/*업무 완료*/
-
-.up-btn button {
-    /*수정삭제버튼*/
-    margin: 3px;
+.status-gray {
+    background-color: rgb(117, 117, 117);
 }
+
+/*업무준비*/
+.status-red {
+    background-color: red;
+}
+
+/*1~50*/
+.status-yellow {
+    background-color: rgb(255, 166, 0);
+}
+
+/*51-100*/
+.status-blue {
+    background-color: rgb(31, 121, 255);
+}
+
+/*완료요청*/
+.status-green {
+    background-color: rgb(1, 177, 39);
+}
+
+/*업무 완료*/
