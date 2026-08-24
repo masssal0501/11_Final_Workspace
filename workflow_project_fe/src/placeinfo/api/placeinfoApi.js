@@ -31,12 +31,12 @@ const searchHubListApi = (cpage, inputData) => {
     return response;
 }
 
-const insertHubApi = FormData => {
+const insertHubApi = formData => {
 
     const response = axios({
        url : `${ BASE_URL }`,
        method : "post",
-       data : FormData,
+       data : formData,
        headers : {
             "Content-Type" : "multipart/form-data"
        } 
@@ -58,4 +58,4 @@ const sendMessageApi = message => {
     return response;
 }
 
-export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi };
+export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi, BASE_URL };

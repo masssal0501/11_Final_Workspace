@@ -7,46 +7,46 @@ import "../styles/HubEnrollFormComponent.css";
 
 function HubEnrollFormComponent() {
 
-    // 1. 파일 관련 State
-    const [file, setFile] = useState(null);       // 백엔드로 전송할 실제 File 객체 저장
-    const [preview, setPreview] = useState(null); // 미리보기에 사용할 Base64 이미지 URL 저장
+    // 파일 관련 State
+    const [files, setFiles] = useState([null, null, null]);
+    const [previews, setPreviews] = useState([null, null, null]);
+    const [targetIndex, setTargetIndex] = useState(null);
 
-    // 2. 폼 입력값 통합 State 관리 (객체 형태)
-    const [hubData, setHubData] = useState({ 
-        regionName : "강원",
+    const navigate = useNavigate();
+    const upfileRef = useRef(null);
+
+    // 폼 입력값 통합 State 관리 (객체 형태)
+    const [hubData, setHubData] = useState({
+        mainRegion : "",
+        subRegion : "",
         hubName : "",
         hubAddress : "",
         phone : "",
         description : "",
         hubType : "1",
-        pay : 0,
-        intake : 1,
-        use : "Y"
+        price : 0,
+        maxCapacity : 1,
+        hubStatus : "OPEN"
     });
 
-    // 3. 폼 입력값 변경 공통 핸들러 (Computed Property Names 활용)
+    // 폼 입력값 변경 공통 핸들러 (Computed Property Names 활용)
     const handleChange = e => {
         const newHubData = { ...hubData };
         // e.target.name에 지정된 속성명만 동적으로 업데이트
         newHubData[e.target.name] = e.target.value;
         setHubData(newHubData);
-    } 
+    }
 
-    // 페이지 이동을 위한 React Router Hook
-    const navigate = useNavigate();
-
-    // 숨겨진 <input type="file"> DOM 요소에 접근하기 위한 Ref Hook
-    const upfileRef = useRef(null);
-
-    // 카카오 주소 검색 팝업 호출 핸들러
+    // 카카오 주소 검색 API
     const handleAddressSearch = () => {
-
         new kakao.Postcode({
             oncomplete: (data) => {
                 // 도로명 주소 표기 규칙에 따른 주소 조합
-                let fullAddress = data.address;
+                let address = data.address;
+                let sido = data.sido.substring(0, 2);
+                let sigungu = data.sigungu;
                 let extraAddress = "";
-
+                console.log(data);
                 // 법정동명 및 건물명 조합 (도로명 주소일 경우)
                 if (data.addressType === "R") {
                     if (data.bname !== "") {
@@ -55,20 +55,29 @@ function HubEnrollFormComponent() {
                     if (data.buildingName !== "") {
                         extraAddress += extraAddress !== "" ? `, ${data.buildingName}` : data.buildingName;
                     }
-                    fullAddress += extraAddress !== "" ? ` (${extraAddress})` : "";
+                    address += extraAddress !== "" ? ` (${extraAddress})` : "";
                 }
 
-                // hubData의 hubAddress 값 업데이트
-                setHubData(prevData => ({
-                    ...prevData,
-                    hubAddress: fullAddress
-                }));
+                if(sido === "강원" || sido === "제주" || sido === "부산") {
+                    // hubData의 hubAddress 값 업데이트
+                    setHubData(prevData => ({
+                        ...prevData,
+                        hubAddress : address,
+                        mainRegion :  sido,
+                        subRegion : sigungu
+                    }));
+                } else {
+                    alert("지역은 강원, 제주, 부산만 가능합니다. ");
+                    return;
+                }
+               
             }
         }).open();
     };
 
     // 이미지 업로드 영역 클릭 시 실제 파일 입력창(input)을 트리거하는 함수
-    const handleAreaClick = () => {
+    const handleAreaClick = (index) => {
+        setTargetIndex(index);
         if (upfileRef.current) {
             upfileRef.current.click();
         }
@@ -89,18 +98,46 @@ function HubEnrollFormComponent() {
             return;
         }
 
-        // FileReader API로 파일 읽기
-        const reader = new FileReader();
-        reader.readAsDataURL(selectedFile); // 파일을 Data URL(Base64) 형태 스트링으로 읽음
-        reader.onload = e => {
-            setPreview(e.target.result); // 미리보기 URL 저장
-            setFile(selectedFile);       // 실제 파일 객체 저장
-        };
+        
     };
 
     // <input type="file">을 통한 파일 선택 이벤트 핸들러
     const handleFileChange = e => {
         const selectedFile = e.target.files[0];
+
+        if(!selectedFile) {
+            if(targetIndex !== null && files[targetIndex] !== null) {
+                handleRemoveImage(targetIndex);
+            }
+            return;
+        }
+
+        // 이미지 파일 형식 검증 (image/png, image/jpeg 등)
+        if (!selectedFile.type.startsWith("image/")) {
+            alert("이미지 파일만 첨부 가능합니다.");
+            e.target.value = "";
+            return;
+        }
+
+        // FileReader API로 파일 읽기
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedFile);
+        reader.onload = e => {
+            const newPreview = e.target.result;
+            
+            setFiles(prev => {
+                const next = [...prev];
+                next[targetIndex] = selectedFile;
+                return next;
+            });
+            setPreviews(prev => {
+                const next = [...prev];
+                next[targetIndex] = newPreview;
+                return next;
+            });
+            setTargetIndex(null);
+        };
+
         processFile(selectedFile);
     }
 
@@ -111,43 +148,82 @@ function HubEnrollFormComponent() {
     };
 
     // 드롭 영역에 파일을 떨어뜨렸을 때 처리하는 핸들러
-    const handleDrop = e => {
+    const handleDrop = (index, e) => {
         e.preventDefault();
         e.stopPropagation();
 
         const droppedFiles = e.dataTransfer.files;
         if (droppedFiles && droppedFiles.length > 0) {
-            processFile(droppedFiles[0]);
+            const file = droppedFiles[0]
+
+            if(!file.type.startsWith("image/")) {
+                alert("이미지 파일만 첨부 가능합니다.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = e => {      
+                setFiles(prev => {
+                    const next = [...prev]
+                    next[index] = file;
+                    return next;
+                });
+                setPreviews(prev => {
+                    const next = [...prev];
+                    next[index] = e.target.result;
+                    return next;
+                });  
+            };
         }
-    }
+    };
+
+    // 특정 위치 이미지 삭제
+    const handleRemoveImage = (index, e) => {
+        if (e) e.stopPropagation();
+
+        setFiles(prev => {
+            const next = [...prev];
+            next[index] = null;
+            return next;
+        });
+        setPreviews(prev => {
+            const next = [...prev];
+            next[index] = null;
+            return next;
+        });
+    };
 
     // 서버로 거점 등록 데이터(FormData)를 전송하는 비동기 함수
     const insertHub = async e => {
         // 버튼 클릭 시 기본 submit 폼 제출 및 페이지 리로드 동작 방지
         e.preventDefault();
 
+        if(!files[0]) {
+            alert("이미지는 최소 1개 이상 등록해야 합니다.");
+            return;
+        }
+
         try {
-            let upFile = upfileRef.current;
             // 파일 업로드가 포함되므로 multipart/form-data 처리를 위한 FormData 객체 생성
             const formData = new FormData();
 
             // 폼 데이터를 키-값 쌍으로 추가
-            formData.append("regionName", hubData.regionName);
+            formData.append("mainRegion", hubData.mainRegion);
+            formData.append("subRegion", hubData.subRegion);
             formData.append("hubName", hubData.hubName);
             formData.append("hubAddress", hubData.hubAddress);
             formData.append("phone", hubData.phone);
             formData.append("description", hubData.description);
             formData.append("hubType", hubData.hubType);
-            formData.append("pay", hubData.pay);
-            formData.append("intake", hubData.intake);
-            formData.append("use", hubData.use);
+            formData.append("price", hubData.price);
+            formData.append("maxCapacity", hubData.maxCapacity);
+            formData.append("hubStatus", hubData.hubStatus);
 
-            // 우선순위: ref 인풋에 직접 담긴 파일 > 드래그앤드롭 등으로 file state에 담긴 파일
-            if (upFile && upFile.files.length > 0) {
-                formData.append("upfile", upFile.files[0]);
-            } else if (file) {
-                formData.append("upfile", file);
-            }
+            // Hub_file 테이블 저장을 위해 첨부된 파일들 append
+            files.filter(f => f !== null).forEach(f => {
+                formData.append("upfile", f);
+            });
 
             // API 함수 호출 (Axios 등을 통한 POST 요청)
             const response = await insertHubApi(formData);
@@ -155,19 +231,22 @@ function HubEnrollFormComponent() {
             // 서버 응답 결과 처리
             if(response.data == "success") {
                 alert("거점 등록에 성공했습니다.");
-                navigate("/hub/list"); // 성공 시 리스트 페이지로 이동
+                navigate("/placeInfo/list"); // 성공 시 리스트 페이지로 이동
             } else {
                 alert("거점 등록에 실패했습니다.");
             }
 
         } catch(error) {
-            
-            console.log("거점 등록용 ajax 통신 실패!");
+           if(error.response && error.response.status === 413) {
+                alert("이미지의 용량이 너무 큽니다. 파일 크기를 줄여서 다시 시도해주세요.")
+           } else {
+                console.log("거점 등록용 ajax 통신 실패!");
+           }    
         }
-    }
+    };
 
     return(
-        <div>
+        <div className="content">
             <h2 align="center"><b>거점 등록</b></h2>
             <br />
             {/* 폼 제출 엔터 키 지원을 위해 onSubmit에 insertHub 연결 권장 */}
@@ -177,175 +256,166 @@ function HubEnrollFormComponent() {
                         <tr>
                             <th>사용 가능 인원</th>
                             <td className="input-group col-5">
-                                {/* numeric 입력값 바인딩 */}
-                                <input 
-                                    type="number" 
-                                    min="1" 
-                                    className="form-control" 
-                                    placeholder="0" 
-                                    name="intake" 
-                                    value={ hubData.intake } 
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="form-control"
+                                    placeholder="0"
+                                    name="maxCapacity"
+                                    value={ hubData.maxCapacity }
                                     onChange={ handleChange }
                                 />&nbsp;<p>명</p>
                             </td>
                             <th>이용 가능 여부</th>
                             <td>
-                                {/* Radio 버튼 바인딩 (checked 조건식 활용) */}
-                                <input 
-                                    type="radio" 
-                                    name="use" 
-                                    id="able" 
-                                    value="Y" 
-                                    checked={ hubData.use == "Y" } 
-                                    onChange={ handleChange } 
-                                />
-                                <label htmlFor="able">가능</label>&nbsp;
-                                <input 
-                                    type="radio" 
-                                    name="use" 
-                                    id="unable" 
-                                    value="N" 
-                                    checked={ hubData.use == "N" } 
-                                    onChange={ handleChange } 
-                                />
-                                <label htmlFor="unable">불가능</label>
+                                <input
+                                    type="radio"
+                                    name="hubStatus"
+                                    id="OPEN"
+                                    value="OPEN"
+                                    checked={ hubData.hubStatus == "OPEN" }
+                                    onChange={ handleChange }/>
+                                <label htmlFor="OPEN">가능</label>&nbsp;
+                                <input
+                                    type="radio"
+                                    name="hubStatus"
+                                    id="PAUSED"
+                                    value="PAUSED"
+                                    checked={ hubData.hubStatus == "PAUSED" }
+                                    onChange={ handleChange }/>
+                                <label htmlFor="PAUSED">불가능</label>
                             </td>
                             <th>유형</th>
-                            <td>
-                                {/* Dropdown 셀렉트 박스 바인딩 */}
-                                <select 
-                                    className="form-control" 
-                                    name="hubType" 
-                                    value={ hubData.hubType } 
-                                    onChange={ handleChange }
-                                >
+                            <td colSpan="2">
+                                <select
+                                    className="custom-select"
+                                    name="hubType"
+                                    value={ hubData.hubType }
+                                    onChange={ handleChange }>
                                     <option value="1">숙소</option>
                                     <option value="2">공유오피스</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>전화번호</th>
-                            <td colSpan="3">
-                                <input 
-                                    type="tel" 
-                                    name="phone" 
-                                    className="form-control" 
-                                    minLength="13" 
-                                    maxLength="13" 
-                                    placeholder="전화번호를 입력해주세요.(-포함)" 
-                                    value={ hubData.phone } 
-                                    onChange={ handleChange } 
-                                />
-                            </td>
-                            <th>지역</th>
-                            <td>
-                                <select 
-                                    className="form-control" 
-                                    name="regionName" 
-                                    value={ hubData.regionName } 
-                                    onChange={ handleChange }
-                                >
-                                    <option value="강원">강원</option>
-                                    <option value="제주">제주</option>
-                                    <option value="부산">부산</option>
                                 </select>
                             </td>
                         </tr>
                         {/* 카카오 주소 검색 적용 영역 */}
                         <tr>
                             <th>주소</th>
-                            <td colSpan="5">
-                                <input 
-                                    type="text" 
-                                    name="hubAddress" 
-                                    className="form-control" 
-                                    placeholder="주소를 입력해주세요." 
-                                    value={ hubData.hubAddress } 
+                            <td colSpan="3">
+                                <input
+                                    type="text"
+                                    name="hubAddress"
+                                    className="form-control"
+                                    placeholder="주소를 입력해주세요."
+                                    value={ hubData.hubAddress }
                                     onClick={ handleAddressSearch }
-                                />
+                                    readOnly/>
+                            </td>
+                            <th>지역</th>
+                            <td>
+                                <div className="d-flex">
+                                    <input
+                                        className="form-control"
+                                        name="mainRegion"
+                                        value={ hubData.mainRegion }
+                                        readOnly />
+                                    <input
+                                        className="form-control"
+                                        name="subRegion"
+                                        value={ hubData.subRegion }
+                                        readOnly />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>전화번호</th>
+                            <td colSpan="5">
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    className="form-control"
+                                    minLength="13"
+                                    maxLength="13"
+                                    placeholder="전화번호를 입력해주세요.(-포함)"
+                                    value={ hubData.phone }
+                                    onChange={ handleChange } />
                             </td>
                         </tr>
                         <tr>
                             <th>거점 이름</th>
                             <td colSpan="5">
-                                <input 
-                                    type="text" 
-                                    name="hubName" 
-                                    className="form-control" 
-                                    maxLength="20" 
-                                    placeholder="거점 이름을 입력해주세요." 
-                                    value={ hubData.hubName } 
-                                    onChange={ handleChange } 
-                                />
+                                <input
+                                    type="text"
+                                    name="hubName"
+                                    className="form-control"
+                                    maxLength="20"
+                                    placeholder="거점 이름을 입력해주세요."
+                                    value={ hubData.hubName }
+                                    onChange={ handleChange } />
                             </td>
                         </tr>
                         <tr>
                             <th>거점 설명</th>
                             <td colSpan="5">
-                                <textarea 
-                                    rows="10" 
-                                    name="description" 
-                                    className="form-control" 
-                                    style={ { resize : "none" } } 
-                                    placeholder="이용시간 및 세부내용을 작성해주세요." 
-                                    maxLength="300" 
-                                    value={ hubData.description } 
-                                    onChange={ handleChange } 
-                                ></textarea>
+                                <textarea
+                                    rows="10"
+                                    name="description"
+                                    className="form-control"
+                                    style={ { resize : "none" } }
+                                    placeholder="이용시간 및 세부내용을 작성해주세요."
+                                    maxLength="300"
+                                    value={ hubData.description }
+                                    onChange={ handleChange } >
+                                </textarea>
                             </td>
                         </tr>
                         <tr>
                             <th>첨부 이미지</th>
                             <td colSpan="5">
-                                {/* 커스텀 드래그 앤 드롭 및 클릭 업로드 영역 */}
-                                <div 
-                                    onClick={handleAreaClick}
-                                    onDragEnter={handleDragOver}
-                                    onDragOver={handleDragOver}
-                                    onDrop={handleDrop}
-                                    style={{ 
-                                        width: "250px", 
-                                        height: "170px", 
-                                        cursor: "pointer" 
-                                    }}
-                                >
-                                    {/* preview 존재 시 이미지 표시, 없을 시 안내 문구 영역 표시 */}
-                                    {preview ? (
-                                        <img 
-                                            src={preview} 
-                                            width="250" 
-                                            height="170" 
-                                            alt="첨부 이미지" 
-                                            style={{ objectFit: "cover" }}
-                                        />
-                                    ) : (
-                                        <div style={{ 
-                                            width: "100%", 
-                                            height: "100%", 
-                                            border: "2px dashed #ccc", 
-                                            display: "flex", 
-                                            alignItems: "center", 
-                                            justifyContent: "center",
-                                            color: "#888",
-                                            boxSizing: "border-box"
-                                        }}>
-                                            클릭하거나 이미지를 드래그하세요.
+                                <div className="d-flex" style={{ gap: "15px" }}>
+                                    {[0, 1, 2].map((index) => (
+                                        <div 
+                                            key={index}
+                                            onClick={() => handleAreaClick(index)}
+                                            onDragEnter={handleDragOver}
+                                            onDragOver={handleDragOver}
+                                            onDrop={(e) => handleDrop(index, e)}
+                                            style={{
+                                                border: previews[index] ? "none" : "2px dashed #ccc",
+                                            }}
+                                        >
+                                            {previews[index] ? (
+                                                <>
+                                                    <img src={previews[index]} width="100%" height="100%" alt={`첨부 이미지 ${index + 1}`} style={{ objectFit: "cover", borderRadius: "6px" }} />
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={(e) => handleRemoveImage(index, e)}
+                                                        style={{ position: "absolute", top: "5px", right: "5px", backgroundColor: "rgba(0,0,0,0.65)", color: "#fff", border: "none", borderRadius: "4px", padding: "2px 6px", cursor: "pointer", fontSize: "11px" }}>
+                                                        취소
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span style={{ color: "#888", fontSize: "12px" }}>
+                                                        {index === 0 ? "대표 이미지 *" : `추가 이미지 ${index}`}
+                                                    </span>
+                                                    <span style={{ color: "#aaa", fontSize: "10px", marginTop: "4px" }}>클릭 또는 드래그</span>
+                                                </>
+                                            )}
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             </td>
                         </tr>
                         <tr>
                             <th>가격/1일 기준<div style={{ fontSize : "12px" }}>숙소는 1박 기준!</div></th>
                             <td className="input-group col-10">
-                                <input 
-                                    type="number" 
-                                    name="pay" 
-                                    className="form-control" 
-                                    placeholder="0" 
-                                    min="0" 
-                                    value={ hubData.pay } 
+                                <input
+                                    type="number"
+                                    name="price"
+                                    className="form-control"
+                                    placeholder="0"
+                                    min="0"
+                                    value={ hubData.price }
                                     onChange={ handleChange }
                                 />&nbsp;<p>원</p>
                             </td>
@@ -354,15 +424,15 @@ function HubEnrollFormComponent() {
                 </table>
 
                 {/* 실제 파일 선택 입력을 담당하되 화면에는 보이지 않는 input (ref로 제어) */}
-                <input 
-                    type="file" 
-                    accept="image/*" 
-                    ref={ upfileRef } 
-                    style={ { display : "none" } } 
+                <input
+                    type="file"
+                    accept="image/*"
+                    ref={ upfileRef }
+                    style={ { display : "none" } }
                     onChange={ handleFileChange }
                 />
                 <br />
-                
+               
                 {/* 폼 제출 버튼 */}
                 <button type="submit" className="btn btn-primary" onClick={ insertHub }>등록하기</button>
                 {/* 이전 페이지 이동 버튼 */}

@@ -1,7 +1,12 @@
 package com.kh.workflow.hub.model.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -9,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,9 +41,13 @@ public class Hub {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int hubNo;
 	
-	@Schema(description="지역", example="강원도", requiredMode=Schema.RequiredMode.REQUIRED)
-	@Column(name="REGION_NAME", length=20, nullable=false)
-	private String regionName;
+	@Schema(description="지역명", example="강원도", requiredMode=Schema.RequiredMode.REQUIRED)
+	@Column(name="MAIN_REGION", length=20, nullable=false)
+	private String mainRegion;
+	
+	@Schema(description="상세지역명", example="강릉시", requiredMode=Schema.RequiredMode.REQUIRED)
+	@Column(name="SUB_REGION", length=20, nullable=false)
+	private String subRegion;
 	
 	@Schema(description="거점 이름", example="디어먼데이 춘천", requiredMode=Schema.RequiredMode.REQUIRED)
 	@Column(name="HUB_NAME", length=20, nullable=false)
@@ -58,4 +68,31 @@ public class Hub {
 	@Schema(description="시설", example="1", allowableValues= {"1", "2", "3"})
 	@Column(name="HUB_TYPE", columnDefinition="INT")
 	private int hubType;
+	
+	@Schema(description="가격", example="10000")
+	@Column(name="PRICE", columnDefinition="INT")
+	private int price;
+	
+	@Schema(description="상태", example="OPEN", allowableValues = {"Y", "N"})
+	@Column(name="HUB_STATUS", length=10)
+	private String hubStatus;
+	
+	@Schema(description="최대수용인원", example="10")
+	@Column(name="MAX_CAPACITY", columnDefinition="INT")
+	private int maxCapacity;
+	
+	@ToString.Exclude // ToString 순환 참조 방지
+    @JsonIgnoreProperties({"hub"}) // JSON 변환 시 순환 참조 방지
+    @OneToMany(mappedBy = "hub")
+    private List<HubFile> hubFileList = new ArrayList<>();
+
+    // 첫 번째 첨부파일 경로를 썸네일로 반환하는 가상 메서드
+    public String getThumbnailUrl() {
+        if (hubFileList != null && !hubFileList.isEmpty()) {
+            HubFile file = hubFileList.get(0);
+            return file.getFilePath() + "/" + file.getChangeName();
+        }
+        return null; // 또는 기본 이미지 경로 "/upload/default.png"
+    }
+	
 }

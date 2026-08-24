@@ -12,8 +12,25 @@
     background-color: #0084e9;
 }
 
+select[name="subRegion"] {
+    width: 150px;
+    float: left;
+}
+
+input[name="keyword"] {
+    width: 500px !important;
+}
+
+.list-area td {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 15px;
+}
+
 p {
-    font-size: x-large;
+    font-size: large;
+    text-align: left;
 }
 
 .table tr {

@@ -19,14 +19,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.common.template.FileRenamePolicy;
 import com.kh.workflow.common.template.Pagination;
 import com.kh.workflow.hub.model.service.HubService;
 import com.kh.workflow.hub.model.vo.Hub;
+import com.kh.workflow.hub.model.vo.HubFile;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 
 @Tag(name="Hub API", description="거점 조회/작성/수정/삭제 관련 API")
 @CrossOrigin
@@ -48,7 +53,7 @@ public class HubController {
 		int boardLimit = 10;
 		int pageLimit = 10;
 		
-		Pageable pageable = PageRequest.of(currentPage - 1, 10);
+		Pageable pageable = PageRequest.of(currentPage - 1, boardLimit);
 		
 		Page<Hub> page = hubService.selectHubList(pageable);
 		
@@ -77,7 +82,7 @@ public class HubController {
 	}
 	
 	@PostMapping("/hubs/send")
-	public String sendMessage(@RequestBody String message) {
+	public ResponseEntity<String> sendMessage(@RequestBody String message) {
 		
 		chatHistory.add(new UserMessage(message));
 		
@@ -85,7 +90,37 @@ public class HubController {
 		
 		chatHistory.add(new AssistantMessage(reply));
 		
-		return reply;
+		return ResponseEntity.status(HttpStatus.OK)
+							 .body(reply);
+	}
+	
+	@PostMapping("/hubs")
+	public ResponseEntity<String> insertHub(Hub hub, @RequestPart(value = "upfile", required = false) List<MultipartFile> upfiles, HttpSession session) {
 		
+		System.out.println(hub);
+		
+		List<HubFile> fileList = new ArrayList<>();
+		
+		if(upfiles != null && !upfiles.isEmpty()) {
+			for (MultipartFile file : upfiles) {
+				if(file != null && !file.isEmpty()) {
+					String changeName = FileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
+					
+					HubFile hf = new HubFile();
+					hf.setFilePath("/resources/upload/hub");
+					hf.setOriginName(file.getOriginalFilename());
+					hf.setChangeName(changeName);
+					
+					fileList.add(hf);
+				}
+			}
+		}
+		
+		Hub insertHub = hubService.insertHub(hub, fileList);
+		
+		String message = (insertHub != null) ? "success" : "fail";		 
+		 
+		return ResponseEntity.status(HttpStatus.OK)
+						     .body(message);
 	}
 }

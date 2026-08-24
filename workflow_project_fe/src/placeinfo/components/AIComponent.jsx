@@ -7,21 +7,21 @@ import "../styles/AIComponent.css";
 
 function AIComponent() {
 
-    // 1. 라우팅 관련 훅 (뒤로가기 등 페이지 이동 시 사용)
+    // 라우팅 관련 훅 (뒤로가기 등 페이지 이동 시 사용)
     const navigate = useNavigate();
 
-    // 2. 사용자가 입력창에 작성 중인 메시지 텍스트 State
+    // 사용자가 입력창에 작성 중인 메시지 텍스트 State
     const [inputMessage, setInputMessage] = useState("");
 
-    // 3. 채팅 대화 목록을 저장하는 배열 State (객체 배열: [{ sender: "나", text: "..." }, ...])
+    // 채팅 대화 목록을 저장하는 배열 State (객체 배열: [{ sender: "나", text: "..." }, ...])
     const [messages, setMessages] = useState([]);
 
-    // 4. 입력창(input) 바인딩 핸들러 - 사용자가 글자를 입력할 때마다 inputMessage State 갱신
+    // 입력창(input) 바인딩 핸들러 - 사용자가 글자를 입력할 때마다 inputMessage State 갱신
     const handleChange = e => {
         setInputMessage(e.target.value);
     };
 
-    // 5. AI 채팅 요청 전송 핸들러 (비동기 처리)
+    // AI 채팅 요청 전송 핸들러 (비동기 처리)
     const Chatting = async e => {
 
         // 폼 제출 시 페이지 전체가 새로고침되는 기본 브라우저 동작 방지
@@ -56,18 +56,10 @@ function AIComponent() {
     };
 
     return (
-        <div>
+        <div className="content">
             {/* 페이지 타이틀 */}
             <h2 align="center"><b>AI 추천</b></h2>
 
-            {/* 상단 우측 뒤로가기 버튼 영역 */}
-            <div align="right">
-                {/* navigate(-1)을 호출하여 이전 페이지 히스토리로 이동 */}
-                <button type="button" className="back" onClick={() => { navigate(-1); }}>
-                    뒤로가기
-                </button>
-            </div>
-            
             <hr />
             <br />
 
@@ -93,8 +85,7 @@ function AIComponent() {
                 <input 
                     type="text" 
                     id="messageInput" 
-                    className="form-control" 
-                    size="20" 
+                    className="form-control"  
                     placeholder="AI에게 물어보기" 
                     value={inputMessage} 
                     onChange={handleChange} 
@@ -103,6 +94,9 @@ function AIComponent() {
                 {/* 전송 버튼 */}
                 <button type="submit" className="confirm" onClick={ Chatting }>
                     확인
+                </button>
+                <button type="button" className="back" onClick={() => { navigate(-1); }}>
+                    뒤로가기
                 </button>
             </form>
         </div>
