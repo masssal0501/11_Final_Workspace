@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import WorkcationScheduleComponent from "./WorkcationScheduleComponent"; 
 
 import "../styles/WorkcationList.css";
 
@@ -18,6 +19,8 @@ function WorkcationListComponent() {
     const [keyWord, setKeyword] = useState('');
     const [searchType, setSearchType] = useState("all");
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
     const searchCondition = searchParams.get("condition") || "all";
     const searchKeyword = searchParams.get("keyword") || "";
@@ -122,9 +125,14 @@ function WorkcationListComponent() {
             <div className="workcation-btnSet">
 
                 {/*일정관리 */}
-                <button className="skedule-btn">
+                <button className="skedule-btn"
+                        onClick={()=> setIsScheduleOpen(true)}>
                     일정관리
                 </button>
+                {/**상단에서 import 한 컴포넌트를 불러오기 */}
+                {isScheduleOpen &&(
+                    <WorkcationScheduleComponent onClose={()=>setIsScheduleOpen(false)}/>
+                )}
 
                 {/**지역명 드롭다운 */}
                 <form action="">
@@ -168,11 +176,11 @@ function WorkcationListComponent() {
 
                 {/**신청하기 */}
                 <div className="apply-btn">
-                    <button>신청</button>
+                    <button onClick={()=>{navigate("/workcation/enrollform");}}>신청</button>
                 </div>
             </div>
 
-            <table>
+            <table className="workcation-list">
                 <thead>
                     <tr>
                         <th>번호</th>

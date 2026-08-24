@@ -68,6 +68,15 @@
     height: 45px;
 }
 
+.list-area tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.list-area tbody tr:hover {
+    cursor: pointer;
+    background-color: rgba(204, 204, 204, 0.281);
+}
+
 .search-btn:hover {
     background-color: #27C7B9;
     color: #ffffff;
@@ -125,28 +134,27 @@ page-btn:focus {
     white-space: nowrap;
 }
 
+/*업무준비*/
 .status-gray {
     background-color: rgb(117, 117, 117);
 }
 
-/*업무준비*/
+/*1~50*/
 .status-red {
     background-color: red;
 }
 
-/*1~50*/
+/*51-100*/
 .status-yellow {
     background-color: rgb(255, 166, 0);
 }
 
-/*51-100*/
+/*완료요청*/
 .status-blue {
     background-color: rgb(31, 121, 255);
 }
 
-/*완료요청*/
+/*업무 완료*/
 .status-green {
     background-color: rgb(1, 177, 39);
 }
-
-/*업무 완료*/

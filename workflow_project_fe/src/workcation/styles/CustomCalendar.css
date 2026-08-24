@@ -1,0 +1,72 @@
+/* React-Calendar 기본 틀 커스텀 */
+.react-calendar {
+    width: 100% !important;
+    border: none !important;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 15px;
+    background-color: #ffffff;
+}
+
+/* 상단 월/년 이동 네비게이션 */
+.react-calendar__navigation {
+    display: flex;
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+.react-calendar__navigation button {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    background: none;
+    border: none;
+    border-radius: 8px;
+}
+
+.react-calendar__navigation button:enabled:hover {
+    background-color: #f0f0f0;
+}
+
+/* 요일 표시 헤더 (Sun, Mon...) */
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    font-weight: 500;
+    font-size: 12px;
+    color: #999;
+    padding-bottom: 8px;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+    text-decoration: none; /* 밑줄 제거 */
+}
+
+/* 날짜 칸 버튼 설정 */
+.react-calendar__tile {
+    max-width: 100%;
+    padding: 10px 0;
+    background: none;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 50%; /* 동그라미 형태 */
+    border: none;
+}
+
+.react-calendar__tile:enabled:hover {
+    background-color: #f5f5f5;
+}
+
+/* 오늘 날짜 표시 */
+.react-calendar__tile--now {
+    border-radius: 16px;
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* 선택된 날짜 (파란색 원형 선택) */
+.react-calendar__tile--active {
+    background: #007bff !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 18px !important;
+}

@@ -9,6 +9,7 @@ import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
+import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
@@ -29,6 +30,7 @@ function App() {
 
           <Route path="/workcation/list" element={<WorkcationListComponent/>}/>
           <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent/>}/>
+          <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent/>}/>
         </Routes>
 
       </div>
