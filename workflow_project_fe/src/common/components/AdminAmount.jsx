@@ -7,11 +7,24 @@ export default function AdminAmount({ workcationNo }) {
   const navigate = useNavigate();
   const [amounts, setAmounts] = useState([]);
 
+  // =========================================================
+  // 비용 신청 목록 조회
+  // =========================================================
   const fetchAmountList = async () => {
     try {
       const data = await amountApi.getAmountListByWorkcation(
         workcationNo || 1
       );
+
+      console.log('📋 관리자 비용 목록:', data);
+
+      // 상태 확인
+      data?.forEach((item) => {
+        console.log(
+          `신청번호 ${item.amountNo} / 상태:`,
+          item.status
+        );
+      });
 
       setAmounts(data);
     } catch (error) {
@@ -24,7 +37,47 @@ export default function AdminAmount({ workcationNo }) {
   }, [workcationNo]);
 
   // =========================================================
+  // 날짜 포맷
+  // 2026-08-21T06:05:16.000Z
+  //        ↓
+  // 2026-08-21
+  // =========================================================
+  const formatDate = (date) => {
+    if (!date) {
+      return '-';
+    }
+
+    const d = new Date(date);
+
+    if (isNaN(d.getTime())) {
+      return '-';
+    }
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  // =========================================================
+  // 금액 포맷
+  // =========================================================
+  const formatMoney = (amount) => {
+    if (
+      amount === null ||
+      amount === undefined ||
+      amount === ''
+    ) {
+      return '-';
+    }
+
+    return `${Number(amount).toLocaleString()} 원`;
+  };
+
+  // =========================================================
   // 결재 처리
+  //
   // A = 승인
   // H = 보류
   // J = 반려
@@ -33,10 +86,14 @@ export default function AdminAmount({ workcationNo }) {
     e.stopPropagation();
 
     let comment = '';
-    let approvedAmount = null;
+
+    // 중요:
+    // 백엔드에서 approvedAmount를 필수 파라미터로 받고 있으므로
+    // 승인 이외의 경우에도 0을 전달한다.
+    let approvedAmount = 0;
 
     // =====================================================
-    // 1. 보류 / 반려일 경우 사유 필수 입력
+    // 1. 보류 / 반려 → 사유 필수
     // =====================================================
     if (status === 'H' || status === 'J') {
       const reasonTitle =
@@ -46,7 +103,7 @@ export default function AdminAmount({ workcationNo }) {
 
       const inputComment = prompt(reasonTitle);
 
-      // 취소 버튼
+      // 취소
       if (inputComment === null) {
         return;
       }
@@ -65,7 +122,7 @@ export default function AdminAmount({ workcationNo }) {
     }
 
     // =====================================================
-    // 2. 승인일 경우 승인 금액 입력
+    // 2. 승인 → 승인 금액 입력
     // =====================================================
     if (status === 'A') {
       const inputAmt = prompt(
@@ -79,7 +136,9 @@ export default function AdminAmount({ workcationNo }) {
       }
 
       // 콤마 제거
-      const cleanAmount = String(inputAmt).replace(/,/g, '').trim();
+      const cleanAmount = String(inputAmt)
+        .replace(/,/g, '')
+        .trim();
 
       approvedAmount = Number(cleanAmount);
 
@@ -94,10 +153,15 @@ export default function AdminAmount({ workcationNo }) {
       }
 
       // 신청금액 초과 방지
-      if (approvedAmount > item.requestedAmount) {
+      if (
+        approvedAmount >
+        Number(item.requestedAmount || 0)
+      ) {
         alert(
           `승인 금액(${approvedAmount.toLocaleString()}원)은 ` +
-          `신청 금액(${item.requestedAmount.toLocaleString()}원)을 ` +
+          `신청 금액(${Number(
+            item.requestedAmount || 0
+          ).toLocaleString()}원)을 ` +
           `초과할 수 없습니다.`
         );
         return;
@@ -108,11 +172,14 @@ export default function AdminAmount({ workcationNo }) {
     // 3. 서버 요청
     // =====================================================
     try {
-      console.log('===== 결재 처리 =====');
+      console.log('=================================');
+      console.log('===== 결재 처리 시작 =====');
       console.log('amountNo:', item.amountNo);
-      console.log('status:', status);
+      console.log('기존 status:', item.status);
+      console.log('처리할 status:', status);
       console.log('approvedAmount:', approvedAmount);
       console.log('comment:', comment);
+      console.log('=================================');
 
       await amountApi.updateApproval(
         item.amountNo,
@@ -121,7 +188,9 @@ export default function AdminAmount({ workcationNo }) {
         comment
       );
 
-      // 상태별 메시지
+      // ===================================================
+      // 처리 완료 메시지
+      // ===================================================
       const statusMessage = {
         A: '승인 처리가 완료되었습니다.',
         H: '보류 처리가 완료되었습니다.',
@@ -133,8 +202,10 @@ export default function AdminAmount({ workcationNo }) {
         '결재 처리가 완료되었습니다.'
       );
 
-      // 목록 새로고침
-      fetchAmountList();
+      // ===================================================
+      // 목록 다시 조회
+      // ===================================================
+      await fetchAmountList();
 
     } catch (error) {
       console.error('결재 처리 실패:', error);
@@ -145,6 +216,7 @@ export default function AdminAmount({ workcationNo }) {
       );
 
       alert(
+        error.response?.data?.message ||
         error.response?.data ||
         '결재 처리에 실패했습니다.'
       );
@@ -164,12 +236,17 @@ export default function AdminAmount({ workcationNo }) {
     };
 
     return (
-      <span className={`status-badge status-${status}`}>
+      <span
+        className={`status-badge status-${status}`}
+      >
         {statusMap[status] || status}
       </span>
     );
   };
 
+  // =========================================================
+  // 화면
+  // =========================================================
   return (
     <div className="amount-container">
 
@@ -186,7 +263,9 @@ export default function AdminAmount({ workcationNo }) {
       >
         <h2
           className="amount-title admin"
-          style={{ margin: 0 }}
+          style={{
+            margin: 0
+          }}
         >
           비용 정산 결재 관리 (관리자)
         </h2>
@@ -194,7 +273,9 @@ export default function AdminAmount({ workcationNo }) {
         <button
           type="button"
           className="btn btn-secondary"
-          onClick={() => navigate('/admin/statistics')}
+          onClick={() =>
+            navigate('/admin/statistics')
+          }
           style={{
             padding: '8px 16px',
             backgroundColor: '#6c757d',
@@ -215,6 +296,7 @@ export default function AdminAmount({ workcationNo }) {
 
         <thead>
           <tr className="admin-table-header">
+
             <th className="text-center">
               신청번호
             </th>
@@ -238,6 +320,7 @@ export default function AdminAmount({ workcationNo }) {
             <th className="text-center">
               결재 처리
             </th>
+
           </tr>
         </thead>
 
@@ -259,13 +342,13 @@ export default function AdminAmount({ workcationNo }) {
             amounts.map((item) => {
 
               // =================================================
-              // 1. 회사 승인 금액
+              // 회사 승인 금액
               // =================================================
               const approvedAmt =
-                item.approvedAmount || 0;
+                Number(item.approvedAmount) || 0;
 
               // =================================================
-              // 2. 해당 신청 건의 지원금 총합
+              // 지원금 총합
               // =================================================
               const totalSponsorAmt =
                 item.itemList?.reduce(
@@ -279,7 +362,11 @@ export default function AdminAmount({ workcationNo }) {
                       itemSponsors.reduce(
                         (sSum, sponsor) =>
                           sSum +
-                          (sponsor.amount || 0),
+                          (
+                            Number(
+                              sponsor.amount
+                            ) || 0
+                          ),
                         0
                       )
                     );
@@ -288,12 +375,11 @@ export default function AdminAmount({ workcationNo }) {
                 ) || 0;
 
               // =================================================
-              // 3. 총합산 금액
+              // 총합산 금액
               // =================================================
               const grandTotal =
-                approvedAmt > 0
-                  ? approvedAmt + totalSponsorAmt
-                  : 0;
+                approvedAmt +
+                totalSponsorAmt;
 
               return (
                 <tr
@@ -315,39 +401,48 @@ export default function AdminAmount({ workcationNo }) {
 
                   {/* 신청금액 */}
                   <td className="text-right">
-                    {item.requestedAmount?.toLocaleString()}
-                    {' '}원
+                    {formatMoney(
+                      item.requestedAmount
+                    )}
                   </td>
 
                   {/* 총합산 금액 */}
                   <td className="text-right">
                     {grandTotal > 0
-                      ? `${grandTotal.toLocaleString()} 원`
+                      ? formatMoney(grandTotal)
                       : '-'}
                   </td>
 
                   {/* 상태 */}
                   <td className="text-center">
-                    {getStatusBadge(item.status)}
+                    {getStatusBadge(
+                      item.status
+                    )}
                   </td>
 
                   {/* 신청일 */}
                   <td className="text-center">
-                    {item.requestedAt}
+                    {formatDate(
+                      item.requestedAt
+                    )}
                   </td>
 
                   {/* 결재 처리 */}
                   <td className="text-center">
 
                     {/* =========================================
-                        검토중(R) / 보류(H)
-                        ========================================= */}
-                    {['R', 'H'].includes(item.status) ? (
+                        R = 검토중
+                        H = 보류
+                    ========================================= */}
+                    {['R', 'H'].includes(
+                      item.status
+                    ) ? (
 
                       <>
 
                         {/* 승인 */}
                         <button
+                          type="button"
                           className="btn btn-approve"
                           onClick={(e) =>
                             handleApproval(
@@ -362,6 +457,7 @@ export default function AdminAmount({ workcationNo }) {
 
                         {/* 반려 */}
                         <button
+                          type="button"
                           className="btn btn-reject"
                           onClick={(e) =>
                             handleApproval(
@@ -374,9 +470,13 @@ export default function AdminAmount({ workcationNo }) {
                           반려
                         </button>
 
-                        {/* 보류 */}
+                        {/* =====================================
+                            보류
+                            R일 때만 표시
+                        ===================================== */}
                         {item.status === 'R' && (
                           <button
+                            type="button"
                             className="btn btn-hold"
                             onClick={(e) =>
                               handleApproval(
@@ -403,13 +503,16 @@ export default function AdminAmount({ workcationNo }) {
                     )}
 
                   </td>
+
                 </tr>
               );
             })
           )}
 
         </tbody>
+
       </table>
+
     </div>
   );
 }

@@ -11,25 +11,31 @@ export default function AmountForm({ workcationNo, onSuccess }) {
   const isEditMode = !!amountNo;
 
   const [formData, setFormData] = useState({
-  amountNo: null,
-  workcationNo: workcationNo || 1,
-  amountComment: '',
-  file: null,
-  fileList: [],
+    amountNo: null,
+    workcationNo: workcationNo || 1,
+    amountComment: '',
 
-  itemList: [
-    {
-      itemNo: null,
-      itemType: 'S',
-      amount: '',
-      itemDate: null,
-      itemApproved: null,
-      itemDescription: '',
-      amountNo: null,
-      sponsorList: []
-    }
-  ]
-});
+    // =====================================================
+    // 여러 파일
+    // =====================================================
+    files: [],
+
+    // 기존 첨부파일
+    fileList: [],
+
+    itemList: [
+      {
+        itemNo: null,
+        itemType: 'S',
+        amount: '',
+        itemDate: null,
+        itemApproved: null,
+        itemDescription: '',
+        amountNo: null,
+        sponsorList: []
+      }
+    ]
+  });
 
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +53,6 @@ export default function AmountForm({ workcationNo, onSuccess }) {
       try {
         const data = await amountApi.getAmountById(amountNo);
 
-
         if (!data) {
           alert('해당 비용 신청 정보를 찾을 수 없습니다.');
           navigate('/cost/list');
@@ -55,13 +60,12 @@ export default function AmountForm({ workcationNo, onSuccess }) {
         }
 
         // -----------------------------------------------------
-        // itemList가 없거나 비어있는 경우
+        // itemList
         // -----------------------------------------------------
         const sourceItems = Array.isArray(data.itemList)
           ? data.itemList
           : [];
 
-        // 빈 객체 제거
         const validItems = sourceItems.filter(
           (item) =>
             item &&
@@ -73,22 +77,17 @@ export default function AmountForm({ workcationNo, onSuccess }) {
             )
         );
 
-       
-
         // -----------------------------------------------------
-        // 기존 Item 데이터 유지
+        // 기존 Item 데이터
         // -----------------------------------------------------
         const mappedItems =
           validItems.length > 0
-            ? validItems.map((item, index) => {
-             
-
+            ? validItems.map((item) => {
                 return {
                   itemNo: item.itemNo ?? null,
 
                   itemType: item.itemType || 'S',
 
-                  // 0도 정상적인 값이므로 그대로 문자열 변환
                   amount:
                     item.amount !== null &&
                     item.amount !== undefined
@@ -99,7 +98,8 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
                   itemApproved: item.itemApproved ?? null,
 
-                  itemDescription: item.itemDescription || '',
+                  itemDescription:
+                    item.itemDescription || '',
 
                   amountNo:
                     item.amountNo ??
@@ -128,30 +128,33 @@ export default function AmountForm({ workcationNo, onSuccess }) {
         // 최종 formData
         // -----------------------------------------------------
         const newFormData = {
-        amountNo: data.amountNo ?? Number(amountNo),
+          amountNo: data.amountNo ?? Number(amountNo),
 
-        workcationNo:
-          data.workcationNo ??
-          workcationNo ??
-          1,
+          workcationNo:
+            data.workcationNo ??
+            workcationNo ??
+            1,
 
-        amountComment: data.amountComment || '',
+          amountComment: data.amountComment || '',
 
-        file: null,
+          // 새로 선택한 파일
+          files: [],
 
-        fileList: Array.isArray(data.fileList)
-          ? data.fileList
-          : [],
+          // 기존 첨부파일
+          fileList: Array.isArray(data.fileList)
+            ? data.fileList
+            : [],
 
-        itemList: mappedItems
-      };
-
-     
+          itemList: mappedItems
+        };
 
         setFormData(newFormData);
 
       } catch (error) {
-     
+        console.error(
+          '기존 신청 정보 조회 실패:',
+          error
+        );
 
         alert('기존 신청 정보를 불러오지 못했습니다.');
         navigate('/cost/list');
@@ -238,46 +241,117 @@ export default function AmountForm({ workcationNo, onSuccess }) {
   };
 
   // =========================================================
-  // 파일 변경
+  // 여러 파일 선택
   // =========================================================
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0] || null;
+    const selectedFiles = Array.from(
+      e.target.files || []
+    );
+
+    if (selectedFiles.length === 0) {
+      return;
+    }
 
     setFormData((prev) => ({
       ...prev,
-      file
+
+      files: [
+        ...prev.files,
+        ...selectedFiles
+      ]
+    }));
+
+    // 같은 파일을 다시 선택할 수 있도록 초기화
+    e.target.value = '';
+  };
+
+  // =========================================================
+  // 선택한 새 파일 삭제
+  // =========================================================
+  const handleRemoveNewFile = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+
+      files: prev.files.filter(
+        (_, i) => i !== index
+      )
     }));
   };
 
   // =========================================================
   // 제출
-  // 등록 / 수정 공통
   // =========================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-  
+    // -----------------------------------------------------
+    // 파일 필수 검사
+    //
+    // 신규 등록:
+    // 반드시 파일 1개 이상 필요
+    //
+    // 수정:
+    // 기존 파일이 있거나 새 파일이 있으면 OK
+    // -----------------------------------------------------
+    const activeExistingFiles = formData.fileList.filter(
+      (file) =>
+        file &&
+        file.status !== 'N'
+    );
+
+    const hasExistingFile =
+      activeExistingFiles.length > 0;
+
+    const hasNewFile =
+      formData.files.length > 0;
+
+    if (
+      !isEditMode &&
+      !hasNewFile
+    ) {
+      alert(
+        '증빙 영수증 파일을 최소 1개 이상 첨부해주세요.'
+      );
+      return;
+    }
+
+    if (
+      isEditMode &&
+      !hasExistingFile &&
+      !hasNewFile
+    ) {
+      alert(
+        '증빙 영수증 파일을 최소 1개 이상 첨부해주세요.'
+      );
+      return;
+    }
+
     // -----------------------------------------------------
     // 금액 검증
     // -----------------------------------------------------
     if (totalRequestedAmount <= 0) {
-      alert('비용 항목별 금액을 올바르게 입력해 주세요.');
+      alert(
+        '비용 항목별 금액을 올바르게 입력해 주세요.'
+      );
       return;
     }
 
     // -----------------------------------------------------
     // 각 Item 금액 검증
     // -----------------------------------------------------
-    const invalidItem = formData.itemList.some(
-      (item) =>
-        item.amount === '' ||
-        item.amount === null ||
-        item.amount === undefined ||
-        Number(item.amount) <= 0
-    );
+    const invalidItem =
+      formData.itemList.some(
+        (item) =>
+          item.amount === '' ||
+          item.amount === null ||
+          item.amount === undefined ||
+          Number(item.amount) <= 0
+      );
 
     if (invalidItem) {
-      alert('모든 비용 항목에 금액을 입력해 주세요.');
+      alert(
+        '모든 비용 항목에 금액을 입력해 주세요.'
+      );
       return;
     }
 
@@ -309,64 +383,90 @@ export default function AmountForm({ workcationNo, onSuccess }) {
       // ItemList
       // =====================================================
 
-      formData.itemList.forEach((item, index) => {
+      formData.itemList.forEach(
+        (item, index) => {
 
-        // 수정 시 기존 itemNo 전달
-        if (item.itemNo !== null && item.itemNo !== undefined) {
+          // 수정 시 기존 itemNo
+          if (
+            item.itemNo !== null &&
+            item.itemNo !== undefined
+          ) {
+            formPayload.append(
+              `itemList[${index}].itemNo`,
+              item.itemNo
+            );
+          }
+
           formPayload.append(
-            `itemList[${index}].itemNo`,
-            item.itemNo
+            `itemList[${index}].itemType`,
+            item.itemType
           );
-        }
 
-        formPayload.append(
-          `itemList[${index}].itemType`,
-          item.itemType
-        );
-
-        formPayload.append(
-          `itemList[${index}].amount`,
-          item.amount
-        );
-
-        formPayload.append(
-          `itemList[${index}].itemDescription`,
-          item.itemDescription || ''
-        );
-
-        // 기존 amountNo가 있으면 전달
-        if (
-          item.amountNo !== null &&
-          item.amountNo !== undefined
-        ) {
           formPayload.append(
-            `itemList[${index}].amountNo`,
-            item.amountNo
+            `itemList[${index}].amount`,
+            item.amount
           );
+
+          formPayload.append(
+            `itemList[${index}].itemDescription`,
+            item.itemDescription || ''
+          );
+
+          // 기존 amountNo
+          if (
+            item.amountNo !== null &&
+            item.amountNo !== undefined
+          ) {
+            formPayload.append(
+              `itemList[${index}].amountNo`,
+              item.amountNo
+            );
+          }
         }
-      });
+      );
 
       // =====================================================
-      // 파일
+      // 여러 첨부파일
+      //
+      // 중요:
+      // 모든 파일을 같은 "file" 이름으로 추가
+      //
+      // 백엔드:
+      // @RequestParam("file") MultipartFile[] files
+      // 또는
+      // @RequestPart("file") MultipartFile[] files
       // =====================================================
 
-      if (formData.file) {
+      formData.files.forEach((file) => {
         formPayload.append(
           'file',
-          formData.file
+          file
         );
-      }
+      });
 
       // =====================================================
       // FormData 확인
       // =====================================================
+      console.log('===== FormData =====');
 
-   
-      for (const [key, value] of formPayload.entries()) {
-
+      for (
+        const [key, value]
+        of formPayload.entries()
+      ) {
+        if (value instanceof File) {
+          console.log(
+            key,
+            value.name,
+            value.size,
+            value.type
+          );
+        } else {
+          console.log(
+            key,
+            value
+          );
+        }
       }
-
-
 
       // =====================================================
       // 등록 / 수정
@@ -374,24 +474,24 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
       if (isEditMode) {
 
-      
-
         await amountApi.updateAmount(
           formData.amountNo,
           formPayload
         );
 
-        alert('비용 신청이 수정되었습니다.');
+        alert(
+          '비용 신청이 수정되었습니다.'
+        );
 
       } else {
-
-
 
         await amountApi.createAmount(
           formPayload
         );
 
-        alert('비용 신청이 완료되었습니다.');
+        alert(
+          '비용 신청이 완료되었습니다.'
+        );
       }
 
       // =====================================================
@@ -406,9 +506,20 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
     } catch (error) {
 
-  
+      console.error(
+        '비용 신청 처리 실패:',
+        error
+      );
 
-      alert('처리 중 오류가 발생했습니다.');
+      console.error(
+        '서버 응답:',
+        error.response?.data
+      );
+
+      alert(
+        error.response?.data ||
+        '처리 중 오류가 발생했습니다.'
+      );
 
     } finally {
       setLoading(false);
@@ -440,7 +551,9 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
       <form onSubmit={handleSubmit}>
 
-        {/* 총 신청 금액 */}
+        {/* =================================================
+            총 신청 금액
+        ================================================= */}
         <div className="form-group total-amount-box">
 
           <label>
@@ -453,60 +566,179 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
         </div>
 
-        {/* 파일 */}
+        {/* =================================================
+            첨부파일
+        ================================================= */}
         <div className="form-group">
 
-  <label>
-    증빙 영수증 파일:
-  </label>
+          <label>
+            증빙 영수증 파일:
+            <span
+              style={{
+                color: 'red',
+                marginLeft: '5px'
+              }}
+            >
+              * 필수
+            </span>
+          </label>
 
-  {/* 기존 첨부파일 */}
-  {formData.fileList.length > 0 && (
-    <div className="existing-file-list">
+          {/* =================================================
+              기존 첨부파일
+          ================================================= */}
+          {formData.fileList.filter(
+            (file) =>
+              file &&
+              file.status !== 'N'
+          ).length > 0 && (
 
-      <div className="existing-file-title">
-        기존 첨부파일
-      </div>
+            <div className="existing-file-list">
 
-      {formData.fileList
-        .filter(file => file && file.status !== 'N')
-        .map((file) => (
-          <div
-            key={file.amountattachmentNo}
-            className="existing-file-item"
-          >
-            📎 {file.originName}
+              <div className="existing-file-title">
+                기존 첨부파일
+              </div>
 
-            {file.filePath && (
-              <a
-                href={file.filePath}
-                target="_blank"
-                rel="noopener noreferrer"
+              {formData.fileList
+                .filter(
+                  (file) =>
+                    file &&
+                    file.status !== 'N'
+                )
+                .map((file) => (
+
+                  <div
+                    key={
+                      file.amountattachmentNo
+                    }
+                    className="existing-file-item"
+                  >
+
+                    📎 {file.originName}
+
+                    {file.filePath && (
+                      <a
+                        href={file.filePath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          marginLeft: '10px'
+                        }}
+                      >
+                        보기
+                      </a>
+                    )}
+
+                  </div>
+
+                ))}
+
+            </div>
+
+          )}
+
+          {/* =================================================
+              여러 파일 선택
+          ================================================= */}
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+          />
+
+          {/* =================================================
+              새로 선택한 파일 목록
+          ================================================= */}
+          {formData.files.length > 0 && (
+
+            <div
+              className="new-file-list"
+              style={{
+                marginTop: '10px'
+              }}
+            >
+
+              <div
+                style={{
+                  fontWeight: 'bold',
+                  marginBottom: '5px'
+                }}
               >
-                보기
-              </a>
+                새로 첨부할 파일
+              </div>
+
+              {formData.files.map(
+                (file, index) => (
+
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="new-file-item"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent:
+                        'space-between',
+                      padding: '5px 0'
+                    }}
+                  >
+
+                    <span>
+                      📎 {file.name}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveNewFile(
+                          index
+                        )
+                      }
+                      style={{
+                        marginLeft: '10px',
+                        color: '#dc3545',
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      삭제
+                    </button>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+          )}
+
+          {/* =================================================
+              파일이 하나도 없는 경우
+          ================================================= */}
+          {formData.files.length === 0 &&
+            formData.fileList.filter(
+              (file) =>
+                file &&
+                file.status !== 'N'
+            ).length === 0 && (
+
+              <div
+                style={{
+                  color: '#dc3545',
+                  marginTop: '5px'
+                }}
+              >
+                ⚠ 증빙 영수증 파일을 최소 1개 이상
+                첨부해주세요.
+              </div>
+
             )}
-          </div>
-        ))}
 
-    </div>
-  )}
+        </div>
 
-  {/* 새 파일 선택 */}
-  <input
-    type="file"
-    onChange={handleFileChange}
-  />
-
-  {formData.file && (
-    <div className="new-file-name">
-      새 파일: {formData.file.name}
-    </div>
-  )}
-
-</div>
-
-        {/* 신청 사유 */}
+        {/* =================================================
+            신청 사유
+        ================================================= */}
         <div className="form-group">
 
           <label>
@@ -518,7 +750,8 @@ export default function AmountForm({ workcationNo, onSuccess }) {
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                amountComment: e.target.value
+                amountComment:
+                  e.target.value
               }))
             }
             placeholder="정산 신청 사유를 입력하세요."
@@ -529,7 +762,9 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
         <hr className="form-divider" />
 
-        {/* 상세 항목 */}
+        {/* =================================================
+            상세 항목
+        ================================================= */}
         <div className="section-header">
 
           <h3>
@@ -546,153 +781,174 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
         </div>
 
-        {formData.itemList.map((item, index) => (
+        {formData.itemList.map(
+          (item, index) => (
 
-          <div
-            key={item.itemNo ?? `new-${index}`}
-            className="item-card"
-          >
-
-            <div className="item-row">
-
-              {/* 항목 구분 */}
-              <div className="form-group">
-
-                <label>
-                  항목 구분:
-                </label>
-
-                <select
-                  value={item.itemType}
-                  onChange={(e) =>
-                    handleItemChange(
-                      index,
-                      'itemType',
-                      e.target.value
-                    )
-                  }
-                >
-
-                  <option value="S">
-                    숙박 (S)
-                  </option>
-
-                  <option value="T">
-                    교통 (T)
-                  </option>
-
-                  <option value="E">
-                    식비 (E)
-                  </option>
-
-                  <option value="F">
-                    체험 (F)
-                  </option>
-
-                  <option value="V">
-                    공간대여/차량 (V)
-                  </option>
-
-                  <option value="O">
-                    기타 (O)
-                  </option>
-
-                </select>
-
-              </div>
-
-              {/* 금액 */}
-              <div className="form-group">
-
-                <label>
-                  금액:
-                </label>
-
-                <input
-                  type="number"
-                  min="1"
-                  value={item.amount ?? ''}
-                  onChange={(e) =>
-                    handleItemChange(
-                      index,
-                      'amount',
-                      e.target.value
-                    )
-                  }
-                  placeholder="금액 입력"
-                  required
-                />
-
-                원
-
-              </div>
-
-              {/* 삭제 */}
-              {formData.itemList.length > 1 && (
-
-                <button
-                  type="button"
-                  className="btn-remove-item"
-                  onClick={() =>
-                    handleRemoveItem(index)
-                  }
-                >
-                  삭제
-                </button>
-
-              )}
-
-            </div>
-
-            {/* 설명 */}
             <div
-              className="form-group"
-              style={{ marginTop: '10px' }}
+              key={
+                item.itemNo ??
+                `new-${index}`
+              }
+              className="item-card"
             >
 
-              <label>
-                내용 설명:
-              </label>
+              <div className="item-row">
 
-              {item.itemType === 'O' ? (
+                {/* 항목 구분 */}
+                <div className="form-group">
 
-                <textarea
-                  value={item.itemDescription ?? ''}
-                  onChange={(e) =>
-                    handleItemChange(
-                      index,
-                      'itemDescription',
-                      e.target.value
-                    )
-                  }
-                  placeholder="기타 상세 내용을 입력하세요."
-                  rows="2"
-                />
+                  <label>
+                    항목 구분:
+                  </label>
 
-              ) : (
+                  <select
+                    value={
+                      item.itemType
+                    }
+                    onChange={(e) =>
+                      handleItemChange(
+                        index,
+                        'itemType',
+                        e.target.value
+                      )
+                    }
+                  >
 
-                <input
-                  type="text"
-                  value={item.itemDescription ?? ''}
-                  onChange={(e) =>
-                    handleItemChange(
-                      index,
-                      'itemDescription',
-                      e.target.value
-                    )
-                  }
-                  placeholder="상세 내용을 입력하세요 (예: 호텔 2박 숙박비)"
-                />
+                    <option value="S">
+                      숙박 (S)
+                    </option>
 
-              )}
+                    <option value="T">
+                      교통 (T)
+                    </option>
+
+                    <option value="E">
+                      식비 (E)
+                    </option>
+
+                    <option value="F">
+                      체험 (F)
+                    </option>
+
+                    <option value="V">
+                      공간대여/차량 (V)
+                    </option>
+
+                    <option value="O">
+                      기타 (O)
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* 금액 */}
+                <div className="form-group">
+
+                  <label>
+                    금액:
+                  </label>
+
+                  <input
+                    type="number"
+                    min="1"
+                    value={
+                      item.amount ?? ''
+                    }
+                    onChange={(e) =>
+                      handleItemChange(
+                        index,
+                        'amount',
+                        e.target.value
+                      )
+                    }
+                    placeholder="금액 입력"
+                    required
+                  />
+
+                  원
+
+                </div>
+
+                {/* 삭제 */}
+                {formData.itemList.length > 1 && (
+
+                  <button
+                    type="button"
+                    className="btn-remove-item"
+                    onClick={() =>
+                      handleRemoveItem(
+                        index
+                      )
+                    }
+                  >
+                    삭제
+                  </button>
+
+                )}
+
+              </div>
+
+              {/* 설명 */}
+              <div
+                className="form-group"
+                style={{
+                  marginTop: '10px'
+                }}
+              >
+
+                <label>
+                  내용 설명:
+                </label>
+
+                {item.itemType === 'O' ? (
+
+                  <textarea
+                    value={
+                      item.itemDescription ??
+                      ''
+                    }
+                    onChange={(e) =>
+                      handleItemChange(
+                        index,
+                        'itemDescription',
+                        e.target.value
+                      )
+                    }
+                    placeholder="기타 상세 내용을 입력하세요."
+                    rows="2"
+                  />
+
+                ) : (
+
+                  <input
+                    type="text"
+                    value={
+                      item.itemDescription ??
+                      ''
+                    }
+                    onChange={(e) =>
+                      handleItemChange(
+                        index,
+                        'itemDescription',
+                        e.target.value
+                      )
+                    }
+                    placeholder="상세 내용을 입력하세요 (예: 호텔 2박 숙박비)"
+                  />
+
+                )}
+
+              </div>
 
             </div>
 
-          </div>
+          )
+        )}
 
-        ))}
-
-        {/* 제출 */}
+        {/* =================================================
+            제출
+        ================================================= */}
         <button
           type="submit"
           className="btn-submit"

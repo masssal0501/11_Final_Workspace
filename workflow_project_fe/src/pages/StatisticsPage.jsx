@@ -19,6 +19,7 @@ import { amountApi } from '../common/api/amountApi';
 
 export default function StatisticsPage() {
   const navigate = useNavigate();
+
   const [stats, setStats] = useState(null);
 
   // =========================================================
@@ -41,10 +42,39 @@ export default function StatisticsPage() {
       try {
         const data = await amountApi.getStatisticsData();
 
-        console.log('📊 통계 원본 데이터:', data);
-        console.log('📊 항목별 원본 데이터:', data?.itemData);
+        console.log('📊 통계 API 전체 응답:', data);
+        console.log(
+          '📊 통계 API 응답 key:',
+          Object.keys(data || {})
+        );
+
+        console.log(
+          '📊 실제 통계 데이터:',
+          data
+        );
+
+        console.log(
+          '📊 summary:',
+          data?.summary
+        );
+
+        console.log(
+          '📊 부서별 통계:',
+          data?.deptStatistics
+        );
+
+        console.log(
+          '📊 월별 통계:',
+          data?.monthlyStatistics
+        );
+
+        console.log(
+          '📊 항목별 통계:',
+          data?.itemStatistics
+        );
 
         setStats(data);
+
       } catch (e) {
         console.error(
           '통계 데이터를 가져오는 데 실패했습니다.',
@@ -68,12 +98,64 @@ export default function StatisticsPage() {
   }
 
   // =========================================================
+  // API 응답 데이터 분리
+  //
+  // 실제 API 응답:
+  //
+  // {
+  //   summary: {...},
+  //   deptStatistics: [...],
+  //   monthlyStatistics: [...],
+  //   itemStatistics: [...]
+  // }
+  // =========================================================
+
+  const summary = stats.summary || {};
+
+  const deptStatistics =
+    stats.deptStatistics || [];
+
+  const monthlyStatistics =
+    stats.monthlyStatistics || [];
+
+  const itemStatistics =
+    stats.itemStatistics || [];
+
+  // =========================================================
   // 원 → 만원
+  //
+  // 예:
+  // 110000 → 11
+  // 27500 → 2.75
   // =========================================================
   const toManWon = (value) => {
-    if (!value) return 0;
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return 0;
+    }
 
-    return Math.floor(Number(value) / 10000);
+    const number = Number(value);
+
+    if (isNaN(number)) {
+      return 0;
+    }
+
+    return number / 10000;
+  };
+
+  // =========================================================
+  // 금액 표시
+  // =========================================================
+  const formatMoney = (value) => {
+    return toManWon(value).toLocaleString(
+      'ko-KR',
+      {
+        maximumFractionDigits: 2
+      }
+    );
   };
 
   // =========================================================
@@ -88,7 +170,7 @@ export default function StatisticsPage() {
   // =========================================================
   const formatTooltipMoney = (value) => {
     return [
-      `${toManWon(value).toLocaleString()} 만원`,
+      `${formatMoney(value * 10000)} 만원`,
       '금액'
     ];
   };
@@ -96,22 +178,28 @@ export default function StatisticsPage() {
   // =========================================================
   // 항목별 지출 데이터
   //
-  // S → 숙박
-  // T → 교통
-  // E → 식비
-  // F → 체험
-  // V → 공간대여
-  // O → 기타
+  // API:
+  //
+  // itemStatistics: [
+  //   {
+  //     itemType: 'S',
+  //     amount: 100000
+  //   }
+  // ]
   // =========================================================
-
-  const itemData = (stats.itemData || []).map((item) => {
+  const itemData = itemStatistics.map((item) => {
     const type = item.itemType;
 
     return {
-        name: ITEM_TYPE_NAME[type] || type,
-        value: Number(item.amount) || 0
+      name: ITEM_TYPE_NAME[type] || type,
+      value: Number(item.amount) || 0
     };
-});
+  });
+
+  console.log(
+    '📊 Pie Chart 변환 데이터:',
+    itemData
+  );
 
   // =========================================================
   // Pie Chart 전체 금액
@@ -133,7 +221,42 @@ export default function StatisticsPage() {
         : 0
   }));
 
-  console.log('📊 Pie Chart 데이터:', pieData);
+  console.log(
+    '📊 Pie Chart 최종 데이터:',
+    pieData
+  );
+
+  // =========================================================
+  // 부서별 차트 데이터
+  //
+  // 원 → 만원으로 변환
+  // =========================================================
+  const deptChartData = deptStatistics.map(
+    (item) => ({
+      ...item,
+      amount: toManWon(item.amount)
+    })
+  );
+
+  console.log(
+    '📊 부서별 Chart 데이터:',
+    deptChartData
+  );
+
+  // =========================================================
+  // 월별 차트 데이터
+  // =========================================================
+  const monthlyChartData =
+    monthlyStatistics.map((item) => ({
+      ...item,
+      participants:
+        Number(item.participants) || 0
+    }));
+
+  console.log(
+    '📊 월별 Chart 데이터:',
+    monthlyChartData
+  );
 
   return (
     <div className="amount-container">
@@ -151,11 +274,13 @@ export default function StatisticsPage() {
       >
         <h2>
           📊 비용 정산 통계 대시보드
+
           <span
             style={{
               fontSize: '14px',
               color: '#666',
-              fontWeight: 'normal'
+              fontWeight: 'normal',
+              marginLeft: '8px'
             }}
           >
             (단위: 만원)
@@ -170,45 +295,54 @@ export default function StatisticsPage() {
         </button>
       </div>
 
+
       {/* =====================================================
           금액 통계
       ====================================================== */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns:
+            'repeat(4, 1fr)',
           gap: '15px',
           marginBottom: '20px'
         }}
       >
+
+        {/* 누적 승인 금액 */}
         <StatCard
           title="누적 승인 금액"
-          value={`${toManWon(
-            stats.totalApproved
-          ).toLocaleString()}만원`}
+          value={`${formatMoney(
+            summary.totalApproved
+          )}만원`}
         />
 
+        {/* 누적 지원 금액 */}
         <StatCard
           title="누적 지원 금액"
-          value={`${toManWon(
-            stats.totalSponsor
-          ).toLocaleString()}만원`}
+          value={`${formatMoney(
+            summary.totalSponsor
+          )}만원`}
         />
 
+        {/* 평균 승인 금액 */}
         <StatCard
           title="평균 승인 금액"
-          value={`${toManWon(
-            stats.avgApproved
-          ).toLocaleString()}만원`}
+          value={`${formatMoney(
+            summary.avgApproved
+          )}만원`}
         />
 
+        {/* 평균 지원 금액 */}
         <StatCard
           title="평균 지원 금액"
-          value={`${toManWon(
-            stats.avgSponsor
-          ).toLocaleString()}만원`}
+          value={`${formatMoney(
+            summary.avgSponsor
+          )}만원`}
         />
+
       </div>
+
 
       {/* =====================================================
           건수 통계
@@ -216,29 +350,36 @@ export default function StatisticsPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns:
+            'repeat(3, 1fr)',
           gap: '15px',
           marginBottom: '20px'
         }}
       >
+
+        {/* 진행중인 건수 */}
         <StatCard
           title="진행중인 건수"
-          value={`${stats.pendingCount}건`}
+          value={`${summary.pendingCount ?? 0}건`}
           color="#ffc107"
         />
 
+        {/* 총 참여 인원 */}
         <StatCard
           title="총 참여 인원"
-          value={`${stats.totalParticipants}명`}
+          value={`${summary.totalParticipants ?? 0}명`}
           color="#17a2b8"
         />
 
+        {/* 총 신청 건수 */}
         <StatCard
           title="총 신청 건수"
-          value={`${stats.totalCount}건`}
+          value={`${summary.totalCount ?? 0}건`}
           color="#6c757d"
         />
+
       </div>
+
 
       {/* =====================================================
           차트 영역
@@ -246,10 +387,12 @@ export default function StatisticsPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns:
+            '1fr 1fr',
           gap: '20px'
         }}
       >
+
 
         {/* ===================================================
             부서별 사용 예산
@@ -262,38 +405,68 @@ export default function StatisticsPage() {
             borderRadius: '8px'
           }}
         >
-          <h4>부서별 사용 예산</h4>
 
-          <ResponsiveContainer
-            width="100%"
-            height={250}
-          >
-            <BarChart
-              data={stats.deptData?.map((item) => ({
-                ...item,
-                amount: toManWon(item.amount)
-              }))}
+          <h4>
+            부서별 사용 예산
+          </h4>
+
+          {deptChartData.length === 0 ? (
+
+            <div
+              style={{
+                height: '250px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: '#999'
+              }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              부서별 통계 데이터가 없습니다.
+            </div>
 
-              <XAxis dataKey="deptName" />
+          ) : (
 
-              <YAxis
-                tickFormatter={formatYAxis}
-                width={60}
-              />
+            <ResponsiveContainer
+              width="100%"
+              height={250}
+            >
+              <BarChart
+                data={deptChartData}
+              >
 
-              <Tooltip
-                formatter={formatTooltipMoney}
-              />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
 
-              <Bar
-                dataKey="amount"
-                fill="#8884d8"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+                <XAxis
+                  dataKey="deptName"
+                />
+
+                <YAxis
+                  tickFormatter={
+                    formatYAxis
+                  }
+                  width={60}
+                />
+
+                <Tooltip
+                  formatter={
+                    formatTooltipMoney
+                  }
+                />
+
+                <Bar
+                  dataKey="amount"
+                  fill="#8884d8"
+                />
+
+              </BarChart>
+            </ResponsiveContainer>
+
+          )}
+
         </div>
+
 
         {/* ===================================================
             항목별 지출 비율
@@ -306,60 +479,102 @@ export default function StatisticsPage() {
             borderRadius: '8px'
           }}
         >
-          <h4>항목별 지출 비율</h4>
 
-          <ResponsiveContainer
-            width="100%"
-            height={300}
-          >
-            <PieChart>
+          <h4>
+            항목별 지출 비율
+          </h4>
 
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={90}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={[
-                      '#0088FE',
-                      '#00C49F',
-                      '#FFBB28',
-                      '#FF8042',
-                      '#8884D8',
-                      '#82CA9D'
-                    ][index % 6]}
-                  />
-                ))}
-              </Pie>
+          {pieData.length === 0 ? (
 
-              {/* =================================================
-                  마우스를 올렸을 때도 비율 표시
-              ================================================= */}
-              <Tooltip
-                formatter={(value, name) => {
-                  const percent =
-                    totalItemAmount > 0
-                      ? (
-                          (Number(value) / totalItemAmount) * 100
-                        ).toFixed(1)
-                      : '0.0';
+            <div
+              style={{
+                height: '300px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: '#999'
+              }}
+            >
+              항목별 통계 데이터가 없습니다.
+            </div>
 
-                  return [`${percent}%`, name];
-                }}
-              />
+          ) : (
 
-              <Legend />
+            <ResponsiveContainer
+              width="100%"
+              height={300}
+            >
 
-            </PieChart>
-          </ResponsiveContainer>
+              <PieChart>
+
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                >
+
+                  {pieData.map(
+                    (entry, index) => (
+
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={[
+                          '#0088FE',
+                          '#00C49F',
+                          '#FFBB28',
+                          '#FF8042',
+                          '#8884D8',
+                          '#df003f'
+                        ][index % 6]}
+                      />
+
+                    )
+                  )}
+
+                </Pie>
+
+
+                {/* =================================================
+                    마우스 Hover 시 비율 표시
+                ================================================== */}
+                <Tooltip
+                  formatter={(
+                    value,
+                    name
+                  ) => {
+
+                    const percent =
+                      totalItemAmount > 0
+                        ? (
+                            (Number(value) /
+                              totalItemAmount) *
+                            100
+                          ).toFixed(1)
+                        : '0.0';
+
+                    return [
+                      `${percent}%`,
+                      name
+                    ];
+                  }}
+                />
+
+
+                <Legend />
+
+              </PieChart>
+
+            </ResponsiveContainer>
+
+          )}
+
         </div>
 
       </div>
+
 
       {/* =====================================================
           월별 참가 현황
@@ -373,35 +588,71 @@ export default function StatisticsPage() {
           borderRadius: '8px'
         }}
       >
-        <h4>월별 참가 현황</h4>
 
-        <ResponsiveContainer
-          width="100%"
-          height={200}
-        >
-          <LineChart
-            data={stats.monthlyData}
+        <h4>
+          월별 참가 현황
+        </h4>
+
+        {monthlyChartData.length === 0 ? (
+
+          <div
+            style={{
+              height: '200px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              color: '#999'
+            }}
           >
-            <XAxis dataKey="month" />
+            월별 참가 통계 데이터가 없습니다.
+          </div>
 
-            <YAxis
-              allowDecimals={false}
-            />
+        ) : (
 
-            <Tooltip
-              formatter={(value) => [
-                `${value} 명`,
-                '참가 인원'
-              ]}
-            />
+          <ResponsiveContainer
+            width="100%"
+            height={200}
+          >
 
-            <Line
-              type="monotone"
-              dataKey="participants"
-              stroke="#82ca9d"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+            <LineChart
+              data={monthlyChartData}
+            >
+
+              <CartesianGrid
+                strokeDasharray="3 3"
+              />
+
+              <XAxis
+                dataKey="month"
+              />
+
+              <YAxis
+                allowDecimals={false}
+              />
+
+              <Tooltip
+                formatter={(value) => [
+                  `${value}명`,
+                  '참가 인원'
+                ]}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="participants"
+                stroke="#82ca9d"
+                strokeWidth={2}
+                dot={{
+                  r: 4
+                }}
+              />
+
+            </LineChart>
+
+          </ResponsiveContainer>
+
+        )}
+
       </div>
 
     </div>
@@ -417,16 +668,20 @@ function StatCard({
   value,
   color = '#333'
 }) {
+
   return (
+
     <div
       style={{
         padding: '15px',
         background: '#f8f9fa',
         borderRadius: '8px',
-        borderLeft: `5px solid ${color}`,
+        borderLeft:
+          `5px solid ${color}`,
         textAlign: 'center'
       }}
     >
+
       <div
         style={{
           fontSize: '13px',
@@ -435,6 +690,7 @@ function StatCard({
       >
         {title}
       </div>
+
 
       <div
         style={{
@@ -445,6 +701,8 @@ function StatCard({
       >
         {value}
       </div>
+
     </div>
+
   );
 }

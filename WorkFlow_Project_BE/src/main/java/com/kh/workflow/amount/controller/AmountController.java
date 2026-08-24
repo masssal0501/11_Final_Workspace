@@ -119,21 +119,59 @@ public class AmountController {
     public ResponseEntity<?> updateAmount(
             @PathVariable("amountNo") int amountNo,
             @ModelAttribute Amount amount,
-            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+            @RequestParam(
+                value = "file",
+                required = false
+            )
+            MultipartFile[] files) {
+
         try {
+
+            // amountNo 설정
             amount.setAmountNo(amountNo);
 
-            // 📌 컨트롤러에서는 파일을 직접 저장하지 않고, 
-            // 서비스에 amount와 file을 그대로 넘겨서 서비스가 파일 삭제 및 저장을 전담하도록 합니다.
-            amountService.updateAmount(amount, file);
-            
-            return ResponseEntity.ok("비용 신청이 수정되었습니다.");
-            
+            // MultipartFile[] → List<MultipartFile>
+            List<MultipartFile> fileList = new ArrayList<>();
+
+            if (files != null) {
+
+                for (MultipartFile file : files) {
+
+                    if (file != null && !file.isEmpty()) {
+                        fileList.add(file);
+                    }
+                }
+            }
+
+            // 서비스 호출
+            amountService.updateAmount(
+                amount,
+                fileList
+            );
+
+            return ResponseEntity.ok(
+                "비용 신청이 수정되었습니다."
+            );
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+
+            // 잘못된 요청
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("수정 중 오류 발생: " + e.getMessage());
+
+            // 서버 오류
+            e.printStackTrace();
+
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(
+                    "수정 중 오류 발생: "
+                    + e.getMessage()
+                );
         }
     }
 

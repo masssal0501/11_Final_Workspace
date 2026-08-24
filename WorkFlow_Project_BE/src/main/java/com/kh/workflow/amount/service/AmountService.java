@@ -18,7 +18,10 @@ public interface AmountService {
     int updateApprovalStatus(Amount amount);
 
     // 📌 컨트롤러와 일치하도록 파일 매개변수 추가
-    void updateAmount(Amount amount, MultipartFile file);
+    void updateAmount(
+            Amount amount,
+            List<MultipartFile> files
+        );
 
     int cancelAmount(int amountNo);
     
