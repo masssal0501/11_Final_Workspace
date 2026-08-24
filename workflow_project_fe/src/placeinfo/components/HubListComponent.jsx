@@ -296,37 +296,7 @@ function HubListComponent() {
             {/* 거점 목록이 나열되는 메인 테이블 영역 */}
             <table className="table table-hover list-area">
                 <thead></thead>
-                <tbody>
-                    {/* 하드코딩된 예시용 더미 데이터 1 */}
-                    <tr>
-                        <td>
-                            <img src="https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20260107_162%2F1767772273655wAbv4_JPEG%2F%25B5%25F0%25BE%25EE%25B8%25D5%25B5%25A5%25C0%25CC_%25C3%25E1%25C3%25B5_%25B3%25B2%25C0%25CC%25BC%25B6_%25C1%25A4%25B0%25FC%25B7%25E7_%25C0%25FC%25B0%25E6.jpg" width="300" />
-                        </td>
-                        <td>
-                            <p>
-                            주소 : 강원 춘천시 남산면 방하리 198-1<br />
-                            거점 이름 : 춘천 남이섬 호텔 정관루점<br />
-                            전화번호 : 0507-1313-5817<br />
-                            시설 유형 : 숙소
-                            </p> 
-                        </td>
-                    </tr>
-                    
-                    {/* 하드코딩된 예시용 더미 데이터 2 */}
-                    <tr>
-                        <td>
-                            <img src="https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20260107_162%2F1767772273655wAbv4_JPEG%2F%25B5%25F0%25BE%25EE%25B8%25D5%25B5%25A5%25C0%25CC_%25C3%25E1%25C3%25B5_%25B3%25B2%25C0%25CC%25BC%25B6_%25C1%25A4%25B0%25FC%25B7%25E7_%25C0%25FC%25B0%25E6.jpg" width="300" />
-                        </td>
-                        <td>
-                            <p>
-                            주소 : 강원 춘천시 남산면 방하리 198-1<br />
-                            거점 이름 : 춘천 남이섬 호텔 정관루점<br />
-                            전화번호 : 0507-1313-5817<br />
-                            시설 유형 : 공유 오피스
-                            </p> 
-                        </td>
-                    </tr>
-                    
+                <tbody> 
                     {/* 서버로부터 받아와서 생성한 실제 아이템 컴포넌트들(HubItemComponent)이 이 자리에 뿌려집니다. */}
                     { dataList }
                 </tbody>
