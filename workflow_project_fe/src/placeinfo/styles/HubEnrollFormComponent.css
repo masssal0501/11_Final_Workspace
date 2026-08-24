@@ -20,6 +20,10 @@ tr:nth-child(2) td:nth-child(2) input {
     background-color: white;
 }
 
+tr {
+    border-bottom: 1px solid #bcbcbc;
+}
+
 .back {
     background-color : black;
     color : white;

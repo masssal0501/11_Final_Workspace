@@ -12,8 +12,6 @@ function HubItemComponent(props) {
     // item이라는 변수에 할당하여 이후 코드에서 짧고 편리하게 사용합니다.
     const item = props.item; 
 
-    console.log(item);
-
     const thumbnailUrl = `${BASE_URL.replace('/hubs', '')}${item.thumbnailUrl}`
 
 
