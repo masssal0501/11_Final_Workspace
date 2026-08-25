@@ -44,3 +44,15 @@
     width:  50%;
     height: 300px;
 }
+
+.button-area * {
+    border-radius: 99px !important;
+}
+
+.button-area button:first-child {
+    color: white;
+}
+
+.button-area button:last-child {
+    float: right;
+}

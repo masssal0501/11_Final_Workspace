@@ -169,6 +169,12 @@ function HubDetailComponent() {
                 <img src="https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20260210_263%2F1770702571844LRBc9_PNG%2F%25B3%25D7%25C0%25CC%25B9%25F6_%25C7%25C3%25B7%25B9%25C0%25CC%25BD%25BA_%25BD%25E6%25B3%25D7%25C0%25CF_%25BC%25D2%25B3%25EB%25C4%25AF_%25C1%25A6%25C1%25D6.png" alt="첨부이미지1" />
                 <img src="https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20260210_214%2F1770702623664dXITW_JPEG%2F%25B5%25F0%25BE%25EE%25B8%25D5%25B5%25A5%25C0%25CC_%25BC%25D2%25B3%25EB%25C4%25AF%25C1%25A6%25C1%25D6%25C1%25A1_%25BF%25C0%25C7%25C7%25BD%25BA_8.jpg" alt="첨부이미지2" />
             </div>
+            <br /><br />
+            <div className='button-area'>
+                <button className='btn btn-warning'>수정하기</button>&nbsp;
+                <button className='btn btn-danger'>삭제하기</button>
+                <button className='btn btn-dark' onClick={ () => { navigate(-1) } }>뒤로가기</button>
+            </div>
         </div>
     );
 }

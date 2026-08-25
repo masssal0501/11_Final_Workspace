@@ -274,7 +274,7 @@ function HubEnrollFormComponent() {
                                     onBlur={ handleBlur }
                                 />&nbsp;<p>명</p>
                             </td>
-                            <th>이용 가능 여부</th>
+                            <th>운영 여부</th>
                             <td>
                                 <input
                                     type="radio"
@@ -283,7 +283,7 @@ function HubEnrollFormComponent() {
                                     value="OPEN"
                                     checked={ hubData.hubStatus == "OPEN" }
                                     onChange={ handleChange }/>
-                                <label htmlFor="OPEN">가능</label>&nbsp;
+                                <label htmlFor="OPEN">운영중</label>&nbsp;
                                 <input
                                     type="radio"
                                     name="hubStatus"
@@ -291,7 +291,15 @@ function HubEnrollFormComponent() {
                                     value="PAUSED"
                                     checked={ hubData.hubStatus == "PAUSED" }
                                     onChange={ handleChange }/>
-                                <label htmlFor="PAUSED">불가능</label>
+                                <label htmlFor="PAUSED">일시중단</label>&nbsp;
+                                <input
+                                    type="radio"
+                                    name="hubStatus"
+                                    id="CLOSE"
+                                    value="CLOSE"
+                                    checked={ hubData.hubStatus == "CLOSE" }
+                                    onChange={ handleChange }/>
+                                <label htmlFor="CLOSE">종료</label>
                             </td>
                             <th>유형</th>
                             <td colSpan="2">
