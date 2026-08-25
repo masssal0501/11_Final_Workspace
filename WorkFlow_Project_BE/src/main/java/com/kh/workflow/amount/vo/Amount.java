@@ -1,5 +1,6 @@
 package com.kh.workflow.amount.vo;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -13,73 +14,197 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Amount {
 
-    // ===== 1. amount (메인 비용 테이블) =====
-    private Integer amountNo;            // amount_no (PK)
-    private Integer requestedAmount;     // requested_amount
-    private Integer approvedAmount;  // approved_amount (NULL 허용)
-    private Date requestedAt;        // requested_at
-    private Date approvedAt;         // approved_at (NULL 허용)
-    private Date createdAt;          // created_at
-    private Date updatedAt;          // updated_at (NULL 허용)
-    private String status;           // status (A: 승인, C: 취소, H: 보류, J: 반려, R: 검토)
-    private String amountComment;    // amount_comment
-    private Integer workcationNo;        // workcation_no (FK)
+    // =========================================================
+    // 1. amount
+    // =========================================================
 
-    // ===== 1:N 자식 리스트 관계 =====
-    private List<Item> itemList = new ArrayList<Item>();    // amount_item 테이블 리스트
-    private List<File> fileList;     // amount_file 테이블 리스트
-    private String empName; // 사원 이름 (JOIN용)
+    /** amount_no */
+    private Integer amountNo;
+
+    /** requested_amount */
+    private Integer requestedAmount;
+
+    /** approved_amount */
+    private Integer approvedAmount;
+
+    /** requested_at */
+    private Date requestedAt;
+
+    /** approved_at */
+    private Date approvedAt;
+
+    /** created_at */
+    private Date createdAt;
+
+    /** updated_at */
+    private Date updatedAt;
+
+    /**
+     * A : 승인
+     * C : 취소
+     * H : 보류
+     * J : 반려
+     * R : 검토
+     */
+    private String status;
+
+    /** amount_comment */
+    private String amountComment;
+
+    /** workcation_no */
+    private Integer workcationNo;
+
+    /** 신청자 이름 JOIN용 */
+    private String empName;
+
+
     // =========================================================
-    // 2. amount_item (비용 상세 테이블)
+    // 2. amount_item
     // =========================================================
+
+    /**
+     * 하나의 정산(amount)에 여러 비용 항목이 존재할 수 있음
+     *
+     * amount.amount_no
+     *        ↓
+     * amount_item.amount_no
+     */
+    private List<Item> itemList = new ArrayList<>();
+
+
+    // =========================================================
+    // 3. amount_list
+    // =========================================================
+
+    /**
+     * 하나의 정산(amount)에 여러 지급/후원 내역이 존재할 수 있음
+     *
+     * amount.amount_no
+     *        ↓
+     * amount_list.amount_no
+     *
+     * ※ amount_list에는 item_no가 없음
+     */
+    private List<Sponsor> sponsorList = new ArrayList<>();
+
+
+    // =========================================================
+    // 4. amount_file
+    // =========================================================
+
+    /**
+     * 하나의 정산(amount)에 여러 첨부파일이 존재할 수 있음
+     */
+    private List<File> fileList = new ArrayList<>();
+
+
+    // =========================================================
+    // amount_item
+    // =========================================================
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Item {
-        private Integer itemNo;              // item_no (PK)
-        private String itemType;         // item_type (S, T, E, F, V, O)
-        private Date itemDate;           // item_date
-        private String itemApproved;     // item_approved
-        private String itemDescription;  // item_description
-        private Integer amountNo;            // amount_no (FK)
-        private Integer amount;
-        
-       
-        
-        
-        // ===== 1:N 자식 리스트 관계 =====
-        private List<Sponsor> sponsorList; // amount_list 테이블 리스트
+
+        /** item_no */
+        private Integer itemNo;
+
+        /**
+         * cost
+         *
+         * DB:
+         * DECIMAL(15,2)
+         */
+        private BigDecimal amount;
+
+        /** item_type */
+        private String itemType;
+
+        /** item_date */
+        private Date itemDate;
+
+        /**
+         * A : 승인
+         * C : 취소
+         * H : 보류
+         * J : 반려
+         * R : 검토
+         */
+        private String itemApproved;
+
+        /** item_description */
+        private String itemDescription;
+
+        /** amount_no */
+        private Integer amountNo;
     }
 
+
     // =========================================================
-    // 3. amount_list (지원금/지급 상세 테이블)
+    // amount_list
     // =========================================================
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Sponsor {
-        private Integer amountNo;       // amount_no (PK / FK) - 📌 이전 에러 방지용 getter/setter 포함
-        private String sponsorName; // sponsor_name
-        private Integer amount;         // amount
-        private Date paymentDate;   // payment_date
-        private String status;      // status (PAID, UNPAID, HOLD)
-        private String remark;      // remark
-        private Integer itemNo;         // item_no (FK)
+
+        /** amount_list_no */
+        private Integer amountListNo;
+
+        /** sponsor_name */
+        private String sponsorName;
+
+        /** amount */
+        private Integer amount;
+
+        /** payment_date */
+        private Date paymentDate;
+
+        /**
+         * PAID   : 지급
+         * UNPAID : 미지급
+         * HOLD   : 보류
+         */
+        private String status;
+
+        /** remark */
+        private String remark;
+
+        /** amount_no */
+        private Integer amountNo;
     }
 
+
     // =========================================================
-    // 4. amount_file (비용 첨부파일 테이블)
+    // amount_file
     // =========================================================
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class File {
-        private Integer amountattachmentNo; // amountattachment_no (PK)
-        private String filePath;        // file_path
-        private String originName;      // origin_name
-        private String changeName;      // change_name
-        private Date updatedAt;         // updated_at
-        private String status;          // status (Y, N)
-        private Integer amountNo;           // amount_no (FK)
+
+        /** amountattachment_no */
+        private Integer amountattachmentNo;
+
+        /** file_path */
+        private String filePath;
+
+        /** origin_name */
+        private String originName;
+
+        /** change_name */
+        private String changeName;
+
+        /** updated_at */
+        private Date updatedAt;
+
+        /** Y : 사용 / N : 삭제 */
+        private String status;
+
+        /** amount_no */
+        private Integer amountNo;
     }
 }

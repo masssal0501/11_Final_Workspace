@@ -10,6 +10,7 @@
     <!-- =========================================================
          1. Amount ResultMap
          ========================================================= -->
+
     <resultMap id="amountResultMap"
                type="com.kh.workflow.amount.vo.Amount">
 
@@ -46,33 +47,35 @@
         <result property="empName"
                 column="emp_name"/>
 
-        <!-- 상세 항목 -->
-        <collection property="itemList"
-                    javaType="java.util.ArrayList"
-                    resultMap="amountItemResultMap"/>
-
-        <!-- 첨부파일 -->
-        <collection property="fileList"
-                    javaType="java.util.ArrayList"
-                    resultMap="amountFileResultMap"/>
-
     </resultMap>
 
 
     <!-- =========================================================
-         2. Amount Item ResultMap
+         2. Item ResultMap
+         
+         DB
+         amount_item.cost
+
+         ↓
+
+         Amount.Item.cost
+
+         ↓
+
+         React item.cost
          ========================================================= -->
-    <resultMap id="amountItemResultMap"
+
+    <resultMap id="itemResultMap"
                type="com.kh.workflow.amount.vo.Amount$Item">
 
         <id property="itemNo"
             column="item_no"/>
 
+        <result property="cost"
+                column="cost"/>
+
         <result property="itemType"
                 column="item_type"/>
-
-        <result property="amount"
-                column="item_amount"/>
 
         <result property="itemDate"
                 column="item_date"/>
@@ -84,42 +87,40 @@
                 column="item_description"/>
 
         <result property="amountNo"
-                column="item_amount_no"/>
-
-        <!-- 지원금 -->
-        <collection property="sponsorList"
-                    javaType="java.util.ArrayList"
-                    resultMap="amountSponsorResultMap"/>
+                column="amount_no"/>
 
     </resultMap>
 
 
     <!-- =========================================================
          3. Sponsor ResultMap
+         
+         amount_list.amount
          ========================================================= -->
-    <resultMap id="amountSponsorResultMap"
+
+    <resultMap id="sponsorResultMap"
                type="com.kh.workflow.amount.vo.Amount$Sponsor">
 
-        <id property="amountNo"
-            column="sponsor_amount_no"/>
+        <id property="amountListNo"
+            column="amount_list_no"/>
 
         <result property="sponsorName"
                 column="sponsor_name"/>
 
         <result property="amount"
-                column="sponsor_amount"/>
+                column="amount"/>
 
         <result property="paymentDate"
                 column="payment_date"/>
 
         <result property="status"
-                column="sponsor_status"/>
+                column="status"/>
 
         <result property="remark"
                 column="remark"/>
 
-        <result property="itemNo"
-                column="sponsor_item_no"/>
+        <result property="amountNo"
+                column="amount_no"/>
 
     </resultMap>
 
@@ -127,7 +128,8 @@
     <!-- =========================================================
          4. File ResultMap
          ========================================================= -->
-    <resultMap id="amountFileResultMap"
+
+    <resultMap id="fileResultMap"
                type="com.kh.workflow.amount.vo.Amount$File">
 
         <id property="amountattachmentNo"
@@ -143,95 +145,26 @@
                 column="change_name"/>
 
         <result property="updatedAt"
-                column="file_updated_at"/>
+                column="updated_at"/>
 
         <result property="status"
-                column="file_status"/>
+                column="status"/>
 
         <result property="amountNo"
-                column="file_amount_no"/>
+                column="amount_no"/>
 
     </resultMap>
 
 
     <!-- =========================================================
-         5. 공통 상세 조회 SQL
+         5. 비용 신청 등록
          ========================================================= -->
-    <sql id="selectAmountWithDetails">
 
-        SELECT
-
-            <!-- Amount -->
-            a.amount_no,
-            a.requested_amount,
-            a.approved_amount,
-            a.requested_at,
-            a.approved_at,
-            a.created_at,
-            a.updated_at,
-            a.status,
-            a.amount_comment,
-            a.workcation_no,
-
-            <!-- Employee -->
-            e.emp_name,
-
-            <!-- Amount Item -->
-            ai.item_no,
-            ai.item_type,
-            ai.amount AS item_amount,
-            ai.item_date,
-            ai.item_approved,
-            ai.item_description,
-            ai.amount_no AS item_amount_no,
-
-            <!-- Sponsor -->
-            al.amount_no AS sponsor_amount_no,
-            al.sponsor_name,
-            al.amount AS sponsor_amount,
-            al.payment_date,
-            al.status AS sponsor_status,
-            al.remark,
-            al.item_no AS sponsor_item_no,
-
-            <!-- File -->
-            af.amountattachment_no,
-            af.file_path,
-            af.origin_name,
-            af.change_name,
-            af.updated_at AS file_updated_at,
-            af.status AS file_status,
-            af.amount_no AS file_amount_no
-
-        FROM amount a
-
-        LEFT JOIN workcation_info w
-            ON a.workcation_no = w.workcation_no
-
-        LEFT JOIN employee e
-            ON w.emp_no = e.emp_no
-
-        LEFT JOIN amount_item ai
-            ON a.amount_no = ai.amount_no
-
-        LEFT JOIN amount_list al
-            ON ai.item_no = al.item_no
-            AND a.amount_no = al.amount_no
-
-        LEFT JOIN amount_file af
-            ON a.amount_no = af.amount_no
-            AND af.status = 'Y'
-
-    </sql>
-
-
-    <!-- =========================================================
-         6. 비용 신청 등록
-         ========================================================= -->
     <insert id="insertAmount"
             parameterType="com.kh.workflow.amount.vo.Amount"
             useGeneratedKeys="true"
-            keyProperty="amountNo">
+            keyProperty="amountNo"
+            keyColumn="amount_no">
 
         INSERT INTO amount
         (
@@ -240,6 +173,7 @@
             requested_at,
             approved_at,
             created_at,
+            updated_at,
             status,
             amount_comment,
             workcation_no
@@ -248,10 +182,11 @@
         (
             #{requestedAmount},
             #{approvedAmount},
-            NOW(),
+            #{requestedAt},
             #{approvedAt},
-            NOW(),
-            COALESCE(#{status}, 'R'),
+            CURRENT_TIMESTAMP,
+            #{updatedAt},
+            #{status},
             #{amountComment},
             #{workcationNo}
         )
@@ -260,17 +195,21 @@
 
 
     <!-- =========================================================
-         7. 비용 상세 항목 등록
+         6. 비용 상세 항목 등록
+         
+         ★ cost 기준
          ========================================================= -->
+
     <insert id="insertAmountItem"
             parameterType="com.kh.workflow.amount.vo.Amount$Item"
             useGeneratedKeys="true"
-            keyProperty="itemNo">
+            keyProperty="itemNo"
+            keyColumn="item_no">
 
         INSERT INTO amount_item
         (
+            cost,
             item_type,
-            amount,
             item_date,
             item_approved,
             item_description,
@@ -278,9 +217,9 @@
         )
         VALUES
         (
+            #{cost},
             #{itemType},
-            #{amount},
-            COALESCE(#{itemDate}, NOW()),
+            #{itemDate},
             #{itemApproved},
             #{itemDescription},
             #{amountNo}
@@ -290,42 +229,46 @@
 
 
     <!-- =========================================================
-         8. 지원금 등록
+         7. 지원금 등록
          ========================================================= -->
+
     <insert id="insertAmountSponsor"
-            parameterType="com.kh.workflow.amount.vo.Amount$Sponsor">
+            parameterType="com.kh.workflow.amount.vo.Amount$Sponsor"
+            useGeneratedKeys="true"
+            keyProperty="amountListNo"
+            keyColumn="amount_list_no">
 
         INSERT INTO amount_list
         (
-            amount_no,
             sponsor_name,
             amount,
             payment_date,
             status,
             remark,
-            item_no
+            amount_no
         )
         VALUES
         (
-            #{amountNo},
             #{sponsorName},
             #{amount},
-            COALESCE(#{paymentDate}, NOW()),
-            COALESCE(#{status}, 'UNPAID'),
+            #{paymentDate},
+            #{status},
             #{remark},
-            #{itemNo}
+            #{amountNo}
         )
 
     </insert>
 
 
     <!-- =========================================================
-         9. 첨부파일 등록
+         8. 첨부파일 등록
          ========================================================= -->
+
     <insert id="insertAmountFile"
             parameterType="com.kh.workflow.amount.vo.Amount$File"
             useGeneratedKeys="true"
-            keyProperty="amountattachmentNo">
+            keyProperty="amountattachmentNo"
+            keyColumn="amountattachment_no">
 
         INSERT INTO amount_file
         (
@@ -341,8 +284,8 @@
             #{filePath},
             #{originName},
             #{changeName},
-            NOW(),
-            'Y',
+            CURRENT_TIMESTAMP,
+            #{status},
             #{amountNo}
         )
 
@@ -350,13 +293,33 @@
 
 
     <!-- =========================================================
-         10. 비용 단건 조회
+         9. 비용 상세 조회
          ========================================================= -->
+
     <select id="selectAmountById"
             parameterType="int"
             resultMap="amountResultMap">
 
-        <include refid="selectAmountWithDetails"/>
+        SELECT
+            a.amount_no,
+            a.requested_amount,
+            a.approved_amount,
+            a.requested_at,
+            a.approved_at,
+            a.created_at,
+            a.updated_at,
+            a.status,
+            a.amount_comment,
+            a.workcation_no,
+            e.emp_name
+
+        FROM amount a
+
+        LEFT JOIN workcation_info w
+            ON a.workcation_no = w.workcation_no
+
+        LEFT JOIN employee e
+            ON w.emp_no = e.emp_no
 
         WHERE a.amount_no = #{amountNo}
 
@@ -364,131 +327,126 @@
 
 
     <!-- =========================================================
-         11. 워케이션별 비용 목록 조회
+         10. 워케이션별 비용 목록
          ========================================================= -->
+
     <select id="selectAmountListByWorkcationNo"
             parameterType="int"
             resultMap="amountResultMap">
 
-        <include refid="selectAmountWithDetails"/>
+        SELECT
+            a.amount_no,
+            a.requested_amount,
+            a.approved_amount,
+            a.requested_at,
+            a.approved_at,
+            a.created_at,
+            a.updated_at,
+            a.status,
+            a.amount_comment,
+            a.workcation_no,
+            e.emp_name
+
+        FROM amount a
+
+        LEFT JOIN workcation_info w
+            ON a.workcation_no = w.workcation_no
+
+        LEFT JOIN employee e
+            ON w.emp_no = e.emp_no
 
         WHERE a.workcation_no = #{workcationNo}
 
-        ORDER BY a.amount_no DESC
+        ORDER BY
+            a.created_at DESC,
+            a.amount_no DESC
 
     </select>
 
 
     <!-- =========================================================
-         12. 비용 상세 항목 별도 조회
-         
-         ★ 이 ID는 Mapper 전체에서 딱 1개만 존재해야 함
+         11. 비용 상세 항목 조회
          ========================================================= -->
+
     <select id="selectAmountItemsByAmountNo"
             parameterType="int"
-            resultMap="amountItemResultMap">
+            resultMap="itemResultMap">
 
         SELECT
-            ai.item_no,
-            ai.item_type,
-            ai.amount AS item_amount,
-            ai.item_date,
-            ai.item_approved,
-            ai.item_description,
-            ai.amount_no AS item_amount_no
+            item_no,
+            cost,
+            item_type,
+            item_date,
+            item_approved,
+            item_description,
+            amount_no
 
-        FROM amount_item ai
-
-        WHERE ai.amount_no = #{amountNo}
-
-        ORDER BY ai.item_no ASC
-
-    </select>
-
-
-    <!-- =========================================================
-         13. 항목별 지원금 조회
-         ========================================================= -->
-    <select id="selectSponsorsByItemNo"
-            parameterType="int"
-            resultMap="amountSponsorResultMap">
-
-        SELECT
-            al.amount_no AS sponsor_amount_no,
-            al.sponsor_name,
-            al.amount AS sponsor_amount,
-            al.payment_date,
-            al.status AS sponsor_status,
-            al.remark,
-            al.item_no AS sponsor_item_no
-
-        FROM amount_list al
-
-        WHERE al.item_no = #{itemNo}
-
-        ORDER BY al.amount_no ASC
-
-    </select>
-
-
-    <!-- =========================================================
-         14. 비용 첨부파일 조회
-         ========================================================= -->
-    <select id="selectAmountFilesByAmountNo"
-            parameterType="int"
-            resultMap="amountFileResultMap">
-
-        SELECT
-            af.amountattachment_no,
-            af.file_path,
-            af.origin_name,
-            af.change_name,
-            af.updated_at AS file_updated_at,
-            af.status AS file_status,
-            af.amount_no AS file_amount_no
-
-        FROM amount_file af
-
-        WHERE af.amount_no = #{amountNo}
-          AND af.status = 'Y'
-
-        ORDER BY af.amountattachment_no ASC
-
-    </select>
-
-
-    <!-- =========================================================
-         15. 결재 상태 변경
-         ========================================================= -->
-    <update id="updateApprovalStatus"
-            parameterType="com.kh.workflow.amount.vo.Amount">
-
-        UPDATE amount
-
-        SET
-            status = #{status},
-
-            approved_amount = #{approvedAmount},
-
-            amount_comment = #{amountComment},
-
-            approved_at =
-                IF(
-                    #{status} = 'A',
-                    NOW(),
-                    approved_at
-                ),
-
-            updated_at = NOW()
+        FROM amount_item
 
         WHERE amount_no = #{amountNo}
 
-    </update>
+        ORDER BY item_no ASC
+
+    </select>
 
 
     <!-- =========================================================
-         16. 비용 신청 수정
+         12. 지원금 조회
          ========================================================= -->
+
+    <select id="selectSponsorsByAmountNo"
+            parameterType="int"
+            resultMap="sponsorResultMap">
+
+        SELECT
+            amount_list_no,
+            sponsor_name,
+            amount,
+            payment_date,
+            status,
+            remark,
+            amount_no
+
+        FROM amount_list
+
+        WHERE amount_no = #{amountNo}
+
+        ORDER BY amount_list_no ASC
+
+    </select>
+
+
+    <!-- =========================================================
+         13. 첨부파일 조회
+         ========================================================= -->
+
+    <select id="selectAmountFilesByAmountNo"
+            parameterType="int"
+            resultMap="fileResultMap">
+
+        SELECT
+            amountattachment_no,
+            file_path,
+            origin_name,
+            change_name,
+            updated_at,
+            status,
+            amount_no
+
+        FROM amount_file
+
+        WHERE amount_no = #{amountNo}
+          AND status = 'Y'
+
+        ORDER BY amountattachment_no ASC
+
+    </select>
+
+
+    <!-- =========================================================
+         14. 비용 신청 수정
+         ========================================================= -->
+
     <update id="updateAmount"
             parameterType="com.kh.workflow.amount.vo.Amount">
 
@@ -496,10 +454,8 @@
 
         SET
             requested_amount = #{requestedAmount},
-
             amount_comment = #{amountComment},
-
-            updated_at = NOW()
+            updated_at = CURRENT_TIMESTAMP
 
         WHERE amount_no = #{amountNo}
 
@@ -507,21 +463,37 @@
 
 
     <!-- =========================================================
-         17. 기존 상세 항목 삭제
+         15. 결재 상태 변경
          ========================================================= -->
-    <delete id="deleteAmountItemsByAmountNo"
-            parameterType="int">
 
-        DELETE FROM amount_item
+    <update id="updateApprovalStatus"
+            parameterType="com.kh.workflow.amount.vo.Amount">
+
+        UPDATE amount
+
+        SET
+            status = #{status},
+            approved_amount = #{approvedAmount},
+            amount_comment = #{amountComment},
+
+            approved_at =
+                CASE
+                    WHEN #{status} = 'A'
+                    THEN CURRENT_TIMESTAMP
+                    ELSE approved_at
+                END,
+
+            updated_at = CURRENT_TIMESTAMP
 
         WHERE amount_no = #{amountNo}
 
-    </delete>
+    </update>
 
 
     <!-- =========================================================
-         18. 첨부파일 삭제
+         16. 첨부파일 삭제
          ========================================================= -->
+
     <delete id="deleteFile"
             parameterType="int">
 
@@ -533,75 +505,9 @@
 
 
     <!-- =========================================================
-         19. 지원금 UPSERT
-         
-         ★ 기존 코드의
-           status = x
-           는 오류이므로
-           status = #{status}
-           로 수정
+         17. 비용 신청 취소
          ========================================================= -->
-    <insert id="upsertAmountSponsor"
-            parameterType="com.kh.workflow.amount.vo.Amount$Sponsor">
 
-        INSERT INTO amount_list
-        (
-            amount_no,
-            sponsor_name,
-            amount,
-            payment_date,
-            status,
-            remark,
-            item_no
-        )
-        VALUES
-        (
-            #{amountNo},
-            #{sponsorName},
-            #{amount},
-            NOW(),
-            #{status},
-            #{remark},
-            #{itemNo}
-        )
-
-        ON DUPLICATE KEY UPDATE
-
-            sponsor_name = #{sponsorName},
-
-            amount = #{amount},
-
-            status = #{status},
-
-            remark = #{remark}
-
-    </insert>
-
-
-    <!-- =========================================================
-         20. 첫 번째 Item 번호 조회
-         ========================================================= -->
-    <select id="findFirstItemNoByAmountNo"
-            parameterType="int"
-            resultType="java.lang.Integer">
-
-        SELECT
-            item_no
-
-        FROM amount_item
-
-        WHERE amount_no = #{amountNo}
-
-        ORDER BY item_no ASC
-
-        LIMIT 1
-
-    </select>
-
-
-    <!-- =========================================================
-         21. 비용 신청 취소
-         ========================================================= -->
     <update id="cancelAmount"
             parameterType="int">
 
@@ -609,22 +515,156 @@
 
         SET
             status = 'C',
-            updated_at = NOW()
+            updated_at = CURRENT_TIMESTAMP
 
         WHERE amount_no = #{amountNo}
+
+          AND status NOT IN
+          (
+              'A',
+              'J',
+              'C'
+          )
 
     </update>
 
 
     <!-- =========================================================
-         22. 통계 - 전체 요약
+         18. 기존 Item 삭제
          ========================================================= -->
+
+    <delete id="deleteAmountItemsByAmountNo"
+            parameterType="int">
+
+        DELETE FROM amount_item
+
+        WHERE amount_no = #{amountNo}
+
+    </delete>
+
+
+    <!-- =========================================================
+         19. 기존 Sponsor 삭제
+         ========================================================= -->
+
+    <delete id="deleteAmountSponsorsByAmountNo"
+            parameterType="int">
+
+        DELETE FROM amount_list
+
+        WHERE amount_no = #{amountNo}
+
+    </delete>
+
+
+    <!-- =========================================================
+         20. 통계 - 전체 요약
+         ========================================================= -->
+
     <select id="getStatisticsSummary"
             resultType="map">
 
         SELECT
 
-            IFNULL(
+            COUNT(*) AS totalCount,
+
+            COALESCE(
+                SUM(requested_amount),
+                0
+            ) AS totalRequestedAmount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'A'
+                        THEN approved_amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS totalApprovedAmount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'R'
+                        THEN 1
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS reviewCount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'A'
+                        THEN 1
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS approvedCount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'H'
+                        THEN 1
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS holdCount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'J'
+                        THEN 1
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS rejectedCount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'C'
+                        THEN 1
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS cancelledCount
+
+        FROM amount
+
+    </select>
+
+
+    <!-- =========================================================
+         21. 통계 - 부서별
+         ========================================================= -->
+
+    <select id="getDeptStatistics"
+            resultType="map">
+
+        SELECT
+
+            d.dep_id AS depId,
+
+            d.dep_title AS depTitle,
+
+            COUNT(a.amount_no) AS amountCount,
+
+            COALESCE(
+                SUM(a.requested_amount),
+                0
+            ) AS requestedAmount,
+
+            COALESCE(
                 SUM(
                     CASE
                         WHEN a.status = 'A'
@@ -633,127 +673,84 @@
                     END
                 ),
                 0
-            ) AS totalApproved,
+            ) AS approvedAmount
 
-            (
-                SELECT
-                    IFNULL(SUM(al.amount), 0)
-                FROM amount_list al
-            ) AS totalSponsor,
-
-            IFNULL(
-                AVG(
-                    CASE
-                        WHEN a.status = 'A'
-                        THEN a.approved_amount
-                    END
-                ),
-                0
-            ) AS avgApproved,
-
-            (
-                SELECT
-                    IFNULL(AVG(al.amount), 0)
-                FROM amount_list al
-            ) AS avgSponsor,
-
-            COUNT(
-                CASE
-                    WHEN a.status IN ('R', 'H')
-                    THEN 1
-                END
-            ) AS pendingCount,
-
-            COUNT(
-                DISTINCT w.emp_no
-            ) AS totalParticipants,
-
-            COUNT(
-                a.amount_no
-            ) AS totalCount
-
-        FROM amount a
-
-        LEFT JOIN workcation_info w
-            ON a.workcation_no = w.workcation_no
-
-    </select>
-
-
-    <!-- =========================================================
-         23. 통계 - 부서별
-         ========================================================= -->
-    <select id="getDeptStatistics"
-            resultType="map">
-
-        SELECT
-
-            IFNULL(
-                d.dep_title,
-                '미지정'
-            ) AS deptName,
-
-            IFNULL(
-                SUM(a.approved_amount),
-                0
-            ) AS amount
-
-        FROM amount a
-
-        LEFT JOIN workcation_info w
-            ON a.workcation_no = w.workcation_no
+        FROM department d
 
         LEFT JOIN employee e
-            ON w.emp_no = e.emp_no
+            ON d.dep_id = e.dep_id
 
-        LEFT JOIN department d
-            ON e.dep_id = d.dep_id
+        LEFT JOIN workcation_info w
+            ON e.emp_no = w.emp_no
 
-        WHERE a.status = 'A'
+        LEFT JOIN amount a
+            ON w.workcation_no = a.workcation_no
 
-        GROUP BY d.dep_title
+        GROUP BY
+            d.dep_id,
+            d.dep_title
 
-        ORDER BY amount DESC
+        ORDER BY
+            d.dep_id
 
     </select>
 
 
     <!-- =========================================================
-         24. 통계 - 월별 참가 현황
+         22. 통계 - 월별
+         
+         ★ MySQL
+         DATE_FORMAT 사용
          ========================================================= -->
+
     <select id="getMonthlyStatistics"
             resultType="map">
 
         SELECT
 
             DATE_FORMAT(
-                a.requested_at,
+                requested_at,
                 '%Y-%m'
             ) AS month,
 
-            COUNT(
-                DISTINCT w.emp_no
-            ) AS participants
+            COUNT(*) AS amountCount,
 
-        FROM amount a
+            COALESCE(
+                SUM(requested_amount),
+                0
+            ) AS requestedAmount,
 
-        LEFT JOIN workcation_info w
-            ON a.workcation_no = w.workcation_no
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN status = 'A'
+                        THEN approved_amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS approvedAmount
+
+        FROM amount
 
         GROUP BY
             DATE_FORMAT(
-                a.requested_at,
+                requested_at,
                 '%Y-%m'
             )
 
-        ORDER BY month ASC
+        ORDER BY
+            month ASC
 
     </select>
 
 
     <!-- =========================================================
-         25. 통계 - 항목별 지출 금액
+         23. 통계 - 비용 항목별
+         
+         ★ amount_item.cost 기준
          ========================================================= -->
+
     <select id="getItemStatistics"
             resultType="map">
 
@@ -761,21 +758,31 @@
 
             ai.item_type AS itemType,
 
-            IFNULL(
-                SUM(ai.amount),
+            COUNT(ai.item_no) AS itemCount,
+
+            COALESCE(
+                SUM(ai.cost),
                 0
-            ) AS amount
+            ) AS totalAmount,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN ai.item_approved = 'A'
+                        THEN ai.cost
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS approvedAmount
 
         FROM amount_item ai
 
-        INNER JOIN amount a
-            ON ai.amount_no = a.amount_no
+        GROUP BY
+            ai.item_type
 
-        WHERE a.status = 'A'
-
-        GROUP BY ai.item_type
-
-        ORDER BY ai.item_type
+        ORDER BY
+            totalAmount DESC
 
     </select>
 

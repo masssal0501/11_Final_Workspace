@@ -4,473 +4,825 @@ import { amountApi } from '../api/amountApi';
 import '../styles/AmountStyle.css';
 
 export default function AmountForm({ workcationNo, onSuccess }) {
+
   const navigate = useNavigate();
   const { amountNo } = useParams();
 
-  // URL에 amountNo가 있으면 수정 모드
+  // URL에 amountNo가 있으면 수정
   const isEditMode = !!amountNo;
 
   const [formData, setFormData] = useState({
     amountNo: null,
-    workcationNo: workcationNo || 1,
+
+    // amount.workcation_no
+    workcationNo: workcationNo ?? null,
+
+    // amount.amount_comment
     amountComment: '',
 
-    // =====================================================
-    // 여러 파일
-    // =====================================================
+    // 신규 파일
     files: [],
 
-    // 기존 첨부파일
+    // 기존 amount_file
     fileList: [],
 
+    // amount_item
     itemList: [
       {
         itemNo: null,
-        itemType: 'S',
-        amount: '',
-        itemDate: null,
-        itemApproved: null,
-        itemDescription: '',
         amountNo: null,
-        sponsorList: []
+
+        // amount_item.item_type
+        itemType: 'S',
+
+        // amount_item.cost
+        cost: '',
+
+        // amount_item.item_date
+        itemDate: null,
+
+        // amount_item.item_approved
+        itemApproved: null,
+
+        // amount_item.item_description
+        itemDescription: ''
       }
     ]
   });
 
   const [loading, setLoading] = useState(false);
 
+
   // =========================================================
   // 수정 모드 - 기존 데이터 조회
   // =========================================================
+
   useEffect(() => {
+
     if (!amountNo) {
       return;
     }
 
     const fetchAmountDetail = async () => {
+
       setLoading(true);
 
       try {
-        const data = await amountApi.getAmountById(amountNo);
+
+        const data =
+          await amountApi.getAmountById(amountNo);
+
+        console.log(
+          '📌 기존 비용 상세:',
+          data
+        );
+
+        console.log(
+          '📌 기존 amount_item:',
+          data?.itemList
+        );
+
+        console.log(
+          '📌 기존 amount_file:',
+          data?.fileList
+        );
+
 
         if (!data) {
-          alert('해당 비용 신청 정보를 찾을 수 없습니다.');
+
+          alert(
+            '해당 비용 신청 정보를 찾을 수 없습니다.'
+          );
+
           navigate('/cost/list');
+
           return;
         }
 
-        // -----------------------------------------------------
-        // itemList
-        // -----------------------------------------------------
-        const sourceItems = Array.isArray(data.itemList)
-          ? data.itemList
-          : [];
 
-        const validItems = sourceItems.filter(
-          (item) =>
-            item &&
-            (
-              item.itemNo !== null ||
-              item.itemType !== null ||
-              item.amount !== null ||
-              item.itemDescription
-            )
-        );
+        // =====================================================
+        // amount_item
+        //
+        // 중요:
+        // sponsorList 제거
+        // amount_list는 amount_item의 자식이 아님
+        // =====================================================
 
-        // -----------------------------------------------------
-        // 기존 Item 데이터
-        // -----------------------------------------------------
+        const sourceItems =
+          Array.isArray(data.itemList)
+            ? data.itemList
+            : [];
+
+
         const mappedItems =
-          validItems.length > 0
-            ? validItems.map((item) => {
-                return {
-                  itemNo: item.itemNo ?? null,
+          sourceItems.length > 0
 
-                  itemType: item.itemType || 'S',
+            ? sourceItems.map((item) => ({
 
-                  amount:
-                    item.amount !== null &&
-                    item.amount !== undefined
-                      ? String(item.amount)
-                      : '',
+                itemNo:
+                  item.itemNo ??
+                  null,
 
-                  itemDate: item.itemDate ?? null,
+                amountNo:
+                  item.amountNo ??
+                  data.amountNo ??
+                  null,
 
-                  itemApproved: item.itemApproved ?? null,
+                itemType:
+                  item.itemType ||
+                  'S',
 
-                  itemDescription:
-                    item.itemDescription || '',
+                cost:
+                  item.cost !== null &&
+                  item.cost !== undefined
+                    ? String(item.cost)
+                    : '',
 
-                  amountNo:
-                    item.amountNo ??
-                    data.amountNo ??
-                    null,
+                itemDate:
+                  item.itemDate ??
+                  null,
 
-                  sponsorList: Array.isArray(item.sponsorList)
-                    ? item.sponsorList
-                    : []
-                };
-              })
+                itemApproved:
+                  item.itemApproved ??
+                  null,
+
+                itemDescription:
+                  item.itemDescription ||
+                  ''
+              }))
+
             : [
                 {
                   itemNo: null,
+
+                  amountNo:
+                    data.amountNo ??
+                    Number(amountNo),
+
                   itemType: 'S',
-                  amount: '',
+
+                  cost: '',
+
                   itemDate: null,
+
                   itemApproved: null,
-                  itemDescription: '',
-                  amountNo: data.amountNo ?? null,
-                  sponsorList: []
+
+                  itemDescription: ''
                 }
               ];
 
-        // -----------------------------------------------------
-        // 최종 formData
-        // -----------------------------------------------------
+
+        // =====================================================
+        // amount
+        // =====================================================
+
         const newFormData = {
-          amountNo: data.amountNo ?? Number(amountNo),
+
+          amountNo:
+            data.amountNo ??
+            Number(amountNo),
 
           workcationNo:
             data.workcationNo ??
             workcationNo ??
-            1,
+            null,
 
-          amountComment: data.amountComment || '',
+          amountComment:
+            data.amountComment ||
+            '',
 
-          // 새로 선택한 파일
+          // 신규 파일은 항상 빈 배열
           files: [],
 
-          // 기존 첨부파일
-          fileList: Array.isArray(data.fileList)
-            ? data.fileList
-            : [],
+          // amount_file
+          fileList:
+            Array.isArray(data.fileList)
+              ? data.fileList
+              : [],
 
-          itemList: mappedItems
+          // amount_item
+          itemList:
+            mappedItems
         };
+
 
         setFormData(newFormData);
 
       } catch (error) {
+
         console.error(
           '기존 신청 정보 조회 실패:',
           error
         );
 
-        alert('기존 신청 정보를 불러오지 못했습니다.');
+        console.error(
+          '서버 응답:',
+          error.response?.data
+        );
+
+        alert(
+          '기존 신청 정보를 불러오지 못했습니다.'
+        );
+
         navigate('/cost/list');
 
       } finally {
+
         setLoading(false);
+
       }
+
     };
+
 
     fetchAmountDetail();
 
-  }, [amountNo, navigate, workcationNo]);
+  }, [
+    amountNo,
+    navigate,
+    workcationNo
+  ]);
+
 
   // =========================================================
   // 총 신청 금액
+  //
+  // amount.requested_amount
+  // ← amount_item.cost 합계
   // =========================================================
-  const totalRequestedAmount = formData.itemList.reduce(
-    (sum, item) => {
-      return sum + (Number(item.amount) || 0);
-    },
-    0
-  );
+
+  const totalRequestedAmount =
+    formData.itemList.reduce(
+      (sum, item) =>
+        sum +
+        (Number(item.cost) || 0),
+      0
+    );
+
 
   // =========================================================
-  // 상세 항목 추가
+  // 항목 추가
   // =========================================================
+
   const handleAddItem = () => {
+
     setFormData((prev) => ({
+
       ...prev,
 
       itemList: [
+
         ...prev.itemList,
 
         {
           itemNo: null,
+
+          amountNo:
+            prev.amountNo ??
+            null,
+
           itemType: 'S',
-          amount: '',
+
+          cost: '',
+
           itemDate: null,
+
           itemApproved: null,
-          itemDescription: '',
-          amountNo: prev.amountNo ?? null,
-          sponsorList: []
+
+          itemDescription: ''
         }
+
       ]
+
     }));
+
   };
 
+
   // =========================================================
-  // 상세 항목 삭제
+  // 항목 삭제
   // =========================================================
+
   const handleRemoveItem = (index) => {
-    if (formData.itemList.length === 1) {
-      alert('최소 1개의 비용 항목은 필요합니다.');
+
+    if (
+      formData.itemList.length === 1
+    ) {
+
+      alert(
+        '최소 1개의 비용 항목은 필요합니다.'
+      );
+
       return;
     }
 
+
     setFormData((prev) => ({
+
       ...prev,
 
-      itemList: prev.itemList.filter(
-        (_, i) => i !== index
-      )
+      itemList:
+        prev.itemList.filter(
+          (_, i) =>
+            i !== index
+        )
+
     }));
+
   };
 
+
   // =========================================================
-  // 상세 항목 변경
+  // 항목 변경
   // =========================================================
-  const handleItemChange = (index, field, value) => {
+
+  const handleItemChange = (
+    index,
+    field,
+    value
+  ) => {
+
     setFormData((prev) => ({
+
       ...prev,
 
-      itemList: prev.itemList.map((item, i) => {
-        if (i !== index) {
-          return item;
-        }
+      itemList:
+        prev.itemList.map(
+          (item, i) => {
 
-        return {
-          ...item,
-          [field]: value
-        };
-      })
+            if (i !== index) {
+              return item;
+            }
+
+            return {
+              ...item,
+              [field]: value
+            };
+
+          }
+        )
+
     }));
+
   };
 
+
   // =========================================================
-  // 여러 파일 선택
+  // 파일 선택
   // =========================================================
+
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(
-      e.target.files || []
-    );
 
-    if (selectedFiles.length === 0) {
+    const selectedFiles =
+      Array.from(
+        e.target.files || []
+      );
+
+    if (
+      selectedFiles.length === 0
+    ) {
       return;
     }
 
+
     setFormData((prev) => ({
+
       ...prev,
 
       files: [
         ...prev.files,
         ...selectedFiles
       ]
+
     }));
 
-    // 같은 파일을 다시 선택할 수 있도록 초기화
+
+    // 같은 파일 다시 선택 가능
     e.target.value = '';
+
   };
 
+
   // =========================================================
-  // 선택한 새 파일 삭제
+  // 신규 파일 삭제
   // =========================================================
-  const handleRemoveNewFile = (index) => {
+
+  const handleRemoveNewFile = (
+    index
+  ) => {
+
     setFormData((prev) => ({
+
       ...prev,
 
-      files: prev.files.filter(
-        (_, i) => i !== index
-      )
+      files:
+        prev.files.filter(
+          (_, i) =>
+            i !== index
+        )
+
     }));
+
   };
+
+
+  // =========================================================
+  // 기존 파일 삭제 표시
+  //
+  // 실제 DB 삭제는 서버에서 처리
+  // =========================================================
+
+  const handleRemoveExistingFile = (
+    index
+  ) => {
+
+    setFormData((prev) => ({
+
+      ...prev,
+
+      fileList:
+        prev.fileList.map(
+          (file, i) => {
+
+            if (i !== index) {
+              return file;
+            }
+
+            return {
+              ...file,
+              status: 'N'
+            };
+
+          }
+        )
+
+    }));
+
+  };
+
 
   // =========================================================
   // 제출
   // =========================================================
+
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
-    // -----------------------------------------------------
-    // 파일 필수 검사
-    //
-    // 신규 등록:
-    // 반드시 파일 1개 이상 필요
-    //
-    // 수정:
-    // 기존 파일이 있거나 새 파일이 있으면 OK
-    // -----------------------------------------------------
-    const activeExistingFiles = formData.fileList.filter(
-      (file) =>
-        file &&
-        file.status !== 'N'
-    );
+
+    // =====================================================
+    // workcation_no 검증
+    // =====================================================
+
+    if (
+      formData.workcationNo === null ||
+      formData.workcationNo === undefined ||
+      formData.workcationNo === ''
+    ) {
+
+      alert(
+        '워크케이션 정보가 없습니다.'
+      );
+
+      return;
+    }
+
+
+    // =====================================================
+    // 기존 파일
+    // =====================================================
+
+    const activeExistingFiles =
+      formData.fileList.filter(
+        (file) =>
+          file &&
+          file.status !== 'N'
+      );
+
 
     const hasExistingFile =
       activeExistingFiles.length > 0;
 
+
     const hasNewFile =
       formData.files.length > 0;
+
+
+    // =====================================================
+    // 신규 등록 파일
+    // =====================================================
 
     if (
       !isEditMode &&
       !hasNewFile
     ) {
+
       alert(
         '증빙 영수증 파일을 최소 1개 이상 첨부해주세요.'
       );
+
       return;
     }
+
+
+    // =====================================================
+    // 수정 파일
+    // =====================================================
 
     if (
       isEditMode &&
       !hasExistingFile &&
       !hasNewFile
     ) {
+
       alert(
         '증빙 영수증 파일을 최소 1개 이상 첨부해주세요.'
       );
+
       return;
     }
 
-    // -----------------------------------------------------
-    // 금액 검증
-    // -----------------------------------------------------
-    if (totalRequestedAmount <= 0) {
+
+    // =====================================================
+    // 비용 항목 존재 확인
+    // =====================================================
+
+    if (
+      formData.itemList.length === 0
+    ) {
+
+      alert(
+        '최소 1개의 비용 항목이 필요합니다.'
+      );
+
+      return;
+    }
+
+
+    // =====================================================
+    // 금액 검사
+    // =====================================================
+
+    if (
+      totalRequestedAmount <= 0
+    ) {
+
       alert(
         '비용 항목별 금액을 올바르게 입력해 주세요.'
       );
+
       return;
     }
 
-    // -----------------------------------------------------
-    // 각 Item 금액 검증
-    // -----------------------------------------------------
+
+    // =====================================================
+    // 개별 금액 검사
+    // =====================================================
+
     const invalidItem =
       formData.itemList.some(
-        (item) =>
-          item.amount === '' ||
-          item.amount === null ||
-          item.amount === undefined ||
-          Number(item.amount) <= 0
+        (item) => {
+
+          const cost =
+            Number(item.cost);
+
+          return (
+            item.cost === '' ||
+            item.cost === null ||
+            item.cost === undefined ||
+            Number.isNaN(cost) ||
+            cost <= 0
+          );
+
+        }
       );
 
+
     if (invalidItem) {
+
       alert(
         '모든 비용 항목에 금액을 입력해 주세요.'
       );
+
       return;
     }
 
+
     try {
+
       setLoading(true);
 
-      const formPayload = new FormData();
 
-      // =====================================================
-      // Amount
-      // =====================================================
+      // ===================================================
+      // FormData
+      // ===================================================
+
+      const formPayload =
+        new FormData();
+
+
+      // ===================================================
+      // amount
+      // ===================================================
 
       formPayload.append(
         'workcationNo',
-        formData.workcationNo
+        String(
+          formData.workcationNo
+        )
       );
+
 
       formPayload.append(
         'requestedAmount',
-        totalRequestedAmount
+        String(
+          totalRequestedAmount
+        )
       );
+
 
       formPayload.append(
         'amountComment',
         formData.amountComment || ''
       );
 
-      // =====================================================
-      // ItemList
-      // =====================================================
+
+      // ===================================================
+      // amount_item
+      //
+      // DB:
+      //
+      // amount_item
+      // ├─ item_no
+      // ├─ amount_no
+      // ├─ cost
+      // ├─ item_type
+      // ├─ item_date
+      // ├─ item_approved
+      // └─ item_description
+      //
+      // sponsorList는 여기 넣지 않는다.
+      // ===================================================
 
       formData.itemList.forEach(
         (item, index) => {
 
-          // 수정 시 기존 itemNo
+          // 기존 item_no
           if (
             item.itemNo !== null &&
             item.itemNo !== undefined
           ) {
+
             formPayload.append(
               `itemList[${index}].itemNo`,
-              item.itemNo
+              String(item.itemNo)
             );
+
           }
 
+
+          // amount_no
+          if (
+            item.amountNo !== null &&
+            item.amountNo !== undefined
+          ) {
+
+            formPayload.append(
+              `itemList[${index}].amountNo`,
+              String(item.amountNo)
+            );
+
+          }
+
+
+          // item_type
           formPayload.append(
             `itemList[${index}].itemType`,
             item.itemType
           );
 
+
+          // cost
           formPayload.append(
-            `itemList[${index}].amount`,
-            item.amount
+            `itemList[${index}].cost`,
+            String(item.cost)
           );
 
+
+          // item_description
           formPayload.append(
             `itemList[${index}].itemDescription`,
             item.itemDescription || ''
           );
 
-          // 기존 amountNo
-          if (
-            item.amountNo !== null &&
-            item.amountNo !== undefined
-          ) {
-            formPayload.append(
-              `itemList[${index}].amountNo`,
-              item.amountNo
-            );
-          }
+
+          // item_date
+          //
+          // 사용하지 않는 경우 전송하지 않아도 됨.
+          // 현재 신청 화면에서는 DB 기본값/서버 처리에 맡김.
+
         }
       );
 
-      // =====================================================
-      // 여러 첨부파일
-      //
-      // 중요:
-      // 모든 파일을 같은 "file" 이름으로 추가
-      //
-      // 백엔드:
-      // @RequestParam("file") MultipartFile[] files
-      // 또는
-      // @RequestPart("file") MultipartFile[] files
-      // =====================================================
 
-      formData.files.forEach((file) => {
-        formPayload.append(
-          'file',
-          file
-        );
-      });
+      // ===================================================
+      // 신규 파일
+      //
+      // amount_file과 연결
+      // ===================================================
 
-      // =====================================================
+      formData.files.forEach(
+        (file) => {
+
+          formPayload.append(
+            'file',
+            file
+          );
+
+        }
+      );
+
+
+      // ===================================================
+      // 기존 파일 삭제 정보
+      //
+      // 수정 시 status = N으로 표시된 파일 전달
+      // ===================================================
+
+      if (isEditMode) {
+
+        formData.fileList
+          .filter(
+            (file) =>
+              file &&
+              file.status === 'N'
+          )
+          .forEach(
+            (file, index) => {
+
+              if (
+                file.amountattachmentNo !==
+                null &&
+                file.amountattachmentNo !==
+                undefined
+              ) {
+
+                formPayload.append(
+                  `deleteFileList[${index}]`,
+                  String(
+                    file.amountattachmentNo
+                  )
+                );
+
+              }
+
+            }
+          );
+
+      }
+
+
+      // ===================================================
       // FormData 확인
-      // =====================================================
-      console.log('===== FormData =====');
+      // ===================================================
+
+      console.log(
+        '========== FormData =========='
+      );
 
       for (
         const [key, value]
         of formPayload.entries()
       ) {
-        if (value instanceof File) {
+
+        if (
+          value instanceof File
+        ) {
+
           console.log(
             key,
-            value.name,
-            value.size,
-            value.type
+            {
+              name: value.name,
+              size: value.size,
+              type: value.type
+            }
           );
+
         } else {
+
           console.log(
             key,
             value
           );
+
         }
+
       }
 
-      // =====================================================
+
+      // ===================================================
       // 등록 / 수정
-      // =====================================================
+      // ===================================================
 
       if (isEditMode) {
 
@@ -492,17 +844,24 @@ export default function AmountForm({ workcationNo, onSuccess }) {
         alert(
           '비용 신청이 완료되었습니다.'
         );
+
       }
 
-      // =====================================================
+
+      // ===================================================
       // 완료
-      // =====================================================
+      // ===================================================
 
       if (onSuccess) {
+
         onSuccess();
+
       } else {
+
         navigate('/cost/list');
+
       }
+
 
     } catch (error) {
 
@@ -516,31 +875,42 @@ export default function AmountForm({ workcationNo, onSuccess }) {
         error.response?.data
       );
 
+
       alert(
         error.response?.data ||
         '처리 중 오류가 발생했습니다.'
       );
 
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
 
   // =========================================================
   // Loading
   // =========================================================
+
   if (loading) {
+
     return (
       <div className="amount-form-container">
-        기존 데이터를 불러오는 중입니다...
+        데이터를 불러오는 중입니다...
       </div>
     );
+
   }
+
 
   // =========================================================
   // 화면
   // =========================================================
+
   return (
+
     <div className="amount-form-container">
 
       <h2>
@@ -549,11 +919,14 @@ export default function AmountForm({ workcationNo, onSuccess }) {
           : '비용 정산 신청'}
       </h2>
 
+
       <form onSubmit={handleSubmit}>
+
 
         {/* =================================================
             총 신청 금액
         ================================================= */}
+
         <div className="form-group total-amount-box">
 
           <label>
@@ -561,18 +934,25 @@ export default function AmountForm({ workcationNo, onSuccess }) {
           </label>
 
           <span className="total-amount-value">
-            {totalRequestedAmount.toLocaleString()} 원
+
+            {totalRequestedAmount.toLocaleString()}
+            {' '}원
+
           </span>
 
         </div>
 
+
         {/* =================================================
             첨부파일
         ================================================= */}
+
         <div className="form-group">
 
           <label>
+
             증빙 영수증 파일:
+
             <span
               style={{
                 color: 'red',
@@ -581,16 +961,19 @@ export default function AmountForm({ workcationNo, onSuccess }) {
             >
               * 필수
             </span>
+
           </label>
 
-          {/* =================================================
-              기존 첨부파일
-          ================================================= */}
-          {formData.fileList.filter(
-            (file) =>
-              file &&
-              file.status !== 'N'
-          ).length > 0 && (
+
+          {/* 기존 파일 */}
+
+          {formData.fileList
+            .filter(
+              (file) =>
+                file &&
+                file.status !== 'N'
+            )
+            .length > 0 && (
 
             <div className="existing-file-list">
 
@@ -598,56 +981,91 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                 기존 첨부파일
               </div>
 
+
               {formData.fileList
                 .filter(
                   (file) =>
                     file &&
                     file.status !== 'N'
                 )
-                .map((file) => (
+                .map(
+                  (file, index) => (
 
-                  <div
-                    key={
-                      file.amountattachmentNo
-                    }
-                    className="existing-file-item"
-                  >
+                    <div
+                      key={
+                        file.amountattachmentNo ??
+                        index
+                      }
+                      className="existing-file-item"
+                    >
 
-                    📎 {file.originName}
+                      <span>
+                        📎 {file.originName}
+                      </span>
 
-                    {file.filePath && (
-                      <a
-                        href={file.filePath}
-                        target="_blank"
-                        rel="noopener noreferrer"
+
+                      {file.filePath && (
+
+                        <a
+                          href={file.filePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            marginLeft: '10px'
+                          }}
+                        >
+                          보기
+                        </a>
+
+                      )}
+
+
+                      <button
+                        type="button"
+                        onClick={() => {
+
+                          const originalIndex =
+                            formData.fileList.findIndex(
+                              (f) =>
+                                f.amountattachmentNo ===
+                                file.amountattachmentNo
+                            );
+
+                          handleRemoveExistingFile(
+                            originalIndex
+                          );
+
+                        }}
                         style={{
-                          marginLeft: '10px'
+                          marginLeft: '10px',
+                          color: '#dc3545',
+                          border: 'none',
+                          background: 'none',
+                          cursor: 'pointer'
                         }}
                       >
-                        보기
-                      </a>
-                    )}
+                        삭제
+                      </button>
 
-                  </div>
+                    </div>
 
-                ))}
+                  )
+                )}
 
             </div>
 
           )}
 
-          {/* =================================================
-              여러 파일 선택
-          ================================================= */}
+
+          {/* 신규 파일 */}
+
           <input
             type="file"
             multiple
             onChange={handleFileChange}
           />
 
-          {/* =================================================
-              새로 선택한 파일 목록
-          ================================================= */}
+
           {formData.files.length > 0 && (
 
             <div
@@ -665,6 +1083,7 @@ export default function AmountForm({ workcationNo, onSuccess }) {
               >
                 새로 첨부할 파일
               </div>
+
 
               {formData.files.map(
                 (file, index) => (
@@ -685,12 +1104,11 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                       📎 {file.name}
                     </span>
 
+
                     <button
                       type="button"
                       onClick={() =>
-                        handleRemoveNewFile(
-                          index
-                        )
+                        handleRemoveNewFile(index)
                       }
                       style={{
                         marginLeft: '10px',
@@ -712,9 +1130,9 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
           )}
 
-          {/* =================================================
-              파일이 하나도 없는 경우
-          ================================================= */}
+
+          {/* 파일 없음 */}
+
           {formData.files.length === 0 &&
             formData.fileList.filter(
               (file) =>
@@ -728,25 +1146,30 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                   marginTop: '5px'
                 }}
               >
-                ⚠ 증빙 영수증 파일을 최소 1개 이상
-                첨부해주세요.
+                ⚠ 증빙 영수증 파일을
+                최소 1개 이상 첨부해주세요.
               </div>
 
             )}
 
         </div>
 
+
         {/* =================================================
             신청 사유
         ================================================= */}
+
         <div className="form-group">
 
           <label>
             신청 사유 / 메모:
           </label>
 
+
           <textarea
-            value={formData.amountComment}
+            value={
+              formData.amountComment
+            }
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
@@ -760,16 +1183,20 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
         </div>
 
+
         <hr className="form-divider" />
 
+
         {/* =================================================
-            상세 항목
+            비용 상세 항목
         ================================================= */}
+
         <div className="section-header">
 
           <h3>
             비용 상세 항목 List
           </h3>
+
 
           <button
             type="button"
@@ -780,6 +1207,7 @@ export default function AmountForm({ workcationNo, onSuccess }) {
           </button>
 
         </div>
+
 
         {formData.itemList.map(
           (item, index) => (
@@ -794,12 +1222,15 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
               <div className="item-row">
 
+
                 {/* 항목 구분 */}
+
                 <div className="form-group">
 
                   <label>
                     항목 구분:
                   </label>
+
 
                   <select
                     value={
@@ -831,7 +1262,7 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                     </option>
 
                     <option value="V">
-                      공간대여/차량 (V)
+                      공간대여 (V)
                     </option>
 
                     <option value="O">
@@ -842,23 +1273,27 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
                 </div>
 
+
                 {/* 금액 */}
+
                 <div className="form-group">
 
                   <label>
                     금액:
                   </label>
 
+
                   <input
                     type="number"
                     min="1"
+                    step="0.01"
                     value={
-                      item.amount ?? ''
+                      item.cost ?? ''
                     }
                     onChange={(e) =>
                       handleItemChange(
                         index,
-                        'amount',
+                        'cost',
                         e.target.value
                       )
                     }
@@ -866,20 +1301,20 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                     required
                   />
 
-                  원
+                  {' '}원
 
                 </div>
 
+
                 {/* 삭제 */}
+
                 {formData.itemList.length > 1 && (
 
                   <button
                     type="button"
                     className="btn-remove-item"
                     onClick={() =>
-                      handleRemoveItem(
-                        index
-                      )
+                      handleRemoveItem(index)
                     }
                   >
                     삭제
@@ -889,7 +1324,9 @@ export default function AmountForm({ workcationNo, onSuccess }) {
 
               </div>
 
+
               {/* 설명 */}
+
               <div
                 className="form-group"
                 style={{
@@ -901,12 +1338,12 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                   내용 설명:
                 </label>
 
+
                 {item.itemType === 'O' ? (
 
                   <textarea
                     value={
-                      item.itemDescription ??
-                      ''
+                      item.itemDescription ?? ''
                     }
                     onChange={(e) =>
                       handleItemChange(
@@ -924,8 +1361,7 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                   <input
                     type="text"
                     value={
-                      item.itemDescription ??
-                      ''
+                      item.itemDescription ?? ''
                     }
                     onChange={(e) =>
                       handleItemChange(
@@ -934,7 +1370,7 @@ export default function AmountForm({ workcationNo, onSuccess }) {
                         e.target.value
                       )
                     }
-                    placeholder="상세 내용을 입력하세요 (예: 호텔 2박 숙박비)"
+                    placeholder="상세 내용을 입력하세요"
                   />
 
                 )}
@@ -946,21 +1382,27 @@ export default function AmountForm({ workcationNo, onSuccess }) {
           )
         )}
 
+
         {/* =================================================
             제출
         ================================================= */}
+
         <button
           type="submit"
           className="btn-submit"
           disabled={loading}
         >
+
           {isEditMode
             ? '수정하기'
             : '신청서 제출'}
+
         </button>
 
       </form>
 
     </div>
+
   );
+
 }

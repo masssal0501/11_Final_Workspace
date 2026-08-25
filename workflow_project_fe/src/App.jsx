@@ -12,6 +12,7 @@ import AdminAmountPage from './pages/AdminAmountPage';
 import AmountForm from './common/components/AmountForm';
 import AmountDetail from './common/components/AmountDetail';
 import StatisticsPage from './pages/StatisticsPage';
+import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 
 
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -20,6 +21,9 @@ function App() {
 
   return (
     
+
+    <div>
+      <Header/>
       <Routes>
       {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
       <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
@@ -39,11 +43,20 @@ function App() {
       {/* 📌 통계 페이지 라우트 추가 */}
         <Route path="/admin/statistics" element={<StatisticsPage />} />
       
-    </Routes>
-    
-  );
 
-  /*const [loginUser, setLoginUser] = useState(sessionStorage.getItem("loginUser"));
+
+
+          {/* <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />}></Route>
+              <Route path="/login" element={<LoginForm />}></Route>
+                <Route path="/login/findID" element={<FindIDForm />}></Route>
+                <Route path="/login/findPW" element={<FindPWForm />}></Route> */}
+                
+    </Routes>
+    <Footer/>
+    </div>
+  );
+/*
+  const [loginUser, setLoginUser] = useState(sessionStorage.getItem("loginUser"));
 
   if(loginUser == null) {
   
@@ -84,4 +97,4 @@ function App() {
 
   
 
-export default App
+export default App;

@@ -1,294 +1,592 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { amountApi } from '../api/amountApi';
 import '../styles/AmountStyle.css';
 
 export default function UserAmountList({ workcationNo }) {
+
   const navigate = useNavigate();
+
   const [amounts, setAmounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
 
   // =========================================================
   // 비용 신청 목록 조회
+  //
+  // DB
+  // amount.workcation_no
+  //        ↓
+  // selectAmountListByWorkcationNo()
   // =========================================================
-  const fetchAmountList = async () => {
+
+  const fetchAmountList = useCallback(async () => {
+
+    // workcationNo가 없으면 조회하지 않음
+    if (
+      workcationNo === null ||
+      workcationNo === undefined ||
+      workcationNo === ''
+    ) {
+      setAmounts([]);
+      return;
+    }
+
     try {
-      const data = await amountApi.getAmountListByWorkcation(
-        workcationNo || 1
+
+      setLoading(true);
+
+      const data =
+        await amountApi.getAmountListByWorkcation(
+          workcationNo
+        );
+
+      console.log(
+        '📌 비용 신청 목록:',
+        data
       );
 
-      console.log('📌 비용 신청 목록:', data);
+      // 서버에서 null이 오는 경우 방어
+      setAmounts(
+        Array.isArray(data)
+          ? data
+          : []
+      );
 
-      setAmounts(data);
     } catch (error) {
-      console.error('목록 로딩 실패:', error);
+
+      console.error(
+        '❌ 비용 신청 목록 로딩 실패:',
+        error
+      );
+
+      setAmounts([]);
+
+    } finally {
+
+      setLoading(false);
+
     }
-  };
+
+  }, [workcationNo]);
+
+
+  // =========================================================
+  // workcationNo 변경 시 목록 조회
+  // =========================================================
 
   useEffect(() => {
+
     fetchAmountList();
-  }, [workcationNo]);
+
+  }, [fetchAmountList]);
+
 
   // =========================================================
   // 날짜 포맷
+  //
+  // DB requested_at
+  //
+  // 예:
   // 2026-08-21T06:05:16.000Z
-  //          ↓
-  // 2026-08-21
+  //
+  // → 2026-08-21
   // =========================================================
+
   const formatDate = (date) => {
-    if (!date) return '-';
 
-    const d = new Date(date);
-
-    if (isNaN(d.getTime())) {
+    if (!date) {
       return '-';
     }
 
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const d = new Date(date);
+
+    if (Number.isNaN(d.getTime())) {
+      return '-';
+    }
+
+    const year =
+      d.getFullYear();
+
+    const month =
+      String(d.getMonth() + 1)
+        .padStart(2, '0');
+
+    const day =
+      String(d.getDate())
+        .padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   };
 
+
   // =========================================================
   // 금액 포맷
+  //
+  // DB
+  // requested_amount
+  // approved_amount
   // =========================================================
+
   const formatMoney = (amount) => {
-    if (amount === null || amount === undefined || amount === '') {
+
+    if (
+      amount === null ||
+      amount === undefined ||
+      amount === ''
+    ) {
       return '-';
     }
 
-    return `${Number(amount).toLocaleString()} 원`;
-  };
+    const number =
+      Number(amount);
 
-  // =========================================================
-  // 수정
-  // =========================================================
-  const handleEdit = (item) => {
-    console.log('🔥 handleEdit 실행');
-    console.log('수정할 item:', item);
-
-    if (['A', 'J', 'C'].includes(item.status)) {
-      alert('승인, 반려 또는 취소된 내역은 수정할 수 없습니다.');
-      return;
+    if (Number.isNaN(number)) {
+      return '-';
     }
 
-    navigate(`/cost/apply/${item.amountNo}`);
+    return `${number.toLocaleString('ko-KR')} 원`;
   };
 
+
   // =========================================================
-  // 신청 취소
+  // 상태 이름
+  //
+  // DB amount.status
+  //
+  // R = 검토
+  // A = 승인
+  // H = 보류
+  // J = 반려
+  // C = 취소
   // =========================================================
-  const handleCancel = async (amountNo) => {
-    if (
-      !window.confirm(
-        `[신청번호 ${amountNo}] 정산 신청을 취소하시겠습니까?`
-      )
-    ) {
-      return;
-    }
 
-    try {
-      await amountApi.cancelAmount(amountNo);
-
-      alert('신청이 취소되었습니다.');
-
-      fetchAmountList();
-    } catch (error) {
-      console.error('취소 실패:', error);
-
-      alert(
-        error.response?.data ||
-        '취소 처리에 실패했습니다.'
-      );
-    }
+  const statusMap = {
+    R: '검토중',
+    A: '승인됨',
+    H: '보류됨',
+    J: '반려됨',
+    C: '취소됨'
   };
+
 
   // =========================================================
   // 상태 뱃지
   // =========================================================
+
   const getStatusBadge = (status) => {
-    const statusMap = {
-      R: '검토중',
-      A: '승인됨',
-      J: '반려됨',
-      H: '보류됨',
-      C: '취소됨'
-    };
+
+    const statusName =
+      statusMap[status] || '알 수 없음';
 
     return (
-      <span className={`status-badge status-${status}`}>
-        {statusMap[status] || status}
+      <span
+        className={`status-badge status-${status || 'UNKNOWN'}`}
+      >
+        {statusName}
       </span>
     );
   };
 
+
+  // =========================================================
+  // 수정
+  //
+  // 수정 가능:
+  // R 검토
+  // H 보류
+  //
+  // 수정 불가능:
+  // A 승인
+  // J 반려
+  // C 취소
+  // =========================================================
+
+  const handleEdit = (item) => {
+
+    console.log(
+      '🔥 비용 신청 수정'
+    );
+
+    console.log(
+      '수정할 Amount:',
+      item
+    );
+
+
+    if (!item?.amountNo) {
+
+      alert(
+        '비용 신청 번호가 없습니다.'
+      );
+
+      return;
+    }
+
+
+    if (
+      !['R', 'H'].includes(
+        item.status
+      )
+    ) {
+
+      alert(
+        '검토중 또는 보류 상태의 비용 신청만 수정할 수 있습니다.'
+      );
+
+      return;
+    }
+
+
+    navigate(
+      `/cost/apply/${item.amountNo}`
+    );
+  };
+
+
+  // =========================================================
+  // 신청 취소
+  //
+  // Service의 cancelAmount()와 동일한 정책
+  //
+  // A 승인 → 취소 불가
+  // J 반려 → 취소 불가
+  // C 취소 → 중복 취소 불가
+  //
+  // R / H → 취소 가능
+  // =========================================================
+
+  const handleCancel = async (item) => {
+
+    if (!item?.amountNo) {
+
+      alert(
+        '비용 신청 번호가 없습니다.'
+      );
+
+      return;
+    }
+
+
+    // 프론트에서도 1차 검증
+    if (
+      !['R', 'H'].includes(
+        item.status
+      )
+    ) {
+
+      alert(
+        '검토중 또는 보류 상태의 신청만 취소할 수 있습니다.'
+      );
+
+      return;
+    }
+
+
+    const confirmed =
+      window.confirm(
+        `[신청번호 ${item.amountNo}] 정산 신청을 취소하시겠습니까?`
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    try {
+
+      await amountApi.cancelAmount(
+        item.amountNo
+      );
+
+
+      alert(
+        '신청이 취소되었습니다.'
+      );
+
+
+      // 취소 후 목록 새로 조회
+      await fetchAmountList();
+
+
+    } catch (error) {
+
+      console.error(
+        '❌ 비용 신청 취소 실패:',
+        error
+      );
+
+
+      const message =
+        error?.response?.data;
+
+
+      if (
+        typeof message === 'string' &&
+        message.trim() !== ''
+      ) {
+
+        alert(message);
+
+      } else {
+
+        alert(
+          '비용 신청 취소에 실패했습니다.'
+        );
+
+      }
+
+    }
+
+  };
+
+
   // =========================================================
   // 화면
   // =========================================================
+
   return (
+
     <div className="amount-container">
+
 
       {/* =====================================================
           헤더
-      ===================================================== */}
+          ===================================================== */}
+
       <div className="amount-header">
 
         <h2 className="amount-title">
           내 비용 정산 신청 내역 (사원용)
         </h2>
 
+
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() => navigate('/cost/apply')}
+          onClick={() =>
+            navigate('/cost/apply')
+          }
         >
           + 비용 신청하기
         </button>
 
       </div>
 
+
       {/* =====================================================
-          신청 목록
-      ===================================================== */}
-      <table className="amount-table">
+          로딩
+          ===================================================== */}
 
-        <thead>
-          <tr className="user-table-header">
+      {loading ? (
 
-            <th className="text-center">
-              신청번호
-            </th>
+        <div className="amount-loading">
+          비용 신청 내역을 불러오는 중입니다...
+        </div>
 
-            <th className="text-right">
-              신청 금액
-            </th>
+      ) : (
 
-            <th className="text-right">
-              승인 금액
-            </th>
+        <table className="amount-table">
 
-            <th className="text-center">
-              상태
-            </th>
+          <thead>
 
-            <th className="text-center">
-              신청일
-            </th>
+            <tr className="user-table-header">
 
-            <th className="text-center">
-              신청 관리
-            </th>
+              <th className="text-center">
+                신청번호
+              </th>
 
-          </tr>
-        </thead>
+              <th className="text-right">
+                신청 금액
+              </th>
 
-        <tbody>
+              <th className="text-right">
+                승인 금액
+              </th>
 
-          {amounts.length === 0 ? (
+              <th className="text-center">
+                상태
+              </th>
 
-            <tr>
-              <td
-                colSpan="6"
-                className="text-center"
-              >
-                신청 내역이 없습니다.
-              </td>
+              <th className="text-center">
+                신청일
+              </th>
+
+              <th className="text-center">
+                신청 관리
+              </th>
+
             </tr>
 
-          ) : (
+          </thead>
 
-            amounts.map((item) => (
 
-              <tr key={item.amountNo}>
+          <tbody>
 
-                {/* =========================================
-                    신청번호
-                ========================================= */}
-                <td className="text-center">
-                  {item.amountNo}
-                </td>
+            {/* =================================================
+                데이터 없음
+                ================================================= */}
 
-                {/* =========================================
-                    신청 금액
-                ========================================= */}
-                <td className="text-right">
-                  {formatMoney(item.requestedAmount)}
-                </td>
+            {amounts.length === 0 ? (
 
-                {/* =========================================
-                    승인 금액
-                ========================================= */}
-                <td className="text-right">
-                  {item.approvedAmount !== null &&
-                  item.approvedAmount !== undefined
-                    ? formatMoney(item.approvedAmount)
-                    : '-'}
-                </td>
+              <tr>
 
-                {/* =========================================
-                    상태
-                ========================================= */}
-                <td className="text-center">
-                  {getStatusBadge(item.status)}
-                </td>
-
-                {/* =========================================
-                    신청일
-                    2026-08-21T06:05:16.000Z
-                    → 2026-08-21
-                ========================================= */}
-                <td className="text-center">
-                  {formatDate(item.requestedAt)}
-                </td>
-
-                {/* =========================================
-                    신청 관리
-                ========================================= */}
-                <td className="text-center">
-
-                  {['R', 'H'].includes(item.status) ? (
-
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-edit"
-                        onClick={() => handleEdit(item)}
-                      >
-                        수정
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn btn-cancel"
-                        onClick={() =>
-                          handleCancel(item.amountNo)
-                        }
-                      >
-                        취소
-                      </button>
-                    </>
-
-                  ) : (
-
-                    <span className="text-disabled">
-                      변경 불가
-                    </span>
-
-                  )}
-
+                <td
+                  colSpan="6"
+                  className="text-center"
+                >
+                  신청 내역이 없습니다.
                 </td>
 
               </tr>
 
-            ))
+            ) : (
 
-          )}
+              amounts.map((item) => (
 
-        </tbody>
+                <tr
+                  key={item.amountNo}
+                >
 
-      </table>
+
+                  {/* =========================================
+                      신청번호
+                      amount.amount_no
+                      ========================================= */}
+
+                  <td className="text-center">
+
+                    {item.amountNo}
+
+                  </td>
+
+
+                  {/* =========================================
+                      신청 금액
+                      amount.requested_amount
+                      ========================================= */}
+
+                  <td className="text-right">
+
+                    {formatMoney(
+                      item.requestedAmount
+                    )}
+
+                  </td>
+
+
+                  {/* =========================================
+                      승인 금액
+                      amount.approved_amount
+                      ========================================= */}
+
+                  <td className="text-right">
+
+                    {formatMoney(
+                      item.approvedAmount
+                    )}
+
+                  </td>
+
+
+                  {/* =========================================
+                      상태
+                      amount.status
+                      ========================================= */}
+
+                  <td className="text-center">
+
+                    {getStatusBadge(
+                      item.status
+                    )}
+
+                  </td>
+
+
+                  {/* =========================================
+                      신청일
+                      amount.requested_at
+                      ========================================= */}
+
+                  <td className="text-center">
+
+                    {formatDate(
+                      item.requestedAt
+                    )}
+
+                  </td>
+
+
+                  {/* =========================================
+                      신청 관리
+                      ========================================= */}
+
+                  <td className="text-center">
+
+
+                    {/* -----------------------------------------
+                        R / H
+                        수정 + 취소 가능
+                        ----------------------------------------- */}
+
+                    {['R', 'H'].includes(
+                      item.status
+                    ) ? (
+
+                      <>
+
+                        <button
+                          type="button"
+                          className="btn btn-edit"
+                          onClick={() =>
+                            handleEdit(item)
+                          }
+                        >
+                          수정
+                        </button>
+
+
+                        <button
+                          type="button"
+                          className="btn btn-cancel"
+                          onClick={() =>
+                            handleCancel(item)
+                          }
+                        >
+                          취소
+                        </button>
+
+                      </>
+
+                    ) : (
+
+                      /* ---------------------------------------
+                         A / J / C
+                         변경 불가
+                         --------------------------------------- */
+
+                      <span className="text-disabled">
+                        변경 불가
+                      </span>
+
+                    )}
+
+                  </td>
+
+                </tr>
+
+              ))
+
+            )}
+
+          </tbody>
+
+        </table>
+
+      )}
 
     </div>
+
   );
 }
