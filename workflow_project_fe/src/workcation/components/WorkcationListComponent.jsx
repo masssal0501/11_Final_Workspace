@@ -1,22 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import WorkcationScheduleComponent from "./WorkcationScheduleComponent"; 
+import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
+import WorkcationItemComponent from "./WorkcationItemComponent";
 
 import "../styles/WorkcationList.css";
-
-const WORKCATION_DATA = {
-    "강원도": ["강릉시", "속초시", "양양군", "춘천시", "평창군"],
-    "부산": ["해운대구", "영도구", "수영구", "부산진구", "중구"],
-    "제주도": ["서귀포시", "제주시"]
-}
 
 function WorkcationListComponent() {
 
     //실행구문
     const navigate = useNavigate();//페이지 이동 함수
 
-    const [keyWord, setKeyword] = useState('');
+    const [keyword, setKeyword] = useState('');
     const [searchType, setSearchType] = useState("all");
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -25,9 +20,6 @@ function WorkcationListComponent() {
     const searchCondition = searchParams.get("condition") || "all";
     const searchKeyword = searchParams.get("keyword") || "";
     const cpage = parseInt(searchParams.get("cpage")) || 1;
-
-    const [selectedMainRegion, setSelectedMainRegion] = useState("");
-    const [selectedSubRegion, setSelectedSubRegion] = useState("");
 
     const [dataList, setDataList] = useState([]);
     const [pageList, setPageList] = useState([]);
@@ -52,12 +44,6 @@ function WorkcationListComponent() {
             console.error(error);
         };
     }
-    //시/도 변경 이벤트 핸들러
-    const handleMainRegionChange = (e) => {
-        const mainRegion = e.target.value;
-        setSelectedMainRegion(mainRegion);
-        setSelectedSubRegion("");//시/도에 따라 하위 값 초기화
-    };
 
     //응답 데이터 처리후 공통 함수(dataList, pageList)
     const handleResponse = (Response) => {
@@ -88,7 +74,7 @@ function WorkcationListComponent() {
             <button key="prev"
                 className="page-btn"
                 disabled={cpage === 1}
-                onClick={() => cpage > 1 && setSearchParams({ cpage: cpage - 1, condition: searchCondition, keyWord: setKeyword })}>
+                onClick={() => cpage > 1 && setSearchParams({ cpage: cpage - 1, condition: searchCondition, keyword: setKeyword })}>
                 &lt;
             </button>
         )
@@ -126,60 +112,34 @@ function WorkcationListComponent() {
 
                 {/*일정관리 */}
                 <button className="skedule-btn"
-                        onClick={()=> setIsScheduleOpen(true)}>
+                    onClick={() => setIsScheduleOpen(true)}>
                     일정관리
                 </button>
                 {/**상단에서 import 한 컴포넌트를 불러오기 */}
-                {isScheduleOpen &&(
-                    <WorkcationScheduleComponent onClose={()=>setIsScheduleOpen(false)}/>
+                {isScheduleOpen && (
+                    <WorkcationScheduleComponent onClose={() => setIsScheduleOpen(false)} />
                 )}
 
-                {/**지역명 드롭다운 */}
-                <form action="">
-                    <div className="drop-group">
-                        <select className="main-region"
-                            value={selectedMainRegion}
-                            onChange={handleMainRegionChange} >
-                            <option value="">지역명</option>
-                            {Object.keys(WORKCATION_DATA).map((main) => (
-                                <option key={main} value={main}>
-                                    {main}
-                                </option>))}
-                        </select>
+                {/**지역과 상세지역 드롭다운 호출 */}
+                <WorkcationItemComponent />
 
-                        {/**상세지역명 드롭다운 */}
-                        <select
-                            className="sub-region"
-                            value={selectedSubRegion}
-                            onChange={(e) => setSelectedSubRegion(e.target.value)}
-                            disabled={!selectedMainRegion}>
-                            <option value="">상세 지역명</option>
-                            {selectedMainRegion && WORKCATION_DATA[selectedMainRegion].map((subRegion) => (
-                                <option key={subRegion} value={subRegion}>
-                                    {subRegion}
-                                </option>))}
-                        </select>
-
-                        {/**상태 드롭다운 */}
-                        <select className="status-drop"
-                            value={searchType}
-                            onChange={(e) => setSearchType(e.target.value)}>
-                            <option value="all">전체</option>
-                            <option value="approved">승인</option>
-                            <option value="canceled">취소</option>
-                            <option value="hold">보류</option>
-                            <option value="rejected">반려</option>
-                            <option value="review">검토</option>
-                        </select>
-                    </div>
-                </form>
-
-                {/**신청하기 */}
-                <div className="apply-btn">
-                    <button onClick={()=>{navigate("/workcation/enrollform");}}>신청</button>
-                </div>
+                {/**상태 드롭다운 */}
+                <select className="status-drop"
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}>
+                    <option value="all">전체</option>
+                    <option value="approved">승인</option>
+                    <option value="canceled">취소</option>
+                    <option value="hold">보류</option>
+                    <option value="rejected">반려</option>
+                    <option value="review">검토</option>
+                </select>
             </div>
 
+            {/**신청하기 */}
+            <div className="apply-btn">
+                <button onClick={() => { navigate("/workcation/enrollform"); }}>신청</button>
+            </div>
             <table className="workcation-list">
                 <thead>
                     <tr>
@@ -195,8 +155,10 @@ function WorkcationListComponent() {
             </table>
             <br /><br />
 
-            <div align="center" className="paging-area">{pageList}</div>
-        </div >
+            <div align="center" className="paging-area">
+                {pageList}
+            </div>
+        </div>
 
     );
 }

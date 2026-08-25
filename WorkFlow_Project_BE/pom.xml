@@ -80,16 +80,7 @@
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.kh</groupId>
-			<artifactId>jpa</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.kh</groupId>
-			<artifactId>workflow</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+		
 
 		<dependency>
 			<groupId>org.springdoc</groupId>
