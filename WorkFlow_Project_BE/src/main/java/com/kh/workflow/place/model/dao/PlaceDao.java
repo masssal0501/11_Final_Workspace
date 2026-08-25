@@ -11,15 +11,17 @@ import com.kh.workflow.place.model.vo.Place;
 
 public interface PlaceDao extends JpaRepository<Place, Integer> {
 
-	List<Place> findByStatusOrderByHubNoDesc(String status);
+    // 운영 중인 장소 조회
+    List<Place> findByHubStatusOrderByHubNoDesc(String hubStatus);
 
-	Place findByHubNoAndStatus(int hubNo, String string);
-	
-    // 소프트 삭제
+    // 특정 장소 조회
+    Place findByHubNoAndHubStatus(int hubNo, String hubStatus);
+
+    // 장소 종료 처리
     @Modifying
     @Query("""
         UPDATE Place
-        SET status = 'N'
+        SET hubStatus = 'CLOSED'
         WHERE hubNo = :hubNo
     """)
     int deletePlace(@Param("hubNo") int hubNo);

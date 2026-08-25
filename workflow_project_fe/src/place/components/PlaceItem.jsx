@@ -17,6 +17,8 @@ function PlaceItem(props) {
             <div>{item.hubAddress}</div>
             <div>{item.phone}</div>
             <div>{item.description}</div>
+            <div>{item.hubStatus}</div>
+
         </div>
     );
 }

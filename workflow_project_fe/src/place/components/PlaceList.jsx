@@ -1,358 +1,341 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { placeApi } from "../../api/placeApi";
-import PlaceItem from "./PlaceItem";
 
-function PlaceList() {
+function PlaceForm() {
 
-    const [placeList, setPlaceList] = useState([]);
-    const [keyword, setKeyword] = useState("");
+    const navigate = useNavigate();
 
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [place, setPlace] = useState({
+        hubName: "",
+        mainRegion: "",
+        subRegion: "",
+        hubType: "",
+        hubStatus: "OPEN",
+        hubAddress: "",
+        phone: "",
+        description: ""
+    });
 
-    const searchKeyword = searchParams.get("keyword") || "";
-    const searchType = searchParams.get("type") || "";
-    const searchRegion = searchParams.get("region") || "";
-    const cpage = parseInt(searchParams.get("cpage")) || 1;
-
-    const [pageList, setPageList] = useState([]);
-
-
-    useEffect(() => {
-
-        if (searchKeyword === "") {
-            selectPlaceList();
-        } else {
-            searchPlaceList();
-        }
-
-    }, [cpage, searchKeyword, searchType, searchRegion]);
+    // 사진
+    const [file, setFile] = useState(null);
 
 
-    // 장소 정보 목록 조회
-    const selectPlaceList = async () => {
+    // 메인 지역별 하위 지역
+    const subRegionList = {
 
-        try {
+        "강원도": [
+            "강릉시",
+            "속초시",
+            "양양군",
+            "춘천시",
+            "평창군"
+        ],
 
-            const response = await placeApi.getPlaceList(
-                cpage,
-                searchType,
-                searchRegion
-            );
+        "부산": [
+            "해운대구",
+            "영도구",
+            "수영구",
+            "부산진구",
+            "중구"
+        ],
 
-            handleResponse(response);
-
-        } catch (error) {
-
-            console.log("장소 정보 목록 조회용 ajax 통신 실패");
-
-        }
+        "제주도": [
+            "서귀포시",
+            "제주시"
+        ]
 
     };
 
 
-    // 검색어 변경
+    // 입력값 변경
     const handleChange = (e) => {
 
-        setKeyword(e.target.value);
+        const { name, value } = e.target;
 
-    };
+        // 메인 지역 변경
+        if (name === "mainRegion") {
 
+            setPlace({
+                ...place,
+                mainRegion: value,
+                subRegion: ""
+            });
 
-    // 장소 유형 필터 변경
-    const handleTypeChange = (e) => {
+            return;
+        }
 
-        const type = e.target.value;
-
-        setSearchParams({
-            cpage: 1,
-            keyword: searchKeyword,
-            type: type,
-            region: searchRegion
+        setPlace({
+            ...place,
+            [name]: value
         });
 
     };
 
 
-    // 지역 필터 변경
-    const handleRegionChange = (e) => {
+    // 사진 변경
+    const handleFileChange = (e) => {
 
-        const region = e.target.value;
+        const selectedFile = e.target.files[0];
 
-        setSearchParams({
-            cpage: 1,
-            keyword: searchKeyword,
-            type: searchType,
-            region: region
-        });
+        setFile(selectedFile);
 
     };
 
 
-    // 검색 버튼 클릭
-    const handleClick = (e) => {
+    // 등록하기
+    const handleSubmit = async (e) => {
 
         e.preventDefault();
 
-        setSearchParams({
-            cpage: 1,
-            keyword: keyword,
-            type: searchType,
-            region: searchRegion
-        });
-
-    };
-
-
-    // 장소 정보 검색
-    const searchPlaceList = async () => {
-
         try {
 
-            const response = await placeApi.searchPlaceList(
-                cpage,
-                searchKeyword,
-                searchType,
-                searchRegion
+            /*
+             * 장소 정보 + 사진을 같이 전송하기 위한 FormData
+             */
+            const formData = new FormData();
+
+            // 장소 정보
+            formData.append(
+                "place",
+                new Blob(
+                    [JSON.stringify(place)],
+                    {
+                        type: "application/json"
+                    }
+                )
             );
 
-            handleResponse(response);
+            // 사진
+            if (file) {
 
-        } catch (error) {
-
-            console.log("장소 정보 검색용 ajax 통신 실패");
-
-        }
-
-    };
-
-
-    // 조회 결과 처리
-    const handleResponse = (response) => {
-
-        const item = response.list;
-
-        // DB에서 받아온 데이터를 placeList에 저장
-        setPlaceList(item);
-
-
-        // 페이징 정보
-        const pageInfo = response.pi;
-
-        const btnArr = [];
-
-
-        // 이전 버튼
-        if (cpage === 1) {
-
-            btnArr.push(
-                <button
-                    key="prev"
-                    className="btn btn-info btn-sm"
-                    disabled
-                >
-                    &lt;
-                </button>
-            );
-
-        } else {
-
-            btnArr.push(
-                <button
-                    key="prev"
-                    className="btn btn-outline-info btn-sm"
-                    onClick={() => {
-
-                        setSearchParams({
-                            cpage: cpage - 1,
-                            keyword: searchKeyword,
-                            type: searchType,
-                            region: searchRegion
-                        });
-
-                    }}
-                >
-                    &lt;
-                </button>
-            );
-
-        }
-
-
-        // 페이지 번호
-        for (
-            let p = pageInfo.startPage;
-            p <= pageInfo.endPage;
-            p++
-        ) {
-
-            if (cpage === p) {
-
-                btnArr.push(
-                    <button
-                        key={p}
-                        className="btn btn-info btn-sm"
-                    >
-                        {p}
-                    </button>
-                );
-
-            } else {
-
-                btnArr.push(
-                    <button
-                        key={p}
-                        className="btn btn-outline-info btn-sm"
-                        onClick={() => {
-
-                            setSearchParams({
-                                cpage: p,
-                                keyword: searchKeyword,
-                                type: searchType,
-                                region: searchRegion
-                            });
-
-                        }}
-                    >
-                        {p}
-                    </button>
-                );
+                formData.append("file", file);
 
             }
 
-        }
 
+            await placeApi.insertPlace(formData);
 
-        // 다음 버튼
-        if (cpage === pageInfo.maxPage) {
+            alert("지역 정보가 등록되었습니다.");
 
-            btnArr.push(
-                <button
-                    key="next"
-                    className="btn btn-info btn-sm"
-                    disabled
-                >
-                    &gt;
-                </button>
-            );
+            navigate("/place");
 
-        } else {
+        } catch (error) {
 
-            btnArr.push(
-                <button
-                    key="next"
-                    className="btn btn-outline-info btn-sm"
-                    onClick={() => {
+            console.log("지역 정보 등록 실패", error);
 
-                        setSearchParams({
-                            cpage: cpage + 1,
-                            keyword: searchKeyword,
-                            type: searchType,
-                            region: searchRegion
-                        });
-
-                    }}
-                >
-                    &gt;
-                </button>
-            );
+            alert("지역 정보 등록에 실패했습니다.");
 
         }
-
-
-        setPageList(btnArr);
 
     };
 
 
     return (
+        <div>
 
-        <div className="place-list">
+            <h2>지역 정보 등록</h2>
 
-            <h2>지역 정보 목록</h2>
+            <hr />
 
+            <form onSubmit={handleSubmit}>
 
-            {/* 검색 영역 */}
-            <div className="place-search">
+                <div>
 
-
-                {/* 장소 유형 필터 */}
-                <select
-                    value={searchType}
-                    onChange={handleTypeChange}
-                >
-                    <option value="">전체</option>
-                    <option value="4">체험 프로그램</option>
-                    <option value="5">맛집</option>
-                    <option value="6">관광지</option>
-                </select>
-
-
-                {/* 지역 필터 */}
-                <select
-                    value={searchRegion}
-                    onChange={handleRegionChange}
-                >
-                    <option value="">전체</option>
-                    <option value="강원도">강원도</option>
-                    <option value="부산">부산</option>
-                    <option value="제주도">제주도</option>
-                </select>
-
-
-                <div className="search-box">
+                    {/* 장소명 */}
+                    <h4>제목 :</h4>
 
                     <input
                         type="text"
-                        placeholder="장소명을 입력해주세요"
-                        value={keyword}
+                        name="hubName"
+                        value={place.hubName}
                         onChange={handleChange}
+                        placeholder="제목을 입력해주세요."
                     />
 
-                    <button onClick={handleClick}>
-                        검색
-                    </button>
+
+                    {/* 메인 지역 */}
+                    <h4>지역명 :</h4>
+
+                    <select
+                        name="mainRegion"
+                        value={place.mainRegion}
+                        onChange={handleChange}
+                    >
+
+                        <option value="">
+                            지역을 선택해주세요.
+                        </option>
+
+                        <option value="강원도">
+                            강원도
+                        </option>
+
+                        <option value="부산">
+                            부산
+                        </option>
+
+                        <option value="제주도">
+                            제주도
+                        </option>
+
+                    </select>
+
+
+                    {/* 하위 지역 */}
+                    <h4>상세지역명 :</h4>
+
+                    <select
+                        name="subRegion"
+                        value={place.subRegion}
+                        onChange={handleChange}
+                        disabled={!place.mainRegion}
+                    >
+
+                        <option value="">
+                            {place.mainRegion
+                                ? "상세 지역을 선택해주세요."
+                                : "지역을 먼저 선택해주세요."
+                            }
+                        </option>
+
+                        {place.mainRegion &&
+                            subRegionList[place.mainRegion]?.map((subRegion) => (
+
+                                <option
+                                    key={subRegion}
+                                    value={subRegion}
+                                >
+                                    {subRegion}
+                                </option>
+
+                            ))
+                        }
+
+                    </select>
+
+
+                    {/* 장소 유형 */}
+                    <h4>장소 유형 :</h4>
+
+                    <select
+                        name="hubType"
+                        value={place.hubType}
+                        onChange={handleChange}
+                    >
+
+                        <option value="">
+                            장소 유형을 선택해주세요.
+                        </option>
+
+                        <option value="3">
+                            체험 프로그램
+                        </option>
+
+                        <option value="4">
+                            맛집
+                        </option>
+
+                        <option value="5">
+                            관광지
+                        </option>
+
+                    </select>
+
+
+                    {/* 운영 상태 */}
+                    <h4>운영 상태 :</h4>
+
+                    <select
+                        name="hubStatus"
+                        value={place.hubStatus}
+                        onChange={handleChange}
+                    >
+
+                        <option value="OPEN">
+                            운영중
+                        </option>
+
+                        <option value="PAUSED">
+                            일시중단
+                        </option>
+
+                        <option value="CLOSED">
+                            종료
+                        </option>
+
+                    </select>
+
+
+                    {/* 주소 */}
+                    <h4>주소 :</h4>
+
+                    <input
+                        type="text"
+                        name="hubAddress"
+                        value={place.hubAddress}
+                        onChange={handleChange}
+                        placeholder="주소를 입력해주세요."
+                    />
+
+
+                    {/* 전화번호 */}
+                    <h4>전화번호 :</h4>
+
+                    <input
+                        type="text"
+                        name="phone"
+                        value={place.phone}
+                        onChange={handleChange}
+                        placeholder="전화번호를 입력해주세요."
+                    />
+
+
+                    {/* 설명 */}
+                    <h4>지역 설명 :</h4>
+
+                    <textarea
+                        name="description"
+                        value={place.description}
+                        onChange={handleChange}
+                        placeholder="지역 설명을 입력해주세요."
+                    />
+
+
+                    {/* 사진 */}
+                    <h4>대표 사진 :</h4>
+
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                    />
+
+                    {file && (
+                        <div>
+                            선택된 파일 : {file.name}
+                        </div>
+                    )}
 
                 </div>
 
 
-                <button className="ai-button">
-                    AI에게 장소 및 일정 추천 받기
+                <button type="submit">
+                    등록하기
                 </button>
 
-            </div>
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                >
+                    뒤로가기
+                </button>
 
-
-            <hr />
-
-
-            {/* 장소 정보 목록 */}
-            <div>
-
-                {placeList.map((place) => (
-
-                    <PlaceItem
-                        key={place.hubNo}
-                        item={place}
-                    />
-
-                ))}
-
-            </div>
-
-
-            {/* 페이징 */}
-            <div className="pagination">
-
-                {pageList}
-
-            </div>
+            </form>
 
         </div>
-
     );
-
 }
 
-export default PlaceList;
+export default PlaceForm;

@@ -15,6 +15,35 @@ function PlaceEdit() {
     const role = localStorage.getItem("role");
     const isAdmin = role === "ADMIN";
 
+    const [file, setFile] = useState(null);
+
+
+    // 메인 지역별 하위 지역
+    const subRegionList = {
+
+        "강원도": [
+            "강릉시",
+            "속초시",
+            "양양군",
+            "춘천시",
+            "평창군"
+        ],
+
+        "부산": [
+            "해운대구",
+            "영도구",
+            "수영구",
+            "부산진구",
+            "중구"
+        ],
+
+        "제주도": [
+            "서귀포시",
+            "제주시"
+        ]
+
+    };
+
 
     useEffect(() => {
 
@@ -45,7 +74,7 @@ function PlaceEdit() {
 
         } catch (error) {
 
-            console.log("지역 정보 조회 실패");
+            console.log("지역 정보 조회 실패", error);
 
         }
 
@@ -55,9 +84,26 @@ function PlaceEdit() {
     // 수정할 값 변경
     const handleChange = (e) => {
 
+        const { name, value } = e.target;
+
+
+        // 메인 지역 변경
+        if (name === "mainRegion") {
+
+            setPlace({
+                ...place,
+                mainRegion: value,
+                subRegion: ""
+            });
+
+            return;
+
+        }
+
+
         setPlace({
             ...place,
-            [e.target.name]: e.target.value
+            [name]: value
         });
 
     };
@@ -111,10 +157,10 @@ function PlaceEdit() {
                 <div className="place-info">
 
 
-                    {/* 제목 */}
+                    {/* 거점 이름 */}
                     <p>
 
-                        <h4>제목 : </h4>
+                        <h4>거점 이름 : </h4>
 
                         <input
                             type="text"
@@ -126,14 +172,14 @@ function PlaceEdit() {
                     </p>
 
 
-                    {/* 지역명 */}
+                    {/* 메인 지역 */}
                     <p>
 
                         <h4>지역명 : </h4>
 
                         <select
-                            name="regionName"
-                            value={place.regionName || ""}
+                            name="mainRegion"
+                            value={place.mainRegion || ""}
                             onChange={handleChange}
                         >
 
@@ -158,6 +204,43 @@ function PlaceEdit() {
                     </p>
 
 
+                    {/* 하위 지역 */}
+                    <p>
+
+                        <h4>상세지역명 : </h4>
+
+                        <select
+                            name="subRegion"
+                            value={place.subRegion || ""}
+                            onChange={handleChange}
+                            disabled={!place.mainRegion}
+                        >
+
+                            <option value="">
+                                {place.mainRegion
+                                    ? "상세 지역을 선택해주세요."
+                                    : "지역을 먼저 선택해주세요."
+                                }
+                            </option>
+
+                            {place.mainRegion &&
+                                subRegionList[place.mainRegion]?.map((subRegion) => (
+
+                                    <option
+                                        key={subRegion}
+                                        value={subRegion}
+                                    >
+                                        {subRegion}
+                                    </option>
+
+                                ))
+                            }
+
+                        </select>
+
+                    </p>
+
+
                     {/* 장소 유형 */}
                     <p>
 
@@ -173,24 +256,44 @@ function PlaceEdit() {
                                 장소 유형을 선택해주세요.
                             </option>
 
-                            <option value="1">
-                                거점
-                            </option>
-
-                            <option value="2">
-                                숙소
-                            </option>
-
-                            <option value="4">
+                            <option value="3">
                                 체험 프로그램
                             </option>
 
-                            <option value="5">
+                            <option value="4">
                                 맛집
                             </option>
 
-                            <option value="6">
+                            <option value="5">
                                 관광지
+                            </option>
+
+                        </select>
+
+                    </p>
+
+
+                    {/* 운영 상태 */}
+                    <p>
+
+                        <h4>운영 상태 : </h4>
+
+                        <select
+                            name="hubStatus"
+                            value={place.hubStatus || ""}
+                            onChange={handleChange}
+                        >
+
+                            <option value="OPEN">
+                                🟢
+                            </option>
+
+                            <option value="PAUSED">
+                                🟠
+                            </option>
+
+                            <option value="CLOSED">
+                                🔴
                             </option>
 
                         </select>
@@ -237,6 +340,19 @@ function PlaceEdit() {
                             name="description"
                             value={place.description || ""}
                             onChange={handleChange}
+                        />
+
+                    </p>
+
+                    {/* 사진 첨부 */}
+                    <p>
+
+                        <h4>사진 첨부 : </h4>
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setFile(e.target.files[0])}
                         />
 
                     </p>
