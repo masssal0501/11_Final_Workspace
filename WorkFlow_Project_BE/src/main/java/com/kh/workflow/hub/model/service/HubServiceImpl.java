@@ -42,4 +42,11 @@ public class HubServiceImpl implements HubService {
 		
 		return savedHub;
 	}
+
+	@Override
+	public Page<Hub> searchHubList(Pageable pageable, String mainRegion, String subRegion, List<Integer> hubTypes,
+			String keyword) {
+		
+		return hubDao.searchHubList(pageable, mainRegion, subRegion, hubTypes, keyword);
+	}
 }

@@ -22,7 +22,8 @@ const searchHubListApi = (cpage, inputData) => {
         method : "get",
         params : {
             cpage : cpage,
-            regionName : inputData.regionName,
+            mainRegion : inputData.mainRegion,
+            subRegion : inputData.subRegion,
             hubType : inputData.hubType,
             keyword : inputData.keyword
         }
@@ -45,6 +46,16 @@ const insertHubApi = formData => {
     return response;
 }
 
+const selectHubApi = boardNo => {
+
+    const response = axios({
+        url : `${ BASE_URL }/${ boardNo }`,
+        method : "get",
+    });
+
+    return response;
+}
+
 const sendMessageApi = message => {
     
     const response = axios({
@@ -58,4 +69,5 @@ const sendMessageApi = message => {
     return response;
 }
 
-export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi, BASE_URL };
+export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi, selectHubApi};
+export { BASE_URL }

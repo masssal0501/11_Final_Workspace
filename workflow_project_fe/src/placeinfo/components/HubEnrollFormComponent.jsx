@@ -15,6 +15,8 @@ function HubEnrollFormComponent() {
     const navigate = useNavigate();
     const upfileRef = useRef(null);
 
+    const formRef = useRef(null);
+
     // 폼 입력값 통합 State 관리 (객체 형태)
     const [hubData, setHubData] = useState({
         mainRegion : "",
@@ -29,11 +31,19 @@ function HubEnrollFormComponent() {
         hubStatus : "OPEN"
     });
 
-    // 폼 입력값 변경 공통 핸들러 (Computed Property Names 활용)
+    // 폼 입력값 변경 공통 핸들러
     const handleChange = e => {
         const newHubData = { ...hubData };
         // e.target.name에 지정된 속성명만 동적으로 업데이트
         newHubData[e.target.name] = e.target.value;
+        setHubData(newHubData);
+    }
+
+    // 폼 입력값 양옆 공백 삭제 핸들러
+    const handleBlur = e => {
+        const newHubData = { ...hubData };
+
+        newHubData[e.target.name] = e.target.value.trim();
         setHubData(newHubData);
     }
 
@@ -46,7 +56,7 @@ function HubEnrollFormComponent() {
                 let sido = data.sido.substring(0, 2);
                 let sigungu = data.sigungu;
                 let extraAddress = "";
-                console.log(data);
+
                 // 법정동명 및 건물명 조합 (도로명 주소일 경우)
                 if (data.addressType === "R") {
                     if (data.bname !== "") {
@@ -85,13 +95,6 @@ function HubEnrollFormComponent() {
 
     // 파일 유효성 검사 및 FileReader를 통한 미리보기 생성 공통 함수
     const processFile = (selectedFile) => {
-        // 파일 선택이 취소된 경우 State 초기화
-        if (!selectedFile) {
-            setFile(null);
-            setPreview(null);
-            return;
-        }
-
         // 이미지 파일 형식 검증 (image/png, image/jpeg 등)
         if (!selectedFile.type.startsWith("image/")) {
             alert("이미지 파일만 첨부 가능합니다.");
@@ -199,6 +202,10 @@ function HubEnrollFormComponent() {
         // 버튼 클릭 시 기본 submit 폼 제출 및 페이지 리로드 동작 방지
         e.preventDefault();
 
+        if(!formRef.current.checkValidity()){
+            formRef.current.reportValidity();
+            return;
+        }
         if(!files[0]) {
             alert("이미지는 최소 1개 이상 등록해야 합니다.");
             return;
@@ -250,7 +257,7 @@ function HubEnrollFormComponent() {
             <h2 align="center"><b>거점 등록</b></h2>
             <br />
             {/* 폼 제출 엔터 키 지원을 위해 onSubmit에 insertHub 연결 권장 */}
-            <form onSubmit={insertHub}>
+            <form onSubmit={insertHub} ref={formRef}>
                 <table width="100%">
                     <tbody>
                         <tr>
@@ -264,6 +271,7 @@ function HubEnrollFormComponent() {
                                     name="maxCapacity"
                                     value={ hubData.maxCapacity }
                                     onChange={ handleChange }
+                                    onBlur={ handleBlur }
                                 />&nbsp;<p>명</p>
                             </td>
                             <th>이용 가능 여부</th>
@@ -308,7 +316,9 @@ function HubEnrollFormComponent() {
                                     placeholder="주소를 입력해주세요."
                                     value={ hubData.hubAddress }
                                     onClick={ handleAddressSearch }
-                                    readOnly/>
+                                    autoComplete="off"
+                                    onChange={ handleChange }
+                                    required/>
                             </td>
                             <th>지역</th>
                             <td>
@@ -317,12 +327,14 @@ function HubEnrollFormComponent() {
                                         className="form-control"
                                         name="mainRegion"
                                         value={ hubData.mainRegion }
-                                        readOnly />
+                                        readOnly
+                                        required />
                                     <input
                                         className="form-control"
                                         name="subRegion"
                                         value={ hubData.subRegion }
-                                        readOnly />
+                                        readOnly
+                                        required />
                                 </div>
                             </td>
                         </tr>
@@ -337,7 +349,9 @@ function HubEnrollFormComponent() {
                                     maxLength="13"
                                     placeholder="전화번호를 입력해주세요.(-포함)"
                                     value={ hubData.phone }
-                                    onChange={ handleChange } />
+                                    onChange={ handleChange }
+                                    onBlur={ handleBlur }
+                                    required />
                             </td>
                         </tr>
                         <tr>
@@ -350,7 +364,9 @@ function HubEnrollFormComponent() {
                                     maxLength="20"
                                     placeholder="거점 이름을 입력해주세요."
                                     value={ hubData.hubName }
-                                    onChange={ handleChange } />
+                                    onChange={ handleChange }
+                                    onBlur={ handleBlur }
+                                    required />
                             </td>
                         </tr>
                         <tr>
@@ -364,7 +380,8 @@ function HubEnrollFormComponent() {
                                     placeholder="이용시간 및 세부내용을 작성해주세요."
                                     maxLength="300"
                                     value={ hubData.description }
-                                    onChange={ handleChange } >
+                                    onChange={ handleChange }
+                                    onBlur={ handleBlur } >
                                 </textarea>
                             </td>
                         </tr>
@@ -417,7 +434,8 @@ function HubEnrollFormComponent() {
                                     min="0"
                                     value={ hubData.price }
                                     onChange={ handleChange }
-                                />&nbsp;<p>원</p>
+                                    onBlur={ handleBlur } />
+                                &nbsp;<p>원</p>
                             </td>
                         </tr>
                     </tbody>

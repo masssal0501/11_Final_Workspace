@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -76,9 +77,35 @@ public class HubController {
 	@GetMapping("/hubs/search")
 	public ResponseEntity<HashMap<String, Object>> searchBoardList(
 			@RequestParam(value="cpage", defaultValue="1") int currentPage,
-			String regionName, int hubType, String keyword) {
+			String mainRegion, String subRegion, String hubType, String keyword) {
 		
-		return null;
+		int boardLimit = 10;
+		int pageLimit = 10;
+		
+		Pageable pageable = PageRequest.of(currentPage - 1, boardLimit);
+		
+		List<Integer> hubTypes;
+		try {
+            hubTypes = List.of(Integer.parseInt(hubType.trim()));
+        } catch (NumberFormatException e) {
+            hubTypes = List.of(1, 2); // 숫자 변환 실패 시 기본 전체 검색
+        }
+		Page<Hub> page = hubService.searchHubList(pageable, mainRegion, subRegion, hubTypes, keyword);
+		
+		List<Hub> list = page.getContent();
+		
+		long searchCount = page.getTotalElements();
+		
+		PageInfo pi = Pagination.getPageInfo((int)searchCount, currentPage,
+													pageLimit, boardLimit);
+		
+		HashMap<String, Object> hm = new HashMap<>();
+		
+		hm.put("list", list);
+		hm.put("pi", pi);
+		
+		return ResponseEntity.status(HttpStatus.OK)
+							 .body(hm);
 	}
 	
 	@PostMapping("/hubs/send")
@@ -122,5 +149,11 @@ public class HubController {
 		 
 		return ResponseEntity.status(HttpStatus.OK)
 						     .body(message);
+	}
+	
+	@GetMapping("/hubs/{hubNo}")
+	public ResponseEntity<Hub> selectHub(@PathVariable int hubNo) {
+		
+		return null;
 	}
 }

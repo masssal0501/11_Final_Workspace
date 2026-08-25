@@ -214,7 +214,7 @@ function HubListComponent() {
         // 검색 결과가 없어서 maxPage가 0으로 내려올 경우를 대비해 최소 1페이지로 보정해줍니다.
         const safeMaxPage = pageInfo.maxPage === 0 ? 1 : pageInfo.maxPage;
 
-        // 1. [<] 이전 페이지 버튼 생성
+        // [<] 이전 페이지 버튼 생성
         // 현재 페이지가 1이면 disabled(비활성화) 처리하고 색상을 info로 둡니다.
         btnArr.push(
             <button key="prev" className={`btn btn-${cpage === 1 ? 'info' : 'outline-info'} btn-sm`} disabled={cpage === 1} onClick={() => changePage(cpage - 1)}>
@@ -222,7 +222,7 @@ function HubListComponent() {
             </button>
         );
 
-        // 2. 숫자 페이지 버튼들 생성 (startPage부터 endPage까지 반복)
+        // 숫자 페이지 버튼들 생성 (startPage부터 endPage까지 반복)
         for(let p = pageInfo.startPage; p <= pageInfo.endPage; p++) {
 
             // 현재 페이지 번호와 일치하면 색상을 info(색 채워짐), 아니면 outline-info(테두리만)로 설정합니다.
@@ -234,7 +234,7 @@ function HubListComponent() {
             );
         }
 
-        // 3. [>] 다음 페이지 버튼 생성
+        // [>] 다음 페이지 버튼 생성
         // 현재 페이지가 마지막 페이지(safeMaxPage)이거나 결과가 없으면 비활성화합니다.
         btnArr.push(
             <button key="next" className={`btn btn-${cpage === pageInfo.maxPage ? 'info' : 'outline-info'} btn-sm`} disabled={cpage === safeMaxPage || pageInfo.listCount === 0} onClick={() => changePage(cpage + 1)}>
@@ -247,9 +247,11 @@ function HubListComponent() {
 
     };
 
-    // return 구문 - 실제 화면에 렌더링되는 JSX (HTML 구조) 영역입니다.
+    // return 구문
     return (
         <div className="content">
+            <h2 align="center"><b>거점 목록</b></h2>
+            <br />
             {/* 상단 검색 필터 테이블 영역 */}
             <table align="left">
                 <tbody>
@@ -298,7 +300,13 @@ function HubListComponent() {
                 <thead></thead>
                 <tbody> 
                     {/* 서버로부터 받아와서 생성한 실제 아이템 컴포넌트들(HubItemComponent)이 이 자리에 뿌려집니다. */}
-                    { dataList }
+                    { dataList.length > 0 ? (dataList) : (
+                        <tr className="not-found">
+                            <td>
+                                <h3><b><mark>조회된 거점이 존재하지 않습니다.</mark></b></h3>
+                            </td>
+                        </tr>
+                    ) }
                 </tbody>
             </table>
 

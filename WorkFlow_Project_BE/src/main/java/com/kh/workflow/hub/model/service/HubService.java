@@ -13,5 +13,7 @@ public interface HubService {
 	Page<Hub> selectHubList(Pageable pageable);
 
 	Hub insertHub(Hub hub, List<HubFile> fileList);
+
+	Page<Hub> searchHubList(Pageable pageable, String mainRegion, String subRegion, List<Integer> hubTypes, String keyword);
 	
 }

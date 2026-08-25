@@ -20,15 +20,17 @@ function HubItemComponent(props) {
         // 테이블의 행(tr) 요소입니다. 
         // 행의 아무 곳이나 클릭하면 해당 거점의 고유 식별자(hubNo)를 포함한 
         // 상세 페이지 URL(예: /placeInfo/15)로 즉시 이동(navigate)하도록 onClick 이벤트가 걸려있습니다.
-        <tr onClick={ () => { navigate(`/placeInfo/${ item.hubNo }`); } }>
+        <tr onClick={ () => { navigate(`/placeInfo/detail/${ item.hubNo }`); } }>
             <td>
-                <img src={ thumbnailUrl } alt={ item.hubName } width="300" />
-                <p>
-                     주소 : { item.hubAddress }<br />
-                    거점 이름 : { item.hubName }<br />
-                    전화 번호 : { item.phone }<br />
-                    시설 유형 : { (item.hubType == 1) ? "숙소" : "공유오피스" }
-                </p>
+                <div className="img-area">
+                    <img src={ thumbnailUrl } alt={ item.hubName } width="300" />
+                </div>
+                <div className="span-area">
+                    <span>주소 : { item.hubAddress }</span>
+                    <span>거점 이름 : { item.hubName }</span>
+                    <span>전화 번호 : { item.phone }</span>
+                    <span>시설 유형 : { (item.hubType == 1) ? "숙소" : "공유오피스" }</span>
+                </div>
             </td>
         </tr>
     )
