@@ -56,7 +56,7 @@ public class HubFile {
 	private LocalDateTime updatedAt;
 	
 	@Schema(description="상태", example="Y", allowableValues = {"Y", "N"}, defaultValue="Y")
-	@Column(name="STATUS", columnDefinition="CHAR(1) DEFAULT 'Y")
+	@Column(name="STATUS", columnDefinition="CHAR(1) DEFAULT 'Y'")
 	private String status;
 	
 	@Schema(description="거점 정보 (Hub 객체)")
