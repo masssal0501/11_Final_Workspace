@@ -1,0 +1,669 @@
+.notice-container {
+    width: 1100px;
+    margin: 40px auto;
+}
+
+
+/* ================================
+   제목
+================================ */
+
+.notice-header {
+    margin-bottom: 25px;
+}
+
+.notice-header h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+
+/* ================================
+   검색
+================================ */
+
+.notice-search {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 25px;
+}
+
+.notice-search input {
+    width: 350px;
+    height: 40px;
+    padding: 0 12px;
+
+    border: 1px solid #ddd;
+    border-radius: 4px;
+
+    box-sizing: border-box;
+}
+
+.notice-search button {
+    width: 80px;
+    border: none;
+    border-radius: 4px;
+
+    background: #333;
+    color: white;
+
+    cursor: pointer;
+}
+
+
+/* ================================
+   테이블
+================================ */
+
+.notice-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.notice-table th,
+.notice-table td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.notice-table th {
+    background: #f5f5f5;
+    font-weight: 600;
+}
+
+.notice-row {
+    cursor: pointer;
+}
+
+.notice-row:hover {
+    background: #fafafa;
+}
+
+
+/* ================================
+   제목
+================================ */
+
+.notice-title {
+    text-align: left !important;
+}
+
+.important {
+    display: inline-block;
+
+    margin-right: 8px;
+    padding: 3px 6px;
+
+    border-radius: 3px;
+
+    background: #e74c3c;
+    color: white;
+
+    font-size: 11px;
+}
+
+
+/* ================================
+   데이터 없음
+================================ */
+
+.notice-empty {
+    padding: 50px !important;
+    color: #888;
+}
+
+
+/* ================================
+   상세
+================================ */
+
+.notice-detail-header {
+    padding: 20px 0;
+
+    border-bottom: 2px solid #333;
+}
+
+.notice-detail-header h2 {
+    margin: 0;
+}
+
+
+.notice-info {
+    display: flex;
+    gap: 25px;
+
+    padding: 15px 10px;
+
+    border-bottom: 1px solid #ddd;
+
+    color: #666;
+    font-size: 14px;
+}
+
+
+.notice-content {
+    min-height: 300px;
+
+    padding: 30px 20px;
+
+    white-space: pre-wrap;
+
+    line-height: 1.8;
+
+    border-bottom: 1px solid #ddd;
+}
+
+
+/* ================================
+   첨부파일
+================================ */
+
+.notice-files {
+    padding: 20px;
+
+    background: #fafafa;
+}
+
+.notice-files h4 {
+    margin-top: 0;
+}
+
+.notice-file {
+    padding: 5px 0;
+}
+
+
+/* ================================
+   버튼
+================================ */
+
+.notice-buttons {
+    display: flex;
+    justify-content: center;
+
+    margin-top: 25px;
+}
+
+.notice-buttons button {
+    padding: 10px 25px;
+
+    border: none;
+    border-radius: 4px;
+
+    background: #555;
+    color: white;
+
+    cursor: pointer;
+}
+/* ==========================================
+   관리자 헤더
+========================================== */
+
+.notice-admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.notice-admin-header h2 {
+    margin: 0;
+}
+
+
+/* ==========================================
+   등록 버튼
+========================================== */
+
+.notice-insert-btn {
+    padding: 10px 18px;
+
+    border: none;
+    border-radius: 4px;
+
+    background: #333;
+    color: white;
+
+    cursor: pointer;
+}
+
+.notice-insert-btn:hover {
+    opacity: 0.85;
+}
+
+
+/* ==========================================
+   관리자 버튼
+========================================== */
+
+.notice-admin-buttons {
+    white-space: nowrap;
+}
+
+.notice-admin-buttons button {
+    padding: 6px 12px;
+
+    margin: 0 3px;
+
+    border: none;
+    border-radius: 4px;
+
+    background: #555;
+    color: white;
+
+    cursor: pointer;
+}
+
+.notice-admin-buttons button.delete {
+    background: #d9534f;
+}
+
+
+/* ==========================================
+   등록 / 수정 폼
+========================================== */
+
+.notice-form-header {
+    margin-bottom: 25px;
+}
+
+.notice-form-header h2 {
+    margin: 0;
+}
+
+
+.notice-form {
+    border-top: 2px solid #333;
+}
+
+
+.notice-form-row {
+    display: flex;
+    align-items: center;
+
+    min-height: 60px;
+
+    border-bottom: 1px solid #ddd;
+}
+
+
+.notice-form-row label {
+    display: flex;
+    align-items: center;
+
+    width: 150px;
+    height: 100%;
+
+    padding-left: 20px;
+
+    background: #f7f7f7;
+
+    font-weight: 600;
+
+    box-sizing: border-box;
+}
+
+
+.notice-form-row input[type="text"],
+.notice-form-row select {
+    width: 100%;
+    height: 40px;
+
+    margin: 0 15px;
+    padding: 0 10px;
+
+    border: 1px solid #ddd;
+    border-radius: 4px;
+
+    box-sizing: border-box;
+}
+
+
+.notice-form-row textarea {
+    width: 100%;
+    min-height: 350px;
+
+    margin: 15px;
+
+    padding: 12px;
+
+    border: 1px solid #ddd;
+    border-radius: 4px;
+
+    resize: vertical;
+
+    box-sizing: border-box;
+
+    line-height: 1.6;
+}
+
+
+/* 파일 */
+
+.notice-form-row input[type="file"] {
+    margin-left: 15px;
+}
+
+
+.notice-selected-files {
+    margin-top: 10px;
+    padding: 15px;
+
+    background: #f8f8f8;
+
+    border-radius: 4px;
+
+    line-height: 1.8;
+}
+
+
+/* ==========================================
+   폼 버튼
+========================================== */
+
+.notice-form-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+
+    margin-top: 30px;
+}
+
+
+.notice-form-buttons button {
+    min-width: 100px;
+
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 4px;
+
+    background: #777;
+    color: white;
+
+    cursor: pointer;
+}
+
+
+.notice-form-buttons button.primary {
+    background: #333;
+}
+
+/* =========================================================
+   공지사항 상세 페이지
+   ========================================================= */
+
+.notice-detail-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+
+/* 상세 전체 */
+.notice-detail {
+    width: 100%;
+}
+
+
+/* =========================================================
+   제목 영역
+   ========================================================= */
+
+.notice-detail-header {
+    padding: 25px 20px 20px;
+
+    border-top: 2px solid #333;
+    border-bottom: 1px solid #ddd;
+}
+
+
+/* 제목 */
+.notice-detail-title {
+    margin: 0;
+
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.5;
+
+    color: #222;
+
+    word-break: break-word;
+}
+
+
+/* 중요 */
+.notice-detail-important {
+    display: inline-block;
+
+    margin-right: 10px;
+    padding: 4px 9px;
+
+    background-color: #e74c3c;
+    color: white;
+
+    border-radius: 4px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    vertical-align: middle;
+}
+
+
+/* =========================================================
+   작성자 / 날짜 / 조회수
+   ========================================================= */
+
+.notice-detail-info {
+    display: flex;
+    align-items: center;
+
+    margin-top: 15px;
+
+    color: #777;
+    font-size: 14px;
+}
+
+
+.notice-detail-info span {
+    display: flex;
+    align-items: center;
+}
+
+
+/* 항목 사이 구분선 */
+.notice-detail-info span + span::before {
+    content: '|';
+
+    margin: 0 15px;
+
+    color: #ddd;
+}
+
+
+/* =========================================================
+   본문
+   ========================================================= */
+
+.notice-detail-content {
+    min-height: 350px;
+
+    padding: 35px 20px;
+
+    border-bottom: 1px solid #ddd;
+
+    color: #333;
+
+    font-size: 16px;
+    line-height: 1.8;
+
+    word-break: break-word;
+}
+
+
+/* HTML 안의 줄바꿈 유지 */
+.notice-detail-content p {
+    margin: 0 0 15px;
+}
+
+
+.notice-detail-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+
+/* =========================================================
+   첨부파일
+   ========================================================= */
+
+.notice-detail-file-area {
+    padding: 20px;
+
+    background-color: #fafafa;
+
+    border-bottom: 1px solid #ddd;
+}
+
+
+.notice-detail-file-title {
+    margin-bottom: 12px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    color: #555;
+}
+
+
+.notice-detail-file {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 6px 0;
+
+    color: #555;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   버튼 영역
+   ========================================================= */
+
+.notice-detail-buttons {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    margin-top: 25px;
+}
+
+
+.notice-detail-buttons button {
+    min-width: 90px;
+    height: 40px;
+
+    padding: 0 20px;
+
+    border: none;
+    border-radius: 5px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+/* 목록 */
+.notice-detail-buttons .btn-list {
+    background-color: #555;
+    color: white;
+}
+
+
+.notice-detail-buttons .btn-list:hover {
+    background-color: #333;
+}
+
+
+/* =========================================================
+   로딩
+   ========================================================= */
+
+.notice-detail-loading {
+    padding: 100px 0;
+
+    text-align: center;
+
+    color: #777;
+}
+
+
+/* =========================================================
+   오류
+   ========================================================= */
+
+.notice-detail-error {
+    padding: 100px 0;
+
+    text-align: center;
+
+    color: #e74c3c;
+}
+
+
+/* =========================================================
+   반응형
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .notice-detail-container {
+        margin: 20px auto;
+        padding: 0 15px;
+    }
+
+
+    .notice-detail-header {
+        padding: 20px 15px;
+    }
+
+
+    .notice-detail-title {
+        font-size: 20px;
+    }
+
+
+    .notice-detail-info {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+
+    .notice-detail-info span + span::before {
+        display: none;
+    }
+
+
+    .notice-detail-content {
+        min-height: 250px;
+
+        padding: 25px 15px;
+
+        font-size: 15px;
+    }
+
+}

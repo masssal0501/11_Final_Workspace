@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="noticeMapper">
+
+
+    <!-- =====================================================
+         Notice ResultMap
+         ===================================================== -->
+
+    <resultMap id="noticeResultMap"
+               type="com.kh.workflow.notice.vo.Notice">
+
+        <id property="noticeNo"
+            column="notice_no"/>
+
+        <result property="noticeTitle"
+                column="notice_title"/>
+
+        <result property="noticeContent"
+                column="notice_content"/>
+
+        <result property="createdAt"
+                column="created_at"/>
+
+        <result property="noticeStatus"
+                column="notice_status"/>
+
+        <result property="viewCount"
+                column="view_count"/>
+
+        <result property="empNo"
+                column="emp_no"/>
+
+        <result property="empName"
+                column="emp_name"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         NoticeFile ResultMap
+         ===================================================== -->
+
+    <resultMap id="noticeFileResultMap"
+               type="com.kh.workflow.notice.vo.NoticeFile">
+
+        <id property="noticefileNo"
+            column="noticefile_no"/>
+
+        <result property="filePath"
+                column="file_path"/>
+
+        <result property="originName"
+                column="origin_name"/>
+
+        <result property="changeName"
+                column="change_name"/>
+
+        <result property="updatedAt"
+                column="updated_at"/>
+
+        <result property="status"
+                column="status"/>
+
+        <result property="noticeNo"
+                column="notice_no"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         1. 공지사항 개수
+         ===================================================== -->
+
+    <select id="selectNoticeCount"
+            parameterType="map"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM notice n
+
+        LEFT JOIN employee e
+            ON n.emp_no = e.emp_no
+
+        WHERE n.notice_status IN
+        (
+            'VISIBLE',
+            'IMPORTANT'
+        )
+
+        <if test="condition != null and condition != ''
+                  and keyword != null and keyword != ''">
+
+            <choose>
+
+                <when test="condition == 'title'">
+
+                    AND n.notice_title
+                        LIKE CONCAT('%', #{keyword}, '%')
+
+                </when>
+
+                <when test="condition == 'content'">
+
+                    AND n.notice_content
+                        LIKE CONCAT('%', #{keyword}, '%')
+
+                </when>
+
+                <when test="condition == 'writer'">
+
+                    AND e.emp_name
+                        LIKE CONCAT('%', #{keyword}, '%')
+
+                </when>
+
+            </choose>
+
+        </if>
+
+    </select>
+
+
+    <!-- =====================================================
+         2. 공지사항 목록
+         ===================================================== -->
+
+    <select id="selectNoticeList"
+            parameterType="map"
+            resultMap="noticeResultMap">
+
+        SELECT
+
+            n.notice_no,
+
+            n.notice_title,
+
+            n.notice_content,
+
+            n.created_at,
+
+            n.notice_status,
+
+            n.view_count,
+
+            n.emp_no,
+
+            e.emp_name
+
+        FROM notice n
+
+        LEFT JOIN employee e
+            ON n.emp_no = e.emp_no
+
+        WHERE n.notice_status IN
+        (
+            'VISIBLE',
+            'IMPORTANT'
+        )
+
+        <if test="condition != null and condition != ''
+                  and keyword != null and keyword != ''">
+
+            <choose>
+
+                <when test="condition == 'title'">
+
+                    AND n.notice_title
+                        LIKE CONCAT('%', #{keyword}, '%')
+
+                </when>
+
+                <when test="condition == 'content'">
+
+                    AND n.notice_content
+                        LIKE CONCAT('%', #{keyword}, '%')
+
+                </when>
+
+                <when test="condition == 'writer'">
+
+                    AND e.emp_name
+                        LIKE CONCAT('%', #{keyword}, '%')
+
+                </when>
+
+            </choose>
+
+        </if>
+
+        ORDER BY
+
+            CASE
+                WHEN n.notice_status = 'IMPORTANT'
+                THEN 0
+                ELSE 1
+            END,
+
+            n.created_at DESC,
+
+            n.notice_no DESC
+
+        LIMIT #{offset}, #{limit}
+
+    </select>
+
+
+    <!-- =====================================================
+         3. 공지사항 상세
+         ===================================================== -->
+
+    <select id="selectNoticeByNo"
+            parameterType="int"
+            resultMap="noticeResultMap">
+
+        SELECT
+
+            n.notice_no,
+
+            n.notice_title,
+
+            n.notice_content,
+
+            n.created_at,
+
+            n.notice_status,
+
+            n.view_count,
+
+            n.emp_no,
+
+            e.emp_name
+
+        FROM notice n
+
+        LEFT JOIN employee e
+            ON n.emp_no = e.emp_no
+
+        WHERE n.notice_no = #{noticeNo}
+
+    </select>
+
+
+    <!-- =====================================================
+         4. 조회수 증가
+         ===================================================== -->
+
+    <update id="increaseViewCount"
+            parameterType="int">
+
+        UPDATE notice
+
+        SET view_count = view_count + 1
+
+        WHERE notice_no = #{noticeNo}
+
+    </update>
+
+
+    <!-- =====================================================
+         5. 공지사항 등록
+         ===================================================== -->
+
+    <insert id="insertNotice"
+            parameterType="com.kh.workflow.notice.vo.Notice"
+            useGeneratedKeys="true"
+            keyProperty="noticeNo"
+            keyColumn="notice_no">
+
+        INSERT INTO notice
+        (
+            notice_title,
+            notice_content,
+            created_at,
+            notice_status,
+            view_count,
+            emp_no
+        )
+
+        VALUES
+        (
+            #{noticeTitle},
+            #{noticeContent},
+            CURRENT_TIMESTAMP,
+            #{noticeStatus},
+            0,
+            #{empNo}
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         6. 공지사항 수정
+         ===================================================== -->
+
+    <update id="updateNotice"
+            parameterType="com.kh.workflow.notice.vo.Notice">
+
+        UPDATE notice
+
+        SET
+
+            notice_title = #{noticeTitle},
+
+            notice_content = #{noticeContent},
+
+            notice_status = #{noticeStatus}
+
+        WHERE notice_no = #{noticeNo}
+
+    </update>
+
+
+    <!-- =====================================================
+         7. 공지사항 삭제
+         ===================================================== -->
+
+    <update id="deleteNotice"
+            parameterType="int">
+
+        UPDATE notice
+
+        SET notice_status = 'UNVISIBLE'
+
+        WHERE notice_no = #{noticeNo}
+
+    </update>
+
+
+    <!-- =====================================================
+         8. 첨부파일 목록
+         ===================================================== -->
+
+    <select id="selectNoticeFileList"
+            parameterType="int"
+            resultMap="noticeFileResultMap">
+
+        SELECT
+
+            noticefile_no,
+
+            file_path,
+
+            origin_name,
+
+            change_name,
+
+            updated_at,
+
+            status,
+
+            notice_no
+
+        FROM notice_file
+
+        WHERE notice_no = #{noticeNo}
+
+          AND status = 'Y'
+
+        ORDER BY noticefile_no ASC
+
+    </select>
+
+
+    <!-- =====================================================
+         9. 첨부파일 등록
+         ===================================================== -->
+
+    <insert id="insertNoticeFile"
+            parameterType="com.kh.workflow.notice.vo.NoticeFile"
+            useGeneratedKeys="true"
+            keyProperty="noticefileNo"
+            keyColumn="noticefile_no">
+
+        INSERT INTO notice_file
+        (
+            file_path,
+            origin_name,
+            change_name,
+            updated_at,
+            status,
+            notice_no
+        )
+
+        VALUES
+        (
+            #{filePath},
+            #{originName},
+            #{changeName},
+            CURRENT_TIMESTAMP,
+            #{status},
+            #{noticeNo}
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         10. 첨부파일 삭제
+         ===================================================== -->
+
+    <update id="deleteNoticeFile"
+            parameterType="int">
+
+        UPDATE notice_file
+
+        SET status = 'N'
+
+        WHERE noticefile_no = #{noticefileNo}
+
+    </update>
+
+</mapper>

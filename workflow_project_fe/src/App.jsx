@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import './App.css'
 
-
+import NoticeListPage from './pages/notice/NoticeListPage';
+import NoticeDetailPage from './pages/notice/NoticeDetailPage';
+import NoticeUpdatePage from './pages/notice/NoticeUpdatePage';
+import NoticeWritePage from './pages/notice/NoticeWritePage';
+import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
 //import LoginForm from './common/components/LoginForm';
@@ -43,7 +47,14 @@ function App() {
       {/* 📌 통계 페이지 라우트 추가 */}
         <Route path="/admin/statistics" element={<StatisticsPage />} />
       
+      <Route path="/notice" element={<NoticeListPage />} />
 
+      <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
+      <Route path="/admin/notice" element={<NoticeAdminListPage />} />
+
+      <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
+
+      <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
 
           {/* <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />}></Route>
