@@ -144,14 +144,14 @@ function HubDetailComponent() {
                 console.log(response);
 
                 if(response.data === "success") {
-                    alert("거점 종료에 성공했습니다.");
+                    alert("거점 중단에 성공했습니다.");
                     navigate("/placeInfo/list"); // 성공 시 리스트 페이지로 이동
                 } else {
-                    alert("거점 종료에 실패했습니다.");
+                    alert("거점 중단에 실패했습니다.");
                 }
 
             } catch(error) {
-                console.log("거점 종료용 ajax 통신 실패");
+                console.log("거점 중단용 ajax 통신 실패");
             }
         }
 
