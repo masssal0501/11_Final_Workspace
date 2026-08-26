@@ -31,8 +31,11 @@ public class Place {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int hubNo;
 	
-	@Column(name="REGION_NAME", nullable=false, length=20)
-	private String regionName;
+	@Column(name="MAIN_REGION", nullable=false, length=20)
+	private String mainRegion;
+	
+	@Column(name="SUB_REGION", nullable=false, length=20)
+	private String subRegion;
 	
 	@Column(name="HUB_NAME", nullable=false, length=20)
 	private String hubName;
@@ -49,7 +52,13 @@ public class Place {
 	@Column(name="HUB_TYPE", nullable=false)
 	private int hubType;
 	
-	@Column(name="STATUS", columnDefinition="CHAR(1) DEFAULT 'Y'")
-	private String status;	
+	@Column(name="MAX_CAPACITY")
+	private Integer maxCapacity;
+		
+	@Column(name="PRICE")
+	private Integer price;
+	
+	@Column(name="HUB_STATUS", columnDefinition="VARCHAR(10) DEFAULT 'OPEN'")
+	private String hubStatus;	
 
 }

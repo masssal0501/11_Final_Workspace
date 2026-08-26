@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import com.kh.workflow.place.model.vo.Place;
 
 public interface PlaceDao extends JpaRepository<Place, Integer> {
-
+/*
 	List<Place> findByStatusOrderByHubNoDesc(String status);
 
 	Place findByHubNoAndStatus(int hubNo, String string);
@@ -22,6 +22,6 @@ public interface PlaceDao extends JpaRepository<Place, Integer> {
         SET status = 'N'
         WHERE hubNo = :hubNo
     """)
-    int deletePlace(@Param("hubNo") int hubNo);
+    int deletePlace(@Param("hubNo") int hubNo);*/
 
 }

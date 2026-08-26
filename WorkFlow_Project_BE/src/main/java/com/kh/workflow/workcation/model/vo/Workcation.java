@@ -5,13 +5,17 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import com.kh.workflow.employee.model.vo.Employee;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +33,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public class Workcation {
-
+	
 	@Schema(description = "게시글 번호 (자동생성)", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
 	@Id
 	@Column(name = "workcation_no")
@@ -46,7 +50,7 @@ public class Workcation {
 
 	@Schema(description = "작성일(DB자동)", accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime createdTime;// 작성일
+	private LocalDateTime createdAt;// 작성일
 
 	@Schema(description = "수정일", accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -74,11 +78,13 @@ public class Workcation {
 	private String approverState;// 신청상태
 	
 	@Schema(description="신청자 번호(사원)", requiredMode = Schema.RequiredMode.REQUIRED)
-	@Column(name="emp_no", nullable=false)
-	private Integer empNo;// 신청자 번호
+	@JoinColumn(name="emp_no", nullable=false)
+	@ManyToOne
+	private Employee employee;// 신청자 번호
 	
 	@Schema(description="결재자 번호(사원)")
-	@Column(name="approver_no")
-	private Integer approverNo;// 결재자 번호
+	@JoinColumn(name="approver_no")
+	@ManyToOne(fetch = FetchType.LAZY)
+	private Employee approver;// 결재자 번호
 
 }

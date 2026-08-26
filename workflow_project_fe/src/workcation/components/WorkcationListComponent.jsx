@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
 import WorkcationItemComponent from "./WorkcationItemComponent";
@@ -11,7 +12,14 @@ function WorkcationListComponent() {
     //실행구문
     const navigate = useNavigate();//페이지 이동 함수
 
-    const [keyword, setKeyword] = useState('');
+    const [mainRegion, setMainRegion] = useState("");
+    const [subRegion, setSubRegion] = useState("");
+
+    const handleRegionChange = (main, sub) => {
+        setMainRegion(main);
+        setSubRegion(sub);
+    }
+
     const [searchType, setSearchType] = useState("all");
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -30,43 +38,44 @@ function WorkcationListComponent() {
 
     const selectWorkcationList = async () => {
         try {
-            //더미데이터 db연결시 삭제
-            const allDummyList = {
-                data: {
-                    list: [
-                        { workcationNo: 1, workcationTitle: "체험활동", regionName: "부산", empName: "김철수", createdAt: "2026-08-23", approverState: "신청보류" },
-                        { workcationNo: 2, workcationTitle: "개발 워크숍", regionName: "강원도", empName: "이영희", createdAt: "2026-08-24", approverState: "승인" }
-                    ], pi: { startPage: 1, endPage: 5, maxPage: 5 }
+
+            const response = await axios.get("http://localhost:8006/workflow/workcation/list", {
+                params: {
+                    cpage: cpage,
+                    condition: searchCondition,
+                    keyword: searchKeyword
                 }
-            }
-            handleResponse(allDummyList);
+            })
+
+            handleResponse(response.data);
         } catch (error) {
-            console.error(error);
+            console.error("조회 실패", error);
         };
     }
 
     //응답 데이터 처리후 공통 함수(dataList, pageList)
-    const handleResponse = (Response) => {
+    const handleResponse = (responseData) => {
 
         //tbody에 넣을 td생성
-        const items = Response.data.list;
+        const items = Array.isArray(responseData) ? responseData
+            : (responseData?.list || responseData?.content || [])
 
-        const trArr = items.map((item, index) => (
+        const trArr = items.map((item) => (
             <tr key={item.workcationNo}
                 onClick={() => navigate(`/workcation/detail/${item.workcationNo}`)}>
                 <td>{item.workcationNo}</td>
                 <td>{item.workcationTitle}</td>
-                <td>{item.regionName}</td>
-                <td>{item.empName}</td>
-                <td>{item.createdAt}</td>
-                <td>{item.approverState}</td>
+                <td>{item.regionName || "-"}</td>
+                <td>{item.employee?.empName || "-"}</td>
+                <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
+                <td>{item.approverState || item.workcationStatus || "대기"}</td>
             </tr>
         ))
 
         setDataList(trArr);
 
         //pageList 
-        const pageInfo = Response.data.pi;
+        const totalPages = responseData.totalPages || 1;
         const btnArr = [];
 
         //이전버튼
@@ -74,18 +83,18 @@ function WorkcationListComponent() {
             <button key="prev"
                 className="page-btn"
                 disabled={cpage === 1}
-                onClick={() => cpage > 1 && setSearchParams({ cpage: cpage - 1, condition: searchCondition, keyword: setKeyword })}>
+                onClick={() => cpage > 1 && setSearchParams({ cpage: cpage - 1, condition: searchCondition, keyword: searchKeyword })}>
                 &lt;
             </button>
         )
 
         //페이지버튼
-        for (let p = pageInfo.startPage; p <= pageInfo.endPage; p++) {
+        for (let p = 1; p <= totalPages; p++) {
             btnArr.push(
                 <button
                     key={p}
                     className={`page-btn ${cpage === p ? `active` : ''}`}
-                    onClick={() => setSearchParams({ cpage: p, condition: searchCondition, keyword: setKeyword })}>
+                    onClick={() => setSearchParams({ cpage: p, condition: searchCondition, keyword: searchKeyword })}>
                     {p}
                 </button >
             )
@@ -95,8 +104,9 @@ function WorkcationListComponent() {
         btnArr.push(
             <button
                 key="next"
-                disabled={cpage === pageInfo.maxPage}
-                onClick={() => cpage < pageInfo.maxPage && setSearchParams({ cpage: cpage + 1, condition: searchCondition, keyword: searchKeyword })}>
+                className="page-btn"
+                disabled={cpage === totalPages}
+                onClick={() => cpage < totalPages && setSearchParams({ cpage: cpage + 1, condition: searchCondition, keyword: searchKeyword })}>
                 &gt;
             </button>
         )
@@ -121,7 +131,10 @@ function WorkcationListComponent() {
                 )}
 
                 {/**지역과 상세지역 드롭다운 호출 */}
-                <WorkcationItemComponent />
+                <WorkcationItemComponent 
+                mainRegion={mainRegion}
+                subRegion={subRegion}
+                onRegionChcange={handleRegionChange}/>
 
                 {/**상태 드롭다운 */}
                 <select className="status-drop"
@@ -151,10 +164,20 @@ function WorkcationListComponent() {
                         <th>상태</th>
                     </tr>
                 </thead>
-                <tbody>{dataList}</tbody>
+                <tbody>{dataList.length > 0 ? (dataList) :
+                    (
+                        <tr>
+                            <td colSpan={6} align="center">
+                                조회된 워케이션 내역이 없습니다.
+                            </td>
+                        </tr>
+                    )
+                }
+                </tbody>
             </table>
             <br /><br />
 
+            {/**페이징 영역 */}
             <div align="center" className="paging-area">
                 {pageList}
             </div>
