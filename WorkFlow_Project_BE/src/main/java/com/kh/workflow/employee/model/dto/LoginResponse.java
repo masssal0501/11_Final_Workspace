@@ -20,4 +20,6 @@ public class LoginResponse {
     private String depId;
 
     private String jobCode;
+    
+    private Boolean pwChgRequired;
 }

@@ -269,7 +269,8 @@ public class EmployeeServiceImpl implements EmployeeService{
                 employee.getEmpName(),
                 employee.getAuthCode(),
                 employee.getDepId(),
-                employee.getJobCode()
+                employee.getJobCode(),
+                employee.getPwChgRequired()
         );
     }
 

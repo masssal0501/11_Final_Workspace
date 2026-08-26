@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../styles/LoginForm.css";
 import { login } from "../api/employeeApi";
 
-function LoginForm() {
+function LoginForm({ onLogin }) {
 
     const navigate = useNavigate();
 
@@ -34,6 +34,9 @@ function LoginForm() {
                 result
             );
 
+            // App의 loginUser 상태 변경
+            onLogin(result);
+
             // JWT 저장
             localStorage.setItem(
                 "accessToken",
@@ -49,13 +52,56 @@ function LoginForm() {
                     empName: result.empName,
                     authCode: result.authCode,
                     depId: result.depId,
-                    jobCode: result.jobCode
+                    jobCode: result.jobCode,
+                    pwChgRequired: result.pwChgRequired,
                 })
             );
 
             alert(
                 `${result.empName}님 환영합니다.`
             );
+
+             /*
+             * 1. 비밀번호 변경이 필요한 계정
+             */
+            if (result.pwChgRequired === true) {
+
+                alert(
+                    "최초 로그인입니다.\n비밀번호를 변경해주세요."
+                );
+
+                navigate("/changePW");
+
+                return;
+            }
+
+            /*
+             * 2. 권한별 페이지 이동
+             */
+            switch (result.authCode) {
+
+                case "ADMIN":
+                    // navigate("/admin");
+                    navigate("/dashboard");
+                    break;
+
+                case "MANAGER":
+                    // navigate("/manager");
+                    navigate("/dashboard");
+                    break;
+
+                case "STAFF":
+                    // navigate("/employee");
+                    navigate("/dashboard");
+                    break;
+
+                default:
+                    alert("사용자 권한을 확인할 수 없습니다.");
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("user");
+                    navigate("/login");
+            }
+
 
             navigate("/");
 

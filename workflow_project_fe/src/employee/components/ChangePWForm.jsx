@@ -138,20 +138,6 @@ function ChangePWForm() {
                 <button type="button" onClick={handleSubmit}>
                     비밀번호 재설정
                 </button>
-
-                {/* Find */}
-                <div className="loginLinks">
-                    <Link to="/login">
-                        로그인
-                    </Link>
-
-                    <span>|</span>
-
-                    <Link to="/login/findID">
-                        아이디 찾기
-                    </Link>
-                </div>
-
             </div>
 
         </div>

@@ -84,7 +84,7 @@ public class SecurityConfig {
                         .requestMatchers(
                     	    HttpMethod.POST,
                     	    "/employees/logout"
-                    	).authenticated()
+                    	).permitAll()
 
                         // 아이디 중복 확인
                         .requestMatchers(

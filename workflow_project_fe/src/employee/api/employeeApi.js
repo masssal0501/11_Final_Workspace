@@ -150,8 +150,16 @@ export const updateEmployeeStatus = async (
  */
 export const getEmployeeList = async () => {
 
+    const token =
+        localStorage.getItem("accessToken");
+
     const response = await axiosInstance.get(
-        "/employees"
+        "/employees",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
     );
 
     return response.data;
