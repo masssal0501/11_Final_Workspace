@@ -1,27 +1,164 @@
-.footer-area {
-    width : 1200px;
-    height : 200px;
-    margin : auto;
+/* ========================================
+   WorkFlow Footer
+======================================== */
+
+.wf-footer {
+  width: 100%;
+
+  margin-top: 60px;
+
+  background: #f7f9fc;
+  border-top: 1px solid #e7edf4;
 }
 
-.footer-area>div {
-    margin-top : 10px;
-    margin-bottom : 10px;
+.wf-footer-inner {
+  max-width: 1440px;
+
+  min-height: 150px;
+
+  margin: 0 auto;
+  padding: 32px 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
 }
 
-.footer-area a {
-    color : black;
-    text-decoration : none;
-    font-size : 17px;
+
+/* ========================================
+   Brand
+======================================== */
+
+.wf-footer-brand {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
 }
 
-#footer_2 {
-    font-size : 15px;
-    color : gray;
+.wf-footer-logo {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #18365f;
 }
 
-#footer_3 {
-    font-size : 13px;
-    text-align : center;
-    color : gray;
+.wf-footer-logo span {
+  font-size: 27px;
+  font-weight: 900;
+
+  background: linear-gradient(
+    135deg,
+    #2878e8,
+    #38b6a5,
+    #78c85c
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.wf-footer-logo strong {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.wf-footer-brand p {
+  margin: 0;
+
+  color: #8793a4;
+
+  font-size: 12px;
+}
+
+
+/* ========================================
+   Links
+======================================== */
+
+.wf-footer-links {
+  display: flex;
+  align-items: center;
+
+  gap: 28px;
+}
+
+.wf-footer-links a {
+  color: #657388;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  text-decoration: none;
+
+  transition: color 0.2s ease;
+}
+
+.wf-footer-links a:hover {
+  color: #1769d5;
+}
+
+.wf-footer-links a.important {
+  color: #344a68;
+  font-weight: 700;
+}
+
+
+/* ========================================
+   Copyright
+======================================== */
+
+.wf-footer-copyright {
+  color: #98a2b1;
+
+  font-size: 12px;
+}
+
+
+/* ========================================
+   Tablet
+======================================== */
+
+@media (max-width: 1000px) {
+
+  .wf-footer-inner {
+    padding: 28px 24px;
+
+    flex-wrap: wrap;
+
+    gap: 20px;
+  }
+
+  .wf-footer-copyright {
+    width: 100%;
+  }
+}
+
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 600px) {
+
+  .wf-footer {
+    margin-top: 40px;
+  }
+
+  .wf-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+
+    padding: 28px 20px;
+  }
+
+  .wf-footer-links {
+    flex-wrap: wrap;
+
+    gap: 14px 20px;
+  }
 }

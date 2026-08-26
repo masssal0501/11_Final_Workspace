@@ -1,0 +1,264 @@
+a {
+    text-decoration: none;
+    color: black;
+}
+
+/* ========================================
+   WorkFlow Login
+======================================== */
+
+.loginForm {
+    /* 화면 중앙 정렬 */
+    width: 420px;
+    min-height: 480px;
+
+    margin: 0 auto;
+    padding: 48px 45px;
+
+    display: flex;
+    flex-direction: column;
+
+    box-sizing: border-box;
+
+    /* 카드 */
+    background: #ffffff;
+    border: 1px solid #e5ebf2;
+    border-radius: 20px;
+
+    box-shadow:
+        0 12px 30px rgba(25, 55, 90, 0.08);
+
+    /* 기본 글자 */
+    color: #142d50;
+    font-size: 14px;
+}
+
+
+/* ========================================
+   Login Page
+======================================== */
+
+.loginPage {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 40px 20px;
+
+    box-sizing: border-box;
+
+    background: #f6f9fc;
+}
+
+
+/* ========================================
+   Logo
+   JSX에 추가해서 사용할 경우
+======================================== */
+
+.loginLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 34px;
+
+    color: #142d50;
+}
+
+.loginLogoMark {
+    margin-right: 8px;
+
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1;
+
+    background: linear-gradient(
+        135deg,
+        #2878e8,
+        #35b59c,
+        #78c85c
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.loginLogoText {
+    font-size: 28px;
+    font-weight: 800;
+
+    letter-spacing: -1.5px;
+}
+
+
+/* ========================================
+   Title
+======================================== */
+
+.subtitle {
+    margin-bottom: 32px;
+
+    color: #142d50;
+
+    font-size: 28px;
+    font-weight: 800;
+
+    text-align: center;
+
+    letter-spacing: -1px;
+}
+
+
+/* ========================================
+   Input
+======================================== */
+
+.loginForm input[type="text"],
+.loginForm input[type="email"],
+.loginForm input[type="password"] {
+    width: 100%;
+    height: 48px;
+
+    margin: 0 0 14px;
+    padding: 0 14px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dce4ed;
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: #142d50;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.loginForm input[type="text"]:focus,
+.loginForm input[type="email"]:focus,
+.loginForm input[type="password"]:focus {
+    border-color: #1769d5;
+
+    box-shadow:
+        0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+.loginForm input::placeholder {
+    color: #a0aaba;
+}
+
+
+/* ========================================
+   Checkbox
+======================================== */
+
+.loginForm input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+
+    margin: 2px 7px 0 0;
+
+    accent-color: #1769d5;
+
+    vertical-align: middle;
+}
+
+
+/* ========================================
+   Login Button
+======================================== */
+
+.loginForm button {
+    width: 100%;
+    height: 50px;
+
+    margin-top: 18px;
+    margin-bottom: 24px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: #1769d5;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.1s ease,
+        box-shadow 0.2s ease;
+}
+
+.loginForm button:hover {
+    background: #0f4f9f;
+
+    box-shadow:
+        0 5px 14px rgba(23, 105, 213, 0.22);
+}
+
+.loginForm button:active {
+    transform: translateY(1px);
+}
+
+
+/* ========================================
+   Find ID / Password
+======================================== */
+
+.loginForm a {
+    color: #657388;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.loginForm a:hover {
+    color: #1769d5;
+}
+
+
+/* ========================================
+   Link Area
+======================================== */
+
+.loginForm > a {
+    text-align: center;
+}
+
+
+/* ========================================
+   Responsive
+======================================== */
+
+@media (max-width: 520px) {
+
+    .loginForm {
+        width: 100%;
+        max-width: 420px;
+
+        padding: 40px 28px;
+
+        border-radius: 16px;
+    }
+
+    .subtitle {
+        font-size: 25px;
+    }
+}

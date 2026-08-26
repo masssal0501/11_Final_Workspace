@@ -1,31 +1,392 @@
-.navi {
-    background-color : black;
-    height : 50px;
-    text-align : center;
+/* ========================================
+   WorkFlow Header
+======================================== */
+
+.wf-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  width: 100%;
+  height: 76px;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e8edf3;
 }
 
-.navi>div {
-    font-weight : 600;
-    display : inline-block;
-    width : 150px;
-    height : 100%;
-    line-height : 50px;
+.wf-header-inner {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 32px;
+
+  box-sizing: border-box;
 }
 
-/* 
-    리액트의 Link 컴포넌트는 실제 화면에 렌더링 될 때 a 요소로 렌더링 되기 때문에 
-    CSS 로 요소를 선택할 때에도 a 요소로 선택하면 된다!!    
-*/
-.navi>div a {
-    color : white;
-    text-decoration : none;
-    font-size : 16px;
-    display : block;
-    width : 100%;
-    height : 100%;
+
+/* ========================================
+   Logo
+======================================== */
+
+.wf-logo {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  width: 225px;
+
+  cursor: pointer;
 }
 
-.navi>div:hover {
-    cursor : pointer;
-    background-color: lightgray;
+.wf-logo-mark {
+  position: relative;
+
+  width: 42px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 8px;
+}
+
+.logo-w {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+
+  letter-spacing: -7px;
+
+  transform: scaleX(1.05);
+}
+
+.logo-w-blue {
+  background: linear-gradient(
+    135deg,
+    #2878e8 10%,
+    #37b5a5 55%,
+    #78c85c 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.wf-logo-text {
+  color: #122d55;
+
+  font-size: 28px;
+  font-weight: 800;
+
+  letter-spacing: -1.5px;
+}
+
+
+/* ========================================
+   Navigation
+======================================== */
+
+.wf-nav {
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  flex: 1;
+}
+
+.wf-nav-item {
+  position: relative;
+
+  height: 100%;
+
+  padding: 0 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: none;
+  background: transparent;
+
+  color: #34445b;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.wf-nav-item:hover {
+  color: #1769d5;
+}
+
+.wf-nav-item.active {
+  color: #1769d5;
+}
+
+.wf-nav-item.active::after {
+  content: "";
+
+  position: absolute;
+
+  left: 15px;
+  right: 15px;
+  bottom: 0;
+
+  height: 3px;
+
+  background: #1769d5;
+
+  border-radius: 3px 3px 0 0;
+}
+
+.wf-nav-icon {
+  width: 20px;
+  height: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 19px;
+
+  color: #193b69;
+}
+
+.wf-nav-item.active .wf-nav-icon {
+  color: #1769d5;
+}
+
+
+/* ========================================
+   Header Actions
+======================================== */
+
+.wf-header-actions {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+}
+
+
+/* ========================================
+   Notification
+======================================== */
+
+.wf-notification {
+  position: relative;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.wf-notification:hover {
+  background: #f3f7fc;
+}
+
+.notification-icon {
+  font-size: 25px;
+  color: #19395f;
+}
+
+.notification-badge {
+  position: absolute;
+
+  top: 2px;
+  right: 1px;
+
+  min-width: 17px;
+  height: 17px;
+
+  padding: 0 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #1769d5;
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+/* ========================================
+   Profile
+======================================== */
+
+.wf-profile {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 4px 0;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  text-align: left;
+}
+
+.wf-profile-image {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #dcecff,
+    #c8e8df
+  );
+
+  color: #173963;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.wf-profile-info {
+  min-width: 70px;
+}
+
+.wf-profile-name {
+  color: #142d50;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.wf-profile-name span {
+  margin-left: 3px;
+
+  color: #67758a;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.wf-profile-department {
+  margin-top: 3px;
+
+  color: #7b8798;
+
+  font-size: 11px;
+}
+
+.wf-profile-arrow {
+  margin-left: 2px;
+
+  color: #52627a;
+
+  font-size: 17px;
+}
+
+
+/* ========================================
+   Tablet
+======================================== */
+
+@media (max-width: 1250px) {
+
+  .wf-header-inner {
+    padding: 0 20px;
+  }
+
+  .wf-logo {
+    width: 190px;
+  }
+
+  .wf-logo-text {
+    font-size: 24px;
+  }
+
+  .wf-nav-item {
+    padding: 0 10px;
+
+    font-size: 13px;
+  }
+
+  .wf-nav-icon {
+    font-size: 17px;
+  }
+
+  .wf-profile-info {
+    display: none;
+  }
+}
+
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 900px) {
+
+  .wf-header {
+    height: 64px;
+  }
+
+  .wf-logo {
+    width: auto;
+  }
+
+  .wf-logo-text {
+    font-size: 22px;
+  }
+
+  .wf-nav {
+    display: none;
+  }
+
+  .wf-header-inner {
+    justify-content: space-between;
+  }
+
+  .wf-header-actions {
+    margin-left: auto;
+  }
 }
