@@ -1,0 +1,118 @@
+/* 전체 레이아웃 컨테이너 */
+.place-list {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.place-list h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* 검색 및 필터 영역 */
+.place-search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.place-search select {
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.search-box {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-box input:focus {
+    border-color: #4b6cb7;
+}
+
+.search-box button {
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.search-box button:hover {
+    background-color: #555;
+}
+
+/* AI 버튼 스타일 */
+.ai-button {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.ai-button:hover {
+    opacity: 0.9;
+}
+
+/* 페이징 영역 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 40px;
+}
+
+.pagination .btn {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination .btn-info {
+    background-color: #4b6cb7;
+    color: white;
+    border: 1px solid #4b6cb7;
+}
+
+.pagination .btn-outline-info {
+    background-color: white;
+    color: #4b6cb7;
+    border: 1px solid #4b6cb7;
+}
+
+.pagination .btn-outline-info:hover {
+    background-color: #f1f3f5;
+}
