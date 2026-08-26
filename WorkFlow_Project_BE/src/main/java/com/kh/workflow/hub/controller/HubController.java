@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,7 +57,9 @@ public class HubController {
 		
 		Pageable pageable = PageRequest.of(currentPage - 1, boardLimit);
 		
-		Page<Hub> page = hubService.selectHubList(pageable);
+		List<Integer> hubTypes = List.of(1, 2);
+		
+		Page<Hub> page = hubService.selectHubList(pageable, hubTypes);
 		
 		List<Hub> list = page.getContent();
 		
@@ -124,8 +127,6 @@ public class HubController {
 	@PostMapping("/hubs")
 	public ResponseEntity<String> insertHub(Hub hub, @RequestPart(value = "upfile", required = false) List<MultipartFile> upfiles, HttpSession session) {
 		
-		System.out.println(hub);
-		
 		List<HubFile> fileList = new ArrayList<>();
 		
 		if(upfiles != null && !upfiles.isEmpty()) {
@@ -152,8 +153,32 @@ public class HubController {
 	}
 	
 	@GetMapping("/hubs/{hubNo}")
-	public ResponseEntity<Hub> selectHub(@PathVariable int hubNo) {
+	public ResponseEntity<HashMap<String, Object>> selectHub(@PathVariable int hubNo) {
 		
-		return null;
+		Hub h = hubService.selectHub(hubNo);
+		
+		Double avgScore = hubService.selectAvgScore(hubNo);
+		
+		HashMap<String, Object> hm = new HashMap<>();
+		
+		hm.put("hub", h);
+		hm.put("avgScore", avgScore);
+		
+		return ResponseEntity.status(HttpStatus.OK)
+							 .body(hm);
+	}
+	
+	@DeleteMapping("/hubs/{hubNo}")
+	public ResponseEntity<String> deleteHub(@PathVariable int hubNo) {
+		
+		int result = hubService.deleteHub(hubNo);
+		
+		System.out.println(result);
+		
+		String message = (result > 0) ? "success" : "fail";
+		
+		return ResponseEntity.status(HttpStatus.OK)
+					  		 .body(message);
+
 	}
 }

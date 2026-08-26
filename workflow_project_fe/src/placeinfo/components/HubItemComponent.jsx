@@ -10,10 +10,7 @@ function HubItemComponent(props) {
 
     // 부모 컴포넌트에서 넘겨준 개별 거점 데이터 객체(props.item)를 
     // item이라는 변수에 할당하여 이후 코드에서 짧고 편리하게 사용합니다.
-    const item = props.item; 
-
-    const thumbnailUrl = `${BASE_URL.replace('/hubs', '')}${item.thumbnailUrl}`
-
+    const item = props.item;
 
     // 화면에 렌더링할 JSX(HTML 구조)를 반환합니다.
     return(
@@ -23,7 +20,7 @@ function HubItemComponent(props) {
         <tr onClick={ () => { navigate(`/placeInfo/detail/${ item.hubNo }`); } }>
             <td>
                 <div className="img-area">
-                    <img src={ thumbnailUrl } alt={ item.hubName } width="300" />
+                    <img src={ `${BASE_URL.replace('/hubs', '')}${item.hubFileList[0].filePath}/${item.hubFileList[0].changeName}` } width="300" />
                 </div>
                 <div className="span-area">
                     <span>주소 : { item.hubAddress }</span>

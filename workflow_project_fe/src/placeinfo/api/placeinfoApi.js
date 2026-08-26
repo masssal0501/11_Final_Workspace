@@ -46,11 +46,35 @@ const insertHubApi = formData => {
     return response;
 }
 
-const selectHubApi = boardNo => {
+const selectHubApi = hubNo => {
 
     const response = axios({
-        url : `${ BASE_URL }/${ boardNo }`,
-        method : "get",
+        url : `${ BASE_URL }/${ hubNo }`,
+        method : "get"
+    });
+
+    return response;
+}
+
+const deleteHubApi = hubNo => {
+
+    const response = axios({
+        url : `${ BASE_URL }/${ hubNo }`,
+        method : "delete"
+    });
+
+    return response;
+}
+
+const updateHubApi = formData => {
+
+    const response = axios({
+       url : `${ BASE_URL }`,
+       method : "put",
+       data : formData,
+       headers : {
+            "Content-Type" : "multipart/form-data"
+       } 
     });
 
     return response;
@@ -69,5 +93,5 @@ const sendMessageApi = message => {
     return response;
 }
 
-export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi, selectHubApi};
+export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi, selectHubApi, deleteHubApi, updateHubApi };
 export { BASE_URL }

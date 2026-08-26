@@ -62,8 +62,8 @@ function App() {
             <Routes>
               <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
               <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
-              <Route path="/placeInfo/detail/:hubno" element={ <HubDetailComponent /> }></Route>
-              <Route path="/placeInfo/updateForm" element={ <HubUpdateFormComponent />}></Route>
+              <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
+              <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
               <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
             </Routes>
           </div>
