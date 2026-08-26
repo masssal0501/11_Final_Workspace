@@ -8,10 +8,14 @@ import LoginForm from './employee/components/LoginForm';
 import FindIDForm from './employee/components/FindIDForm';
 import FindPWForm from './employee/components/FindPWForm';
 import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
-
+import MyPageForm from './employee/components/MyPageForm';
+import UpdateMyPageForm from './employee/components/UpdateMyPageForm';
+import EmployeeList from './employee/components/EmployeeList';
 import ChangePWForm from './employee/components/ChangePWForm';
 
 import { Routes, Route, Navigate } from "react-router-dom";
+import EmployeeEdit from './employee/components/EmployeeEdit';
+
 
 
 
@@ -29,6 +33,10 @@ function App() {
           <Route path="/login/findID" element={<FindIDForm />}></Route>
           <Route path="/login/findPW" element={<FindPWForm />}></Route>
           <Route path="/changePW" element={<ChangePWForm />}></Route>
+          <Route path="/myPage" element={<MyPageForm />}></Route>
+          <Route path="/myPage/update" element={<UpdateMyPageForm />}></Route>
+          <Route path="/employee/list" element={<EmployeeList />}></Route>
+          <Route path="/employee/edit" element={<EmployeeEdit />}></Route>
       </Routes>
       <Footer/>
     </div>

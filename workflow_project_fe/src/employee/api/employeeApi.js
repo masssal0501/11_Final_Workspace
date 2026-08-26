@@ -71,13 +71,13 @@ export const logout = async () => {
  * USR-004
  * 비밀번호 재설정
  */
-export const changePassword = async () => {
+export const changePassword = async (data) => {
 
     const token =
         localStorage.getItem("accessToken");
 
-    const response = await axiosInstance.post(
-        `${API_BASE_URL}/employees/password`,
+    const response = await axiosInstance.put(
+        "/employees/password",
         data,
         {
             headers: {

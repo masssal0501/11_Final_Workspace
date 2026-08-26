@@ -337,7 +337,8 @@
 
 /* 계정 생성 */
 
-.enrollForm > form > button[type="submit"] {
+.enrollForm > form > button[type="submit"], 
+.btnPrimary {
     float: right;
 
     border: 1px solid #1769d5;

@@ -5,6 +5,8 @@ import { login } from "../api/employeeApi";
 
 function LoginForm() {
 
+    const navigate = useNavigate();
+
     const [empId, setEmpId] = useState("");
     const [password, setPassword] = useState("");
 

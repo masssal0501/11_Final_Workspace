@@ -78,6 +78,10 @@ function ChangePWForm() {
                 error
             );
 
+            console.log("status:", error.response?.status);
+            console.log("data:", error.response?.data);
+            console.log("message:", error.response?.data?.message);
+
             alert(
                 error.response?.data?.message ||
                 "비밀번호 변경에 실패했습니다."
@@ -99,6 +103,7 @@ function ChangePWForm() {
                     <label>현재 비밀번호</label>
                     <input
                         type="password"
+                        name="currentPassword"
                         placeholder="현재 비밀번호를 입력하세요"
                         value={form.currentPassword}
                         onChange={handleChange}
@@ -110,6 +115,7 @@ function ChangePWForm() {
                     <label>변경할 비밀번호</label>
                     <input
                         type="password"
+                        name="newPassword"
                         placeholder="변경할 비밀번호를 입력하세요"
                         value={form.newPassword}
                         onChange={handleChange}
@@ -121,6 +127,7 @@ function ChangePWForm() {
                     <label>변경할 비밀번호 확인</label>
                     <input
                         type="password"
+                        name="confirmPassword"
                         placeholder="변경할 비밀번호를 다시 입력하세요"
                         value={form.confirmPassword}
                         onChange={handleChange}

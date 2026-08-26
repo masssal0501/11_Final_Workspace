@@ -78,6 +78,7 @@ public class EmployeeController {
         return ResponseEntity.ok().build();
     }
 
+    // USR-004
     @PutMapping("/password")
     public ResponseEntity<?> changePassword(
             @RequestBody ChangePasswordRequest request,
