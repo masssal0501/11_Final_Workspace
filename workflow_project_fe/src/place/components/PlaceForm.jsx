@@ -195,12 +195,12 @@ function PlaceForm() {
                 <div className="formGroup">
                     <h4>상태</h4>
                     <select name="hubStatus" value={place.hubStatus} onChange={handleChange}>
-                        <option value="OPEN">🟢 운영중</option>
-                        <option value="PAUSED">🟠 일시중단</option>
-                        <option value="CLOSED">🔴 종료</option>
+                        <option value="OPEN">✅ 운영중</option>
+                        <option value="PAUSED">⚠️ 일시중단</option>
+                        <option value="CLOSED">🚫 종료</option>
                     </select>
                 </div>
-
+{/* ⚠️✅❌🚫 🟢🟠🔴 */}
                 <div className="formGroup">
                     <h4>대표 사진</h4>
                     <input

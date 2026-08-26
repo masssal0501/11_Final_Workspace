@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { placeApi } from "../../api/placeApi";
+import { placeApi } from "../api/placeApi";
 
 function PlaceDetail() {
 
@@ -107,9 +107,15 @@ function PlaceDetail() {
 
 
                 {/* 제목 */}
-                <h3>
-                    {place.hubName}
-                </h3>
+                <div className="Title-box">
+                    <h3>{place.hubName}</h3>
+                </div>
+
+                <div className="place-rating">
+                    <span className="rating-star">⭐️</span>
+                    <span className="rating-score">평점</span>
+                    <span className="rating-value">-</span>
+                </div>
 
 
                 {/* 지역 */}

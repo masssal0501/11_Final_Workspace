@@ -1,0 +1,26 @@
+.place-image{
+    width: 700px;
+    margin: 50px auto;
+    padding: 35 45px;
+    height: 100px;
+}
+
+.Title-box{
+    width: 700px;
+    margin: 50px auto;
+    padding: 35px 45px;
+
+    background-color: #ffffff;
+    border-radius: 12px;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    box-sizing: border-box;
+
+}
+.Title-box h3{
+    margin: 0 0 20px;
+    font-size: 26px;
+    font-weight: 700;
+    color: #222;
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { placeApi } from "../../api/placeApi";
+import { placeApi } from "../api/placeApi";
 
 function PlaceEdit() {
 
