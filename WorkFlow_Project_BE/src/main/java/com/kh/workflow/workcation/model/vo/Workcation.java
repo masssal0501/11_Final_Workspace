@@ -64,7 +64,7 @@ public class Workcation {
 	@Column(name = "approver_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime approvetAt;// 결재 승인 일자
 
-	@Schema(description = "반려사유", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "반려사유", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
 	@Column(name = "approver_comment", length = 300)
 	private String approverComment;// 반려사유
 

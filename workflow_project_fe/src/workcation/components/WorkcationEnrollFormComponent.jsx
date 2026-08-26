@@ -273,13 +273,13 @@ function WorkcationEnrollFormComponent() {
             {/* 비용 합계 영역 */}
             <div className="all-price-container">
                 <div className="left-price-box">
-                    <h3>예상 비용</h3>
+                    <h3>지출 내역</h3>
                     <div className="left-price-row">
                         <span>{placeType === "office" ? "오피스 이용료" : "숙박비"}</span>
                         <span>{hubPrice.toLocaleString()}원</span>
                     </div>
                     <div className="left-price-row">
-                        <span>프로그램 이용료</span>
+                        <span>프로그램 활동비</span>
                         <span>{optionsPrice.toLocaleString()}원</span>
                     </div>
                     <div className="left-price-row">
@@ -317,12 +317,12 @@ function WorkcationEnrollFormComponent() {
                         <span>최대 {programSupport.toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row total">
-                        <span>예상 지원금</span>
+                        <span>지원금</span>
                         <span>{totalSupport.toLocaleString()}원</span>
                     </div>
                     <hr />
                     <div>
-                        <span>예상 회사/개인부담금</span>
+                        <span>회사/개인부담금</span>
                         <strong>{personalCost.toLocaleString()}원</strong>
                     </div>
                 </div>
