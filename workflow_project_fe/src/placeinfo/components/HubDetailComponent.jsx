@@ -166,7 +166,7 @@ function HubDetailComponent() {
                 <div className="span-area">
                     <span>거점명 : { hub.hubName }</span>
                     <span>전화번호 : { hub.phone }</span>
-                    <span>1박 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
+                    <span>1{ (hub.hubType === 1) ? "박" : "일" }박 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
                     <span>운영 상태 : { (hub.hubStatus === "OPEN") ? (<b style={{color:'green'}}>운영중</b>) : ((hub.hubStatus === "PAUSED") ? (<b style={{color:'yellow'}}>일시중단</b>) : (<b style={{color:'red'}}>중단</b>)) }</span>
                     <span>최대 수용 인원 : { hub.maxCapacity }명</span>
                     <span>유형 : { (hub.hubType === 1) ? "숙소" : "공유 오피스" }</span>
