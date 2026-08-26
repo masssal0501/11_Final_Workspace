@@ -27,6 +27,9 @@ function AIComponent() {
         // 폼 제출 시 페이지 전체가 새로고침되는 기본 브라우저 동작 방지
         e.preventDefault();
 
+        document.getElementById("messageInput").disabled = true;
+        document.getElementById("confirm").disabled = true;
+
         // 입력값의 앞뒤 공백을 제거했을 때 빈 문자열이면 전송하지 않고 종료 (공백 입력 방지)
         if (inputMessage.trim().length === 0) {
             return;
@@ -49,6 +52,8 @@ function AIComponent() {
             // AI 응답 수신 성공 시 AI 메시지를 대화 목록 배열에 추가
             // Functional Update(prev => ...)를 활용해 최신 messages 상태를 안전하게 참조
             setMessages((prev) => [...prev, { sender: "AI", text: response.data }]);
+            document.getElementById("messageInput").disabled = false;
+            document.getElementById("confirm").disabled = false;
         } catch (error) {
             // AJAX 통신 예외 발생 시 에러 로그 출력
             console.log("AI 요청용 ajax 통신 실패!", error);
@@ -92,7 +97,7 @@ function AIComponent() {
                 />
                 
                 {/* 전송 버튼 */}
-                <button type="submit" className="confirm" onClick={ Chatting }>
+                <button type="submit" className="confirm" id="confirm" onClick={ Chatting }>
                     확인
                 </button>
                 <button type="button" className="back" onClick={() => { navigate(-1); }}>
