@@ -1,36 +1,29 @@
-import React from 'react';
-import { Routes, Route, Navigate } from "react-router-dom";
-
-import './App.css';
-import './common/styles/common.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-
-import Header from './common/components/Header';
-import Footer from './common/components/Footer';
-import HubListComponent from './placeinfo/components/HubListComponent';
-import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
-import HubDetailComponent from './placeinfo/components/HubDetailComponent';
-import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
-import AIComponent from './placeinfo/components/AIComponent';
-
 import { useState } from "react";
 import "./App.css";
 import "./common/styles/common.css";
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+import Header from "./common/components/Header";
+import Footer from "./common/components/Footer";
 
 import NoticeListPage from './pages/notice/NoticeListPage';
 import NoticeDetailPage from './pages/notice/NoticeDetailPage';
 import NoticeUpdatePage from './pages/notice/NoticeUpdatePage';
 import NoticeWritePage from './pages/notice/NoticeWritePage';
 import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
-import Header from "./common/components/Header";
-import Footer from "./common/components/Footer";
 
 import AmountPage from './pages/amount/AmountPage';
 import AdminAmountPage from './pages/amount/AdminAmountPage';
 import AmountForm from './amount/components/AmountForm';
 import AmountDetail from './amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
-import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
+
+import HubListComponent from './placeinfo/components/HubListComponent';
+import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
+import HubDetailComponent from './placeinfo/components/HubDetailComponent';
+import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
+import AIComponent from './placeinfo/components/AIComponent';
+
 import TaskListComponent from './taskboard/components/TaskListComponent';
 import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 
@@ -42,10 +35,8 @@ import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
 import FindPWForm from "./employee/components/FindPWForm";
 import ChangePWForm from "./employee/components/ChangePWForm";
-
 import EmployeeEnrollFormComponent
     from "./employee/components/EmployeeEnrollFormComponent";
-
 import MyPageForm from "./employee/components/MyPageForm";
 import UpdateMyPageForm from "./employee/components/UpdateMyPageForm";
 import EmployeeList from "./employee/components/EmployeeList";
@@ -61,39 +52,6 @@ import {
 
 
 function App() {
-  return (
-    <div>
-      <Header />
-
-      <div className="content">
-        <Routes>
-          {/* 업무 게시판 라우트 */}
-          <Route path="/task/list" element={<TaskListComponent />} />
-          <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
-
-          {/* 워케이션 라우트 */}
-          <Route path="/workcation/list" element={<WorkcationListComponent />} />
-          <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-          <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
-
-          {/* 사원 등록 라우트 */}
-          <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />} />
-
-          {/* 거점 등록 라우트 */}
-          <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
-          <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />}></Route>
-          <Route path="/placeInfo/detail/:hubno" element={<HubDetailComponent />}></Route>
-          <Route path="/placeInfo/updateForm" element={<HubUpdateFormComponent />}></Route>
-          <Route path="/placeInfo/ai" element={<AIComponent />}></Route>
-        </Routes>
-      </div>
-      <Footer />
-    </div>
-
-  )
-}
-
-export default App;
 
     const [loginUser, setLoginUser] = useState(() => {
 
@@ -257,7 +215,6 @@ export default App;
 
                 {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
                 <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
-                
 
                 {/* 📌 비용 신청 페이지 경로 추가 */}
                 <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
@@ -281,6 +238,24 @@ export default App;
                 <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
 
                 <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+
+                {/* placeInfo */}
+                <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
+                <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
+                <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
+                <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
+                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
+
+                {/* 업무 게시판 라우트 */}
+                <Route path="/task/list" element={<TaskListComponent />} />
+                <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+
+                {/* 워케이션 라우트 */}
+                <Route path="/workcation/list" element={<WorkcationListComponent />} />
+                <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
+                <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+
+
 
                 <Route
                     path="/"

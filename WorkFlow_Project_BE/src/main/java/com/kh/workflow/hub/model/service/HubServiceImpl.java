@@ -30,23 +30,23 @@ public class HubServiceImpl implements HubService {
 	@Transactional
 	@Override
 	public Hub insertHub(Hub hub, List<HubFile> fileList) {
-
+		
 		Hub savedHub = hubDao.save(hub);
-
-		if (fileList != null && !fileList.isEmpty()) {
+		
+		if(fileList != null && !fileList.isEmpty()) {
 			for (HubFile file : fileList) {
 				file.setHub(savedHub);
 				hubFileDao.save(file);
 			}
 		}
-
+		
 		return savedHub;
 	}
 
 	@Override
 	public Page<Hub> searchHubList(Pageable pageable, String mainRegion, String subRegion, List<Integer> hubTypes,
 			String keyword) {
-
+		
 		return hubDao.searchHubList(pageable, mainRegion, subRegion, hubTypes, keyword);
 	}
 

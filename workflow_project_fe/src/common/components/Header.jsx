@@ -1,13 +1,10 @@
-import { useNavigate } from "react-router-dom";
-
-import { useEffect, useState } from "react";
 import "../styles/Header.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { logout } from "../../employee/api/employeeApi";
 
 function Header() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
-  const navigate = useNavigate();
 
   const navigate = useNavigate();
 
@@ -121,6 +118,7 @@ function Header() {
     setActiveMenu(menu.id);
 
     navigate(menu.path);
+    // React Router를 사용한다면 navigate(menu.path) 사용
   };
 
 
