@@ -1,8 +1,12 @@
 import "../styles/EmployeeEnrollFormComponent.css";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createEmployee, checkEmpIdDuplicate } from "../api/employeeApi";
 
 function EmployeeEnrollFormComponent() {
+
+    const navigate = useNavigate();
+
     // 숫자만 입력되도록 제한하는 함수
     const handlePhoneChange = (e) => {
 
@@ -260,7 +264,8 @@ function EmployeeEnrollFormComponent() {
                         </tr>
                     </tbody>
                 </table>
-                <button type="button">돌아가기</button>
+                <button type="button"
+                onClick={() => navigate(-1)}>돌아가기</button>
                 <button type="submit">직원 등록</button>
 
             </form>
