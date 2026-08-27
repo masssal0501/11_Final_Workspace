@@ -1,3 +1,14 @@
+.content {
+  width : 1000px;
+  margin : auto;
+  margin-top : 50px;
+  margin-bottom : 50px;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 50px;
+  padding: 50px 25px;
+}
+
 th {
     background-color: #EAEAEA;
 }
@@ -16,6 +27,16 @@ tr:first-child{
     border-top: 1px solid black;
 }
 
+tr:first-child td:last-child{
+    display: flex;
+    margin-top: 10px;
+}
+
+tr:first-child td:last-child label{
+    display: flex;
+    gap: 5px; 
+}
+
 tr:nth-child(2) td:last-child input {
     width: 100px;
     flex : 1;
@@ -25,16 +46,16 @@ tr:nth-child(2) td:nth-child(2) input {
     background-color: white;
 }
 
+tr:last-child input {
+    margin-top: 5px;
+}
+
 tr {
     border-bottom: 1px solid #bcbcbc;
 }
 
-.back {
-    background-color : black;
-    color : white;
-    border-radius : 20px;
-    padding : 3px 10px;
-    float: right;
+th {
+    width: 110px !important;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

@@ -239,7 +239,7 @@ function App() {
 
                 <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
-                {/* placeInfo */}
+                {/* 거점 페이지 라우트 */}
                 <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
                 <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
                 <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>

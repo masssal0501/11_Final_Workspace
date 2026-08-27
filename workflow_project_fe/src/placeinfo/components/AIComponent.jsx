@@ -61,7 +61,7 @@ function AIComponent() {
     };
 
     return (
-        <div className="content">
+        <div>
             {/* 페이지 타이틀 */}
             <h2 align="center"><b>AI 추천</b></h2>
 
@@ -100,7 +100,7 @@ function AIComponent() {
                 <button type="submit" className="confirm" id="confirm" onClick={ Chatting }>
                     확인
                 </button>
-                <button type="button" className="back" onClick={() => { navigate(-1); }}>
+                <button type="button" style={ { float : "right", borderRadius : "99px" } } className="btn btn-dark" onClick={() => { navigate(-1); }}>
                     뒤로가기
                 </button>
             </form>

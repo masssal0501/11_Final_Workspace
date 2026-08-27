@@ -13,12 +13,17 @@
 }
 
 select[name="subRegion"] {
-    width: 150px;
-    float: left;
+    width: 130px;
+}
+
+select[name="hubType"] {
+    width: 130px;
+    flex: 0 0 auto;
 }
 
 input[name="keyword"] {
     width: 500px !important;
+    flex: 0 0 auto;
 }
 
 .list-area td {
@@ -36,12 +41,25 @@ input[name="keyword"] {
     border: 1px solid rgb(187, 187, 187);
 }
 
+.list-area {
+    margin-top: 50px;
+}
+
+.search-filter-table {
+    width: auto;
+}
+
+.table.list-area {
+    clear: both !important;
+    margin-top: 50px !important; /* 원하는 픽셀(px) 만큼 값을 조절하세요 */
+}
 
 .span-area {
     display: grid;
-    font-size: 19px;
-    row-gap: 10px;
+    font-size: 19px !important;
+    row-gap: 10px !important;
     width: 400px;
+    margin-right: 50px; 
 }
 
 .table tr {

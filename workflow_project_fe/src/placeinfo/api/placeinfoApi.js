@@ -1,10 +1,12 @@
 import axios from "axios";
 
-const BASE_URL = 'http://localhost:8001/workflow/hubs';
+import axiosInstance from "../../common/api/axiosInstance"
+
+const BASE_URL = 'http://localhost:8006/workflow/hubs';
 
 const selectHubListApi = cpage => {
 
-    const response = axios({
+    const response = axiosInstance({
         url : `${ BASE_URL }`,
         method : "get",
         params : {
@@ -17,7 +19,7 @@ const selectHubListApi = cpage => {
 
 const searchHubListApi = (cpage, inputData) => {
 
-    const response = axios({
+    const response = axiosInstance({
         url : `${ BASE_URL }/search`,
         method : "get",
         params : {
@@ -34,7 +36,7 @@ const searchHubListApi = (cpage, inputData) => {
 
 const insertHubApi = formData => {
 
-    const response = axios({
+    const response = axiosInstance({
        url : `${ BASE_URL }`,
        method : "post",
        data : formData,
@@ -48,7 +50,7 @@ const insertHubApi = formData => {
 
 const selectHubApi = hubNo => {
 
-    const response = axios({
+    const response = axiosInstance({
         url : `${ BASE_URL }/${ hubNo }`,
         method : "get"
     });
@@ -58,7 +60,7 @@ const selectHubApi = hubNo => {
 
 const deleteHubApi = hubNo => {
 
-    const response = axios({
+    const response = axiosInstance({
         url : `${ BASE_URL }/${ hubNo }`,
         method : "delete"
     });
@@ -68,7 +70,7 @@ const deleteHubApi = hubNo => {
 
 const updateHubApi = (hubNo, formData) => {
 
-    const response = axios({
+    const response = axiosInstance({
         url : `${ BASE_URL }/${ hubNo }`,
         method : "put",
         data : formData,
@@ -82,7 +84,7 @@ const updateHubApi = (hubNo, formData) => {
 
 const sendMessageApi = message => {
     
-    const response = axios({
+    const response = axiosInstance({
         url : `${ BASE_URL }/send`,
         method : "post",
         data : {

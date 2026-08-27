@@ -2,6 +2,10 @@
     display: flex;
 }
 
+.content-off {
+    background-color: lightgray !important;
+}
+
 .title-area img {
     width: 50%;
     height: 250px;

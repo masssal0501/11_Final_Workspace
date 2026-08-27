@@ -293,7 +293,7 @@ function HubUpdateFormComponent() {
 
     // return 구문
     return(
-        <div className="content">
+        <div>
             <h2 align="center"><b>거점 수정</b></h2>
             <br />
             {/* 거점 수정 입력 폼 */}
@@ -303,48 +303,39 @@ function HubUpdateFormComponent() {
                         {/* 사용 가능 인원, 운영 여부, 거점 유형 */}
                         <tr>
                             <th>사용 가능 인원</th>
-                            <td className="input-group col-5">
-                                <input
-                                    type="number"
-                                    min="1"
-                                    className="form-control"
-                                    placeholder="0"
-                                    name="maxCapacity"
-                                    value={ hub.maxCapacity }
-                                    onChange={ handleChange }
-                                    onBlur={ handleBlur }
-                                    required
-                                />&nbsp;<p>명</p>
+                            <td colSpan="3">
+                                <div className="input-group col-9">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        className="form-control"
+                                        placeholder="0"
+                                        name="maxCapacity"
+                                        value={ hub.maxCapacity }
+                                        onChange={ handleChange }
+                                        onBlur={ handleBlur }
+                                        required
+                                    />&nbsp;<p>명</p>
+                                </div>
                             </td>
                             <th>운영 여부</th>
                             <td>
-                                <input
+                                <label htmlFor="OPEN"><input
                                     type="radio"
                                     name="hubStatus"
                                     id="OPEN"
                                     value="OPEN"
                                     checked={ hub.hubStatus == "OPEN" }
-                                    onChange={ handleChange }/>
-                                <label htmlFor="OPEN">운영중</label>&nbsp;
-                                <input
+                                    onChange={ handleChange }/>운영중
+                                </label>&nbsp;
+                                <label htmlFor="PAUSED"><input
                                     type="radio"
                                     name="hubStatus"
                                     id="PAUSED"
                                     value="PAUSED"
                                     checked={ hub.hubStatus == "PAUSED" }
-                                    onChange={ handleChange }/>
-                                <label htmlFor="PAUSED">일시중단</label>
-                            </td>
-                            <th>유형</th>
-                            <td colSpan="2">
-                                <select
-                                    className="custom-select"
-                                    name="hubType"
-                                    value={ hub.hubType }
-                                    onChange={ handleChange }>
-                                    <option value="1">숙소</option>
-                                    <option value="2">공유오피스</option>
-                                </select>
+                                    onChange={ handleChange }/>일시중단
+                                </label>
                             </td>
                         </tr>
                         {/* 카카오 주소 검색 및 지역 */}
@@ -385,7 +376,7 @@ function HubUpdateFormComponent() {
                         {/* 전화번호 */}
                         <tr>
                             <th>전화번호</th>
-                            <td colSpan="5">
+                            <td colSpan="3">
                                 <input
                                     type="tel"
                                     name="phone"
@@ -397,6 +388,17 @@ function HubUpdateFormComponent() {
                                     onChange={ handleChange }
                                     onBlur={ handleBlur }
                                     required />
+                            </td>
+                            <th>유형</th>
+                            <td>
+                                <select
+                                    className="custom-select"
+                                    name="hubType"
+                                    value={ hub.hubType }
+                                    onChange={ handleChange }>
+                                    <option value="1">숙소</option>
+                                    <option value="2">공유오피스</option>
+                                </select>
                             </td>
                         </tr>
                         {/* 거점 이름 */}
@@ -474,7 +476,7 @@ function HubUpdateFormComponent() {
                         {/* 가격 입력 */}
                         <tr>
                             <th>가격/1일 기준<div style={{ fontSize : "12px" }}>숙소는 1박 기준!</div></th>
-                            <td className="input-group col-10">
+                            <td className="input-group col-9" colSpan="5">
                                 <input
                                     type="number"
                                     name="price"
@@ -503,7 +505,7 @@ function HubUpdateFormComponent() {
                
                 {/* 하단 동작 버튼 */}
                 <button type="submit" className="btn btn-primary" onClick={ updateHub }>수정하기</button>
-                <button type="button" className="back" onClick={ () => { navigate(-1); } }>뒤로가기</button>
+                <button type="button" className="btn btn-dark" style={ { float : "right", borderRadius : "99px" } } onClick={ () => { navigate(-1); } }>뒤로가기</button>
             </form>
         </div>
     )

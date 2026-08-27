@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kh.workflow.place.model.vo.Place;
+import com.kh.workflow.hub.model.vo.Hub;
 
 public interface PlaceService {
 	

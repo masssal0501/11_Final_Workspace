@@ -249,11 +249,11 @@ function HubListComponent() {
 
     // return 구문
     return (
-        <div className="content">
+        <div>
             <h2 align="center"><b>거점 목록</b></h2>
             <br />
             {/* 상단 검색 필터 테이블 영역 */}
-            <table align="left">
+            <table align="left" className="search-filter-table">
                 <tbody>
                     <tr style={ { border : "none" } }>
                         <td>지역 : </td>
@@ -265,7 +265,7 @@ function HubListComponent() {
                                 <option value="부산">부산</option>
                             </select>
                         </td>
-                        <td>
+                        <td style={ { float : "left", marginBottom : "10px" } }>
                             { handleRegion() }
                         </td>
                     </tr>
@@ -279,9 +279,9 @@ function HubListComponent() {
                             </select>
                         </td>
                         <td>
-                            <div className="input-group">
+                            <div className="input-group" style={ { marginBottom : "4px" } }>
                                 <input type="search" className="form-control" placeholder="거점 이름을 입력해주세요." name="keyword" onChange={ handleChange } value={ inputData.keyword } />
-                                <button type="submit" className="btn btn-outline-secondary" onClick={ handleClick }>🔍</button>
+                                <button type="submit" className="btn btn-outline-secondary" style={ { paddingBottom : "12px",  marginTop : "4px", fontSize : "13px", border : "1px solid gray"} } onClick={ handleClick }>🔍</button>
                             </div>
                         </td>
                     </tr>
@@ -292,9 +292,9 @@ function HubListComponent() {
             <div align="right">
                 <button type="button" id="AI" onClick={ () => { navigate("/placeInfo/ai"); } }>AI에게 장소 및 일정 추천 받기</button>
             </div>
-            <br />
-            <br />
             
+            <div style={{ height: "30px" }}></div>
+
             {/* 거점 목록이 나열되는 메인 테이블 영역 */}
             <table className="table table-hover list-area">
                 <thead></thead>

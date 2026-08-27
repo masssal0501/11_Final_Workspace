@@ -159,7 +159,7 @@ function HubDetailComponent() {
 
     // return 구문
     return (
-        <div className={ `content ${(hub.hubStatus === 'CLOSED') ? "content-off" : ""}` }>
+        <div style={ { backgroundColor: hub.hubStatus === 'CLOSED' ? 'lightgray' : 'white' }}>
             {/* 거점명 출력 */}
             <h2 align="center"><b>{ hub.hubName }</b></h2>
             <br /><br />

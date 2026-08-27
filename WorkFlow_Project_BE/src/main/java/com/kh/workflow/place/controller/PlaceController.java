@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.place.model.service.PlaceService;
-import com.kh.workflow.place.model.vo.Hub;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
