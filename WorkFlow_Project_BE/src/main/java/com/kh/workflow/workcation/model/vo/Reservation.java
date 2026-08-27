@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import com.kh.workflow.place.model.vo.Place;
+import com.kh.workflow.hub.model.vo.Hub;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -56,5 +56,5 @@ public class Reservation {
 	
 	@JoinColumn(name="hub_no", nullable=false)
 	@ManyToOne(fetch = FetchType.LAZY)
-	private Place hub;
+	private Hub hub;
 }
