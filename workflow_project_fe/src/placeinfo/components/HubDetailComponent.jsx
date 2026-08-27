@@ -1,22 +1,21 @@
 import { useNavigate, useParams } from 'react-router-dom';
-
 import { useEffect, useRef, useState } from 'react';
-
 import "../styles/HubDetailComponent.css";
-
 import { selectHubApi, deleteHubApi, BASE_URL } from "../api/placeinfoApi";
 
 function HubDetailComponent() {
     
-    // 실행할 구문
     // 카카오 API JavaScript 키
     const KAKAO_API_KEY = 'a00510cb26a4e33be1647f26b12df5c9';
+    // 카카오 지도가 렌더링될 DOM 요소를 참조
     const mapContainerRef = useRef(null);
+    // Kakao 우편번호 서비스 API 사용을 위한 window 객체 참조
     const { kakao } = window;
+    // React Router의 useParams를 통해 URL 경로 파라미터에서 hubNo 추출
     const hubNo = useParams().hubNo;
-
-    let navigate = useNavigate();
-
+    // 페이지 이동을 제어하는 React Router 훅
+    const navigate = useNavigate();
+    // 거점 상세 정보 폼 데이터를 관리하는 통합 객체 State
     const [hub, setHub] = useState({hubNo : hubNo,
                                     hubName : "",
                                     phone : "",
@@ -28,29 +27,25 @@ function HubDetailComponent() {
                                     mainRegion : "",
                                     subRegion : "",
                                     maxCapacity : 0,
-                                    hubFileList : [{
-                                        filePath : "",
-                                        changeName : ""
-                                    }]});
+                                    hubFileList : []});
+    // 해당 거점의 평균 별점 데이터를 관리
     const [avgScore, setAvgScore] = useState(""); 
-                                    
+    // 컴포넌트 마운트 시 또는 hubNo가 변경될 때 해당 거점의 기존 정보를 서버에서 조회
     useEffect(() =>{
-
+        // 비동기 API 호출: 거점 상세 정보 조회
         const selectBoard = async () => {
 
             try {
 
                 const response = await selectHubApi(hubNo);
 
+                // 조회 결과 데이터가 존재하는 경우
                 if(response.data != "") {
-
                     setHub(response.data.hub);
                     setAvgScore(response.data.avgScore);
-
                 } else {
-
+                    // 데이터가 없는 경우 경고창 띄우고 목록으로 리다이렉트
                     alert("이미 삭제되었거나 없는 거점입니다.");
-
                     navigate("/placeInfo/list")
                 }
 
@@ -62,7 +57,8 @@ function HubDetailComponent() {
         selectBoard();
 
     }, [hubNo]);
-    
+
+    // 거점 주소가 세팅된 후 카카오 지도 SDK 로드 및 마커 생성
     useEffect(() => {
         // 백엔드에서 주소 데이터를 아직 못 가져왔다면 지도를 그리지 않고 대기
         if (!hub.hubAddress) return;
@@ -70,6 +66,7 @@ function HubDetailComponent() {
         // 일반 지도 생성 함수
         const initMap = () => {
             
+            // 주소로 좌표를 검색하여 지도 및 마커 세팅
             const geocoder = new kakao.maps.services.Geocoder();
             geocoder.addressSearch(hub.hubAddress, (result, status) => {
                 // 표시할 위치 좌표 (제주 카카오 본사 좌표 예시)
@@ -89,6 +86,7 @@ function HubDetailComponent() {
                 });
                 marker.setMap(map);
 
+                // 마커 위에 거점명을 표시하는 인포윈도우 생성
                 const infowindow = new kakao.maps.InfoWindow({
                     content: `<div style="width:150px;font-size:12px;text-align:center;padding:6px 0;">${ hub.hubName }</div>`
                 });
@@ -96,7 +94,7 @@ function HubDetailComponent() {
             });
         };
 
-        // 이미 SDK가 로드되어 있다면 지도 생성
+        // SDK가 로드되어 있다면 지도 생성
         if (kakao && kakao.maps && window.kakao.maps.services) {
             kakao.maps.load(initMap);
             return;
@@ -122,6 +120,7 @@ function HubDetailComponent() {
         }
     }, [hub.hubAddress]);
 
+    // 거점 주소를 클립보드에 복사하는 기능
     const handleCopyClipBoard = async () => {
         try {
             await navigator.clipboard.writeText(hub.hubAddress);
@@ -131,6 +130,7 @@ function HubDetailComponent() {
         }
     };
 
+    // 거점 운영을 중단하는 기능
     const deleteHub = async e => {
 
         if(confirm("중단하면 더이상 수정이 불가능합니다.\n정말 해당 거점을 중단하시겠습니까?")) {
@@ -157,12 +157,17 @@ function HubDetailComponent() {
 
     }
 
+    // return 구문
     return (
         <div className={ `content ${(hub.hubStatus === 'CLOSED') ? "content-off" : ""}` }>
+            {/* 거점명 출력 */}
             <h2 align="center"><b>{ hub.hubName }</b></h2>
             <br /><br />
+            {/* 썸네일 이미지와 기본 정보 */}
             <div className="title-area area">
-                <img src={`${BASE_URL.replace('/hubs', '')}${hub.hubFileList[0].filePath}/${hub.hubFileList[0].changeName}`} />
+                {hub.hubFileList && hub.hubFileList.length > 0 && (
+                    <img src={`${BASE_URL.replace('/hubs', '')}${hub.hubFileList[0].filePath}/${hub.hubFileList[0].changeName}`} alt="썸네일 이미지" />
+                )}
                 <div className="span-area">
                     <span>거점명 : { hub.hubName }</span>
                     <span>전화번호 : { hub.phone }</span>
@@ -175,6 +180,7 @@ function HubDetailComponent() {
             <br />
             <hr />
             <br />
+            {/* 클립보드 복사 버튼, 별점 렌더링, 카카오 맵 컨테이너 */}
             <div className="content-area area">
                 {/* 일반 지도가 렌더링되는 영역 */}
                 <div className="span-area big-font">
@@ -186,17 +192,20 @@ function HubDetailComponent() {
                                                                        (avgScore >= 1) ? "★☆☆☆☆" : 
                                                                                              "☆☆☆☆☆"))))} ({ avgScore })</span>
                 </div>
+                {/* 지도가 실제로 그려질 Ref 대상 */}
                 <div id="map" ref={mapContainerRef} />
             </div>
             <br />
             <hr />
             <br />
+            {/* 거점에 대한 상세 텍스트 정보 */}
             <div>
                 <p align="center" style={ { fontSize : "20px" } }>
                     { hub.description }
                 </p>
             </div>
             
+            {/* 썸네일을 제외한 나머지 이미지들을 순회하여 렌더링 */}
             { (hub.hubFileList.length > 1) ? (
                 <>
                     <br />
@@ -215,6 +224,7 @@ function HubDetailComponent() {
                 </>
             ) : ""}
             <br /><br />
+            {/* 상태에 따른 수정/중단 버튼 및 공통 뒤로가기 버튼 */}
             <div className='button-area'>
                 { (hub.hubStatus === "CLOSED") ? "" : (
                     <>

@@ -66,15 +66,15 @@ const deleteHubApi = hubNo => {
     return response;
 }
 
-const updateHubApi = formData => {
+const updateHubApi = (hubNo, formData) => {
 
     const response = axios({
-       url : `${ BASE_URL }`,
-       method : "put",
-       data : formData,
-       headers : {
+        url : `${ BASE_URL }/${ hubNo }`,
+        method : "put",
+        data : formData,
+        headers : {
             "Content-Type" : "multipart/form-data"
-       } 
+        }
     });
 
     return response;
