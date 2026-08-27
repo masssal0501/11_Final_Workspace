@@ -1,5 +1,7 @@
 package com.kh.workflow.place.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.workflow.place.model.service.PlaceService;
 import com.kh.workflow.place.model.vo.Hub;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 
 @CrossOrigin(origins = "http://localhost:5174")
@@ -33,92 +38,15 @@ public class PlaceController {
     private PlaceService placeService;
 
 
-    // 지역 정보 목록 조회
-//    @GetMapping("/places")
-//    public ResponseEntity<ArrayList<Place>> selectPlaceList() {
-//
-//        ArrayList<Place> list =
-//                new ArrayList<>(placeService.selectPlaceList());
-//
-//        return ResponseEntity.status(HttpStatus.OK)
-//                             .body(list);
-//    }
-
- // 지역 정보 목록 조회
-    @GetMapping("/places")
-    public ResponseEntity<ArrayList<Hub>> selectPlaceList(
-            @RequestParam(value = "cpage", defaultValue = "1") int cpage,
-            @RequestParam(value = "type", required = false) String type,
-            @RequestParam(value = "region", required = false) String region,
-            @RequestParam(value = "subRegion", required = false) String subRegion) {
-
-        ArrayList<Hub> list =
-                new ArrayList<>(placeService.selectPlaceList(cpage, type, region, subRegion));
-
-        return ResponseEntity.status(HttpStatus.OK)
-                             .body(list);
-    }
-
-//    // 지역 정보 등록
-//    @PostMapping("/places")
-//    public ResponseEntity<String> insertPlace(
-//            @RequestPart("place") Place p,
-//            @RequestPart(value = "file", required = false) MultipartFile file,
-//            HttpServletRequest request) {
-//
-//        // Authorization 헤더 가져오기
-//        String authHeader = request.getHeader("Authorization");
-//
-//        // Bearer 토큰 확인
-//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                                 .body("unauthorized");
-//        }
-//
-//        String jwtTokenString = authHeader.substring(7);
-//
-//        // Secret Key 생성
-//        Key key = Keys.hmacShaKeyFor(
-//                secretKey.getBytes(StandardCharsets.UTF_8)
-//        );
-//
-//        // JWT 파싱
-//        Claims claims = Jwts.parserBuilder()
-//                            .setSigningKey(key)
-//                            .build()
-//                            .parseClaimsJws(jwtTokenString)
-//                            .getBody();
-//
-//        // 로그인한 사용자 ID
-//        String userId = claims.getSubject();
-//
-//        System.out.println("등록 요청 사용자 : " + userId);
-//
-//        // 기본 상태 설정
-//        if (p.getHubStatus() == null || p.getHubStatus().isBlank()) {
-//            p.setHubStatus("OPEN");
-//        }
-//
-//        // 장소 정보 등록
-//        Place insertPlace = placeService.insertPlace(p, file);
-//
-//        String message =
-//                (insertPlace != null)
-//                ? "success"
-//                : "fail";
-//
-//        return ResponseEntity.status(HttpStatus.OK)
-//                             .body(message);
-//    }
-    
- // 지역 정보 등록
+    // =========================================================
+    // 지역 정보 등록
+    // =========================================================
     @PostMapping("/places")
     public ResponseEntity<String> insertPlace(
             @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpServletRequest request) {
 
-        /* --- 테스트를 위해 토큰 검증 임시 주석 처리 ---
         // Authorization 헤더 가져오기
         String authHeader = request.getHeader("Authorization");
 
@@ -146,14 +74,13 @@ public class PlaceController {
         String userId = claims.getSubject();
 
         System.out.println("등록 요청 사용자 : " + userId);
-        ------------------------------------------- */
 
         // 기본 상태 설정
         if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
             h.setHubStatus("OPEN");
         }
 
-        // 장소 정보 등록
+        // 지역 정보 등록
         Hub insertPlace = placeService.insertPlace(h, file);
 
         String message =
@@ -166,7 +93,34 @@ public class PlaceController {
     }
 
 
+    // =========================================================
+    // 지역 정보 목록 조회
+    // =========================================================
+    @GetMapping("/places")
+    public ResponseEntity<ArrayList<Hub>> selectPlaceList(
+            @RequestParam(value = "cpage", defaultValue = "1") int cpage,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "region", required = false) String region,
+            @RequestParam(value = "subRegion", required = false) String subRegion) {
+
+        ArrayList<Hub> list =
+                new ArrayList<>(
+                        placeService.selectPlaceList(
+                                cpage,
+                                type,
+                                region,
+                                subRegion
+                        )
+                );
+
+        return ResponseEntity.status(HttpStatus.OK)
+                             .body(list);
+    }
+
+
+    // =========================================================
     // 지역 정보 상세 조회
+    // =========================================================
     @GetMapping("/places/{hubNo}")
     public ResponseEntity<Hub> selectPlace(
             @PathVariable int hubNo) {
@@ -178,7 +132,9 @@ public class PlaceController {
     }
 
 
+    // =========================================================
     // 지역 정보 수정
+    // =========================================================
     @PutMapping("/places/{hubNo}")
     public ResponseEntity<String> updatePlace(
             @PathVariable int hubNo,
@@ -200,7 +156,9 @@ public class PlaceController {
     }
 
 
+    // =========================================================
     // 지역 정보 삭제
+    // =========================================================
     @DeleteMapping("/places/{hubNo}")
     public ResponseEntity<String> deletePlace(
             @PathVariable int hubNo) {
