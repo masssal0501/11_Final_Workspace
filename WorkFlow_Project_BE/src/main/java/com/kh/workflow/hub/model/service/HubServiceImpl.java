@@ -21,10 +21,10 @@ public class HubServiceImpl implements HubService {
 
 	@Autowired
 	private HubFileDao hubFileDao;
-
-	public Page<Hub> selectHubList(Pageable pageable) {
-
-		return hubDao.findAllByOrderByHubNoDesc(pageable);
+	
+	public Page<Hub> selectHubList(Pageable pageable, List<Integer> hubTypes) {
+		
+		return hubDao.findByHubTypeInOrderByHubNoDesc(pageable, hubTypes);
 	}
 
 	@Transactional
@@ -51,14 +51,21 @@ public class HubServiceImpl implements HubService {
 	}
 
 	@Override
-	public List<String> selectMainRegion() {
+	public Hub selectHub(int hubNo) {
+		
+		return hubDao.findById(hubNo).orElse(null);
+	}
 
-		return hubDao.findDistinctMainRegion();
+	@Transactional
+	@Override
+	public int deleteHub(int hubNo) {
+		
+		return hubDao.deleteHub(hubNo);
 	}
 
 	@Override
-	public List<String> selectSubRegion(String mainRegion) {
-
-		return hubDao.findDistinctSubRegionsByMainRegion(mainRegion);
+	public Double selectAvgScore(int hubNo) {
+		
+		return hubDao.selectAvgScore(hubNo);
 	}
 }

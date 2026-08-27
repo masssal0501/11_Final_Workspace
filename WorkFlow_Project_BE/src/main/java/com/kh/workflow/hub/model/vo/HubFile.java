@@ -52,7 +52,7 @@ public class HubFile {
 	private String changeName;
 	
 	@Schema(description="첨부파일 등록", example="2026-08-24T10:00:00", accessMode=Schema.AccessMode.READ_ONLY)
-	@Column(name="UPDATED_AT", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	@Column(name="UPDATED_AT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime updatedAt;
 	
 	@Schema(description="상태", example="Y", allowableValues = {"Y", "N"}, defaultValue="Y")
@@ -61,7 +61,7 @@ public class HubFile {
 	
 	@Schema(description="거점 정보 (Hub 객체)")
 	@ManyToOne
-	@JoinColumn(name="HUB_NO")
+	@JoinColumn(name="HUB_NO", nullable=false)
 	private Hub hub;
 	
 }

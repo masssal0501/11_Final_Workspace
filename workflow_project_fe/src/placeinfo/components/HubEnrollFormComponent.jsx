@@ -7,17 +7,21 @@ import "../styles/HubEnrollFormComponent.css";
 
 function HubEnrollFormComponent() {
 
-    // 파일 관련 State
+    // 첨부 이미지 파일 객체 배열
     const [files, setFiles] = useState([null, null, null]);
+    // 이미지 미리보기 Base64 URL 저장 배열
     const [previews, setPreviews] = useState([null, null, null]);
+    // 현재 파일 선택/변경의 대상이 되는 영역 인덱스
     const [targetIndex, setTargetIndex] = useState(null);
-
+    // 카카오 우편번호 API 사용을 위한 window 객체 내 kakao 추출
+    const { kakao } = window;
+    // 페이지 이동 처리를 위한 React Router Hook
     const navigate = useNavigate();
+    // 숨겨진 실제 <input type="file"> 요소 조작을 위한 Ref
     const upfileRef = useRef(null);
-
+    // <form> 요소의 유효성 검사 실행을 위한 Ref
     const formRef = useRef(null);
-
-    // 폼 입력값 통합 State 관리 (객체 형태)
+    // 폼 입력값 통합 State 관리
     const [hubData, setHubData] = useState({
         mainRegion : "",
         subRegion : "",
@@ -25,9 +29,9 @@ function HubEnrollFormComponent() {
         hubAddress : "",
         phone : "",
         description : "",
-        hubType : "1",
-        price : 0,
-        maxCapacity : 1,
+        hubType : 1,
+        price : "",
+        maxCapacity : "",
         hubStatus : "OPEN"
     });
 
@@ -47,29 +51,17 @@ function HubEnrollFormComponent() {
         setHubData(newHubData);
     }
 
-    // 카카오 주소 검색 API
+    // 카카오 우편번호 서비스 팝업 오픈 및 주소/지역 선택 핸들러
     const handleAddressSearch = () => {
         new kakao.Postcode({
             oncomplete: (data) => {
-                // 도로명 주소 표기 규칙에 따른 주소 조합
                 let address = data.address;
                 let sido = data.sido.substring(0, 2);
                 let sigungu = data.sigungu;
-                let extraAddress = "";
 
-                // 법정동명 및 건물명 조합 (도로명 주소일 경우)
-                if (data.addressType === "R") {
-                    if (data.bname !== "") {
-                        extraAddress += data.bname;
-                    }
-                    if (data.buildingName !== "") {
-                        extraAddress += extraAddress !== "" ? `, ${data.buildingName}` : data.buildingName;
-                    }
-                    address += extraAddress !== "" ? ` (${extraAddress})` : "";
-                }
-
+                // 서비스 허용 지역 조건 검증
                 if(sido === "강원" || sido === "제주" || sido === "부산") {
-                    // hubData의 hubAddress 값 업데이트
+                    // hubData의 hubAddress 및 주요/세부 지역 정보 업데이트
                     setHubData(prevData => ({
                         ...prevData,
                         hubAddress : address,
@@ -80,12 +72,40 @@ function HubEnrollFormComponent() {
                     alert("지역은 강원, 제주, 부산만 가능합니다. ");
                     return;
                 }
-               
             }
         }).open();
     };
 
-    // 이미지 업로드 영역 클릭 시 실제 파일 입력창(input)을 트리거하는 함수
+    // 첨부된 파일 검증 및 미리보기 URL 생성 처리 함수
+    const processAndSetFile = (file, index) => {
+        // 이미지 Mime-Type 검증
+        if (!file.type.startsWith("image/")) {
+            alert("이미지 파일만 첨부 가능합니다.");
+            return;
+        }
+
+        // FileReader를 이용한 이미지 데이터 읽기
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = e => {
+            const newPreview = e.target.result;
+            
+            // 원본 파일 객체 배열 업데이트
+            setFiles(prev => {
+                const next = [...prev];
+                next[index] = file;
+                return next;
+            });
+            // 미리보기 URL 배열 업데이트
+            setPreviews(prev => {
+                const next = [...prev];
+                next[index] = newPreview;
+                return next;
+            });
+        };
+    };
+
+    // 이미지 업로드 영역 클릭 시 실제 파일 입력창을 트리거하는 함수
     const handleAreaClick = (index) => {
         setTargetIndex(index);
         if (upfileRef.current) {
@@ -93,58 +113,26 @@ function HubEnrollFormComponent() {
         }
     };
 
-    // 파일 유효성 검사 및 FileReader를 통한 미리보기 생성 공통 함수
-    const processFile = (selectedFile) => {
-        // 이미지 파일 형식 검증 (image/png, image/jpeg 등)
-        if (!selectedFile.type.startsWith("image/")) {
-            alert("이미지 파일만 첨부 가능합니다.");
-            return;
-        }
-
-        
-    };
-
     // <input type="file">을 통한 파일 선택 이벤트 핸들러
     const handleFileChange = e => {
         const selectedFile = e.target.files[0];
 
+        // 파일 선택을 취소했을 때의 예외 처리
         if(!selectedFile) {
+            // 이미 기존 파일이나 미리보기가 존재하던 슬롯이었다면 해당 파일 삭제 처리
             if(targetIndex !== null && files[targetIndex] !== null) {
                 handleRemoveImage(targetIndex);
             }
             return;
         }
 
-        // 이미지 파일 형식 검증 (image/png, image/jpeg 등)
-        if (!selectedFile.type.startsWith("image/")) {
-            alert("이미지 파일만 첨부 가능합니다.");
-            e.target.value = "";
-            return;
-        }
-
-        // FileReader API로 파일 읽기
-        const reader = new FileReader();
-        reader.readAsDataURL(selectedFile);
-        reader.onload = e => {
-            const newPreview = e.target.result;
-            
-            setFiles(prev => {
-                const next = [...prev];
-                next[targetIndex] = selectedFile;
-                return next;
-            });
-            setPreviews(prev => {
-                const next = [...prev];
-                next[targetIndex] = newPreview;
-                return next;
-            });
-            setTargetIndex(null);
-        };
-
-        processFile(selectedFile);
+        // 선택된 파일 읽기 및 State 업데이트
+        processAndSetFile(selectedFile, targetIndex);
+        setTargetIndex(null);
+        e.target.value = "";
     }
 
-    // 드래그 요소가 영역 위에 올라왔을 때 브라우저 기본 동작(파일 열기) 방지
+    // 드래그 요소가 영역 위에 올라왔을 때 브라우저 기본 동작 방지
     const handleDragOver = e => {
         e.preventDefault();
         e.stopPropagation();
@@ -157,39 +145,22 @@ function HubEnrollFormComponent() {
 
         const droppedFiles = e.dataTransfer.files;
         if (droppedFiles && droppedFiles.length > 0) {
-            const file = droppedFiles[0]
-
-            if(!file.type.startsWith("image/")) {
-                alert("이미지 파일만 첨부 가능합니다.");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = e => {      
-                setFiles(prev => {
-                    const next = [...prev]
-                    next[index] = file;
-                    return next;
-                });
-                setPreviews(prev => {
-                    const next = [...prev];
-                    next[index] = e.target.result;
-                    return next;
-                });  
-            };
+            processAndSetFile(droppedFiles[0], index);
         }
     };
 
-    // 특정 위치 이미지 삭제
+    // 특정 위치의 첨부 이미지 및 미리보기 삭제
     const handleRemoveImage = (index, e) => {
         if (e) e.stopPropagation();
 
+        // 신규 선택 파일 삭제
         setFiles(prev => {
             const next = [...prev];
             next[index] = null;
             return next;
         });
+
+        // 미리보기 경로 삭제
         setPreviews(prev => {
             const next = [...prev];
             next[index] = null;
@@ -197,17 +168,19 @@ function HubEnrollFormComponent() {
         });
     };
 
-    // 서버로 거점 등록 데이터(FormData)를 전송하는 비동기 함수
+    // 등록 폼 데이터를 Multipart/FormData 형태로 구성하여 백엔드 서버로 비동기 전송
     const insertHub = async e => {
-        // 버튼 클릭 시 기본 submit 폼 제출 및 페이지 리로드 동작 방지
         e.preventDefault();
 
+        // HTML5 폼 필수/조건 유효성 검사 수행
         if(!formRef.current.checkValidity()){
             formRef.current.reportValidity();
             return;
         }
-        if(!files[0]) {
-            alert("이미지는 최소 1개 이상 등록해야 합니다.");
+
+        // 대표 이미지 필수 등록 검증
+        if(!files[0] && !previews[0]) {
+            alert("대표이미지는 최소 1개 이상 등록해야 합니다.");
             return;
         }
 
@@ -215,35 +188,29 @@ function HubEnrollFormComponent() {
             // 파일 업로드가 포함되므로 multipart/form-data 처리를 위한 FormData 객체 생성
             const formData = new FormData();
 
-            // 폼 데이터를 키-값 쌍으로 추가
-            formData.append("mainRegion", hubData.mainRegion);
-            formData.append("subRegion", hubData.subRegion);
-            formData.append("hubName", hubData.hubName);
-            formData.append("hubAddress", hubData.hubAddress);
-            formData.append("phone", hubData.phone);
-            formData.append("description", hubData.description);
-            formData.append("hubType", hubData.hubType);
-            formData.append("price", hubData.price);
-            formData.append("maxCapacity", hubData.maxCapacity);
-            formData.append("hubStatus", hubData.hubStatus);
+            // 반복문을 사용하여 일일이 append 하던 코드를 한 줄로 압축
+            Object.keys(hubData).forEach(key => {
+                formData.append(key, hubData[key]);
+            });
 
-            // Hub_file 테이블 저장을 위해 첨부된 파일들 append
+            // 새로 추가된 파일 객체만 필터링하여 FormData에 append
             files.filter(f => f !== null).forEach(f => {
                 formData.append("upfile", f);
             });
 
-            // API 함수 호출 (Axios 등을 통한 POST 요청)
+            // API 함수 호출
             const response = await insertHubApi(formData);
 
             // 서버 응답 결과 처리
             if(response.data == "success") {
                 alert("거점 등록에 성공했습니다.");
-                navigate("/placeInfo/list"); // 성공 시 리스트 페이지로 이동
+                navigate("/placeInfo/list");
             } else {
                 alert("거점 등록에 실패했습니다.");
             }
 
         } catch(error) {
+            // 파일 용량 초과 에러 예외 처리
            if(error.response && error.response.status === 413) {
                 alert("이미지의 용량이 너무 큽니다. 파일 크기를 줄여서 다시 시도해주세요.")
            } else {
@@ -252,14 +219,16 @@ function HubEnrollFormComponent() {
         }
     };
 
+    // return 구문
     return(
         <div className="content">
             <h2 align="center"><b>거점 등록</b></h2>
             <br />
-            {/* 폼 제출 엔터 키 지원을 위해 onSubmit에 insertHub 연결 권장 */}
-            <form onSubmit={insertHub} ref={formRef}>
+            {/* 거점 작성 입력 폼 */}
+            <form ref={formRef}>
                 <table width="100%">
                     <tbody>
+                        {/* 사용 가능 인원, 운영 여부, 거점 유형 */}
                         <tr>
                             <th>사용 가능 인원</th>
                             <td className="input-group col-5">
@@ -272,6 +241,7 @@ function HubEnrollFormComponent() {
                                     value={ hubData.maxCapacity }
                                     onChange={ handleChange }
                                     onBlur={ handleBlur }
+                                    required
                                 />&nbsp;<p>명</p>
                             </td>
                             <th>운영 여부</th>
@@ -292,14 +262,6 @@ function HubEnrollFormComponent() {
                                     checked={ hubData.hubStatus == "PAUSED" }
                                     onChange={ handleChange }/>
                                 <label htmlFor="PAUSED">일시중단</label>&nbsp;
-                                <input
-                                    type="radio"
-                                    name="hubStatus"
-                                    id="CLOSE"
-                                    value="CLOSE"
-                                    checked={ hubData.hubStatus == "CLOSE" }
-                                    onChange={ handleChange }/>
-                                <label htmlFor="CLOSE">종료</label>
                             </td>
                             <th>유형</th>
                             <td colSpan="2">
@@ -313,7 +275,7 @@ function HubEnrollFormComponent() {
                                 </select>
                             </td>
                         </tr>
-                        {/* 카카오 주소 검색 적용 영역 */}
+                        {/* 카카오 주소 검색 및 지역 */}
                         <tr>
                             <th>주소</th>
                             <td colSpan="3">
@@ -335,17 +297,20 @@ function HubEnrollFormComponent() {
                                         className="form-control"
                                         name="mainRegion"
                                         value={ hubData.mainRegion }
+                                        onChange={ handleChange }
                                         readOnly
                                         required />
                                     <input
                                         className="form-control"
                                         name="subRegion"
                                         value={ hubData.subRegion }
+                                        onChange={ handleChange }
                                         readOnly
                                         required />
                                 </div>
                             </td>
                         </tr>
+                        {/* 전화번호 */}
                         <tr>
                             <th>전화번호</th>
                             <td colSpan="5">
@@ -362,6 +327,7 @@ function HubEnrollFormComponent() {
                                     required />
                             </td>
                         </tr>
+                        {/* 거점 이름 */}
                         <tr>
                             <th>거점 이름</th>
                             <td colSpan="5">
@@ -377,6 +343,7 @@ function HubEnrollFormComponent() {
                                     required />
                             </td>
                         </tr>
+                        {/* 거점 설명 */}
                         <tr>
                             <th>거점 설명</th>
                             <td colSpan="5">
@@ -393,6 +360,7 @@ function HubEnrollFormComponent() {
                                 </textarea>
                             </td>
                         </tr>
+                        {/* 첨부 이미지 드래그앤드롭/클릭 영역 */}
                         <tr>
                             <th>첨부 이미지</th>
                             <td colSpan="5">
@@ -408,6 +376,7 @@ function HubEnrollFormComponent() {
                                                 border: previews[index] ? "none" : "2px dashed #ccc",
                                             }}
                                         >
+                                            {/* 미리보기 이미지 유무에 따른 조건부 렌더링 */}
                                             {previews[index] ? (
                                                 <>
                                                     <img src={previews[index]} width="100%" height="100%" alt={`첨부 이미지 ${index + 1}`} style={{ objectFit: "cover", borderRadius: "6px" }} />
@@ -431,6 +400,7 @@ function HubEnrollFormComponent() {
                                 </div>
                             </td>
                         </tr>
+                        {/* 가격 입력 */}
                         <tr>
                             <th>가격/1일 기준<div style={{ fontSize : "12px" }}>숙소는 1박 기준!</div></th>
                             <td className="input-group col-10">
@@ -442,14 +412,15 @@ function HubEnrollFormComponent() {
                                     min="0"
                                     value={ hubData.price }
                                     onChange={ handleChange }
-                                    onBlur={ handleBlur } />
+                                    onBlur={ handleBlur }
+                                    required />
                                 &nbsp;<p>원</p>
                             </td>
                         </tr>
                     </tbody>
                 </table>
 
-                {/* 실제 파일 선택 입력을 담당하되 화면에는 보이지 않는 input (ref로 제어) */}
+                {/* 실제 파일 업로드를 동작시키는 숨겨진 파일 Input */}
                 <input
                     type="file"
                     accept="image/*"
@@ -459,9 +430,8 @@ function HubEnrollFormComponent() {
                 />
                 <br />
                
-                {/* 폼 제출 버튼 */}
+                {/* 하단 동작 버튼 */}
                 <button type="submit" className="btn btn-primary" onClick={ insertHub }>등록하기</button>
-                {/* 이전 페이지 이동 버튼 */}
                 <button type="button" className="back" onClick={ () => { navigate(-1); } }>뒤로가기</button>
             </form>
         </div>
