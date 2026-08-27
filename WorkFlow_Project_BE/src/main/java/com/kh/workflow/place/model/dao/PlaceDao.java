@@ -7,17 +7,18 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.kh.workflow.place.model.vo.Hub;
+
 public interface PlaceDao extends JpaRepository<Hub, Integer> {
 
     // 장소 목록 조회
     @Query("""
         SELECT h
         FROM Hub h
-        WHERE h.hubStatus = 'OPEN'
-          AND (:type IS NULL OR h.hubType = :type)
+        WHERE (:type IS NULL OR h.hubType = :type)
           AND (:region IS NULL OR h.mainRegion = :region)
           AND (:subRegion IS NULL OR h.subRegion = :subRegion)
-        ORDER BY p.hubNo DESC
+        ORDER BY h.hubNo DESC
     """)
     List<Hub> selectFilteredPlaceList(
         @Param("type") Integer type,
@@ -31,7 +32,7 @@ public interface PlaceDao extends JpaRepository<Hub, Integer> {
     // 장소 종료 처리
     @Modifying
     @Query("""
-        UPDATE Place
+        UPDATE Hub
         SET hubStatus = 'CLOSED'
         WHERE hubNo = :hubNo
     """)
