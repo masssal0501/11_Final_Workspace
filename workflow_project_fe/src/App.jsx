@@ -2,8 +2,20 @@ import { useState } from "react";
 import "./App.css";
 import "./common/styles/common.css";
 
+import NoticeListPage from './pages/notice/NoticeListPage';
+import NoticeDetailPage from './pages/notice/NoticeDetailPage';
+import NoticeUpdatePage from './pages/notice/NoticeUpdatePage';
+import NoticeWritePage from './pages/notice/NoticeWritePage';
+import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
+
+import AmountPage from './pages/amount/AmountPage';
+import AdminAmountPage from './pages/amount/AdminAmountPage';
+import AmountForm from './amount/components/AmountForm';
+import AmountDetail from './amount/components/AmountDetail';
+import StatisticsPage from './pages/amount/StatisticsPage';
+import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -188,6 +200,33 @@ function App() {
             />
 
             <Routes>
+
+                {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
+                <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
+                
+
+                {/* 📌 비용 신청 페이지 경로 추가 */}
+                <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
+
+                <Route path="/cost/apply" element={<AmountForm />} />
+
+                {/* 📌 비용 정산 상세 페이지 라우트 추가 */}
+                    <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
+                
+                {/* 관리자용 정산 페이지 */}
+                <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+
+                {/* 📌 통계 페이지 라우트 추가 */}
+                    <Route path="/admin/statistics" element={<StatisticsPage />} />
+                
+                <Route path="/notice" element={<NoticeListPage />} />
+
+                <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
+                <Route path="/admin/notice" element={<NoticeAdminListPage />} />
+
+                <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
+
+                <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
                 <Route
                     path="/"

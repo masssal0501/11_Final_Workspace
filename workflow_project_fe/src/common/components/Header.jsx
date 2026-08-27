@@ -4,10 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../employee/api/employeeApi";
 
 function Header() {
+  const [activeMenu, setActiveMenu] = useState("dashboard");
 
   const navigate = useNavigate();
-
-  const [activeMenu, setActiveMenu] = useState("dashboard");
 
   // 프로필 드롭다운
   const [isProfileOpen, setIsProfileOpen] = useState(false);
