@@ -1,0 +1,58 @@
+.area {
+    display: flex;
+}
+
+.title-area img {
+    width: 50%;
+    height: 250px;
+}
+
+.span-area {
+    margin-left: 10px;
+    margin-top: 15px;
+    display: grid;
+    font-size: 18px;
+    row-gap: 1px;
+    width: 50%;
+}
+
+.span-area p { 
+    display: inline;
+    color: aqua;
+    cursor: pointer;
+    border-bottom: 1px solid aqua;
+}
+.span-area p:hover { 
+    color: rgb(0, 245, 245);
+    border-bottom: 1px solid rgb(0, 245, 245);
+}
+.span-area p:active { 
+    color: rgb(0, 216, 216);
+    border-bottom: 1px solid rgb(0, 216, 216);
+}
+
+.img-area {
+    width: 100%;
+    height: 250px;
+}
+.img-area img {
+    width: 50%;
+    height: 100%;
+}
+
+#map {
+    width:  50%;
+    height: 300px;
+}
+
+.button-area * {
+    border-radius: 99px !important;
+}
+
+.button-area button:first-child {
+    color: white;
+}
+
+.button-area button:last-child {
+    float: right;
+}

@@ -1,0 +1,10 @@
+.content {
+  width : 1000px;
+  margin : auto;
+  margin-top : 50px;
+  margin-bottom : 50px;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 50px;
+  padding: 50px 25px;
+}

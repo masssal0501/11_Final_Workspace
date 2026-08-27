@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import './App.css';
 import './common/styles/common.css';
@@ -7,6 +7,11 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import Header from './common/components/Header';
 import Footer from './common/components/Footer';
+import HubListComponent from './placeinfo/components/HubListComponent';
+import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
+import HubDetailComponent from './placeinfo/components/HubDetailComponent';
+import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
+import AIComponent from './placeinfo/components/AIComponent';
 
 import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 import TaskListComponent from './taskboard/components/TaskListComponent';
@@ -34,12 +39,19 @@ function App() {
 
           {/* 사원 등록 라우트 */}
           <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />} />
+
+          {/* 거점 등록 라우트 */}
+          <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
+          <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />}></Route>
+          <Route path="/placeInfo/detail/:hubno" element={<HubDetailComponent />}></Route>
+          <Route path="/placeInfo/updateForm" element={<HubUpdateFormComponent />}></Route>
+          <Route path="/placeInfo/ai" element={<AIComponent />}></Route>
         </Routes>
       </div>
-
       <Footer />
     </div>
-  );
+
+  )
 }
 
 export default App;

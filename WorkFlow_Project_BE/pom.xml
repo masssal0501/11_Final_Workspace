@@ -33,10 +33,12 @@
 	<dependencies>
 		<!--
 			* 프로젝트 최초 생성 시 추가한 라이브러리들
-			- Spring Boot DevTools
-			- Spring Web
-			- Lombok
-			- Spring Security
+			1. Spring Boot Devtools
+			2. Spring Web
+			3. Lombok
+			4. Oracle Driver -> MySQL Driver
+			5. MyBatis Framework - > Spring Data JPA
+			6. Spring Security
 		
 			* 더 필요한 것이 있다면 구현 중에
 			Add Spring Boot Starters 또는 Maven Repository 에서 더 추가해서 쓰면 됨!!
@@ -127,6 +129,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- Gemini 연동 -->
+		<dependency>
+		    <groupId>org.springframework.ai</groupId>
+		    <artifactId>spring-ai-starter-model-google-genai</artifactId>
+		    <version>2.0.0</version>
 		</dependency>
 		<!-- Swagger -->
 		<dependency>
