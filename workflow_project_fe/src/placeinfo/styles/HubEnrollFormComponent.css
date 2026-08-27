@@ -2,11 +2,11 @@ th {
     background-color: #EAEAEA;
 }
 
-table * {
+/* table * {
     text-align: center;
     margin: auto;
     padding: 2px 2px;
-}
+} */
 
 input, textarea, select{
     border: 1px solid rgb(167, 167, 167) !important;

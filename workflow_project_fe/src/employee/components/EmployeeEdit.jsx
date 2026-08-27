@@ -7,7 +7,266 @@ function EmployeeEdit() {
     const { empNo } = useParams();
     const navigate = useNavigate();
 
-    console.log("수정할 직원 번호:", empNo);
+    const [form, setForm] = useState({
+        empNo: "",
+        empId: "",
+        empName: "",
+        phone1: "",
+        phone2: "",
+        phone3: "",
+        email: "",
+        address: "",
+        depId: "",
+        authCode: "",
+        jobCode: "",
+        joinAt: "",
+    });
+
+    /*
+     * 직원 정보 조회
+     */
+    const loadEmployee = async (empNo) => {
+
+        try {
+
+            const data =
+                await getEmployee(empNo);
+
+            console.log(
+                "직원 정보:",
+                data
+            );
+
+            /*
+             * 전화번호 분리
+             *
+             * 010-1234-5678
+             * →
+             * 010 / 1234 / 5678
+             */
+            const phone =
+                data.phone || "";
+
+            const phoneParts =
+                phone.split("-");
+
+
+            setForm({
+
+                empNo: data.empNo || "",
+
+                empId:
+                    data.empId || "",
+
+                empName:
+                    data.empName || "",
+
+                phone1:
+                    phoneParts[0] || "",
+
+                phone2:
+                    phoneParts[1] || "",
+
+                phone3:
+                    phoneParts[2] || "",
+
+                email:
+                    data.email || "",
+
+                address:
+                    data.address || "",
+
+                depId:
+                    data.depId || "",
+
+                authCode:
+                    data.authCode || "",
+
+                jobCode:
+                    data.jobCode || "",
+
+                joinAt:
+                    data.joinAt || "",
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "직원 정보 조회 실패:",
+                error
+            );
+
+            alert(
+                error.response?.data?.message ||
+                "직원 정보를 불러오지 못했습니다."
+            );
+
+            navigate(-1);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    /*
+     * 입력값 변경
+     */
+    const handleChange = (e) => {
+
+        const {
+            name,
+            value
+        } = e.target;
+
+        setForm({
+            ...form,
+            [name]: value,
+        });
+
+    };
+
+    /*
+     * 전화번호 숫자만 입력
+     */
+    const handlePhoneChange = (e) => {
+
+        const {
+            name,
+            value
+        } = e.target;
+
+        setForm({
+            ...form,
+            [name]:
+                value.replace(/[^0-9]/g, ""),
+        });
+
+    };
+
+
+    /*
+     * 정보 수정
+     */
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+
+        const phone =
+            `${form.phone1}-${form.phone2}-${form.phone3}`;
+
+
+        const updateData = {
+
+            empName:
+                form.empName,
+
+            phone:
+                phone,
+
+            email:
+                form.email,
+
+            address:
+                form.address,
+
+            depId:
+                form.depId,
+
+            authCode:
+                form.authCode,
+
+            jobCode:
+                form.jobCode,
+
+        };
+
+
+        try {
+
+            const result =
+                await updateEmployee(
+                    form.empNo,
+                    updateData
+                );
+
+            console.log(
+                "정보 수정 성공:",
+                result
+            );
+
+
+            /*
+             * localStorage의 user 정보도
+             * 수정된 내용으로 갱신
+             */
+            const savedUser =
+                localStorage.getItem("user");
+
+            if (savedUser) {
+
+                const loginUser =
+                    JSON.parse(savedUser);
+
+                const updatedUser = {
+
+                    ...loginUser,
+
+                    empName:
+                        form.empName,
+
+                    phone:
+                        phone,
+
+                    email:
+                        form.email,
+
+                    address:
+                        form.address,
+
+                    depId:
+                        form.depId,
+
+                    authCode:
+                        form.authCode,
+
+                    jobCode:
+                        form.jobCode,
+
+                };
+
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(updatedUser)
+                );
+
+            }
+
+
+            alert(
+                "회원정보가 정상적으로 수정되었습니다."
+            );
+
+            navigate("/myPage");
+
+        } catch (error) {
+
+            console.error(
+                "회원정보 수정 실패:",
+                error
+            );
+
+            alert(
+                error.response?.data?.message ||
+                "회원정보 수정에 실패했습니다."
+            );
+
+        }
+
+    };    
 
     return(
         <div className="enrollForm">
@@ -104,10 +363,10 @@ function EmployeeEdit() {
                             <th>상태</th>
                             <td colSpan={3}>
                                 <input type="radio" id="active" name="status" value="apple"/>
-                                <label htmlFor="active">재직</label>
+                                <label htmlFor="active">활성</label>
 
                                 <input type="radio" id="inactive" name="status" value="banana"/>
-                                <label htmlFor="inactive">퇴사</label>
+                                <label htmlFor="inactive">비활성</label>
                             </td>
                         </tr>
                     </tbody>

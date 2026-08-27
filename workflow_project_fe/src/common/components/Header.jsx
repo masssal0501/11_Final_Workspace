@@ -92,6 +92,12 @@ function Header() {
       path: "/task/list",
     },
     {
+      id: "employee",
+      label: "직원 관리",
+      icon: "☷",
+      path: "/employee/list",
+    },
+    {
       id: "amount",
       label: "비용 관리",
       icon: "₩",
