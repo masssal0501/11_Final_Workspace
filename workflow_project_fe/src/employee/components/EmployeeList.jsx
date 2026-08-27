@@ -15,6 +15,60 @@ function EmployeeList() {
     const [loading, setLoading] = useState(true);
 
 
+    // 부서
+    const getDepName = (depId) => {
+
+        switch (depId) {
+
+            case "D1":
+                return "기획";
+
+            case "D2":
+                return "디자인";
+
+            case "D3":
+                return "FE 개발";
+            
+            case "D4":
+                return "BE 개발";
+            
+            case "D5":
+                return "데이터";
+
+            case "D6":
+                return "QA";
+
+            default:
+                return "";
+        }
+    };
+
+
+    // 직위
+    const getJobName = (jobCode) => {
+
+        switch (jobCode) {
+
+            case "J1":
+                return "사원";
+
+            case "J2":
+                return "대리";
+
+            case "J3":
+                return "과장";
+
+            case "J4":
+                return "차장";
+
+            case "J5":
+                return "부장";
+
+            default:
+                return "";
+        }
+    };
+
     /*
      * 직원 목록 조회
      */
@@ -78,7 +132,7 @@ function EmployeeList() {
             empNo
         );
 
-        navigate(`/employee/edit/${empNo}`);
+        navigate(`/employee/detail/${empNo}`);
 
     };
 
@@ -152,7 +206,7 @@ function EmployeeList() {
                             </th>
 
                             <th>
-                                사번
+                                아이디
                             </th>
 
                             <th>
@@ -180,7 +234,7 @@ function EmployeeList() {
                                 >
 
                                     <td>
-                                        {employee.depName}
+                                        {getDepName(employee.depId)}
                                     </td>
 
                                     <td>
@@ -188,7 +242,7 @@ function EmployeeList() {
                                     </td>
 
                                     <td>
-                                        {employee.jobName}
+                                        {getJobName(employee.jobCode)}
                                     </td>
 
                                     <td>

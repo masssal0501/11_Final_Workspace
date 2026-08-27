@@ -16,6 +16,7 @@ import EmployeeEnrollFormComponent
 import MyPageForm from "./employee/components/MyPageForm";
 import UpdateMyPageForm from "./employee/components/UpdateMyPageForm";
 import EmployeeList from "./employee/components/EmployeeList";
+import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
 import {
@@ -23,6 +24,7 @@ import {
     Route,
     Navigate
 } from "react-router-dom";
+
 
 
 function App() {
@@ -238,7 +240,12 @@ function App() {
                 />
 
                 <Route
-                    path="/employee/edit"
+                    path='/employee/detail/:empNo'
+                    element={<EmployeeDetail />}
+                />
+
+                <Route
+                    path="/employee/edit/:empNo"
                     element={<EmployeeEdit />}
                 />
 
@@ -287,15 +294,15 @@ function App() {
 
                 )}
 
-                <Route
+                {/* <Route
                     path="*"
                     element={
                         <Navigate
-                            to="/dashboard"
+                            to="/error"
                             replace
                         />
                     }
-                />
+                /> */}
 
             </Routes>
 

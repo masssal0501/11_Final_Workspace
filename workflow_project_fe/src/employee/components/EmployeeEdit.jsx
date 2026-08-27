@@ -1,7 +1,13 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getEmployee } from "../api/employeeApi";
 
 function EmployeeEdit() {
+
+    const { empNo } = useParams();
+    const navigate = useNavigate();
+
+    console.log("수정할 직원 번호:", empNo);
 
     return(
         <div className="enrollForm">
@@ -106,7 +112,10 @@ function EmployeeEdit() {
                         </tr>
                     </tbody>
                 </table>
-                <button type="button">돌아가기</button>
+                <button type="button"
+                onClick={() => navigate(-1)}>
+                    돌아가기
+                </button>
                 <button type="submit">
                     확인
                 </button>
