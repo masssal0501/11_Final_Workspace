@@ -17,14 +17,18 @@ import AmountDetail from './amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
 import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 
+import HubListComponent from './placeinfo/components/HubListComponent';
+import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
+import HubDetailComponent from './placeinfo/components/HubDetailComponent';
+import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
+import AIComponent from './placeinfo/components/AIComponent';
+
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
 import FindPWForm from "./employee/components/FindPWForm";
 import ChangePWForm from "./employee/components/ChangePWForm";
-
 import EmployeeEnrollFormComponent
     from "./employee/components/EmployeeEnrollFormComponent";
-
 import MyPageForm from "./employee/components/MyPageForm";
 import UpdateMyPageForm from "./employee/components/UpdateMyPageForm";
 import EmployeeList from "./employee/components/EmployeeList";
@@ -203,7 +207,6 @@ function App() {
 
                 {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
                 <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
-                
 
                 {/* 📌 비용 신청 페이지 경로 추가 */}
                 <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
@@ -227,6 +230,13 @@ function App() {
                 <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
 
                 <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+
+                {/* placeInfo */}
+                <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
+                <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
+                <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
+                <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
+                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
 
                 <Route
                     path="/"

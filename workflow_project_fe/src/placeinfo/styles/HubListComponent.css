@@ -1,0 +1,58 @@
+#AI {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 40px;
+    padding: 13.5px 25.5px;
+    background-color: #0091FF;
+    color: white;
+    border: none;
+    font-size: 14px;
+}
+
+#AI:hover {
+    background-color: #0084e9;
+}
+
+select[name="subRegion"] {
+    width: 150px;
+    float: left;
+}
+
+input[name="keyword"] {
+    width: 500px !important;
+}
+
+.list-area td {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-right: 80px;
+    padding-left: 0;
+}
+
+.list-area td img {
+    width : 90%;
+    border: 1px solid rgb(187, 187, 187);
+}
+
+
+.span-area {
+    display: grid;
+    font-size: 19px;
+    row-gap: 10px;
+    width: 400px;
+}
+
+.table tr {
+    cursor: pointer;
+}
+
+.not-found {
+    background-color: transparent !important;
+    cursor: auto !important
+}
+
+.not-found td {
+    display: table-cell;
+}
