@@ -15,5 +15,9 @@ public interface HubService {
 	Hub insertHub(Hub hub, List<HubFile> fileList);
 
 	Page<Hub> searchHubList(Pageable pageable, String mainRegion, String subRegion, List<Integer> hubTypes, String keyword);
+
+	List<String> selectMainRegion();
+
+	List<String> selectSubRegion(String mainRegion);
 	
 }

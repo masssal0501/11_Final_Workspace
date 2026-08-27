@@ -12,23 +12,25 @@ import org.springframework.data.repository.query.Param;
 import com.kh.workflow.hub.model.vo.Hub;
 
 public interface HubDao extends JpaRepository<Hub, Integer> {
-	@EntityGraph(attributePaths = {"hubFileList"})
+	@EntityGraph(attributePaths = { "hubFileList" })
 	Page<Hub> findAllByOrderByHubNoDesc(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"hubFileList"})
-    Page<Hub> findAll(Pageable pageable);
-    
-    @EntityGraph(attributePaths = {"hubFileList"})
-    @Query("SELECT h FROM Hub h WHERE " +
-            "(:mainRegion IS NULL OR :mainRegion = '' OR h.mainRegion = :mainRegion) AND " +
-            "(:subRegion IS NULL OR :subRegion = '' OR h.subRegion = :subRegion) AND " +
-            "(h.hubType IN :hubTypes) AND " +
-            "(:keyword IS NULL OR :keyword = '' OR h.hubName LIKE %:keyword%) " +
-            "ORDER BY h.hubNo DESC")
-     Page<Hub> searchHubList(
-         Pageable pageable,
-         @Param("mainRegion") String mainRegion,
-         @Param("subRegion") String subRegion,
-         @Param("hubTypes") List<Integer> hubTypes,
-         @Param("keyword") String keyword
-     );}
+	@EntityGraph(attributePaths = { "hubFileList" })
+	Page<Hub> findAll(Pageable pageable);
+
+	@EntityGraph(attributePaths = { "hubFileList" })
+	@Query("SELECT h FROM Hub h WHERE " + "(:mainRegion IS NULL OR :mainRegion = '' OR h.mainRegion = :mainRegion) AND "
+			+ "(:subRegion IS NULL OR :subRegion = '' OR h.subRegion = :subRegion) AND "
+			+ "(h.hubType IN :hubTypes) AND " + "(:keyword IS NULL OR :keyword = '' OR h.hubName LIKE %:keyword%) "
+			+ "ORDER BY h.hubNo DESC")
+	Page<Hub> searchHubList(Pageable pageable, @Param("mainRegion") String mainRegion,
+			@Param("subRegion") String subRegion, @Param("hubTypes") List<Integer> hubTypes,
+			@Param("keyword") String keyword);
+
+	@Query("SELECT DISTINCT h.mainRegion FROM Hub h WHERE h.mainRegion IS NOT NULL")
+	List<String> findDistinctMainRegion();
+
+	@Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion AND h.subRegion IS NOT NULL")
+	List<String> findDistinctSubRegionsByMainRegion(@Param("mainRegion") String mainRegion);
+
+}

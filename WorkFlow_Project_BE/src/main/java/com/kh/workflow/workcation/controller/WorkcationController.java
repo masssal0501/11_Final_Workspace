@@ -44,17 +44,5 @@ public class WorkcationController {
 		return ResponseEntity.ok(map);
 	}
 
-	// 메인지역 드롭에 따른 목록 조회
-	@GetMapping("/api/hub/main-regions")
-	public ResponseEntity<List<String>> getMainRegions() {
-		List<String> mainRegions = workcationService.selectMainRegion();
-		return ResponseEntity.ok(mainRegions);
-	}
-
-	// 상세지역 드롭에 따른 목록 조회
-	@GetMapping("/api/hub/sub-regions")
-	public ResponseEntity<List<String>> getSubRegions(@RequestParam String mainRegion) {
-		List<String> subRegions = workcationService.selectSubRegions(mainRegion);
-		return ResponseEntity.ok(subRegions);
-	}
+	
 }

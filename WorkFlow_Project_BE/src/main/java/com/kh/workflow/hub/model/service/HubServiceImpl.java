@@ -21,32 +21,44 @@ public class HubServiceImpl implements HubService {
 
 	@Autowired
 	private HubFileDao hubFileDao;
-	
+
 	public Page<Hub> selectHubList(Pageable pageable) {
-		
+
 		return hubDao.findAllByOrderByHubNoDesc(pageable);
 	}
 
 	@Transactional
 	@Override
 	public Hub insertHub(Hub hub, List<HubFile> fileList) {
-		
+
 		Hub savedHub = hubDao.save(hub);
-		
-		if(fileList != null && !fileList.isEmpty()) {
+
+		if (fileList != null && !fileList.isEmpty()) {
 			for (HubFile file : fileList) {
 				file.setHub(savedHub);
 				hubFileDao.save(file);
 			}
 		}
-		
+
 		return savedHub;
 	}
 
 	@Override
 	public Page<Hub> searchHubList(Pageable pageable, String mainRegion, String subRegion, List<Integer> hubTypes,
 			String keyword) {
-		
+
 		return hubDao.searchHubList(pageable, mainRegion, subRegion, hubTypes, keyword);
+	}
+
+	@Override
+	public List<String> selectMainRegion() {
+
+		return hubDao.findDistinctMainRegion();
+	}
+
+	@Override
+	public List<String> selectSubRegion(String mainRegion) {
+
+		return hubDao.findDistinctSubRegionsByMainRegion(mainRegion);
 	}
 }

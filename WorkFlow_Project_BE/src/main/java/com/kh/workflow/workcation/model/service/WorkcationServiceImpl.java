@@ -27,15 +27,4 @@ public class WorkcationServiceImpl implements WorkcationService {
 		return workcationDao.findAll(pageable);
 	}
 
-	@Override
-	public List<String> selectMainRegion() {
-		
-		return workcationDao.findDistinctMainRegions();
-	}
-
-	@Override
-	public List<String> selectSubRegions(String mainRegion) {
-		
-		return workcationDao.findDistinctSubRegionsByMainRegion(mainRegion);
-	}
 }

@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.hub.model.vo.Hub;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -85,6 +86,6 @@ public class WorkcationInfo {
 	@Schema(description="결재자 번호(사원)")
 	@JoinColumn(name="approver_no")
 	@ManyToOne(fetch = FetchType.LAZY)
-	private Employee approver;// 결재자 번호
+	private Employee approver;// 결재자 번호	
 
 }

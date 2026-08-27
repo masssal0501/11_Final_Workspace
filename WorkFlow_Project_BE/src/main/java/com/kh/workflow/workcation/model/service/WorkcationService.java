@@ -11,10 +11,6 @@ public interface WorkcationService {
 
 	Page<WorkcationInfo> selectWorkcationList(Pageable pageable);
 
-	List<String> selectMainRegion();
-
-	List<String> selectSubRegions(String mainRegion);
-
 	
 	
 }

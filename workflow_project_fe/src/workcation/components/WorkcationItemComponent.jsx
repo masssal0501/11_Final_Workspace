@@ -15,10 +15,10 @@ function WorkcationItemComponent(props) {
 
     //메인 지역 목록 조회(강원, 부산, 제주)
     useEffect(() => {
-        axios.get(`http://localhost:8006/workcation/api/hub/hubNo/main-regions`)
+        axios.get(`http://localhost:8006/hub/mainRegion`)
             .then(res => {
                 const data = Array.isArray(res.data) ? res.data : (res.data.list || []);
-                setMainRegionList(data);
+                setMainRegionList(res.data);
             })
             .catch(err => console.error("메인 지역 로딩 실패: ", err))
     }, []);
@@ -29,8 +29,8 @@ function WorkcationItemComponent(props) {
             setSubRegionList([]);
             return;
         }
-        axios.get(`http://localhost:8006/api/hub/sub-regions?mainRegion=${mainRegion}`)
-            .then(res => setSubRegion(res.data))
+        axios.get(`http://localhost:8006/hub/subRegion?mainRegion=${mainRegion}`)
+            .then(res => setSubRegionList(res.data))
             .catch(err => console.error("서브 지역 로딩 실패: ", err))
     }, [mainRegion])
 
