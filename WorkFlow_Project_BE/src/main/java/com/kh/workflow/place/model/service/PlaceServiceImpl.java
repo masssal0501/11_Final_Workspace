@@ -8,72 +8,59 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.place.model.dao.PlaceDao;
-import com.kh.workflow.place.model.vo.Place;
 
 @Service
 public class PlaceServiceImpl implements PlaceService {
 
     @Autowired
     private PlaceDao placeDao;
-    
-    @Autowired
-    private HubFileDao hubFileDao;
 
     @Transactional(readOnly = true)
     @Override
-    public List<Place> selectPlaceList() {
-        return placeDao.findByHubStatusOrderByHubNoDesc("OPEN");
+    public List<Hub> selectPlaceList(
+            int cpage,
+            String type,
+            String region,
+            String subRegion) {
+
+        Integer searchType =
+                (type == null || type.isBlank())
+                ? null
+                : Integer.parseInt(type);
+
+        String searchRegion =
+                (region == null || region.isBlank())
+                ? null
+                : region;
+
+        String searchSubRegion =
+                (subRegion == null || subRegion.isBlank())
+                ? null
+                : subRegion;
+
+        return placeDao.selectFilteredPlaceList(
+                searchType,
+                searchRegion,
+                searchSubRegion
+        );
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Place selectPlace(int hubNo) {
+    public Hub selectPlace(int hubNo) {
         return placeDao.findByHubNoAndHubStatus(hubNo, "OPEN");
     }
 
     @Transactional
     @Override
-    public Place insertPlace(Place p, MultipartFile file) {
-
-        // 장소 정보 저장
-        Place savedPlace = placeDao.save(p);
-
-        // 사진이 있으면 파일 저장
-        if (file != null && !file.isEmpty()) {
-
-            HubFile hubFile = new HubFile();
-
-            // 파일 저장 처리
-            // filePath
-            // originName
-            // changeName
-            // hub 연결
-
-            hubFile.setHub(savedPlace);
-
-            hubFileDao.save(hubFile);
-        }
-
-        return savedPlace;
+    public Hub insertPlace(Hub h, MultipartFile file) {
+        return placeDao.save(h);
     }
+
     @Transactional
     @Override
-    public Place updatePlace(Place p, MultipartFile file) {
-
-        Place savedPlace = placeDao.save(p);
-
-        if (file != null && !file.isEmpty()) {
-
-            HubFile hubFile = new HubFile();
-
-            // 새 파일 저장 처리
-
-            hubFile.setHub(savedPlace);
-
-            hubFileDao.save(hubFile);
-        }
-
-        return savedPlace;
+    public Hub updatePlace(Hub h, MultipartFile file) {
+        return placeDao.save(p);
     }
 
     @Transactional

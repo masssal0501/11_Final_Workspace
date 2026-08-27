@@ -1,7 +1,5 @@
 package com.kh.workflow.place.controller;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,12 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.workflow.place.model.service.PlaceService;
 import com.kh.workflow.place.model.vo.Place;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5174")
 @RestController
 public class PlaceController {
 
@@ -39,24 +34,91 @@ public class PlaceController {
 
 
     // 지역 정보 목록 조회
+//    @GetMapping("/places")
+//    public ResponseEntity<ArrayList<Place>> selectPlaceList() {
+//
+//        ArrayList<Place> list =
+//                new ArrayList<>(placeService.selectPlaceList());
+//
+//        return ResponseEntity.status(HttpStatus.OK)
+//                             .body(list);
+//    }
+
+ // 지역 정보 목록 조회
     @GetMapping("/places")
-    public ResponseEntity<ArrayList<Place>> selectPlaceList() {
+    public ResponseEntity<ArrayList<Place>> selectPlaceList(
+            @RequestParam(value = "cpage", defaultValue = "1") int cpage,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "region", required = false) String region,
+            @RequestParam(value = "subRegion", required = false) String subRegion) {
 
         ArrayList<Place> list =
-                new ArrayList<>(placeService.selectPlaceList());
+                new ArrayList<>(placeService.selectPlaceList(cpage, type, region, subRegion));
 
         return ResponseEntity.status(HttpStatus.OK)
                              .body(list);
     }
 
-
-    // 지역 정보 등록
+//    // 지역 정보 등록
+//    @PostMapping("/places")
+//    public ResponseEntity<String> insertPlace(
+//            @RequestPart("place") Place p,
+//            @RequestPart(value = "file", required = false) MultipartFile file,
+//            HttpServletRequest request) {
+//
+//        // Authorization 헤더 가져오기
+//        String authHeader = request.getHeader("Authorization");
+//
+//        // Bearer 토큰 확인
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                                 .body("unauthorized");
+//        }
+//
+//        String jwtTokenString = authHeader.substring(7);
+//
+//        // Secret Key 생성
+//        Key key = Keys.hmacShaKeyFor(
+//                secretKey.getBytes(StandardCharsets.UTF_8)
+//        );
+//
+//        // JWT 파싱
+//        Claims claims = Jwts.parserBuilder()
+//                            .setSigningKey(key)
+//                            .build()
+//                            .parseClaimsJws(jwtTokenString)
+//                            .getBody();
+//
+//        // 로그인한 사용자 ID
+//        String userId = claims.getSubject();
+//
+//        System.out.println("등록 요청 사용자 : " + userId);
+//
+//        // 기본 상태 설정
+//        if (p.getHubStatus() == null || p.getHubStatus().isBlank()) {
+//            p.setHubStatus("OPEN");
+//        }
+//
+//        // 장소 정보 등록
+//        Place insertPlace = placeService.insertPlace(p, file);
+//
+//        String message =
+//                (insertPlace != null)
+//                ? "success"
+//                : "fail";
+//
+//        return ResponseEntity.status(HttpStatus.OK)
+//                             .body(message);
+//    }
+    
+ // 지역 정보 등록
     @PostMapping("/places")
     public ResponseEntity<String> insertPlace(
-            @RequestPart("place") Place p,
+            @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpServletRequest request) {
 
+        /* --- 테스트를 위해 토큰 검증 임시 주석 처리 ---
         // Authorization 헤더 가져오기
         String authHeader = request.getHeader("Authorization");
 
@@ -84,14 +146,15 @@ public class PlaceController {
         String userId = claims.getSubject();
 
         System.out.println("등록 요청 사용자 : " + userId);
+        ------------------------------------------- */
 
         // 기본 상태 설정
-        if (p.getHubStatus() == null || p.getHubStatus().isBlank()) {
-            p.setHubStatus("OPEN");
+        if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
+            h.setHubStatus("OPEN");
         }
 
         // 장소 정보 등록
-        Place insertPlace = placeService.insertPlace(p, file);
+        Hub insertPlace = placeService.insertPlace(h, file);
 
         String message =
                 (insertPlace != null)
@@ -105,13 +168,13 @@ public class PlaceController {
 
     // 지역 정보 상세 조회
     @GetMapping("/places/{hubNo}")
-    public ResponseEntity<Place> selectPlace(
+    public ResponseEntity<Hub> selectPlace(
             @PathVariable int hubNo) {
 
-        Place p = placeService.selectPlace(hubNo);
+        Hub h = placeService.selectPlace(hubNo);
 
         return ResponseEntity.status(HttpStatus.OK)
-                             .body(p);
+                             .body(h);
     }
 
 
@@ -119,13 +182,13 @@ public class PlaceController {
     @PutMapping("/places/{hubNo}")
     public ResponseEntity<String> updatePlace(
             @PathVariable int hubNo,
-            @RequestPart("place") Place p,
+            @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file) {
 
         // URL의 hubNo를 기준으로 수정
-        p.setHubNo(hubNo);
+        h.setHubNo(hubNo);
 
-        Place updatePlace = placeService.updatePlace(p, file);
+        Hub updatePlace = placeService.updatePlace(h, file);
 
         String message =
                 (updatePlace != null)

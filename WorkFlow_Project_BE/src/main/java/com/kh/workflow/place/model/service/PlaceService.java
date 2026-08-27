@@ -8,13 +8,13 @@ import com.kh.workflow.place.model.vo.Place;
 
 public interface PlaceService {
 	
-	List<Place> selectPlaceList();
+	List<Hub> selectPlaceList(int cpage, String type, String region, String subRegion);
 	
-	Place selectPlace(int hubNo);
+	Hub selectPlace(int hubNo);
 	
-	Place insertPlace(Place p, MultipartFile file);
+	Hub insertPlace(Hub h, MultipartFile file);
 	
-	Place updatePlace(Place p, MultipartFile file);
+	Hub updatePlace(Hub h, MultipartFile file);
 	
 	int deletePlace(int hubNo);
 
