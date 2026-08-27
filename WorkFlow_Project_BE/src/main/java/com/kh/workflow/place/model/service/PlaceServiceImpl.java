@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.place.model.dao.PlaceDao;
 
+import com.kh.workflow.place.model.vo.Hub;
+
 @Service
 public class PlaceServiceImpl implements PlaceService {
 
@@ -48,7 +50,7 @@ public class PlaceServiceImpl implements PlaceService {
     @Transactional(readOnly = true)
     @Override
     public Hub selectPlace(int hubNo) {
-        return placeDao.findByHubNoAndHubStatus(hubNo, "OPEN");
+        return placeDao.findByHubNo(hubNo);
     }
 
     @Transactional
@@ -60,7 +62,7 @@ public class PlaceServiceImpl implements PlaceService {
     @Transactional
     @Override
     public Hub updatePlace(Hub h, MultipartFile file) {
-        return placeDao.save(p);
+        return placeDao.save(h);
     }
 
     @Transactional

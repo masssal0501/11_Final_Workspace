@@ -27,7 +27,7 @@ public interface PlaceDao extends JpaRepository<Hub, Integer> {
     );
 
     // 특정 장소 조회
-    Hub findByHubNoAndHubStatus(int hubNo, String hubStatus);
+    Hub findByHubNo(int hubNo);
 
     // 장소 종료 처리
     @Modifying

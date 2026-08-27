@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.place.model.service.PlaceService;
-import com.kh.workflow.place.model.vo.Place;
+import com.kh.workflow.place.model.vo.Hub;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -46,13 +46,13 @@ public class PlaceController {
 
  // 지역 정보 목록 조회
     @GetMapping("/places")
-    public ResponseEntity<ArrayList<Place>> selectPlaceList(
+    public ResponseEntity<ArrayList<Hub>> selectPlaceList(
             @RequestParam(value = "cpage", defaultValue = "1") int cpage,
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "region", required = false) String region,
             @RequestParam(value = "subRegion", required = false) String subRegion) {
 
-        ArrayList<Place> list =
+        ArrayList<Hub> list =
                 new ArrayList<>(placeService.selectPlaceList(cpage, type, region, subRegion));
 
         return ResponseEntity.status(HttpStatus.OK)
