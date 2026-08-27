@@ -1,47 +1,43 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = '/api/notice';
+const API_URL = "/api/v1/notice";
 
 export const noticeApi = {
 
-    // 공지사항 목록
-    getNoticeList: async () => {
-        const response = await axios.get(API_BASE_URL);
+   // 목록 (검색 조건 포함)
+    getNoticeList: async (page, limit, condition, keyword) => {
+        const response = await axios.get(API_URL, {
+            params: { page, limit, condition, keyword }
+        });
         return response.data;
     },
 
-    // 공지사항 상세
+    // 상세
     getNoticeDetail: async (noticeNo) => {
-        const response = await axios.get(
-            `${API_BASE_URL}/${noticeNo}`
-        );
+        const response = await axios.get(`${API_URL}/${noticeNo}`);
         return response.data;
     },
 
-    // 공지사항 등록
-    insertNotice: async (noticeData) => {
-        const response = await axios.post(
-            API_BASE_URL,
-            noticeData
-        );
+    // 등록
+    insertNotice: async (formData) => {
+        const response = await axios.post(API_URL, formData);
         return response.data;
     },
 
-    // 공지사항 수정
-    updateNotice: async (noticeNo, noticeData) => {
-        const response = await axios.put(
-            `${API_BASE_URL}/${noticeNo}`,
-            noticeData
-        );
+    // 수정
+    updateNotice: async (noticeNo, formData) => {
+        const response = await axios.put(`${API_URL}/${noticeNo}`, formData);
         return response.data;
     },
 
-    // 공지사항 삭제
+    // 삭제
     deleteNotice: async (noticeNo) => {
-        const response = await axios.delete(
-            `${API_BASE_URL}/${noticeNo}`
-        );
+        const response = await axios.delete(`${API_URL}/${noticeNo}`);
         return response.data;
-    }
+    },
 
+    // 파일 다운로드
+    getFileDownloadUrl: (noticefileNo) => {
+        return `${API_URL}/file/${noticefileNo}`;
+    }
 };

@@ -4,172 +4,63 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.kh.workflow.amount.vo.Amount;
+import com.kh.workflow.common.model.vo.PageInfo;
 
 @Mapper
 public interface AmountDao {
 
-    // =========================================================
-    // 1. amount 등록
-    // =========================================================
-
     int insertAmount(Amount amount);
-
-
-    // =========================================================
-    // 2. amount_item 등록
-    // =========================================================
 
     int insertAmountItem(Amount.Item item);
 
-
-    // =========================================================
-    // 3. amount_list 등록
-    //
-    // amount_list는 amount_no로 amount와 연결
-    // =========================================================
-
     int insertAmountSponsor(Amount.Sponsor sponsor);
-
-
-    // =========================================================
-    // 4. amount_file 등록
-    // =========================================================
 
     int insertAmountFile(Amount.File file);
 
-
-    // =========================================================
-    // 5. amount 조회
-    // =========================================================
-
     Amount selectAmountById(int amountNo);
+    
+    int getAmountListCount();
 
+ // 전체 목록 조회 (페이징)
+    List<Amount> selectAmountList(@Param("pi") PageInfo pi);
 
-    // =========================================================
-    // 6. 워케이션별 amount 목록
-    // =========================================================
+    // 전체 개수
+    int getAmountCountByWorkcationNo(
+            @Param("workcationNo") int workcationNo
+    );
 
+    // 페이징 목록
     List<Amount> selectAmountListByWorkcationNo(
-            int workcationNo
+            @Param("workcationNo") int workcationNo,
+            @Param("pi") PageInfo pi
     );
 
+    List<Amount.Item> selectAmountItemsByAmountNo(int amountNo);
 
-    // =========================================================
-    // 7. amount_item 조회
-    // =========================================================
+    List<Amount.Sponsor> selectSponsorsByAmountNo(int amountNo);
 
-    List<Amount.Item> selectAmountItemsByAmountNo(
-            int amountNo
-    );
+    List<Amount.File> selectAmountFilesByAmountNo(int amountNo);
 
+    int updateAmount(Amount amount);
 
-    // =========================================================
-    // 8. amount_list 조회
-    //
-    // ★ 중요
-    // item_no가 존재하지 않으므로
-    // amount_no 기준으로 조회
-    // =========================================================
+    int updateApprovalStatus(Amount amount);
 
-    List<Amount.Sponsor> selectSponsorsByAmountNo(
-            int amountNo
-    );
+    int deleteFile(int amountattachmentNo);
 
+    int cancelAmount(int amountNo);
 
-    // =========================================================
-    // 9. amount_file 조회
-    // =========================================================
+    int deleteAmountItemsByAmountNo(int amountNo);
 
-    List<Amount.File> selectAmountFilesByAmountNo(
-            int amountNo
-    );
-
-
-    // =========================================================
-    // 10. amount 수정
-    // =========================================================
-
-    int updateAmount(
-            Amount amount
-    );
-
-
-    // =========================================================
-    // 11. 결재 상태 수정
-    // =========================================================
-
-    int updateApprovalStatus(
-            Amount amount
-    );
-
-
-    // =========================================================
-    // 12. 첨부파일 삭제
-    // =========================================================
-
-    int deleteFile(
-            int amountattachmentNo
-    );
-
-
-    // =========================================================
-    // 13. 비용 신청 취소
-    // =========================================================
-
-    int cancelAmount(
-            int amountNo
-    );
-
-
-    // =========================================================
-    // 14. amount_item 전체 삭제
-    //
-    // 수정 시 기존 항목 삭제 후 재등록
-    // =========================================================
-
-    int deleteAmountItemsByAmountNo(
-            int amountNo
-    );
-
-
-    // =========================================================
-    // 15. amount_list 전체 삭제
-    //
-    // ★ item_no가 없기 때문에 amount_no 기준
-    // =========================================================
-
-    int deleteAmountSponsorsByAmountNo(
-            int amountNo
-    );
-
-
-    // =========================================================
-    // 16. 전체 정산 통계
-    // =========================================================
+    int deleteAmountSponsorsByAmountNo(int amountNo);
 
     Map<String, Object> getStatisticsSummary();
 
-
-    // =========================================================
-    // 17. 부서별 정산 통계
-    // =========================================================
-
     List<Map<String, Object>> getDeptStatistics();
-
-
-    // =========================================================
-    // 18. 월별 정산 통계
-    // =========================================================
 
     List<Map<String, Object>> getMonthlyStatistics();
 
-
-    // =========================================================
-    // 19. 비용 항목별 통계
-    // =========================================================
-
     List<Map<String, Object>> getItemStatistics();
-
 }

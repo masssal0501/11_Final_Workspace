@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.amount.dao.AmountDao;
 import com.kh.workflow.amount.vo.Amount;
+import com.kh.workflow.common.model.vo.PageInfo;
 
 @Service
 public class AmountServiceImpl implements AmountService {
@@ -32,7 +33,7 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 생성자
+    // 생성자 주입
     // =========================================================
 
     public AmountServiceImpl(AmountDao amountDao) {
@@ -41,12 +42,32 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 1. 비용 신청 등록
-    //
-    // amount
-    // ├── amount_item
-    // ├── amount_list
-    // └── amount_file
+    // 1. 전체 비용 신청 개수 조회
+    // =========================================================
+
+    @Override
+    public int getAmountListCount() {
+        return amountDao.getAmountListCount();
+    }
+
+
+    // =========================================================
+    // 2. 전체 비용 신청 목록 조회 (페이징)
+    // =========================================================
+
+    @Override
+    public List<Amount> selectAmountList(PageInfo pi) {
+        if (pi == null) {
+            return new ArrayList<>();
+        }
+
+        List<Amount> list = amountDao.selectAmountList(pi);
+        return list != null ? list : new ArrayList<>();
+    }
+
+
+    // =========================================================
+    // 3. 비용 신청 등록
     // =========================================================
 
     @Override
@@ -54,16 +75,11 @@ public class AmountServiceImpl implements AmountService {
     public int insertAmount(Amount amount) {
 
         try {
-
             if (amount == null) {
                 throw new IllegalArgumentException(
                         "비용 신청 정보가 없습니다."
                 );
             }
-
-            // -------------------------------------------------
-            // 1. amount 등록
-            // -------------------------------------------------
 
             int amountResult =
                     amountDao.insertAmount(amount);
@@ -74,7 +90,6 @@ public class AmountServiceImpl implements AmountService {
                 );
             }
 
-            // amount_no가 정상적으로 생성되었는지 확인
             if (amount.getAmountNo() == null ||
                 amount.getAmountNo() <= 0) {
 
@@ -83,23 +98,13 @@ public class AmountServiceImpl implements AmountService {
                 );
             }
 
-
-            // -------------------------------------------------
-            // 2. amount_item 등록
-            // -------------------------------------------------
-
+            // amount_item 등록
             if (amount.getItemList() != null) {
-
-                for (Amount.Item item :
-                        amount.getItemList()) {
-
+                for (Amount.Item item : amount.getItemList()) {
                     if (item == null) {
                         continue;
                     }
-
-                    item.setAmountNo(
-                            amount.getAmountNo()
-                    );
+                    item.setAmountNo(amount.getAmountNo());
 
                     int itemResult =
                             amountDao.insertAmountItem(item);
@@ -112,32 +117,16 @@ public class AmountServiceImpl implements AmountService {
                 }
             }
 
-
-            // -------------------------------------------------
-            // 3. amount_list 등록
-            //
-            // 중요:
-            // amount_list는 item_no가 없음.
-            // amount_no로 amount와 직접 연결됨.
-            // -------------------------------------------------
-
+            // amount_list (Sponsor) 등록
             if (amount.getSponsorList() != null) {
-
-                for (Amount.Sponsor sponsor :
-                        amount.getSponsorList()) {
-
+                for (Amount.Sponsor sponsor : amount.getSponsorList()) {
                     if (sponsor == null) {
                         continue;
                     }
-
-                    sponsor.setAmountNo(
-                            amount.getAmountNo()
-                    );
+                    sponsor.setAmountNo(amount.getAmountNo());
 
                     int sponsorResult =
-                            amountDao.insertAmountSponsor(
-                                    sponsor
-                            );
+                            amountDao.insertAmountSponsor(sponsor);
 
                     if (sponsorResult <= 0) {
                         throw new IllegalArgumentException(
@@ -147,23 +136,13 @@ public class AmountServiceImpl implements AmountService {
                 }
             }
 
-
-            // -------------------------------------------------
-            // 4. amount_file 등록
-            // -------------------------------------------------
-
+            // amount_file 등록
             if (amount.getFileList() != null) {
-
-                for (Amount.File file :
-                        amount.getFileList()) {
-
+                for (Amount.File file : amount.getFileList()) {
                     if (file == null) {
                         continue;
                     }
-
-                    file.setAmountNo(
-                            amount.getAmountNo()
-                    );
+                    file.setAmountNo(amount.getAmountNo());
 
                     int fileResult =
                             amountDao.insertAmountFile(file);
@@ -176,15 +155,11 @@ public class AmountServiceImpl implements AmountService {
                 }
             }
 
-
             return amountResult;
 
         } catch (IllegalArgumentException e) {
-
             throw e;
-
         } catch (Exception e) {
-
             throw new RuntimeException(
                     "비용 신청 등록 중 오류가 발생했습니다.",
                     e
@@ -194,12 +169,11 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 2. 비용 상세 조회
+    // 4. 비용 상세 조회
     // =========================================================
 
     @Override
     public Amount selectAmountById(int amountNo) {
-
         if (amountNo <= 0) {
             return null;
         }
@@ -211,92 +185,66 @@ public class AmountServiceImpl implements AmountService {
             return null;
         }
 
-
-        // -------------------------------------------------
-        // amount_item 조회
-        // -------------------------------------------------
-
         List<Amount.Item> itemList =
-                amountDao.selectAmountItemsByAmountNo(
-                        amountNo
-                );
-
-        if (itemList == null) {
-            itemList = new ArrayList<>();
-        }
-
-        amount.setItemList(itemList);
-
-
-        // -------------------------------------------------
-        // amount_list 조회
-        //
-        // item_no가 아니라 amount_no 기준
-        // -------------------------------------------------
+                amountDao.selectAmountItemsByAmountNo(amountNo);
+        amount.setItemList(
+                itemList != null ? itemList : new ArrayList<>()
+        );
 
         List<Amount.Sponsor> sponsorList =
-                amountDao.selectSponsorsByAmountNo(
-                        amountNo
-                );
-
-        if (sponsorList == null) {
-            sponsorList = new ArrayList<>();
-        }
-
-        amount.setSponsorList(sponsorList);
-
-
-        // -------------------------------------------------
-        // amount_file 조회
-        // -------------------------------------------------
+                amountDao.selectSponsorsByAmountNo(amountNo);
+        amount.setSponsorList(
+                sponsorList != null ? sponsorList : new ArrayList<>()
+        );
 
         List<Amount.File> fileList =
-                amountDao.selectAmountFilesByAmountNo(
-                        amountNo
-                );
-
-        if (fileList == null) {
-            fileList = new ArrayList<>();
-        }
-
-        amount.setFileList(fileList);
-
+                amountDao.selectAmountFilesByAmountNo(amountNo);
+        amount.setFileList(
+                fileList != null ? fileList : new ArrayList<>()
+        );
 
         return amount;
     }
 
 
     // =========================================================
-    // 3. 워케이션별 비용 신청 목록
+    // 5-1. 워케이션별 비용 신청 전체 개수
+    // =========================================================
+
+    @Override
+    public int getAmountCountByWorkcationNo(int workcationNo) {
+        if (workcationNo <= 0) {
+            return 0;
+        }
+        return amountDao.getAmountCountByWorkcationNo(workcationNo);
+    }
+
+
+    // =========================================================
+    // 5-2. 워케이션별 비용 신청 목록 (페이징)
     // =========================================================
 
     @Override
     public List<Amount> selectAmountListByWorkcationNo(
-            int workcationNo) {
+            int workcationNo,
+            PageInfo pi) {
 
-        if (workcationNo <= 0) {
+        if (workcationNo <= 0 || pi == null) {
             return new ArrayList<>();
         }
 
         List<Amount> list =
                 amountDao.selectAmountListByWorkcationNo(
-                        workcationNo
+                        workcationNo,
+                        pi
                 );
 
-        if (list == null) {
-            return new ArrayList<>();
-        }
-
-        return list;
+        return list != null ? list : new ArrayList<>();
     }
 
 
     // =========================================================
-    // 4. 결재 상태 변경
-    //
-    // A = 승인
-    // H = 보류
-    // J = 반려
+    // 6. 결재 상태 변경
     // =========================================================
 
     @Override
@@ -304,7 +252,6 @@ public class AmountServiceImpl implements AmountService {
     public int updateApprovalStatus(Amount amount) {
 
         try {
-
             if (amount == null) {
                 throw new IllegalArgumentException(
                         "결재 정보가 없습니다."
@@ -319,9 +266,7 @@ public class AmountServiceImpl implements AmountService {
                 );
             }
 
-
-            String status =
-                    amount.getStatus();
+            String status = amount.getStatus();
 
             if (!"A".equals(status) &&
                 !"H".equals(status) &&
@@ -332,42 +277,30 @@ public class AmountServiceImpl implements AmountService {
                 );
             }
 
-
-            // 승인 금액 검증
             if (amount.getApprovedAmount() == null) {
-
                 amount.setApprovedAmount(0);
             }
 
             if (amount.getApprovedAmount() < 0) {
-
                 throw new IllegalArgumentException(
                         "승인 금액은 0원 이상이어야 합니다."
                 );
             }
 
-
             int result =
-                    amountDao.updateApprovalStatus(
-                            amount
-                    );
+                    amountDao.updateApprovalStatus(amount);
 
             if (result <= 0) {
-
                 throw new IllegalArgumentException(
                         "결재 상태 변경에 실패했습니다."
                 );
             }
 
-
             return result;
 
         } catch (IllegalArgumentException e) {
-
             throw e;
-
         } catch (Exception e) {
-
             throw new RuntimeException(
                     "결재 상태 변경 중 오류가 발생했습니다.",
                     e
@@ -377,15 +310,7 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 5. 비용 신청 수정
-    //
-    // - amount 수정
-    // - 기존 item 삭제
-    // - item 재등록
-    // - 기존 sponsor 삭제
-    // - sponsor 재등록
-    // - 기존 파일 유지
-    // - 새 파일 추가
+    // 7. 비용 신청 수정
     // =========================================================
 
     @Override
@@ -394,22 +319,14 @@ public class AmountServiceImpl implements AmountService {
             Amount amount,
             List<MultipartFile> files) {
 
-        List<String> savedFiles =
-                new ArrayList<>();
+        List<String> savedFiles = new ArrayList<>();
 
         try {
-
-            // =================================================
-            // 1. 기본 검증
-            // =================================================
-
             if (amount == null) {
-
                 throw new IllegalArgumentException(
                         "수정할 비용 정보가 없습니다."
                 );
             }
-
 
             if (amount.getAmountNo() == null ||
                 amount.getAmountNo() <= 0) {
@@ -419,78 +336,40 @@ public class AmountServiceImpl implements AmountService {
                 );
             }
 
-
-            int amountNo =
-                    amount.getAmountNo();
-
-
-            // =================================================
-            // 2. 기존 데이터 확인
-            // =================================================
+            int amountNo = amount.getAmountNo();
 
             Amount existingAmount =
-                    amountDao.selectAmountById(
-                            amountNo
-                    );
+                    amountDao.selectAmountById(amountNo);
 
             if (existingAmount == null) {
-
                 throw new IllegalArgumentException(
                         "존재하지 않는 비용 신청입니다."
                 );
             }
 
-
-            // =================================================
-            // 3. amount 수정
-            // =================================================
-
             int amountResult =
-                    amountDao.updateAmount(
-                            amount
-                    );
+                    amountDao.updateAmount(amount);
 
             if (amountResult <= 0) {
-
                 throw new IllegalArgumentException(
                         "비용 신청 수정에 실패했습니다."
                 );
             }
 
-
-            // =================================================
-            // 4. 기존 amount_item 삭제
-            // =================================================
-
-            amountDao.deleteAmountItemsByAmountNo(
-                    amountNo
-            );
-
-
-            // =================================================
-            // 5. 새로운 amount_item 등록
-            // =================================================
+            // 기존 항목 및 스폰서 삭제 후 재등록
+            amountDao.deleteAmountItemsByAmountNo(amountNo);
 
             if (amount.getItemList() != null) {
-
-                for (Amount.Item item :
-                        amount.getItemList()) {
-
+                for (Amount.Item item : amount.getItemList()) {
                     if (item == null) {
                         continue;
                     }
-
-                    item.setAmountNo(
-                            amountNo
-                    );
+                    item.setAmountNo(amountNo);
 
                     int itemResult =
-                            amountDao.insertAmountItem(
-                                    item
-                            );
+                            amountDao.insertAmountItem(item);
 
                     if (itemResult <= 0) {
-
                         throw new IllegalArgumentException(
                                 "비용 상세 항목 수정에 실패했습니다."
                         );
@@ -498,42 +377,19 @@ public class AmountServiceImpl implements AmountService {
                 }
             }
 
-
-            // =================================================
-            // 6. 기존 amount_list 삭제
-            //
-            // amount_list는 amount_no로 연결됨
-            // =================================================
-
-            amountDao.deleteAmountSponsorsByAmountNo(
-                    amountNo
-            );
-
-
-            // =================================================
-            // 7. 새로운 amount_list 등록
-            // =================================================
+            amountDao.deleteAmountSponsorsByAmountNo(amountNo);
 
             if (amount.getSponsorList() != null) {
-
-                for (Amount.Sponsor sponsor :
-                        amount.getSponsorList()) {
-
+                for (Amount.Sponsor sponsor : amount.getSponsorList()) {
                     if (sponsor == null) {
                         continue;
                     }
-
-                    sponsor.setAmountNo(
-                            amountNo
-                    );
+                    sponsor.setAmountNo(amountNo);
 
                     int sponsorResult =
-                            amountDao.insertAmountSponsor(
-                                    sponsor
-                            );
+                            amountDao.insertAmountSponsor(sponsor);
 
                     if (sponsorResult <= 0) {
-
                         throw new IllegalArgumentException(
                                 "지원금 수정에 실패했습니다."
                         );
@@ -541,56 +397,28 @@ public class AmountServiceImpl implements AmountService {
                 }
             }
 
-
-            // =================================================
-            // 8. 새 첨부파일 처리
-            // =================================================
-
-            if (files != null &&
-                !files.isEmpty()) {
-
-                File uploadDir =
-                        new File(
-                                UPLOAD_DIR
-                        );
-
-
-                // -------------------------------------------------
-                // 업로드 폴더 생성
-                // -------------------------------------------------
+            // 새 첨부파일 처리
+            if (files != null && !files.isEmpty()) {
+                File uploadDir = new File(UPLOAD_DIR);
 
                 if (!uploadDir.exists()) {
-
-                    boolean created =
-                            uploadDir.mkdirs();
-
-                    if (!created &&
-                        !uploadDir.exists()) {
-
+                    boolean created = uploadDir.mkdirs();
+                    if (!created && !uploadDir.exists()) {
                         throw new IOException(
                                 "첨부파일 저장 폴더를 생성할 수 없습니다."
                         );
                     }
                 }
 
-
-                // -------------------------------------------------
-                // 파일 반복
-                // -------------------------------------------------
-
-                for (MultipartFile multipartFile :
-                        files) {
-
+                for (MultipartFile multipartFile : files) {
                     if (multipartFile == null ||
                         multipartFile.isEmpty()) {
 
                         continue;
                     }
 
-
                     String originalFilename =
                             multipartFile.getOriginalFilename();
-
 
                     if (originalFilename == null ||
                         originalFilename.trim().isEmpty()) {
@@ -598,41 +426,19 @@ public class AmountServiceImpl implements AmountService {
                         continue;
                     }
 
-
-                    // 경로 조작 방지
                     originalFilename =
-                            new File(
-                                    originalFilename
-                            ).getName();
+                            new File(originalFilename).getName();
 
-
-                    // 저장 파일명
                     String savedFilename =
-                            UUID.randomUUID()
-                                    .toString()
-                                    + "_"
-                                    + originalFilename;
-
+                            UUID.randomUUID().toString()
+                            + "_" + originalFilename;
 
                     File destination =
-                            new File(
-                                    uploadDir,
-                                    savedFilename
-                            );
-
-
-                    // -------------------------------------------------
-                    // 실제 파일 저장
-                    // -------------------------------------------------
+                            new File(uploadDir, savedFilename);
 
                     try {
-
-                        multipartFile.transferTo(
-                                destination
-                        );
-
+                        multipartFile.transferTo(destination);
                     } catch (IOException e) {
-
                         throw new IOException(
                                 "파일 저장에 실패했습니다: "
                                 + originalFilename,
@@ -640,47 +446,19 @@ public class AmountServiceImpl implements AmountService {
                         );
                     }
 
+                    savedFiles.add(destination.getAbsolutePath());
 
-                    savedFiles.add(
-                            destination.getAbsolutePath()
-                    );
-
-
-                    // -------------------------------------------------
-                    // DB 저장용 VO
-                    // -------------------------------------------------
-
-                    Amount.File file =
-                            new Amount.File();
-
-                    file.setAmountNo(
-                            amountNo
-                    );
-
-                    file.setOriginName(
-                            originalFilename
-                    );
-
-                    file.setChangeName(
-                            savedFilename
-                    );
-
-                    file.setFilePath(
-                            FILE_PATH +
-                            savedFilename
-                    );
-
+                    Amount.File file = new Amount.File();
+                    file.setAmountNo(amountNo);
+                    file.setOriginName(originalFilename);
+                    file.setChangeName(savedFilename);
+                    file.setFilePath(FILE_PATH + savedFilename);
                     file.setStatus("Y");
 
-
                     int fileResult =
-                            amountDao.insertAmountFile(
-                                    file
-                            );
-
+                            amountDao.insertAmountFile(file);
 
                     if (fileResult <= 0) {
-
                         throw new IllegalArgumentException(
                                 "첨부파일 DB 등록에 실패했습니다: "
                                 + originalFilename
@@ -690,25 +468,17 @@ public class AmountServiceImpl implements AmountService {
             }
 
         } catch (IllegalArgumentException e) {
-
             deleteSavedFiles(savedFiles);
-
             throw e;
-
         } catch (IOException e) {
-
             deleteSavedFiles(savedFiles);
-
             throw new RuntimeException(
                     "첨부파일 처리 중 오류가 발생했습니다: "
                     + e.getMessage(),
                     e
             );
-
         } catch (Exception e) {
-
             deleteSavedFiles(savedFiles);
-
             throw new RuntimeException(
                     "비용 신청 수정 중 오류가 발생했습니다.",
                     e
@@ -718,61 +488,56 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 6. 저장 실패 시 실제 파일 삭제
+    // 8. 개별 파일 삭제
     // =========================================================
 
-    private void deleteSavedFiles(
-            List<String> savedFiles) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteFile(int amountattachmentNo) {
+        if (amountattachmentNo <= 0) {
+            throw new IllegalArgumentException(
+                    "잘못된 파일 번호입니다."
+            );
+        }
 
-        if (savedFiles == null ||
-            savedFiles.isEmpty()) {
+        int result = amountDao.deleteFile(amountattachmentNo);
+        if (result <= 0) {
+            throw new IllegalArgumentException(
+                    "파일 삭제에 실패했습니다."
+            );
+        }
+        return result;
+    }
 
+
+    // =========================================================
+    // 9. 저장 실패 시 실제 파일 삭제 (내부 유틸 메서드)
+    // =========================================================
+
+    private void deleteSavedFiles(List<String> savedFiles) {
+        if (savedFiles == null || savedFiles.isEmpty()) {
             return;
         }
 
-
-        for (String path :
-                savedFiles) {
-
-            if (path == null ||
-                path.trim().isEmpty()) {
-
+        for (String path : savedFiles) {
+            if (path == null || path.trim().isEmpty()) {
                 continue;
             }
 
-
             try {
-
-                File file =
-                        new File(path);
-
+                File file = new File(path);
                 if (file.exists()) {
-
-                    boolean deleted =
-                            file.delete();
-
-                    if (!deleted) {
-
-                        System.err.println(
-                                "파일 삭제 실패: "
-                                + path
-                        );
-                    }
+                    file.delete();
                 }
-
-            } catch (Exception e) {
-
-                System.err.println(
-                        "파일 정리 중 오류: "
-                        + path
-                );
+            } catch (Exception ignored) {
+                // 예외 무시 및 정리 계속 진행
             }
         }
     }
 
 
     // =========================================================
-    // 7. 비용 신청 취소
+    // 10. 비용 신청 취소
     // =========================================================
 
     @Override
@@ -780,91 +545,52 @@ public class AmountServiceImpl implements AmountService {
     public int cancelAmount(int amountNo) {
 
         try {
-
             if (amountNo <= 0) {
-
                 throw new IllegalArgumentException(
                         "잘못된 비용 신청 번호입니다."
                 );
             }
 
-
             Amount amount =
-                    amountDao.selectAmountById(
-                            amountNo
-                    );
-
+                    amountDao.selectAmountById(amountNo);
 
             if (amount == null) {
-
                 throw new IllegalArgumentException(
                         "존재하지 않는 비용 신청입니다."
                 );
             }
 
-
-            String status =
-                    amount.getStatus();
-
-
-            // -------------------------------------------------
-            // 승인
-            // -------------------------------------------------
+            String status = amount.getStatus();
 
             if ("A".equals(status)) {
-
                 throw new IllegalArgumentException(
                         "이미 승인된 비용 신청은 취소할 수 없습니다."
                 );
             }
-
-
-            // -------------------------------------------------
-            // 반려
-            // -------------------------------------------------
-
             if ("J".equals(status)) {
-
                 throw new IllegalArgumentException(
                         "이미 반려된 비용 신청입니다."
                 );
             }
-
-
-            // -------------------------------------------------
-            // 취소
-            // -------------------------------------------------
-
             if ("C".equals(status)) {
-
                 throw new IllegalArgumentException(
                         "이미 취소된 비용 신청입니다."
                 );
             }
 
-
-            int result =
-                    amountDao.cancelAmount(
-                            amountNo
-                    );
-
+            int result = amountDao.cancelAmount(amountNo);
 
             if (result <= 0) {
-
                 throw new IllegalArgumentException(
                         "비용 신청 취소에 실패했습니다."
                 );
             }
 
-
             return result;
 
         } catch (IllegalArgumentException e) {
-
             throw e;
-
         } catch (Exception e) {
-
             throw new RuntimeException(
                     "비용 신청 취소 중 오류가 발생했습니다.",
                     e
@@ -874,12 +600,7 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 8. 승인 + 지원금 처리
-    //
-    // amount
-    // └── amount_list
-    //
-    // amount_list는 item과 연결되지 않음
+    // 11. 승인 + 지원금 처리
     // =========================================================
 
     @Override
@@ -895,18 +616,11 @@ public class AmountServiceImpl implements AmountService {
             String remark) {
 
         try {
-
-            // =================================================
-            // 1. 기본 검증
-            // =================================================
-
             if (amountNo <= 0) {
-
                 throw new IllegalArgumentException(
                         "잘못된 비용 신청 번호입니다."
                 );
             }
-
 
             if (!"A".equals(status) &&
                 !"H".equals(status) &&
@@ -917,129 +631,57 @@ public class AmountServiceImpl implements AmountService {
                 );
             }
 
-
             if (approvedAmount < 0) {
-
                 throw new IllegalArgumentException(
                         "승인 금액은 0원 이상이어야 합니다."
                 );
             }
 
-
             if (sponsorAmount < 0) {
-
                 throw new IllegalArgumentException(
                         "지원금은 0원 이상이어야 합니다."
                 );
             }
 
-
-            // =================================================
-            // 2. 기존 정산 확인
-            // =================================================
-
             Amount existingAmount =
-                    amountDao.selectAmountById(
-                            amountNo
-                    );
+                    amountDao.selectAmountById(amountNo);
 
             if (existingAmount == null) {
-
                 throw new IllegalArgumentException(
                         "존재하지 않는 비용 신청입니다."
                 );
             }
 
-
-            // =================================================
-            // 3. 승인 상태 변경
-            // =================================================
-
-            Amount amount =
-                    new Amount();
-
-            amount.setAmountNo(
-                    amountNo
-            );
-
-            amount.setStatus(
-                    status
-            );
-
-            amount.setApprovedAmount(
-                    approvedAmount
-            );
-
-            amount.setAmountComment(
-                    comment
-            );
-
+            Amount amount = new Amount();
+            amount.setAmountNo(amountNo);
+            amount.setStatus(status);
+            amount.setApprovedAmount(approvedAmount);
+            amount.setAmountComment(comment);
 
             int result =
-                    amountDao.updateApprovalStatus(
-                            amount
-                    );
-
+                    amountDao.updateApprovalStatus(amount);
 
             if (result <= 0) {
-
                 throw new IllegalArgumentException(
                         "결재 처리에 실패했습니다."
                 );
             }
 
-
-            // =================================================
-            // 4. 승인인 경우 amount_list 처리
-            // =================================================
-
             if ("A".equals(status)) {
+                amountDao.deleteAmountSponsorsByAmountNo(amountNo);
 
-                // 기존 지원금 삭제
-                amountDao.deleteAmountSponsorsByAmountNo(
-                        amountNo
-                );
-
-
-                // 지원금이 있는 경우만 등록
                 if (sponsorAmount > 0) {
-
-                    Amount.Sponsor sponsor =
-                            new Amount.Sponsor();
-
-
-                    // ★ 핵심
-                    // itemNo가 아니라 amountNo
-                    sponsor.setAmountNo(
-                            amountNo
-                    );
-
-
-                    sponsor.setSponsorName(
-                            sponsorName
-                    );
-
-                    sponsor.setAmount(
-                            sponsorAmount
-                    );
-
-                    sponsor.setStatus(
-                            sponsorStatus
-                    );
-
-                    sponsor.setRemark(
-                            remark
-                    );
-
+                    Amount.Sponsor sponsor = new Amount.Sponsor();
+                    sponsor.setAmountNo(amountNo);
+                    sponsor.setSponsorName(sponsorName);
+                    sponsor.setAmount(sponsorAmount);
+                    sponsor.setStatus(sponsorStatus);
+                    sponsor.setRemark(remark);
 
                     int sponsorResult =
-                            amountDao.insertAmountSponsor(
-                                    sponsor
-                            );
-
+                            amountDao.insertAmountSponsor(sponsor);
 
                     if (sponsorResult <= 0) {
-
                         throw new IllegalArgumentException(
                                 "지원금 등록에 실패했습니다."
                         );
@@ -1047,13 +689,9 @@ public class AmountServiceImpl implements AmountService {
                 }
             }
 
-
         } catch (IllegalArgumentException e) {
-
             throw e;
-
         } catch (Exception e) {
-
             throw new RuntimeException(
                     "결재 및 지원금 처리 중 오류가 발생했습니다.",
                     e
@@ -1063,62 +701,23 @@ public class AmountServiceImpl implements AmountService {
 
 
     // =========================================================
-    // 9. 전체 통계
+    // 12. 전체 통계
     // =========================================================
 
     @Override
     public Map<String, Object> getFullStatistics() {
 
         try {
+            Map<String, Object> result = new HashMap<>();
 
-            Map<String, Object> result =
-                    new HashMap<>();
-
-
-            // -------------------------------------------------
-            // 전체 요약
-            // -------------------------------------------------
-
-            result.put(
-                    "summary",
-                    amountDao.getStatisticsSummary()
-            );
-
-
-            // -------------------------------------------------
-            // 부서별
-            // -------------------------------------------------
-
-            result.put(
-                    "deptStatistics",
-                    amountDao.getDeptStatistics()
-            );
-
-
-            // -------------------------------------------------
-            // 월별
-            // -------------------------------------------------
-
-            result.put(
-                    "monthlyStatistics",
-                    amountDao.getMonthlyStatistics()
-            );
-
-
-            // -------------------------------------------------
-            // 비용 항목별
-            // -------------------------------------------------
-
-            result.put(
-                    "itemStatistics",
-                    amountDao.getItemStatistics()
-            );
-
+            result.put("summary", amountDao.getStatisticsSummary());
+            result.put("deptStatistics", amountDao.getDeptStatistics());
+            result.put("monthlyStatistics", amountDao.getMonthlyStatistics());
+            result.put("itemStatistics", amountDao.getItemStatistics());
 
             return result;
 
         } catch (Exception e) {
-
             throw new RuntimeException(
                     "정산 통계 조회 중 오류가 발생했습니다.",
                     e

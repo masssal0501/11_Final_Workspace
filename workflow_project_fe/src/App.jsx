@@ -11,11 +11,11 @@ import Footer from "./common/components/Footer";
 //import LoginForm from './common/components/LoginForm';
 //import FindIDForm from './common/components/FindIDForm';
 //import FindPWForm from './common/components/FindPWForm';
-import AmountPage from './pages/AmountPage';
-import AdminAmountPage from './pages/AdminAmountPage';
-import AmountForm from './common/components/AmountForm';
-import AmountDetail from './common/components/AmountDetail';
-import StatisticsPage from './pages/StatisticsPage';
+import AmountPage from './pages/amount/AmountPage';
+import AdminAmountPage from './pages/amount/AdminAmountPage';
+import AmountForm from './amount/components/AmountForm';
+import AmountDetail from './amount/components/AmountDetail';
+import StatisticsPage from './pages/amount/StatisticsPage';
 import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 
 

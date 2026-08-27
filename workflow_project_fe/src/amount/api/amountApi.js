@@ -21,10 +21,19 @@ export const amountApi = {
   },
 
   // 특정 워케이션 비용 목록 조회
-  getAmountListByWorkcation: async (workcationNo) => {
-    const response = await axios.get(`${BASE_URL}/workcation/${workcationNo}`);
+ getAmountListByWorkcation: async (workcationNo, page = 1) => {
+
+    const response = await axios.get(
+        `/api/v1/amounts/workcation/${workcationNo}`,
+        {
+            params: {
+                page: page
+            }
+        }
+    );
+
     return response.data;
-  },
+},
 
   // 단건 상세 조회
   getAmountById: async (amountNo) => {

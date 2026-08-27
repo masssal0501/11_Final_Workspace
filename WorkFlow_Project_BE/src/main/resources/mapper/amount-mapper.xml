@@ -52,17 +52,6 @@
 
     <!-- =========================================================
          2. Item ResultMap
-         
-         DB
-         amount_item.cost
-
-         ↓
-
-         Amount.Item.cost
-
-         ↓
-
-         React item.cost
          ========================================================= -->
 
     <resultMap id="itemResultMap"
@@ -94,8 +83,6 @@
 
     <!-- =========================================================
          3. Sponsor ResultMap
-         
-         amount_list.amount
          ========================================================= -->
 
     <resultMap id="sponsorResultMap"
@@ -196,8 +183,6 @@
 
     <!-- =========================================================
          6. 비용 상세 항목 등록
-         
-         ★ cost 기준
          ========================================================= -->
 
     <insert id="insertAmountItem"
@@ -327,11 +312,96 @@
 
 
     <!-- =========================================================
-         10. 워케이션별 비용 목록
+         10. 전체 비용 신청 개수
+         ========================================================= -->
+
+    <select id="getAmountListCount"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM amount
+
+    </select>
+
+
+    <!-- =========================================================
+         11. 전체 비용 신청 목록
+         =========================================================
+         
+         PageInfo
+         ├── offset
+         └── limit
+         
+         MySQL LIMIT 방식
+         ========================================================= -->
+
+    <select id="selectAmountList"
+            parameterType="com.kh.workflow.common.model.vo.PageInfo"
+            resultMap="amountResultMap">
+
+        SELECT
+            a.amount_no,
+            a.requested_amount,
+            a.approved_amount,
+            a.requested_at,
+            a.approved_at,
+            a.created_at,
+            a.updated_at,
+            a.status,
+            a.amount_comment,
+            a.workcation_no,
+            e.emp_name
+
+        FROM amount a
+
+        LEFT JOIN workcation_info w
+            ON a.workcation_no = w.workcation_no
+
+        LEFT JOIN employee e
+            ON w.emp_no = e.emp_no
+
+        ORDER BY
+            a.created_at DESC,
+            a.amount_no DESC
+
+        LIMIT #{offset}, #{limit}
+
+    </select>
+
+
+    <!-- =========================================================
+         12. 워케이션별 비용 신청 개수
+         ========================================================= -->
+
+    <select id="getAmountCountByWorkcationNo"
+            parameterType="int"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM amount
+
+        WHERE workcation_no = #{workcationNo}
+
+    </select>
+
+
+    <!-- =========================================================
+         13. 워케이션별 비용 신청 목록
+         =========================================================
+         
+         DAO
+         @Param("workcationNo") int workcationNo
+         @Param("pi") PageInfo pi
+         
+         XML
+         #{workcationNo}
+         #{pi.offset}
+         #{pi.limit}
+         
          ========================================================= -->
 
     <select id="selectAmountListByWorkcationNo"
-            parameterType="int"
             resultMap="amountResultMap">
 
         SELECT
@@ -361,11 +431,13 @@
             a.created_at DESC,
             a.amount_no DESC
 
+        LIMIT #{pi.offset}, #{pi.limit}
+
     </select>
 
 
     <!-- =========================================================
-         11. 비용 상세 항목 조회
+         14. 비용 상세 항목 조회
          ========================================================= -->
 
     <select id="selectAmountItemsByAmountNo"
@@ -391,7 +463,7 @@
 
 
     <!-- =========================================================
-         12. 지원금 조회
+         15. 지원금 조회
          ========================================================= -->
 
     <select id="selectSponsorsByAmountNo"
@@ -417,7 +489,7 @@
 
 
     <!-- =========================================================
-         13. 첨부파일 조회
+         16. 첨부파일 조회
          ========================================================= -->
 
     <select id="selectAmountFilesByAmountNo"
@@ -436,6 +508,7 @@
         FROM amount_file
 
         WHERE amount_no = #{amountNo}
+
           AND status = 'Y'
 
         ORDER BY amountattachment_no ASC
@@ -444,7 +517,7 @@
 
 
     <!-- =========================================================
-         14. 비용 신청 수정
+         17. 비용 신청 수정
          ========================================================= -->
 
     <update id="updateAmount"
@@ -463,7 +536,7 @@
 
 
     <!-- =========================================================
-         15. 결재 상태 변경
+         18. 결재 상태 변경
          ========================================================= -->
 
     <update id="updateApprovalStatus"
@@ -473,7 +546,9 @@
 
         SET
             status = #{status},
+
             approved_amount = #{approvedAmount},
+
             amount_comment = #{amountComment},
 
             approved_at =
@@ -491,7 +566,7 @@
 
 
     <!-- =========================================================
-         16. 첨부파일 삭제
+         19. 첨부파일 삭제
          ========================================================= -->
 
     <delete id="deleteFile"
@@ -505,7 +580,7 @@
 
 
     <!-- =========================================================
-         17. 비용 신청 취소
+         20. 비용 신청 취소
          ========================================================= -->
 
     <update id="cancelAmount"
@@ -530,7 +605,7 @@
 
 
     <!-- =========================================================
-         18. 기존 Item 삭제
+         21. 기존 Item 삭제
          ========================================================= -->
 
     <delete id="deleteAmountItemsByAmountNo"
@@ -544,7 +619,7 @@
 
 
     <!-- =========================================================
-         19. 기존 Sponsor 삭제
+         22. 기존 Sponsor 삭제
          ========================================================= -->
 
     <delete id="deleteAmountSponsorsByAmountNo"
@@ -558,7 +633,7 @@
 
 
     <!-- =========================================================
-         20. 통계 - 전체 요약
+         23. 통계 - 전체 요약
          ========================================================= -->
 
     <select id="getStatisticsSummary"
@@ -645,7 +720,7 @@
 
 
     <!-- =========================================================
-         21. 통계 - 부서별
+         24. 통계 - 부서별
          ========================================================= -->
 
     <select id="getDeptStatistics"
@@ -697,10 +772,7 @@
 
 
     <!-- =========================================================
-         22. 통계 - 월별
-         
-         ★ MySQL
-         DATE_FORMAT 사용
+         25. 통계 - 월별
          ========================================================= -->
 
     <select id="getMonthlyStatistics"
@@ -746,9 +818,7 @@
 
 
     <!-- =========================================================
-         23. 통계 - 비용 항목별
-         
-         ★ amount_item.cost 기준
+         26. 통계 - 비용 항목별
          ========================================================= -->
 
     <select id="getItemStatistics"

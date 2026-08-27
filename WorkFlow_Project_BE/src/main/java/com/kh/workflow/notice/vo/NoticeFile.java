@@ -79,7 +79,6 @@ public class NoticeFile {
                 + ", changeName=" + changeName
                 + ", updatedAt=" + updatedAt
                 + ", status=" + status
-                + ", noticeNo=" + noticeNo
-                + "]";
+                + ", noticeNo=" + noticeNo + "]";
     }
 }

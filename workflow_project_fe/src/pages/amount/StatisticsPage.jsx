@@ -17,7 +17,7 @@ import {
   Line
 } from 'recharts';
 
-import { amountApi } from '../common/api/amountApi';
+import { amountApi } from '../../amount/api/amountApi';
 
 export default function StatisticsPage() {
 

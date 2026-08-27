@@ -1,5 +1,5 @@
 import React from 'react';
-import AdminAmount from '../common/components/AdminAmount';
+import AdminAmount from '../../amount/components/AdminAmount';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminAmountPage({ workcationNo }) {

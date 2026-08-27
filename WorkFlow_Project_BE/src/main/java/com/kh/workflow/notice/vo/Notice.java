@@ -3,6 +3,8 @@ package com.kh.workflow.notice.vo;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 public class Notice {
 
     private int noticeNo;
@@ -19,9 +21,19 @@ public class Notice {
     // 첨부파일
     private List<NoticeFile> fileList;
 
+    private List<MultipartFile> files;
+    
     public Notice() {
     }
 
+    public List<MultipartFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<MultipartFile> files) {
+        this.files = files;
+    }
+    
     public int getNoticeNo() {
         return noticeNo;
     }

@@ -213,9 +213,36 @@ export default function NoticeDetail() {
                                                 📎
                                             </span>
 
-                                            <span>
-                                                {file.originName}
-                                            </span>
+                                            {notice.fileList &&
+ notice.fileList.length > 0 && (
+
+    <div className="notice-file-area">
+
+        <h4>첨부파일</h4>
+
+        {notice.fileList.map((file) => (
+
+            <div
+                key={file.noticefileNo}
+                className="notice-file"
+            >
+
+                <a
+                    href={
+                        noticeApi.getFileDownloadUrl(
+                            file.noticefileNo
+                        )
+                    }
+                >
+                    📎 {file.originName}
+                </a>
+
+            </div>
+
+        ))}
+
+    </div>
+)}
 
                                         </div>
 

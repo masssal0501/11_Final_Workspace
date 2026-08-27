@@ -14,15 +14,20 @@ export default function UserAmountList({ workcationNo }) {
   // =========================================================
   // 비용 신청 목록 조회
   //
-  // DB
   // amount.workcation_no
   //        ↓
-  // selectAmountListByWorkcationNo()
+  // AmountController
+  //        ↓
+  // AmountService
+  //        ↓
+  // AmountDao
+  //        ↓
+  // selectAmountListByWorkcationNo
   // =========================================================
 
   const fetchAmountList = useCallback(async () => {
 
-    // workcationNo가 없으면 조회하지 않음
+    // 워케이션 번호가 없으면 조회하지 않음
     if (
       workcationNo === null ||
       workcationNo === undefined ||
@@ -38,15 +43,14 @@ export default function UserAmountList({ workcationNo }) {
 
       const data =
         await amountApi.getAmountListByWorkcation(
-          workcationNo
+          Number(workcationNo)
         );
 
       console.log(
-        '📌 비용 신청 목록:',
+        '📌 내 비용 정산 신청 목록:',
         data
       );
 
-      // 서버에서 null이 오는 경우 방어
       setAmounts(
         Array.isArray(data)
           ? data
@@ -56,7 +60,7 @@ export default function UserAmountList({ workcationNo }) {
     } catch (error) {
 
       console.error(
-        '❌ 비용 신청 목록 로딩 실패:',
+        '❌ 비용 정산 신청 목록 조회 실패:',
         error
       );
 
@@ -72,7 +76,7 @@ export default function UserAmountList({ workcationNo }) {
 
 
   // =========================================================
-  // workcationNo 변경 시 목록 조회
+  // 워케이션 번호 변경 시 목록 다시 조회
   // =========================================================
 
   useEffect(() => {
@@ -86,11 +90,6 @@ export default function UserAmountList({ workcationNo }) {
   // 날짜 포맷
   //
   // DB requested_at
-  //
-  // 예:
-  // 2026-08-21T06:05:16.000Z
-  //
-  // → 2026-08-21
   // =========================================================
 
   const formatDate = (date) => {
@@ -122,10 +121,6 @@ export default function UserAmountList({ workcationNo }) {
 
   // =========================================================
   // 금액 포맷
-  //
-  // DB
-  // requested_amount
-  // approved_amount
   // =========================================================
 
   const formatMoney = (amount) => {
@@ -138,8 +133,7 @@ export default function UserAmountList({ workcationNo }) {
       return '-';
     }
 
-    const number =
-      Number(amount);
+    const number = Number(amount);
 
     if (Number.isNaN(number)) {
       return '-';
@@ -152,13 +146,11 @@ export default function UserAmountList({ workcationNo }) {
   // =========================================================
   // 상태 이름
   //
-  // DB amount.status
-  //
-  // R = 검토
-  // A = 승인
-  // H = 보류
-  // J = 반려
-  // C = 취소
+  // R : 검토
+  // A : 승인
+  // H : 보류
+  // J : 반려
+  // C : 취소
   // =========================================================
 
   const statusMap = {
@@ -176,27 +168,24 @@ export default function UserAmountList({ workcationNo }) {
 
   const getStatusBadge = (status) => {
 
-    const statusName =
-      statusMap[status] || '알 수 없음';
-
     return (
       <span
         className={`status-badge status-${status || 'UNKNOWN'}`}
       >
-        {statusName}
+        {statusMap[status] || '알 수 없음'}
       </span>
     );
   };
 
 
   // =========================================================
-  // 수정
+  // 비용 신청 상세 / 수정
   //
-  // 수정 가능:
+  // 수정 가능
   // R 검토
   // H 보류
   //
-  // 수정 불가능:
+  // 수정 불가
   // A 승인
   // J 반려
   // C 취소
@@ -204,31 +193,14 @@ export default function UserAmountList({ workcationNo }) {
 
   const handleEdit = (item) => {
 
-    console.log(
-      '🔥 비용 신청 수정'
-    );
-
-    console.log(
-      '수정할 Amount:',
-      item
-    );
-
-
     if (!item?.amountNo) {
 
-      alert(
-        '비용 신청 번호가 없습니다.'
-      );
-
+      alert('비용 신청 번호가 없습니다.');
       return;
+
     }
 
-
-    if (
-      !['R', 'H'].includes(
-        item.status
-      )
-    ) {
+    if (!['R', 'H'].includes(item.status)) {
 
       alert(
         '검토중 또는 보류 상태의 비용 신청만 수정할 수 있습니다.'
@@ -237,7 +209,6 @@ export default function UserAmountList({ workcationNo }) {
       return;
     }
 
-
     navigate(
       `/cost/apply/${item.amountNo}`
     );
@@ -245,15 +216,13 @@ export default function UserAmountList({ workcationNo }) {
 
 
   // =========================================================
-  // 신청 취소
+  // 비용 신청 취소
   //
-  // Service의 cancelAmount()와 동일한 정책
+  // R / H만 취소 가능
   //
   // A 승인 → 취소 불가
   // J 반려 → 취소 불가
-  // C 취소 → 중복 취소 불가
-  //
-  // R / H → 취소 가능
+  // C 취소 → 취소 불가
   // =========================================================
 
   const handleCancel = async (item) => {
@@ -268,12 +237,7 @@ export default function UserAmountList({ workcationNo }) {
     }
 
 
-    // 프론트에서도 1차 검증
-    if (
-      !['R', 'H'].includes(
-        item.status
-      )
-    ) {
+    if (!['R', 'H'].includes(item.status)) {
 
       alert(
         '검토중 또는 보류 상태의 신청만 취소할 수 있습니다.'
@@ -285,7 +249,7 @@ export default function UserAmountList({ workcationNo }) {
 
     const confirmed =
       window.confirm(
-        `[신청번호 ${item.amountNo}] 정산 신청을 취소하시겠습니까?`
+        `[신청번호 ${item.amountNo}] 비용 정산 신청을 취소하시겠습니까?`
       );
 
 
@@ -300,27 +264,21 @@ export default function UserAmountList({ workcationNo }) {
         item.amountNo
       );
 
-
       alert(
-        '신청이 취소되었습니다.'
+        '비용 정산 신청이 취소되었습니다.'
       );
 
-
-      // 취소 후 목록 새로 조회
       await fetchAmountList();
-
 
     } catch (error) {
 
       console.error(
-        '❌ 비용 신청 취소 실패:',
+        '❌ 비용 정산 신청 취소 실패:',
         error
       );
 
-
       const message =
         error?.response?.data;
-
 
       if (
         typeof message === 'string' &&
@@ -332,13 +290,37 @@ export default function UserAmountList({ workcationNo }) {
       } else {
 
         alert(
-          '비용 신청 취소에 실패했습니다.'
+          '비용 정산 신청 취소에 실패했습니다.'
         );
 
       }
 
     }
+  };
 
+
+  // =========================================================
+  // 비용 신청하기
+  // =========================================================
+
+  const handleApply = () => {
+
+    if (
+      workcationNo === null ||
+      workcationNo === undefined ||
+      workcationNo === ''
+    ) {
+
+      alert(
+        '워케이션 정보가 없습니다.'
+      );
+
+      return;
+    }
+
+    navigate(
+      `/cost/apply?workcationNo=${workcationNo}`
+    );
   };
 
 
@@ -350,7 +332,6 @@ export default function UserAmountList({ workcationNo }) {
 
     <div className="amount-container">
 
-
       {/* =====================================================
           헤더
           ===================================================== */}
@@ -358,16 +339,13 @@ export default function UserAmountList({ workcationNo }) {
       <div className="amount-header">
 
         <h2 className="amount-title">
-          내 비용 정산 신청 내역 (사원용)
+          내 비용 정산 신청 내역
         </h2>
-
 
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() =>
-            navigate('/cost/apply')
-          }
+          onClick={handleApply}
         >
           + 비용 신청하기
         </button>
@@ -382,7 +360,7 @@ export default function UserAmountList({ workcationNo }) {
       {loading ? (
 
         <div className="amount-loading">
-          비용 신청 내역을 불러오는 중입니다...
+          비용 정산 신청 내역을 불러오는 중입니다...
         </div>
 
       ) : (
@@ -449,86 +427,52 @@ export default function UserAmountList({ workcationNo }) {
                   key={item.amountNo}
                 >
 
-
-                  {/* =========================================
-                      신청번호
-                      amount.amount_no
-                      ========================================= */}
+                  {/* 신청번호 */}
 
                   <td className="text-center">
-
                     {item.amountNo}
-
                   </td>
 
 
-                  {/* =========================================
-                      신청 금액
-                      amount.requested_amount
-                      ========================================= */}
+                  {/* 신청 금액 */}
 
                   <td className="text-right">
-
                     {formatMoney(
                       item.requestedAmount
                     )}
-
                   </td>
 
 
-                  {/* =========================================
-                      승인 금액
-                      amount.approved_amount
-                      ========================================= */}
+                  {/* 승인 금액 */}
 
                   <td className="text-right">
-
                     {formatMoney(
                       item.approvedAmount
                     )}
-
                   </td>
 
 
-                  {/* =========================================
-                      상태
-                      amount.status
-                      ========================================= */}
+                  {/* 상태 */}
 
                   <td className="text-center">
-
                     {getStatusBadge(
                       item.status
                     )}
-
                   </td>
 
 
-                  {/* =========================================
-                      신청일
-                      amount.requested_at
-                      ========================================= */}
+                  {/* 신청일 */}
 
                   <td className="text-center">
-
                     {formatDate(
                       item.requestedAt
                     )}
-
                   </td>
 
 
-                  {/* =========================================
-                      신청 관리
-                      ========================================= */}
+                  {/* 신청 관리 */}
 
                   <td className="text-center">
-
-
-                    {/* -----------------------------------------
-                        R / H
-                        수정 + 취소 가능
-                        ----------------------------------------- */}
 
                     {['R', 'H'].includes(
                       item.status
@@ -546,7 +490,6 @@ export default function UserAmountList({ workcationNo }) {
                           수정
                         </button>
 
-
                         <button
                           type="button"
                           className="btn btn-cancel"
@@ -560,11 +503,6 @@ export default function UserAmountList({ workcationNo }) {
                       </>
 
                     ) : (
-
-                      /* ---------------------------------------
-                         A / J / C
-                         변경 불가
-                         --------------------------------------- */
 
                       <span className="text-disabled">
                         변경 불가

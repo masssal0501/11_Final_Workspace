@@ -1,5 +1,5 @@
 import React from 'react';
-import UserAmountList from '../common/components/UserAmountList';
+import UserAmountList from '../../amount/components/UserAmountList';
 
 export default function AmountPage({ workcationNo }) {
   return (

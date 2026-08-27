@@ -667,3 +667,88 @@
     }
 
 }
+/* 첨부파일 영역 */
+.notice-file-input {
+    flex: 1;
+}
+
+.notice-file-input input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+.notice-selected-files {
+    margin-top: 10px;
+}
+
+.notice-selected-file {
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background-color: #f7f7f7;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* =========================
+   공지사항 페이징
+========================= */
+
+.notice-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+
+.notice-pagination button {
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid #ddd;
+    background-color: #fff;
+
+    border-radius: 4px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+
+.notice-pagination button:hover:not(:disabled) {
+    background-color: #f5f5f5;
+}
+
+
+.notice-pagination button.active {
+    background-color: #333;
+    color: #fff;
+    border-color: #333;
+    font-weight: 600;
+}
+
+
+.notice-pagination button:disabled {
+    color: #bbb;
+    background-color: #f8f8f8;
+    cursor: default;
+}
+
+.notice-important {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background-color: #fff1f1;
+    color: #e74c3c;
+    font-size: 12px;
+    font-weight: 600;
+}

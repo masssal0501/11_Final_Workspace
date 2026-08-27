@@ -6,111 +6,47 @@ import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.amount.vo.Amount;
+import com.kh.workflow.common.model.vo.PageInfo;
 
 public interface AmountService {
 
-    // =========================================================
-    // 1. 정산 신청
-    // =========================================================
+    // 전체 게시글 개수 조회
+    int getAmountListCount();
 
-    /**
-     * 정산 신청 등록
-     *
-     * amount
-     * ├── amount_item
-     * ├── amount_list
-     * └── amount_file
-     */
+    // 비용 신청 등록
     int insertAmount(Amount amount);
 
-
-    // =========================================================
-    // 2. 정산 상세 조회
-    // =========================================================
-
-    /**
-     * amount_no 기준 정산 상세 조회
-     *
-     * amount
-     * ├── itemList
-     * ├── sponsorList
-     * └── fileList
-     */
+    // 비용 상세 조회
     Amount selectAmountById(int amountNo);
 
+    // 워케이션 번호 기준 전체 개수 조회
+    int getAmountCountByWorkcationNo(int workcationNo);
 
-    // =========================================================
-    // 3. 워케이션별 정산 목록 조회
-    // =========================================================
+    // 워케이션 번호 기준 페이징 목록 조회
+    List<Amount> selectAmountListByWorkcationNo(
+            int workcationNo,
+            PageInfo pi
+    );
 
-    /**
-     * workcation_no 기준 정산 목록 조회
-     */
-    List<Amount> selectAmountListByWorkcationNo(int workcationNo);
+    // 전체 목록 조회 (페이징 객체 기준)
+    List<Amount> selectAmountList(PageInfo pi);
 
-
-    // =========================================================
-    // 4. 결재 상태 변경
-    // =========================================================
-
-    /**
-     * 정산 결재 상태 변경
-     *
-     * A : 승인
-     * C : 취소
-     * H : 보류
-     * J : 반려
-     * R : 검토
-     */
+    // 결재 상태 변경
     int updateApprovalStatus(Amount amount);
 
-
-    // =========================================================
-    // 5. 정산 수정
-    // =========================================================
-
-    /**
-     * 정산 정보 및 첨부파일 수정
-     *
-     * amount
-     * ├── amount 기본 정보
-     * ├── itemList
-     * ├── sponsorList
-     * └── fileList
-     *
-     * files
-     * └── 새로 업로드할 첨부파일
-     */
+    // 비용 신청 수정
     void updateAmount(
             Amount amount,
             List<MultipartFile> files
     );
 
+    // 개별 파일 삭제
+    int deleteFile(int amountattachmentNo);
 
-    // =========================================================
-    // 6. 정산 취소
-    // =========================================================
-
-    /**
-     * amount.status = C
-     */
+    // 비용 신청 취소
     int cancelAmount(int amountNo);
 
-
-    // =========================================================
-    // 7. 승인 + 지급/후원 정보 처리
-    // =========================================================
-
-    /**
-     * 정산 승인과 동시에 amount_list 등록/수정
-     *
-     * amount
-     * └── amount_list
-     *      ├── sponsor_name
-     *      ├── amount
-     *      ├── status
-     *      └── remark
-     */
+    // 승인 및 지원금 동시 처리
     void updateApprovalWithSponsor(
             int amountNo,
             String status,
@@ -122,25 +58,6 @@ public interface AmountService {
             String remark
     );
 
-
-    // =========================================================
-    // 8. 정산 통계
-    // =========================================================
-
-    /**
-     * 전체 정산 통계 조회
-     *
-     * 예:
-     * - 전체 정산 건수
-     * - 신청 금액
-     * - 승인 금액
-     * - 승인 건수
-     * - 검토 건수
-     * - 반려 건수
-     * - 취소 건수
-     * - 미지급 금액
-     * - 지급 금액
-     */
+    // 전체 통계 조회
     Map<String, Object> getFullStatistics();
-
 }
