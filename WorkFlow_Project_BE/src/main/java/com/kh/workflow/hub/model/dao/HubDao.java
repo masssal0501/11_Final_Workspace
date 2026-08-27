@@ -17,9 +17,6 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 	Page<Hub> findByHubTypeInOrderByHubNoDesc(Pageable pageable, List<Integer> hubTypes);
 
     @EntityGraph(attributePaths = {"hubFileList"})
-    Page<Hub> findAll(Pageable pageable);
-    
-    @EntityGraph(attributePaths = {"hubFileList"})
     @Query("""
     		SELECT h FROM Hub h WHERE
             h.mainRegion LIKE %:mainRegion% AND

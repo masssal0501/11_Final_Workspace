@@ -13,12 +13,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -214,5 +216,22 @@ public class HubController {
 		return ResponseEntity.status(HttpStatus.OK)
 					  		 .body(message);
 
+	}
+	
+	@PutMapping("/hubs/{hubNo}")
+	public ResponseEntity<String> updateHub(
+	        @PathVariable int hubNo,
+	        Hub hubData, // 거점 기본 정보 폼 데이터 매핑
+	        @RequestParam(required = false) List<Integer> fileNos,
+	        @RequestParam(required = false) List<MultipartFile> upfiles,
+	        @RequestParam(required = false) List<Integer> upfileIndexes,
+	        HttpSession session) { // 👈 세션 추가
+	    
+	        Hub updateHub = hubService.updateHub(hubNo, hubData, fileNos, upfiles, upfileIndexes, session);
+	        
+	        String message = (updateHub != null) ? "success" : "fail";
+	        
+	        return ResponseEntity.status(HttpStatus.OK)
+	                              .body(message);
 	}
 }

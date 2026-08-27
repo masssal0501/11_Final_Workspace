@@ -8,13 +8,13 @@ import org.hibernate.annotations.DynamicUpdate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -83,6 +83,7 @@ public class Hub {
 	
     @JsonIgnoreProperties({"hub"}) // JSON 변환 시 순환 참조 방지
     @OneToMany(mappedBy = "hub")
+    @OrderBy("hubfileNo ASC")
     private List<HubFile> hubFileList;
     
 }
