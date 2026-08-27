@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { placeApi } from "../api/placeApi";
 
+import "../style/placeDetail.css";
+
 function PlaceDetail() {
 
     const { hubNo } = useParams();
@@ -71,14 +73,14 @@ function PlaceDetail() {
 
     return (
 
-        <div>
+        <div className="place-info">
 
             <h2>지역 정보 상세조회</h2>
 
             <hr />
 
 
-            <div className="place-info">
+            <div>
 
                 {/* 사진 */}
                 <div className="place-image">
@@ -108,8 +110,10 @@ function PlaceDetail() {
 
                 {/* 제목 */}
                 <div className="Title-box">
-                    <h3>{place.hubName}</h3>
+                    <h3 align="center">{place.hubName}</h3>
                 </div>
+
+                <br />
 
                 <div className="place-rating">
                     <span className="rating-star">⭐️</span>
@@ -117,85 +121,57 @@ function PlaceDetail() {
                     <span className="rating-value">-</span>
                 </div>
 
+                {/* 설명 */}
+                <div>
 
-                {/* 지역 */}
-                <p>
+                    <strong>상세 정보</strong>
+                    <br />
+                    <div className="description">{place.description}</div>
 
-                    <strong>지역명 : </strong>
+                </div>
 
-                    {place.mainRegion}
-
-                </p>
-
-
-                {/* 상세 지역 */}
-                <p>
-
-                    <strong>상세지역명 : </strong>
-
-                    {place.subRegion}
-
-                </p>
-
-
-                {/* 장소 유형 */}
-                <p>
-
-                    <strong>장소 유형 : </strong>
-
-                    {place.hubType}
-
-                </p>
-
+                <br />
 
                 {/* 주소 */}
-                <p>
+                <div>
 
-                    <strong>주소 : </strong>
+                    <strong>주소</strong>
+                    <br />
+                    {place.mainRegion} {place.subRegion} {place.hubAddress}
 
-                    {place.hubAddress}
+                </div>
 
-                </p>
-
+                <br />
 
                 {/* 전화번호 */}
-                <p>
+                <div>
 
-                    <strong>전화번호 : </strong>
-
+                    <strong>전화번호</strong>
+                    <br />
                     {place.phone}
 
-                </p>
+                </div>
 
-
-                {/* 설명 */}
-                <p>
-
-                    <strong>설명 : </strong>
-
-                    {place.description}
-
-                </p>
-
+                <br />
 
                 {/* 허브 상태 */}
-                <p>
+                <div>
 
-                    <strong>운영 상태 : </strong>
-
+                    <strong>운영 상태</strong>
+                    <br />
                     {getHubStatusText(place.hubStatus)}
 
-                </p>
+                </div>
 
             </div>
 
 
-            <div>
+            <div className="button">
 
                 {/* 관리자에게만 수정하기 버튼 표시 */}
                 {isAdmin && (
 
-                    <button
+                    <button className="editButton"
                         onClick={() => navigate(`/place/${hubNo}/edit`)}
                     >
                         수정하기
@@ -204,7 +180,7 @@ function PlaceDetail() {
                 )}
 
 
-                <button
+                <button className="backButton"
                     onClick={() => navigate(-1)}
                 >
                     뒤로가기

@@ -145,7 +145,7 @@ function PlaceEdit() {
 
     return (
 
-        <div>
+        <div className="place-info">
 
             <h2>지역 정보 수정</h2>
 
@@ -154,11 +154,11 @@ function PlaceEdit() {
 
             <form onSubmit={handleSubmit}>
 
-                <div className="place-info">
+                <div>
 
 
                     {/* 거점 이름 */}
-                    <p>
+                    <div>
 
                         <h4>거점 이름 : </h4>
 
@@ -169,11 +169,11 @@ function PlaceEdit() {
                             onChange={handleChange}
                         />
 
-                    </p>
+                    </div>
 
 
                     {/* 메인 지역 */}
-                    <p>
+                    <div>
 
                         <h4>지역명 : </h4>
 
@@ -201,11 +201,11 @@ function PlaceEdit() {
 
                         </select>
 
-                    </p>
+                    </div>
 
 
                     {/* 하위 지역 */}
-                    <p>
+                    <div>
 
                         <h4>상세지역명 : </h4>
 
@@ -238,11 +238,11 @@ function PlaceEdit() {
 
                         </select>
 
-                    </p>
+                    </div>
 
 
                     {/* 장소 유형 */}
-                    <p>
+                    <div>
 
                         <h4>장소 유형 : </h4>
 
@@ -270,11 +270,11 @@ function PlaceEdit() {
 
                         </select>
 
-                    </p>
+                    </div>
 
 
                     {/* 운영 상태 */}
-                    <p>
+                    <div>
 
                         <h4>운영 상태 : </h4>
 
@@ -298,11 +298,11 @@ function PlaceEdit() {
 
                         </select>
 
-                    </p>
+                    </div>
 
 
                     {/* 주소 */}
-                    <p>
+                    <div>
 
                         <h4>주소 : </h4>
 
@@ -313,11 +313,11 @@ function PlaceEdit() {
                             onChange={handleChange}
                         />
 
-                    </p>
+                    </div>
 
 
                     {/* 전화번호 */}
-                    <p>
+                    <div>
 
                         <h4>전화번호 : </h4>
 
@@ -328,11 +328,11 @@ function PlaceEdit() {
                             onChange={handleChange}
                         />
 
-                    </p>
+                    </div>
 
 
                     {/* 설명 */}
-                    <p>
+                    <div>
 
                         <h4>지역 설명 : </h4>
 
@@ -342,10 +342,10 @@ function PlaceEdit() {
                             onChange={handleChange}
                         />
 
-                    </p>
+                    </div>
 
                     {/* 사진 첨부 */}
-                    <p>
+                    <div>
 
                         <h4>사진 첨부 : </h4>
 
@@ -355,7 +355,7 @@ function PlaceEdit() {
                             onChange={(e) => setFile(e.target.files[0])}
                         />
 
-                    </p>
+                    </div>
 
 
                 </div>

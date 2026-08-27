@@ -178,8 +178,13 @@ function PlaceForm() {
                         name="phone"
                         value={place.phone}
                         onChange={handleChange}
-                        placeholder="전화번호를 입력해주세요."
+                        placeholder="* - 를 사용해서 작성해주세요 *"
+                        pattern="^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$"
+                        maxLength={13}
                     />
+                    <small className="input-guide">
+                        전화번호는 010-1234-5678 형식으로 입력해주세요.
+                    </small>
                 </div>
 
                 <div className="formGroup">
@@ -188,7 +193,8 @@ function PlaceForm() {
                         name="description"
                         value={place.description}
                         onChange={handleChange}
-                        placeholder="지역 설명을 입력해주세요."
+                        placeholder="지역 설명을 입력해주세요. * 300자 이내로 적어주세요. *"
+                        maxLength={300}
                     />
                 </div>
 
