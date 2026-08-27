@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import "./common/styles/common.css";
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";

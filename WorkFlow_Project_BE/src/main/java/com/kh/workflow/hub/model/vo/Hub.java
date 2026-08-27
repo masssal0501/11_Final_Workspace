@@ -24,7 +24,7 @@ import lombok.ToString;
 @Schema(description="거점 엔티티")
 
 @Entity
-@Table(name="HUB")
+@Table(name="Hub")
 
 @DynamicInsert
 @DynamicUpdate
