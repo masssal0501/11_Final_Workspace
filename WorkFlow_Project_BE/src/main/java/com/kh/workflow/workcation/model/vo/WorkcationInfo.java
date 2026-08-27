@@ -23,7 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "workcation")
+@Table(name = "workcation_info")
 
 @DynamicInsert
 @DynamicUpdate
@@ -32,7 +32,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class Workcation {
+public class WorkcationInfo {
 	
 	@Schema(description = "게시글 번호 (자동생성)", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
 	@Id

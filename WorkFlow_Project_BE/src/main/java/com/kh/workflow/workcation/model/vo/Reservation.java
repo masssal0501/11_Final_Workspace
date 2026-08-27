@@ -52,7 +52,7 @@ public class Reservation {
 	
 	@JoinColumn(name="workcation_no", nullable=false)
 	@ManyToOne()
-	private Workcation workcation;
+	private WorkcationInfo workcation;
 	
 	@JoinColumn(name="hub_no", nullable=false)
 	@ManyToOne(fetch = FetchType.LAZY)

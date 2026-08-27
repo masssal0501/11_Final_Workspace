@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-import WorkcationItemComponent, { WORKCATION_FULL_DATA, OPTION_CONFIG } from "./WorkcationItemComponent";
+import WorkcationItemComponent, { OPTION_CONFIG } from "./WorkcationItemComponent";
 
 import "../styles/WorkcationEnrollForm.css";
 
@@ -13,8 +13,10 @@ function WorkcationEnrollFormComponent() {
 
     // 고정 거점 선택
     const [placeType, setPlaceType] = useState("office");
-    const [selectedPlace, setSelectedPlace] = useState("");
-    const [selectedOptions, setSelectedOptions] = useState({});
+    const [hubList, setHubList] = useState([]);
+    const [selectHubNo, setSelectHubNo] = useState("")
+
+    const [optionHubs, setOptionHubs] = useState({})
 
     // 동적 옵션 버튼(tr 출력)
     const [selectedBtns, setSelectedBtns] = useState([]);
@@ -28,11 +30,14 @@ function WorkcationEnrollFormComponent() {
     const [trafficFee, setTrafficFee] = useState(0);
     const [etcFee, setEtcFee] = useState(0);
 
+    const [optionItemLists, setOptionItemLists] = useState({})
+
     /** 최상위 지역변경시 하위 옵션 모두 초기화 */
     const handleRegionChange = (newMain, newSub) => {
         setMainRegion(newMain);
         setSubRegion(newSub);
-        setSelectedPlace("");
+        setSelectHubNo("");
+        setOptionHubs({});
     };
 
     // 거점 유형변경 핸들러
@@ -41,9 +46,34 @@ function WorkcationEnrollFormComponent() {
         setSelectedPlace("");
     };
 
-    // 선택된 지역 및 유형 데이터 추출
-    const currentRegionData = (mainRegion && subRegion) ? WORKCATION_FULL_DATA[mainRegion]?.[subRegion] : null;
-    const currentHub = currentRegionData ? currentRegionData[placeType] : null;
+    useEffect(() => {
+        if (!mainRegion || !subRegion) {
+            setHubList([]);
+            return;
+        }
+        const typeCode = placeType === "office" ? 1 : 2;
+        axios.get(`http://localhost:8006/api/hub/list?mainRegion=${mainRegion}&subregion=${subRegion}&hubType=${typeCode}`)
+            .then(res => {
+                setHubList(res.data);
+                setSelectHubNo("");
+            })
+            .catch(err => console.error("거점 목록 조회 실패: ", err));
+    }, [mainRegion, subRegion, placeType])
+
+    useEffect(() => {
+        selectedBtns.forEacch(key => {
+            const config = OPTION_CONFIG[key];
+            if (!mainRegion || !subRegion || !config) return;
+            axios.get(`http://localhost:8006/api/hub/list?mainRegion=${mainRegion}&subRegion=${subRegion}&hubType=${config.typeCode}`)
+                .then(res => {
+                    setOptionItemLists(prev => ({ ...prev, [key]: res.data }));
+                })
+                .catch(err => console.error(`${config.label} 목록조회 실패: `, err))
+        })
+    }, [mainRegion, subRegion, selectedBtns])
+
+
+    const currentHub = HubList.find(h => String(h.hubNo) === String(selectHubNo))
 
     // 옵션 추가(누르는 순대로 쌓임)
     const handleAddBtns = (type) => {
@@ -52,45 +82,53 @@ function WorkcationEnrollFormComponent() {
     };
 
     // 옵션 제거
-    const handleRemoveBtn = (type) => {
-        setSelectedBtns(selectedBtns.filter((item) => item !== type));
+    const handleRemoveBtn = (key) => {
+        setSelectedBtns(selectedBtns.filter((item) => item !== key));
+        const copy = { ...optionHubs }
+        delete copy[key];
+        setOptionHubs(copy);
     };
 
     /** 선택된 타입에 따라 해당 tr을 반환하는 함수 */
-    const renderBtnRow = (type) => {
-        if (!currentHub) return null;
-
-        const config = OPTION_CONFIG[type];
+    const renderBtnRow = (key) => {
+        const config = OPTION_CONFIG[key];
         if (!config) return null;
 
-        const itemName = currentHub[config.key] || "항목 없음";
-        const itemPrice = currentHub[config.priceKey] ?? 0;
+        const itemList = optionItemLists[key] || [];
+        const selectedItem = optionHubs[key] || "";
 
         return (
-            <tr key={type}>
+            <tr key={key}>
                 <th>{config.label}</th>
                 <td>
-                    <select name={`${type}No`}
-                        value={selectedOptions[type] || ""}
-                        onChange={(e) => setSelectedOptions({
-                            ...selectedOptions, [type]: e.target.value
-                        })}>
+                    <select name={`${key}No`}
+                        value={selectedItem ? selectedItem.hubNo : ""}
+                        onChange={(e) => {
+                            const found = itemList.find(item => String(item.hubNo) === e.target.value);
+                            setOptionHubs({
+                                ...optionHubs, [key]: found || null
+                            })
+                        }}>
                         <option value="">{config.label} 선택</option>
-                        <option value="1">
-                            {itemName} / {itemPrice.toLocaleString()}원
-                        </option>
+                        {itemList.map(item => (
+                            <option
+                                key={item.hubNo}
+                                value={item.hubNo}>
+                                {itemName} / {item.Price ? `${item.price.toLocaleString}()}원` : "가격 정보 없음"}
+                            </option>
+                        ))}
                     </select>
-                </td>
+                </td >
                 <th>방문일</th>
                 <td className="optionBtn-date">
-                    <input type="date" name={config.label} />
+                    <input type="date" name={`${key}date`} />
                     <button type="button"
                         className="remove-btn"
-                        onClick={() => handleRemoveBtn(type)}>
+                        onClick={() => handleRemoveBtn(key)}>
                         X
                     </button>
                 </td>
-            </tr>
+            </tr >
         );
     };
 
@@ -107,19 +145,12 @@ function WorkcationEnrollFormComponent() {
         setPlanList(planList.filter(item => item.id !== id));
     };
 
-    //숙박비/오피스비 (선택된 거점의 기본 가격 참조)
-    const hubPrice = (selectedPlace && currentHub?.price) ? Number(currentHub.price) : 0;
+    //숙박비 또는 오피스비 (선택된 거점의 기본 가격 참조)
+    const hubPrice = currentHub ? Number(currentHub.price) : 0;
 
     //추가 선택한 옵션 총액 (priceKey로 해당 객체의 속성값을 찾아 합산)
-    const optionsPrice = selectedBtns.reduce((acc, type) => {
-        const config = OPTION_CONFIG[type];
-        if (!config || !currentHub) return acc;
-
-        const selectedValue = selectedOptions[type];
-        if (!selectedValue) return acc;
-
-        const price = currentHub[config.priceKey] ?? 0;
-        return acc + Number(price);
+    const optionsPrice = Object.values(optionHubs).reduce((acc, hubObj) => {
+        return acc + (hubObj ? Number(hubObj.price) : 0);
     }, 0);
 
     // 총액 계산
@@ -164,7 +195,7 @@ function WorkcationEnrollFormComponent() {
                             <WorkcationItemComponent
                                 mainRegion={mainRegion}
                                 subRegion={subRegion}
-                                onRegionChcange={handleRegionChange} />
+                                onRegionChange={handleRegionChange} />
                         </td>
                     </tr>
                     {/* 거점 유형선택 */}
@@ -190,7 +221,7 @@ function WorkcationEnrollFormComponent() {
                         </td>
                         <th>위치 주소</th>
                         <td>
-                            {selectedPlace && currentHub ? currentHub.address : "선택 된 거점 없음"}
+                            {currentHub ? currentHub.address : "선택 된 거점 없음"}
                         </td>
                     </tr>
 
@@ -198,17 +229,17 @@ function WorkcationEnrollFormComponent() {
                     <tr>
                         <th>{placeType === "office" ? "오피스 선택" : "숙소 선택"}</th>
                         <td>
-                            <select value={selectedPlace}
-                                onChange={(e) => setSelectedPlace(e.target.value)}
+                            <select value={selectHubNo}
+                                onChange={(e) => setSelectHubNo(e.target.value)}
                                 disabled={!subRegion}>
                                 <option value="">
                                     {!subRegion ? " 지역을 먼저 선택해주세요." : `${placeType === "office" ? "오피스" : "숙소"}를 선택하세요.`}
                                 </option>
-                                {currentHub && (
-                                    <option value={currentHub.name}>
-                                        {currentHub.name} / {currentHub.price ? `1박 ${currentHub.price.toLocaleString()}원` : "가격 정보 없음"}
+                                {hubList.map((hub) => (
+                                    <option key={hub.hubNo} value={hub.hubNo}>
+                                        {hub.name} / {hub.price ? `1박 ${hub.price.toLocaleString()}원` : "가격 정보 없음"}
                                     </option>
-                                )}
+                                ))}
                             </select>
                         </td>
                     </tr>

@@ -1,13 +1,19 @@
 package com.kh.workflow.workcation.model.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.kh.workflow.workcation.model.vo.Workcation;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface WorkcationService {
 
-	Page<Workcation> selectWorkcationList(Pageable pageable);
+	Page<WorkcationInfo> selectWorkcationList(Pageable pageable);
+
+	List<String> selectMainRegion();
+
+	List<String> selectSubRegions(String mainRegion);
 
 	
 	

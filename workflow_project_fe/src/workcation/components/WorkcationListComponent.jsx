@@ -31,19 +31,21 @@ function WorkcationListComponent() {
 
     const [dataList, setDataList] = useState([]);
     const [pageList, setPageList] = useState([]);
-
+    
     useEffect(() => {
         selectWorkcationList();
-    }, [cpage, searchCondition, searchKeyword]);
+    }, [cpage, searchCondition, searchKeyword, mainRegion, subRegion,searchType]);
 
     const selectWorkcationList = async () => {
         try {
-
             const response = await axios.get("http://localhost:8006/workflow/workcation/list", {
                 params: {
                     cpage: cpage,
                     condition: searchCondition,
-                    keyword: searchKeyword
+                    keyword: searchKeyword,
+                    mainRegion: mainRegion,
+                    subRegion: subRegion,
+                    searchType: searchType
                 }
             })
 
@@ -134,7 +136,7 @@ function WorkcationListComponent() {
                 <WorkcationItemComponent 
                 mainRegion={mainRegion}
                 subRegion={subRegion}
-                onRegionChcange={handleRegionChange}/>
+                onRegionChange={handleRegionChange}/>
 
                 {/**상태 드롭다운 */}
                 <select className="status-drop"
