@@ -36,7 +36,7 @@ import FindIDForm from "./employee/components/FindIDForm";
 import FindPWForm from "./employee/components/FindPWForm";
 import ChangePWForm from "./employee/components/ChangePWForm";
 import EmployeeEnrollFormComponent
-    from "./employee/components/EmployeeEnrollFormComponent";
+  from "./employee/components/EmployeeEnrollFormComponent";
 import MyPageForm from "./employee/components/MyPageForm";
 import UpdateMyPageForm from "./employee/components/UpdateMyPageForm";
 import EmployeeList from "./employee/components/EmployeeList";
@@ -44,325 +44,343 @@ import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
 import {
-    Routes,
-    Route,
-    Navigate
+  Routes,
+  Route,
+  Navigate
 } from "react-router-dom";
 
 
 
 function App() {
 
-    const [loginUser, setLoginUser] = useState(() => {
+  const [loginUser, setLoginUser] = useState(() => {
 
-        const savedUser =
-            localStorage.getItem("user");
+    const savedUser =
+      localStorage.getItem("user");
 
-        return savedUser
-            ? JSON.parse(savedUser)
-            : null;
-    });
-
-
-    /*
-     * 로그인 성공
-     */
-    const handleLogin = (user) => {
-
-        localStorage.setItem(
-            "user",
-            JSON.stringify(user)
-        );
-
-        setLoginUser(user);
-    };
+    return savedUser
+      ? JSON.parse(savedUser)
+      : null;
+  });
 
 
-    /*
-     * 로그아웃
-     */
-    const handleLogout = () => {
+  /*
+   * 로그인 성공
+   */
+  const handleLogin = (user) => {
 
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
+    localStorage.setItem(
+      "user",
+      JSON.stringify(user)
+    );
 
-        setLoginUser(null);
-    };
-
-
-    /*
-     * ========================================
-     * 로그인하지 않은 상태
-     * ========================================
-     */
-    if (!loginUser) {
-
-        return (
-            <div className="content">
-
-                <Routes>
-
-                    <Route
-                        path="/"
-                        element={
-                            <Navigate
-                                to="/login"
-                                replace
-                            />
-                        }
-                    />
-
-                    <Route
-                        path="/login"
-                        element={
-                            <LoginForm
-                                onLogin={handleLogin}
-                            />
-                        }
-                    />
-
-                    <Route
-                        path="/login/findID"
-                        element={<FindIDForm />}
-                    />
-
-                    <Route
-                        path="/login/findPW"
-                        element={<FindPWForm />}
-                    />
-
-                    <Route
-                        path="*"
-                        element={
-                            <Navigate
-                                to="/login"
-                                replace
-                            />
-                        }
-                    />
-
-                </Routes>
-
-            </div>
-        );
-    }
+    setLoginUser(user);
+  };
 
 
-    /*
-     * ========================================
-     * 비밀번호 변경이 필요한 사용자
-     * ========================================
-     */
-    if (
-        loginUser.pwChgRequired === true ||
-        loginUser.pwChgRequired === "true"
-    ) {
+  /*
+   * 로그아웃
+   */
+  const handleLogout = () => {
 
-        return (
-            <div className="content">
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
 
-                <Header
-                    loginUser={loginUser}
-                    onLogout={handleLogout}
-                />
-
-                <Routes>
-
-                    <Route
-                        path="/changePW"
-                        element={
-                            <ChangePWForm
-                                loginUser={loginUser}
-                                onLogin={handleLogin}
-                            />
-                        }
-                    />
-
-                    <Route
-                        path="*"
-                        element={
-                            <Navigate
-                                to="/changePW"
-                                replace
-                            />
-                        }
-                    />
-
-                </Routes>
-
-                <Footer />
-
-            </div>
-        );
-    }
+    setLoginUser(null);
+  };
 
 
-    /*
-     * ========================================
-     * 정상 로그인 사용자
-     * ========================================
-     */
+  /*
+   * ========================================
+   * 로그인하지 않은 상태
+   * ========================================
+   */
+  if (!loginUser) {
 
     return (
-        <div>
+      <div className="content">
+        <Header
+          loginUser={loginUser}
+          onLogout={handleLogout}
+        />
+        <Routes>
 
-            <Header
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <LoginForm
+                onLogin={handleLogin}
+              />
+            }
+          />
+
+          <Route
+            path="/login/findID"
+            element={<FindIDForm />}
+          />
+
+          <Route
+            path="/login/findPW"
+            element={<FindPWForm />}
+          />
+          <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
+          <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
+          <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />}></Route>
+          <Route path="/placeInfo/detail/:hubNo" element={<HubDetailComponent />}></Route>
+          <Route path="/placeInfo/updateForm/:hubNo" element={<HubUpdateFormComponent />}></Route>
+          <Route path="/placeInfo/ai" element={<AIComponent />}></Route>
+
+          {/* 업무 게시판 라우트 */}
+          <Route path="/task/list" element={<TaskListComponent />} />
+          <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+
+          {/* 워케이션 라우트 */}
+          <Route path="/workcation/list" element={<WorkcationListComponent />} />
+          <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
+          <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
+
+        </Routes>
+
+      </div>
+    );
+  }
+
+
+  /*
+   * ========================================
+   * 비밀번호 변경이 필요한 사용자
+   * ========================================
+   */
+  if (
+    loginUser.pwChgRequired === true ||
+    loginUser.pwChgRequired === "true"
+  ) {
+
+    return (
+      <div className="content">
+
+        <Header
+          loginUser={loginUser}
+          onLogout={handleLogout}
+        />
+
+        <Routes>
+
+          <Route
+            path="/changePW"
+            element={
+              <ChangePWForm
                 loginUser={loginUser}
-                onLogout={handleLogout}
+                onLogin={handleLogin}
+              />
+            }
+          />
+
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/changePW"
+                replace
+              />
+            }
+          />
+
+        </Routes>
+
+        <Footer />
+
+      </div>
+    );
+  }
+
+
+  /*
+   * ========================================
+   * 정상 로그인 사용자
+   * ========================================
+   */
+
+  return (
+    <div>
+
+      <Header
+        loginUser={loginUser}
+        onLogout={handleLogout}
+      />
+
+      <Routes>
+
+        {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
+        <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
+
+        {/* 📌 비용 신청 페이지 경로 추가 */}
+        <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
+
+        <Route path="/cost/apply" element={<AmountForm />} />
+
+        {/* 📌 비용 정산 상세 페이지 라우트 추가 */}
+        <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
+
+        {/* 관리자용 정산 페이지 */}
+        <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+
+        {/* 📌 통계 페이지 라우트 추가 */}
+        <Route path="/admin/statistics" element={<StatisticsPage />} />
+
+        <Route path="/notice" element={<NoticeListPage />} />
+
+        <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
+        <Route path="/admin/notice" element={<NoticeAdminListPage />} />
+
+        <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
+
+        <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+
+        {/* placeInfo */}
+        <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
+        <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />}></Route>
+        <Route path="/placeInfo/detail/:hubNo" element={<HubDetailComponent />}></Route>
+        <Route path="/placeInfo/updateForm/:hubNo" element={<HubUpdateFormComponent />}></Route>
+        <Route path="/placeInfo/ai" element={<AIComponent />}></Route>
+
+        {/* 업무 게시판 라우트 */}
+        <Route path="/task/list" element={<TaskListComponent />} />
+        <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+
+        {/* 워케이션 라우트 */}
+        <Route path="/workcation/list" element={<WorkcationListComponent />} />
+        <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
+        <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+
+
+
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
             />
+          }
+        />
 
-            <Routes>
+        <Route
+          path="/dashboard"
+          element={
+            <div>대시보드</div>
+          }
+        />
 
-                {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
-                <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
+        {/* 마이페이지 */}
 
-                {/* 📌 비용 신청 페이지 경로 추가 */}
-                <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
+        <Route
+          path="/myPage"
+          element={<MyPageForm />}
+        />
 
-                <Route path="/cost/apply" element={<AmountForm />} />
+        <Route
+          path="/myPage/update"
+          element={<UpdateMyPageForm />}
+        />
 
-                {/* 📌 비용 정산 상세 페이지 라우트 추가 */}
-                    <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
-                
-                {/* 관리자용 정산 페이지 */}
-                <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+        {/* 비밀번호 변경 */}
 
-                {/* 📌 통계 페이지 라우트 추가 */}
-                    <Route path="/admin/statistics" element={<StatisticsPage />} />
-                
-                <Route path="/notice" element={<NoticeListPage />} />
+        <Route
+          path="/changePW"
+          element={<ChangePWForm />}
+        />
 
-                <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
-                <Route path="/admin/notice" element={<NoticeAdminListPage />} />
+        {/* 직원 */}
 
-                <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
+        <Route
+          path="/employee/enrollForm"
+          element={
+            <EmployeeEnrollFormComponent />
+          }
+        />
 
-                <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+        <Route
+          path="/employee/list"
+          element={<EmployeeList />}
+        />
 
-                {/* placeInfo */}
-                <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
-                <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
-                <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
-                <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
-                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
+        <Route
+          path='/employee/detail/:empNo'
+          element={<EmployeeDetail />}
+        />
 
-                {/* 업무 게시판 라우트 */}
-                <Route path="/task/list" element={<TaskListComponent />} />
-                <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+        <Route
+          path="/employee/edit/:empNo"
+          element={<EmployeeEdit />}
+        />
 
-                {/* 워케이션 라우트 */}
-                <Route path="/workcation/list" element={<WorkcationListComponent />} />
-                <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-                <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+        {/* 관리자 */}
 
+        {loginUser.authCode === "ADMIN" && (
 
+          <Route
+            path="/admin"
+            element={
+              <div>
+                관리자 페이지
+              </div>
+            }
+          />
 
-                <Route
-                    path="/"
-                    element={
-                        <Navigate
-                            to="/dashboard"
-                            replace
-                        />
-                    }
-                />
+        )}
 
-                <Route
-                    path="/dashboard"
-                    element={
-                        <div>대시보드</div>
-                    }
-                />
+        {/* 부서장 */}
 
-                {/* 마이페이지 */}
+        {loginUser.authCode === "MANAGER" && (
 
-                <Route
-                    path="/myPage"
-                    element={<MyPageForm />}
-                />
+          <Route
+            path="/manager"
+            element={
+              <div>
+                부서장 페이지
+              </div>
+            }
+          />
 
-                <Route
-                    path="/myPage/update"
-                    element={<UpdateMyPageForm />}
-                />
+        )}
 
-                {/* 비밀번호 변경 */}
+        {/* 사원 */}
 
-                <Route
-                    path="/changePW"
-                    element={<ChangePWForm />}
-                />
+        {loginUser.authCode === "STAFF" && (
 
-                {/* 직원 */}
+          <Route
+            path="/employee"
+            element={
+              <div>
+                사원 페이지
+              </div>
+            }
+          />
 
-                <Route
-                    path="/employee/enrollForm"
-                    element={
-                        <EmployeeEnrollFormComponent />
-                    }
-                />
+        )}
 
-                <Route
-                    path="/employee/list"
-                    element={<EmployeeList />}
-                />
-
-                <Route
-                    path='/employee/detail/:empNo'
-                    element={<EmployeeDetail />}
-                />
-
-                <Route
-                    path="/employee/edit/:empNo"
-                    element={<EmployeeEdit />}
-                />
-
-                {/* 관리자 */}
-
-                {loginUser.authCode === "ADMIN" && (
-
-                    <Route
-                        path="/admin"
-                        element={
-                            <div>
-                                관리자 페이지
-                            </div>
-                        }
-                    />
-
-                )}
-
-                {/* 부서장 */}
-
-                {loginUser.authCode === "MANAGER" && (
-
-                    <Route
-                        path="/manager"
-                        element={
-                            <div>
-                                부서장 페이지
-                            </div>
-                        }
-                    />
-
-                )}
-
-                {/* 사원 */}
-
-                {loginUser.authCode === "STAFF" && (
-
-                    <Route
-                        path="/employee"
-                        element={
-                            <div>
-                                사원 페이지
-                            </div>
-                        }
-                    />
-
-                )}
-
-                {/* <Route
+        {/* <Route
                     path="*"
                     element={
                         <Navigate
@@ -372,12 +390,12 @@ function App() {
                     }
                 /> */}
 
-            </Routes>
+      </Routes>
 
-            <Footer />
+      <Footer />
 
-        </div>
-    );
+    </div>
+  );
 }
 
 export default App;

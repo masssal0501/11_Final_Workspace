@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.workflow.amount.service.AmountService;
 import com.kh.workflow.amount.vo.Amount;
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.common.template.Pagination;
 
 @RestController
 @RequestMapping("/api/v1/amounts")
@@ -43,6 +44,7 @@ public class AmountController {
      *
      * GET /api/v1/amounts?page=1
      * ============================================================
+     * @param endPage 
      */
     @GetMapping
     public ResponseEntity<?> getAmountList(
@@ -62,17 +64,10 @@ public class AmountController {
             }
 
             // 전체 비용 신청 개수
-            int listCount =
-                    amountService.getAmountListCount();
+            int listCount = amountService.getAmountListCount();
 
-            // PageInfo 생성
-            PageInfo pi = new PageInfo(
-                    listCount,
-                    page,
-                    pageLimit,
-                    boardLimit
-            );
-
+            PageInfo pi = Pagination.getPageInfo(listCount,  page, pageLimit, boardLimit);
+          
             // 현재 페이지 목록 조회
             List<Amount> list =
                     amountService.selectAmountList(pi);
@@ -319,14 +314,8 @@ public class AmountController {
                     );
 
 
-            // PageInfo 생성
-            PageInfo pi =
-                    new PageInfo(
-                        listCount,
-                        page,
-                        pageLimit,
-                        boardLimit
-                    );
+
+            PageInfo pi = Pagination.getPageInfo(listCount,  page, pageLimit, boardLimit);
 
 
             // 현재 페이지 목록

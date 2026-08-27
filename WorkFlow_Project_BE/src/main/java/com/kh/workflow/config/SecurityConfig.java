@@ -73,7 +73,13 @@ public class SecurityConfig {
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
-
+                        
+                        
+                        .requestMatchers(
+                                "/workcation/**"
+                        ).permitAll()
+                        
+                        
                         // 로그인
                         .requestMatchers(
                                 HttpMethod.POST,
@@ -103,7 +109,9 @@ public class SecurityConfig {
 
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
+                        
                 )
+                
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,
@@ -122,7 +130,7 @@ public class SecurityConfig {
 
         // React 개발 서버
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
+                List.of("http://localhost:5174")
         );
 
         // 허용 HTTP Method

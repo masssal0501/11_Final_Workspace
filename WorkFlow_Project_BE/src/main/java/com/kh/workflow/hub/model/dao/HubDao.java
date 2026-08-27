@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import com.kh.workflow.hub.model.vo.Hub;
 
@@ -54,5 +56,12 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
             JOIN survey_question sq ON sa.question_no = sq.question_no
             WHERE r.hub_no = :hubNo AND sq.question_type = 'SCORE'
             """, nativeQuery = true)
-	Double selectAvgScore(@Param("hubNo") int hubNo);
+	Double selectAvgScore(@Param("hubNo") int hubNo);  
+    
+    @Query("SELECT DISTINCT h.mainRegion From Hub h")
+    List<String> selectMainRegionList();
+    
+    @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
+    List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
+    
 }

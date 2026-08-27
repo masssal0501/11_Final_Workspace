@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.ArrayList;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -19,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.place.model.service.PlaceService;
-import com.kh.workflow.place.model.vo.Hub;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -64,11 +66,11 @@ public class PlaceController {
         );
 
         // JWT 파싱
-        Claims claims = Jwts.parserBuilder()
-                            .setSigningKey(key)
+        Claims claims = Jwts.parser()
+                            .verifyWith((SecretKey)key)
                             .build()
-                            .parseClaimsJws(jwtTokenString)
-                            .getBody();
+                            .parseSignedClaims(jwtTokenString)
+                            .getPayload();
 
         // 로그인한 사용자 ID
         String userId = claims.getSubject();

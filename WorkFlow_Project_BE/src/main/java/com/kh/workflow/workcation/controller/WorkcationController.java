@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.workflow.workcation.model.service.WorkcationService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5174", allowedHeaders = "*")
 @RestController
 @RequestMapping("/workcation")
 public class WorkcationController {
@@ -26,10 +26,19 @@ public class WorkcationController {
 	@Autowired
 	private WorkcationService workcationService;
 
+	// 직접 허브에 박아버리기
+	@Autowired
+	private com.kh.workflow.hub.model.dao.HubDao hubDao;
+
 	// 워케이션 목록 조회
 	@GetMapping("/list")
 	public ResponseEntity<Map<String, Object>> selectWorkcationList(
-			@RequestParam(value = "cpage", defaultValue = "1") int currentPage) {
+			@RequestParam(value = "cpage", defaultValue = "1") int currentPage,
+			@RequestParam(value="condition", defaultValue="all")String condition,
+			@RequestParam(value="keyword",defaultValue="")String keyword,
+			@RequestParam(value="mainRegion", defaultValue="") String mainRegion,
+			@RequestParam(value="subRegion", defaultValue="")String subRegion,
+			@RequestParam(value="searchType", defaultValue="all")String searchType){
 
 		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 
@@ -44,5 +53,18 @@ public class WorkcationController {
 		return ResponseEntity.ok(map);
 	}
 
-	
+	// 메인지역 드롭에 따른 목록 조회
+	@GetMapping("/hub/mainRegion")
+	public ResponseEntity<List<String>> getMainRegionList() {
+		List<String> list = hubDao.selectMainRegionList();
+		return ResponseEntity.ok(list);
+	}
+
+	// 상세지역 드롭에 따른 목록 조회
+	@GetMapping("/hub/subRegion")
+	public ResponseEntity<List<String>> getSubRegionList(@RequestParam String mainRegion) {
+		List<String> list = hubDao.selectSubRegionList(mainRegion);
+		return ResponseEntity.ok(list);
+	}
+
 }

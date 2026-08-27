@@ -27,4 +27,6 @@ public class WorkcationServiceImpl implements WorkcationService {
 		return workcationDao.findAll(pageable);
 	}
 
+
+
 }

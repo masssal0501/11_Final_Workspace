@@ -7,9 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.place.model.dao.PlaceDao;
-
-import com.kh.workflow.place.model.vo.Hub;
 
 @Service
 public class PlaceServiceImpl implements PlaceService {
