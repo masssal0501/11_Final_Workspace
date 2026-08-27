@@ -1,9 +1,11 @@
 package com.kh.workflow.employee.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.LoginRequest;
+import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.service.EmployeeService;
 
 import lombok.RequiredArgsConstructor;
@@ -57,16 +62,43 @@ public class EmployeeController {
 
     // USR-002
     @PostMapping("/login")
-    public ResponseEntity<EmployeeResponse> login(
-            @RequestParam String empId,
-            @RequestParam String empPwd
+    public ResponseEntity<LoginResponse> login(
+    		@RequestBody LoginRequest request
     ) {
+    	
+    	LoginResponse response = employeeService.login(request);
 
-        return ResponseEntity.ok(
-                employeeService.login(empId, empPwd)
-        );
+        return ResponseEntity.ok(response);
+    }
+    
+    // USR-003
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+
+        return ResponseEntity.ok().build();
     }
 
+    // USR-004
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            Authentication authentication
+    ) {
+
+        String empId = authentication.getName();
+
+        employeeService.changePassword(
+            empId,
+            request
+        );
+
+        return ResponseEntity.ok(
+            Map.of(
+                "message",
+                "비밀번호가 정상적으로 변경되었습니다."
+            )
+        );
+    }
 
     // USR-005
     @GetMapping("/{empNo}")

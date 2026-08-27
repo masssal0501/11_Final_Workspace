@@ -1,0 +1,410 @@
+/* 전체 목록 */
+.place-list {
+    width: 100%;
+    max-width: 1000px;
+
+    margin: 40px auto;
+    padding: 0 20px;
+
+    box-sizing: border-box;
+}
+
+/* 페이지 제목 */
+.place-list h2 {
+    margin-bottom: 25px;
+
+    font-size: 28px;
+    font-weight: 700;
+
+    color: #222;
+}
+
+/* 검색 영역 */
+.place-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 25px;
+
+    flex-wrap: wrap;
+}
+
+/* select */
+.place-search select {
+    height: 42px;
+
+    padding: 0 35px 0 13px;
+
+    border: 1px solid #ddd;
+    border-radius: 7px;
+
+    background-color: white;
+
+    font-size: 14px;
+    color: #333;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+.place-search select:focus {
+    border-color: #4a90e2;
+}
+
+/* 검색 박스 */
+.search-box {
+    display: flex;
+
+    height: 42px;
+
+    margin-left: auto;
+}
+
+/* 검색 input */
+.search-box input {
+    width: 220px;
+
+    padding: 0 13px;
+
+    border: 1px solid #ddd;
+    border-right: none;
+
+    border-radius: 7px 0 0 7px;
+
+    outline: none;
+
+    font-size: 14px;
+
+    box-sizing: border-box;
+}
+
+.search-box input:focus {
+    border-color: #4a90e2;
+}
+
+/* 검색 버튼 */
+.search-box button {
+    width: 60px;
+
+    border: none;
+    border-radius: 0 7px 7px 0;
+
+    background-color: #4a90e2;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.search-box button:hover {
+    background-color: #357abd;
+}
+
+
+/* AI 추천 버튼 */
+.ai-button {
+    height: 42px;
+
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 7px;
+
+    background-color: #222;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.ai-button:hover {
+    background-color: #444;
+    transform: translateY(-1px);
+}
+
+
+/* 구분선 */
+.place-list > hr {
+    margin: 25px 0;
+
+    border: none;
+    border-top: 1px solid #e5e5e5;
+}
+
+
+/* ================================
+   장소 카드
+================================ */
+
+.place-item {
+    position: relative;
+
+    margin-bottom: 18px;
+    padding: 24px 26px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.place-item:hover {
+    transform: translateY(-3px);
+
+    border-color: #cfdff5;
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+
+/* 카드 상단 */
+.place-item-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 12px;
+}
+
+
+/* 장소 유형 */
+.place-type {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    background-color: #eef5ff;
+    color: #357abd;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* 운영 상태 */
+.place-status {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* 운영중 */
+.place-status.open {
+    background-color: #eaf8ee;
+    color: #2e8b57;
+}
+
+/* 일시중단 */
+.place-status.paused {
+    background-color: #fff4df;
+    color: #d88900;
+}
+
+/* 종료 */
+.place-status.closed {
+    background-color: #fceaea;
+    color: #d64545;
+}
+
+
+/* 카드 내용 */
+.place-item-content {
+    padding-bottom: 15px;
+}
+
+
+/* 장소명 */
+.place-item-content h3 {
+    margin: 0 0 15px;
+
+    font-size: 21px;
+    font-weight: 700;
+
+    color: #222;
+}
+
+
+/* 장소 정보 */
+.place-info {
+    margin-bottom: 15px;
+}
+
+.place-info p {
+    display: flex;
+
+    margin: 7px 0;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    color: #555;
+}
+
+
+/* 정보 라벨 */
+.info-label {
+    display: inline-block;
+
+    width: 45px;
+
+    margin-right: 8px;
+
+    font-weight: 600;
+
+    color: #333;
+}
+
+
+/* 설명 */
+.place-description {
+    margin: 15px 0 0;
+
+    color: #777;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+
+/* 카드 하단 */
+.place-item-footer {
+    display: flex;
+
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 6px;
+
+    padding-top: 13px;
+
+    border-top: 1px solid #f0f0f0;
+
+    color: #4a90e2;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.arrow {
+    font-size: 17px;
+
+    transition: transform 0.2s ease;
+}
+
+.place-item:hover .arrow {
+    transform: translateX(4px);
+}
+
+
+/* ================================
+   페이지네이션
+================================ */
+
+.pagination {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 5px;
+
+    margin-top: 30px;
+}
+
+.pagination button {
+    min-width: 34px;
+    height: 34px;
+
+    padding: 0 8px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+}
+
+
+/* ================================
+   반응형
+================================ */
+
+@media (max-width: 768px) {
+
+    .place-list {
+        width: 100%;
+
+        margin: 25px auto;
+        padding: 0 15px;
+    }
+
+    .place-list h2 {
+        font-size: 23px;
+    }
+
+    .place-search {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .place-search select {
+        width: 100%;
+    }
+
+    .search-box {
+        width: 100%;
+
+        margin-left: 0;
+    }
+
+    .search-box input {
+        flex: 1;
+
+        width: auto;
+    }
+
+    .ai-button {
+        width: 100%;
+    }
+
+    .place-item {
+        padding: 20px;
+    }
+
+    .place-item-content h3 {
+        font-size: 19px;
+    }
+
+}

@@ -7,11 +7,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.workflow.config.jwt.JwtUtil;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.LoginRequest;
+import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.mail.MailService;
 
@@ -31,6 +35,8 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     private final MailService mailService;
 	
+    private final JwtUtil jwtUtil;
+    
     // =========================================================
     // USR-001
     // 계정 등록
@@ -217,13 +223,10 @@ public class EmployeeServiceImpl implements EmployeeService{
     // =========================================================
 
     @Override
-    public EmployeeResponse login(
-            String empId,
-            String empPwd
-    ) {
+    public LoginResponse login(LoginRequest request) {
 
         Employee employee =
-        		employeeDao.findByEmpId(empId)
+        		employeeDao.findByEmpId(request.getEmpId())
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "아이디 또는 비밀번호가 올바르지 않습니다."
@@ -242,7 +245,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(
-                empPwd,
+        		request.getPassword(),
                 employee.getEmpPwd()
         )) {
 
@@ -252,7 +255,23 @@ public class EmployeeServiceImpl implements EmployeeService{
         }
 
 
-        return convertToResponse(employee);
+        // JWT 생성
+        String accessToken = jwtUtil.generateToken(
+                employee.getEmpId(),
+                employee.getAuthCode(),
+                employee.getEmpNo()
+        );
+
+        return new LoginResponse(
+                accessToken,
+                employee.getEmpNo(),
+                employee.getEmpId(),
+                employee.getEmpName(),
+                employee.getAuthCode(),
+                employee.getDepId(),
+                employee.getJobCode(),
+                employee.getPwChgRequired()
+        );
     }
 
 
@@ -283,47 +302,86 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
-    public void resetPassword(
-            Integer empNo
+    public void changePassword(
+    		String empId, ChangePasswordRequest request
     ) {
 
         Employee employee =
-        		employeeDao.findById(empNo)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 사용자입니다."
-                                )
-                        );
-
-
-        // 새로운 임시 비밀번호 생성
-        String temporaryPassword =
-                passwordGenerator.generate(10);
-
-
-        // BCrypt 암호화
-        String encodedPassword =
-                passwordEncoder.encode(
-                        temporaryPassword
+                employeeDao.findByEmpId(empId)
+                .orElseThrow(() ->
+                    new IllegalArgumentException(
+                        "사용자를 찾을 수 없습니다."
+                    )
                 );
 
+        // 현재 비밀번호 검증
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                employee.getEmpPwd()
+        )) {
+
+            throw new IllegalArgumentException(
+                "현재 비밀번호가 일치하지 않습니다."
+            );
+        }
+
+        // 새 비밀번호 암호화
+        String encodedPassword =
+                passwordEncoder.encode(
+                    request.getNewPassword()
+                );
 
         employee.setEmpPwd(encodedPassword);
 
-        employee.setPwChgRequired(true);
+        // 비밀번호 변경 필요 상태 해제
+        employee.setPwChgRequired(false);
 
-
-        // 이메일 발송
-        if (employee.getEmail() != null) {
-
-            mailService.sendTemporaryPassword(
-                    employee.getEmail(),
-                    employee.getEmpName(),
-                    employee.getEmpId(),
-                    temporaryPassword
-            );
-        }
+        employeeDao.save(employee);
     }
+    
+//    @Override
+//    @Transactional
+//    public void resetPassword(
+//            Integer empNo
+//    ) {
+//
+//        Employee employee =
+//        		employeeDao.findById(empNo)
+//                        .orElseThrow(() ->
+//                                new IllegalArgumentException(
+//                                        "존재하지 않는 사용자입니다."
+//                                )
+//                        );
+//
+//
+//        // 새로운 임시 비밀번호 생성
+//        String temporaryPassword =
+//                passwordGenerator.generate(10);
+//
+//
+//        // BCrypt 암호화
+//        String encodedPassword =
+//                passwordEncoder.encode(
+//                        temporaryPassword
+//                );
+//
+//
+//        employee.setEmpPwd(encodedPassword);
+//
+//        employee.setPwChgRequired(true);
+//
+//
+//        // 이메일 발송
+//        if (employee.getEmail() != null) {
+//
+//            mailService.sendTemporaryPassword(
+//                    employee.getEmail(),
+//                    employee.getEmpName(),
+//                    employee.getEmpId(),
+//                    temporaryPassword
+//            );
+//        }
+//    }
 
 
     // =========================================================
