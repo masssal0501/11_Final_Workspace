@@ -1,0 +1,42 @@
+.workcation-form-table, .task-plan-box, .all-price-container{
+    margin: auto;
+    justify-content: center;
+    display: flex;
+}
+
+.workcation-form-table th{
+    text-align: center;
+    width: 90px;
+}
+
+.plus-btn-group{
+    justify-content: center;
+    padding: 40px 10px;
+    display: flex;
+}
+
+.insert-btn{
+    width: 100px;  
+    justify-content: center;
+}
+.task-plan-box{
+    display: flex;
+    justify-content: center;
+}
+.task-plan-list{
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.plan-item{
+    border: 1px solid;
+    width: 500px;
+    list-style: none;
+    padding: 10px;
+}
+
+.all-price-container{
+    width: 600px;
+}

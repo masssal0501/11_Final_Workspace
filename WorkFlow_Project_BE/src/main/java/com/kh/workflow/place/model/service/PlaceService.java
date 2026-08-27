@@ -2,17 +2,19 @@ package com.kh.workflow.place.model.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.kh.workflow.place.model.vo.Place;
 
 public interface PlaceService {
 	
-	List<Place> selectPlaceList();
+	List<Hub> selectPlaceList(int cpage, String type, String region, String subRegion);
 	
-	Place selectPlace(int hubNo);
+	Hub selectPlace(int hubNo);
 	
-	Place insertPlace(Place p);
+	Hub insertPlace(Hub h, MultipartFile file);
 	
-	Place updatePlace(Place p);
+	Hub updatePlace(Hub h, MultipartFile file);
 	
 	int deletePlace(int hubNo);
 

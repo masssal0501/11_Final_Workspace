@@ -5,44 +5,70 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.place.model.dao.PlaceDao;
-import com.kh.workflow.place.model.vo.Place;
+
+import com.kh.workflow.place.model.vo.Hub;
 
 @Service
 public class PlaceServiceImpl implements PlaceService {
 
-	@Autowired
-	private PlaceDao placeDao;
-	
-	@Transactional(readOnly=true)
-	@Override
-	public List<Place> selectPlaceList() {
-		return placeDao.findByStatusOrderByHubNoDesc("Y");
-	}
+    @Autowired
+    private PlaceDao placeDao;
 
-	@Transactional(readOnly=true)
-	@Override
-	public Place selectPlace(int hubNo) {
-		return placeDao.findByHubNoAndStatus(hubNo, "Y");
-	}
+    @Transactional(readOnly = true)
+    @Override
+    public List<Hub> selectPlaceList(
+            int cpage,
+            String type,
+            String region,
+            String subRegion) {
 
-	@Transactional
-	@Override
-	public Place insertPlace(Place p) {
-		return placeDao.save(p);
-	}
+        Integer searchType =
+                (type == null || type.isBlank())
+                ? null
+                : Integer.parseInt(type);
 
-	@Transactional
-	@Override
-	public Place updatePlace(Place p) {
-		return placeDao.save(p);
-	}
+        String searchRegion =
+                (region == null || region.isBlank())
+                ? null
+                : region;
 
-	@Transactional
-	@Override
-	public int deletePlace(int hubNo) {
-		return placeDao.deletePlace(hubNo);
-	}
+        String searchSubRegion =
+                (subRegion == null || subRegion.isBlank())
+                ? null
+                : subRegion;
+
+        return placeDao.selectFilteredPlaceList(
+                searchType,
+                searchRegion,
+                searchSubRegion
+        );
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Hub selectPlace(int hubNo) {
+        return placeDao.findByHubNo(hubNo);
+    }
+
+    @Transactional
+    @Override
+    public Hub insertPlace(Hub h, MultipartFile file) {
+        return placeDao.save(h);
+    }
+
+    @Transactional
+    @Override
+    public Hub updatePlace(Hub h, MultipartFile file) {
+        return placeDao.save(h);
+    }
+
+    @Transactional
+    @Override
+    public int deletePlace(int hubNo) {
+        return placeDao.deletePlace(hubNo);
+    }
 
 }

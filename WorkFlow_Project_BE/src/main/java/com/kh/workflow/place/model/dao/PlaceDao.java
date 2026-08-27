@@ -7,19 +7,33 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.kh.workflow.place.model.vo.Place;
+import com.kh.workflow.place.model.vo.Hub;
 
-public interface PlaceDao extends JpaRepository<Place, Integer> {
+public interface PlaceDao extends JpaRepository<Hub, Integer> {
 
-	List<Place> findByStatusOrderByHubNoDesc(String status);
+    // 장소 목록 조회
+    @Query("""
+        SELECT h
+        FROM Hub h
+        WHERE (:type IS NULL OR h.hubType = :type)
+          AND (:region IS NULL OR h.mainRegion = :region)
+          AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+        ORDER BY h.hubNo DESC
+    """)
+    List<Hub> selectFilteredPlaceList(
+        @Param("type") Integer type,
+        @Param("region") String region,
+        @Param("subRegion") String subRegion
+    );
 
-	Place findByHubNoAndStatus(int hubNo, String string);
-	
-    // 소프트 삭제
+    // 특정 장소 조회
+    Hub findByHubNo(int hubNo);
+
+    // 장소 종료 처리
     @Modifying
     @Query("""
-        UPDATE Place
-        SET status = 'N'
+        UPDATE Hub
+        SET hubStatus = 'CLOSED'
         WHERE hubNo = :hubNo
     """)
     int deletePlace(@Param("hubNo") int hubNo);

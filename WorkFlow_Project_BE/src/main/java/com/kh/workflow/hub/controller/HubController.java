@@ -225,7 +225,7 @@ public class HubController {
 	        @RequestParam(required = false) List<Integer> fileNos,
 	        @RequestParam(required = false) List<MultipartFile> upfiles,
 	        @RequestParam(required = false) List<Integer> upfileIndexes,
-	        HttpSession session) { // 👈 세션 추가
+	        HttpSession session) {
 	    
 	        Hub updateHub = hubService.updateHub(hubNo, hubData, fileNos, upfiles, upfileIndexes, session);
 	        
@@ -234,4 +234,17 @@ public class HubController {
 	        return ResponseEntity.status(HttpStatus.OK)
 	                              .body(message);
 	}
+	// 메인지역 드롭에 따른 목록 조회
+		@GetMapping("/hub/mainRegion")
+		public ResponseEntity<List<String>> getMainRegions() {
+			List<String> mainRegion = hubService.selectMainRegion();
+			return ResponseEntity.ok(mainRegion);
+		}
+
+		// 상세지역 드롭에 따른 목록 조회
+		@GetMapping("/hub/subRegion")
+		public ResponseEntity<List<String>> getSubRegions(@RequestParam String mainRegion) {
+			List<String> subRegion = hubService.selectSubRegion(mainRegion);
+			return ResponseEntity.ok(subRegion);
+		}
 }

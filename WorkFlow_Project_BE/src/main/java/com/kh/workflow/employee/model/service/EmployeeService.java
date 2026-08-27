@@ -2,10 +2,13 @@ package com.kh.workflow.employee.model.service;
 
 import java.util.List;
 
+import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.LoginRequest;
+import com.kh.workflow.employee.model.dto.LoginResponse;
 
 public interface EmployeeService {
 
@@ -25,10 +28,7 @@ public interface EmployeeService {
      * USR-002
      * 사용자 로그인
      */
-    EmployeeResponse login(
-            String empId,
-            String empPwd
-    );
+    LoginResponse login(LoginRequest request);
 
 
     /*
@@ -44,9 +44,10 @@ public interface EmployeeService {
      * USR-004
      * 비밀번호 재설정
      */
-    void resetPassword(
-            Integer empNo
-    );
+    void changePassword(
+    	    String empId,
+    	    ChangePasswordRequest request
+    	);
 
 
     /*
