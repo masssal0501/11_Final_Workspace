@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import "../styles/Header.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { logout } from "../../employee/api/employeeApi";
 
 function Header() {
@@ -83,13 +83,13 @@ function Header() {
       id: "workcation",
       label: "워케이션 신청",
       icon: "▣",
-      path: "/workcation",
+      path: "/workcation/list",
     },
     {
       id: "task",
       label: "업무 관리",
       icon: "☷",
-      path: "/task",
+      path: "/task/list",
     },
     {
       id: "amount",
@@ -118,6 +118,7 @@ function Header() {
     setActiveMenu(menu.id);
 
     navigate(menu.path);
+    // React Router를 사용한다면 navigate(menu.path) 사용
   };
 
 

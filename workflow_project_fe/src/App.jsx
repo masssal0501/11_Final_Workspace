@@ -1,27 +1,35 @@
 import { useState } from "react";
 import "./App.css";
 import "./common/styles/common.css";
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+import Header from "./common/components/Header";
+import Footer from "./common/components/Footer";
 
 import NoticeListPage from './pages/notice/NoticeListPage';
 import NoticeDetailPage from './pages/notice/NoticeDetailPage';
 import NoticeUpdatePage from './pages/notice/NoticeUpdatePage';
 import NoticeWritePage from './pages/notice/NoticeWritePage';
 import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
-import Header from "./common/components/Header";
-import Footer from "./common/components/Footer";
 
 import AmountPage from './pages/amount/AmountPage';
 import AdminAmountPage from './pages/amount/AdminAmountPage';
 import AmountForm from './amount/components/AmountForm';
 import AmountDetail from './amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
-import EmployeeEnrollFormComponent from './employee/components/EmployeeEnrollFormComponent';
 
 import HubListComponent from './placeinfo/components/HubListComponent';
 import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
 import HubDetailComponent from './placeinfo/components/HubDetailComponent';
 import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
 import AIComponent from './placeinfo/components/AIComponent';
+
+import TaskListComponent from './taskboard/components/TaskListComponent';
+import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
+
+import WorkcationListComponent from './workcation/components/WorkcationListComponent';
+import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
+import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -237,6 +245,17 @@ function App() {
                 <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
                 <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
                 <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
+
+                {/* 업무 게시판 라우트 */}
+                <Route path="/task/list" element={<TaskListComponent />} />
+                <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+
+                {/* 워케이션 라우트 */}
+                <Route path="/workcation/list" element={<WorkcationListComponent />} />
+                <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
+                <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+
+
 
                 <Route
                     path="/"
