@@ -1,26 +1,86 @@
 package com.kh.workflow.notice.controller;
 
 import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
 
+=======
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+>>>>>>> Stashed changes
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+<<<<<<< Updated upstream
 import org.springframework.web.bind.annotation.GetMapping;
+=======
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+>>>>>>> Stashed changes
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.web.bind.annotation.RestController;
+
+
 import com.kh.workflow.notice.service.NoticeService;
 import com.kh.workflow.notice.vo.Notice;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/notice")
 public class NoticeController {
+	
+	@Autowired
+	private NoticeService noticeService;
+	
+	// 공지사항 목록 및 검색 조회용 컨트롤러
+	@GetMapping
+	public ResponseEntity<Map<String, Object>> selectNoticeList(
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "limit", defaultValue = "10") int limit,
+			@RequestParam(value = "condition", required = false) String condition,
+			@RequestParam(value = "keyword", required = false) String keyword) { // 수정된 부분
+		
+		Map<String, Object> paramMap = new HashMap<>();
+		paramMap.put("condition", condition);
+		paramMap.put("keyword", keyword);
+		
+		int listCount = noticeService.selectNoticeCount(paramMap);
+		
+		int offset = (page - 1) * limit;
+		paramMap.put("offset", offset);
+		paramMap.put("limit", limit);
+		
+		ArrayList<Notice> list = noticeService.selectNoticeList(paramMap);
+		
+		Map<String, Object> responseData = new HashMap<>();
+		responseData.put("list", list);
+		responseData.put("listCount", listCount);
+		
+		return ResponseEntity.status(HttpStatus.OK)
+							 .body(responseData);
+	}
+	
+	// 공지사항 작성용 컨트롤러
+	@PostMapping
+	public ResponseEntity<String> insertNotice(@RequestBody Notice n) {
+		int result = noticeService.insertNotice(n);
+		String message = (result > 0) ? "success" : "fail";
+		return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
+
 
     private final NoticeService noticeService;
 
@@ -96,4 +156,29 @@ public class NoticeController {
                     .body("공지사항 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
+	// 공지사항 상세조회용 컨트롤러
+	@GetMapping("/{noticeNo}")
+	public ResponseEntity<Notice> selectNotice(@PathVariable int noticeNo) {
+		Notice n = noticeService.selectNotice(noticeNo);
+		return ResponseEntity.status(HttpStatus.OK).body(n);
+	}
+	
+	// 공지사항 수정용 컨트롤러
+	@PutMapping("/{noticeNo}")
+	public ResponseEntity<String> updateNotice(@PathVariable int noticeNo, 
+											   @RequestBody Notice n) {
+		int result = noticeService.updateNotice(n);
+		String message = (result > 0) ? "success" : "fail";
+		return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
+	
+	// 공지사항 삭제용 컨트롤러
+	@DeleteMapping("/{noticeNo}")
+	public ResponseEntity<String> deleteNotice(@PathVariable int noticeNo) {
+		int result = noticeService.deleteNotice(noticeNo);
+		String message = (result > 0) ? "success" : "fail";
+		return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
+
 }

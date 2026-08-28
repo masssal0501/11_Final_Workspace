@@ -6,7 +6,7 @@ export const noticeApi = {
 
    // 목록 (검색 조건 포함)
     getNoticeList: async (page, limit, condition, keyword) => {
-        const response = await axios.get(API_URL, {
+        const response = await axios.get(`${API_URL}`, {
             params: { page, limit, condition, keyword }
         });
         return response.data;
@@ -20,7 +20,7 @@ export const noticeApi = {
 
     // 등록
     insertNotice: async (formData) => {
-        const response = await axios.post(API_URL, formData);
+        const response = await axios.post(`${API_URL}`, formData);
         return response.data;
     },
 
