@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.workflow.workcation.model.service.WorkcationService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
-@CrossOrigin(origins = "http://localhost:5174", allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
 @RestController
 @RequestMapping("/workcation")
 public class WorkcationController {
@@ -65,6 +67,16 @@ public class WorkcationController {
 	public ResponseEntity<List<String>> getSubRegionList(@RequestParam String mainRegion) {
 		List<String> list = hubDao.selectSubRegionList(mainRegion);
 		return ResponseEntity.ok(list);
+	}
+	
+	@PostMapping("/enrollForm")
+	public ResponseEntity<String> insertWorkcationEnroll(@RequestBody Map<String, Object> paramMap){
+		
+		int empNo=1001;
+		paramMap.put("empNo",empNo);
+		
+		workcationService.insertWorkcationEnroll(paramMap);
+		return ResponseEntity.ok("신청 완료");
 	}
 
 }

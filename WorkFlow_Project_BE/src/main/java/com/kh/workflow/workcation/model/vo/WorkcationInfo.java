@@ -34,8 +34,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public class WorkcationInfo {
-	
-	@Schema(description = "게시글 번호 (자동생성)", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
+		
 	@Id
 	@Column(name = "workcation_no")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -87,5 +86,9 @@ public class WorkcationInfo {
 	@JoinColumn(name="approver_no")
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Employee approver;// 결재자 번호	
+	
+	@JoinColumn(name="hub_no", nullable=false)
+	@ManyToOne
+	private Hub hub;
 
 }

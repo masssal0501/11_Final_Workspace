@@ -130,7 +130,7 @@ public class SecurityConfig {
 
         // React 개발 서버
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5174")
+                List.of("http://localhost:5173")
         );
 
         // 허용 HTTP Method

@@ -17,6 +17,11 @@ function WorkcationEnrollFormComponent() {
     const [mainRegionList, setMainRegionList] = useState([]);
     const [subRegionList, setSubRegionList] = useState([]);
 
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [peopleCount, setPeopleCount] = useState(1);
+    const [purpose, setPurpose] = useState("");
+
     // 고정 거점 선택
     const [placeType, setPlaceType] = useState("office");
     const [hubList, setHubList] = useState([]);
@@ -37,10 +42,12 @@ function WorkcationEnrollFormComponent() {
     const [trafficFee, setTrafficFee] = useState(0);
     const [etcFee, setEtcFee] = useState(0);
 
+    //BASE_URL 생성
+    const BASE_URL = 'http://localhost:8006/workflow';    
+
     // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
     useEffect(() => {
-        axios.get(`http://localhost:8006/api/hub/mainRegion`)
-            .then(res => {
+        axios.get(`${BASE_URL}/workcation/hub/mainRegion`)            .then(res => {
                 const data = Array.isArray(res.data) ? res.data : (res.data.list || []);
                 setMainRegionList(data);
             })
@@ -53,7 +60,7 @@ function WorkcationEnrollFormComponent() {
             setSubRegionList([]);
             return;
         }
-        axios.get(`http://localhost:8006/api/hub/subRegion?mainRegion=${mainRegion}`)
+        axios.get(`${BASE_URL}/workcation/hub/subRegion?mainRegion=${mainRegion}`)
             .then(res => setSubRegionList(res.data))
             .catch(err => console.error("서브 지역 로딩 실패: ", err));
     }, [mainRegion]);
@@ -79,7 +86,7 @@ function WorkcationEnrollFormComponent() {
             return;
         }
         const typeCode = placeType === "office" ? 1 : 2;
-        axios.get(`http://localhost:8006/api/hub/list?mainRegion=${mainRegion}&subregion=${subRegion}&hubType=${typeCode}`)
+        axios.get(`${BASE_URL}/workcation/hub/list?mainRegion=${mainRegion}&subregion=${subRegion}&hubType=${typeCode}`)
             .then(res => {
                 setHubList(res.data);
                 setSelectHubNo("");
@@ -92,7 +99,7 @@ function WorkcationEnrollFormComponent() {
         selectedBtns.forEach(key => {
             const config = OPTION_CONFIG[key];
             if (!mainRegion || !subRegion || !config) return;
-            axios.get(`http://localhost:8006/api/hub/list?mainRegion=${mainRegion}&subregion=${subRegion}&hubType=${config.typeCode}`)
+            axios.get(`${BASE_URL}/workcation/hub/list?mainRegion=${mainRegion}&subregion=${subRegion}&hubType=${config.typeCode}`)
                 .then(res => {
                     setOptionItemLists(prev => ({ ...prev, [key]: res.data }));
                 })
@@ -191,11 +198,60 @@ function WorkcationEnrollFormComponent() {
     // 회사/개인 부담금
     const personalCost = Math.max(0, totalCost - totalSupport);
 
+    //제출핸들러
+    const handleSubmit = async () => {
+
+        //필수 값 체크
+        if(!startDate || !endDate) return alert("신청기간 입력");
+        if(!mainRegion || !subRegion) return alert("지역선택");
+        if(!selectHubNo) return alert ("오피스 또는 숙소 선택");
+
+        //백엔드로 보낼 데이터 수집
+        const insertworkcationData ={
+            startDate,
+            endDate,
+            peopleCount:Number(peopleCount),
+            purpose,
+            mainRegion,
+            subRegion,
+            placeType,
+            hubNo : Number(selectHubNo),
+            trafficFee: Number(trafficFee),
+            etcFee:Number(etcFee),
+            totalCost,
+            personalCost,
+
+            //업무 계획목록 리스트
+            planList : planList.map(item=>({
+                taskName : item.taskName,
+                days: Number(item.days)
+            })),
+
+            //선택옵션(체험, 맛집, 관광)
+            options : Object.entries(optionHubs).map(([key, hubObj])=>({
+                type:key,
+                hubNo: hubObj ? hubObj.hubNo: null,
+            }))
+        };
+
+        try{
+            const response = await axios.post("${BASE_URL}/workcation/hub/enrollForm", insertworkcationData);
+            if (response.status=== 200 || response.status === 201){
+                alert("신청이 완료");
+            }
+        }catch(err){
+            console.log("실패", err);
+            alert("오류발생")
+        }
+    
+    }
+
     return (
         <div className="workcatrion-enroll-container">
             <h2 align="center">워케이션 신청</h2>
 
-            <button className="insert-btn" type="submit">
+            <button className="insert-btn" type="button"
+            onClick={handleSubmit} >
                 제출하기
             </button>
             <table className="workcation-form-table">
@@ -203,19 +259,27 @@ function WorkcationEnrollFormComponent() {
                     <tr>
                         <th>신청기간</th>
                         <td style={{ width: "300px" }}>
-                            <input className="statDate" type="date" />
+                            <input className="statDate" 
+                                    type="date" 
+                                    value={startDate}
+                                    onChange ={(e)=>
+                                        setStartDate(e.target.value)} />
                             ~
-                            <input className="endDate" type="date" />
+                            <input className="endDate" 
+                                    type="date" 
+                                    value={endDate}
+                                    onChange={(e)=>setEndDate(e.target.value)} />
                         </td>
                         <th>신청인원</th>
                         <td style={{ width: "200px" }}>
-                            <input type="number" />명
+                            <input type="number"
+                            value={peopleCount} onChange ={(e)=> setPeopleCount(e.target.value)} />명
                         </td>
                     </tr>
                     <tr>
                         <th>근무 목적</th>
                         <td>
-                            <textarea name="" id=""></textarea>
+                            <textarea value={purpose} onChange= {(e)=> setPurpose(e.target.value) }></textarea>
                         </td>
                         <th>지역</th>
                         <td>
