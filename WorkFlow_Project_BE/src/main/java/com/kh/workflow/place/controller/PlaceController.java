@@ -64,16 +64,16 @@ public class PlaceController {
         );
 
         // JWT 파싱
-        Claims claims = Jwts.parserBuilder()
-                            .setSigningKey(key)
-                            .build()
-                            .parseClaimsJws(jwtTokenString)
-                            .getBody();
+//        Claims claims = Jwts.parserBuilder()
+//                            .setSigningKey(key)
+//                            .build()
+//                            .parseClaimsJws(jwtTokenString)
+//                            .getBody();
 
         // 로그인한 사용자 ID
-        String userId = claims.getSubject();
+//        String userId = claims.getSubject();
 
-        System.out.println("등록 요청 사용자 : " + userId);
+//        System.out.println("등록 요청 사용자 : " + userId);
 
         // 기본 상태 설정
         if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
