@@ -107,7 +107,7 @@ function Header() {
       id: "hub",
       label: "장소/거점",
       icon: "⌖",
-      path: "/hub",
+      path: "/hub/list",
     },
   ];
 

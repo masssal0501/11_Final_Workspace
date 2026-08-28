@@ -1,13 +1,13 @@
-import "../styles/HubListComponent.css"
+import "../styles/Hub.css"
 
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { selectHubListApi, searchHubListApi } from "../api/placeinfoApi";
+import { selectHubListApi, searchHubListApi } from "../api/hubApi";
 
 import HubItemComponent from "./HubItemComponent";
 
-function HubListComponent() {
+function HubListComponent(props) {
 
     // 페이지 이동(라우팅)을 처리하기 위한 훅. 다른 페이지로 넘어갈 때 사용합니다.
     const navigate = useNavigate();
@@ -15,7 +15,9 @@ function HubListComponent() {
     // URL의 쿼리 스트링(예: ?cpage=1&regionName=강원)을 읽고 쓰기 위한 훅입니다.
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // URL 파라미터에서 값을 추출하여 변수에 저장합니다.
+    // 로그인한 사용자 정보 불러오기
+    const loginUser = props.loginUser;
+    
     // 값이 없을 경우를 대비해 || 연산자로 기본값을 설정합니다. (페이지 기본값 1, 나머지는 빈 문자열)
     const cpage = parseInt(searchParams.get("cpage")) || 1;
     const mainRegion = searchParams.get("mainRegion") || "";
@@ -131,7 +133,7 @@ function HubListComponent() {
 
         } catch(error) {
 
-            console.log("거점 목록 조회용 ajax 통신 실패!");
+            console.error(error);
         }
     };
 
@@ -148,7 +150,7 @@ function HubListComponent() {
 
         } catch(error) {
 
-            console.log("거점 검색용 ajax 통신 실패!");
+            console.error(error);
         }
     };
 
@@ -184,12 +186,13 @@ function HubListComponent() {
         const pageInfo = response.data.pi;
         const items = response.data.list;
 
-        // 아이템 배열을 순회하며 HubItemComponent로 변환하여 배열(trArr)로 만듭니다.
-        const trArr = items.map((item, index) => {
-            return(
-                <HubItemComponent key={ index } item={ item } />
-            )
-        });
+        // 관리자가 아니면서 CLOSED 상태인 아이템을 filter로 사전 제외합니다.
+        const filteredItems = items.filter(item => loginUser.authCode === "ADMIN" || item.hubStatus !== "CLOSED");
+
+        // 필터링된 배열로 HubItemComponent 요소 생성
+        const trArr = filteredItems.map((item, index) => (
+            <HubItemComponent key={index} item={item} />
+        ));;
 
         // 만들어진 컴포넌트 배열을 dataList State에 저장하여 화면에 렌더링되게 합니다.
         setDataList(trArr);
@@ -211,45 +214,43 @@ function HubListComponent() {
             setSearchParams(params);
         };
 
-        // 검색 결과가 없어서 maxPage가 0으로 내려올 경우를 대비해 최소 1페이지로 보정해줍니다.
-        const safeMaxPage = pageInfo.maxPage === 0 ? 1 : pageInfo.maxPage;
-
-        // [<] 이전 페이지 버튼 생성
-        // 현재 페이지가 1이면 disabled(비활성화) 처리하고 색상을 info로 둡니다.
-        btnArr.push(
-            <button key="prev" className={`btn btn-${cpage === 1 ? 'info' : 'outline-info'} btn-sm`} disabled={cpage === 1} onClick={() => changePage(cpage - 1)}>
-                &lt;
-            </button>
-        );
-
-        // 숫자 페이지 버튼들 생성 (startPage부터 endPage까지 반복)
-        for(let p = pageInfo.startPage; p <= pageInfo.endPage; p++) {
-
-            // 현재 페이지 번호와 일치하면 색상을 info(색 채워짐), 아니면 outline-info(테두리만)로 설정합니다.
-            // 아이템 리스트가 비어있으면(listCount === 0) 클릭할 수 없게 disabled 처리합니다.
+        // 데이터가 1개라도 있을 때만 페이징 버튼을 생성합니다.
+        if (pageInfo.listCount > 0 && filteredItems.length > 0) {
+            
+            // [<] 이전 페이지 버튼: 현재 페이지가 1보다 클 때만 배열에 추가 (1페이지면 아예 안 보임)
             btnArr.push(
-                <button key={ p } className={`btn btn-${cpage === p ? 'info' : 'outline-info'} btn-sm`} disabled={pageInfo.listCount === 0} onClick={() => changePage(p)}>
-                    { p }
+                <button key="prev" className="btn btn-outline-info btn-sm" style={{ border: "1px solid currentColor" }} disabled={cpage === 1} onClick={() => changePage(cpage - 1)}>
+                    &lt;
                 </button>
             );
-        }
 
-        // [>] 다음 페이지 버튼 생성
-        // 현재 페이지가 마지막 페이지(safeMaxPage)이거나 결과가 없으면 비활성화합니다.
-        btnArr.push(
-            <button key="next" className={`btn btn-${cpage === pageInfo.maxPage ? 'info' : 'outline-info'} btn-sm`} disabled={cpage === safeMaxPage || pageInfo.listCount === 0} onClick={() => changePage(cpage + 1)}>
+            // 숫자 페이지 버튼들 생성 (startPage부터 endPage까지 반복)
+            for(let p = pageInfo.startPage; p <= pageInfo.endPage; p++) {
+                btnArr.push(
+                    <button key={ p } className={`btn btn-${cpage === p ? 'info' : 'outline-info'} btn-sm`} onClick={() => changePage(p)}>
+                        { p }
+                    </button>
+                );
+            }
+
+            // 검색 결과가 없어서 maxPage가 0으로 내려올 경우를 대비해 최소 1페이지로 보정
+            const safeMaxPage = pageInfo.maxPage === 0 ? 1 : pageInfo.maxPage;
+
+            // [>] 다음 페이지 버튼: 현재 페이지가 마지막 페이지보다 작을 때만 배열에 추가 (마지막 페이지면 아예 안 보임)
+            btnArr.push(
+            <button key="next" className="btn btn-outline-info btn-sm" style={{ border: "1px solid currentColor" }} disabled={cpage === safeMaxPage} onClick={() => changePage(cpage + 1)}>
                 &gt;
             </button>
         );
+        }
 
         // 완성된 페이징 버튼 배열을 State에 저장하여 화면 하단에 렌더링되게 합니다.
         setPageList(btnArr);
-
     };
 
     // return 구문
     return (
-        <div>
+        <div className="content">
             <h2 align="center"><b>거점 목록</b></h2>
             <br />
             {/* 상단 검색 필터 테이블 영역 */}
@@ -279,9 +280,9 @@ function HubListComponent() {
                             </select>
                         </td>
                         <td>
-                            <div className="input-group" style={ { marginBottom : "4px" } }>
+                            <div className="input-group">
                                 <input type="search" className="form-control" placeholder="거점 이름을 입력해주세요." name="keyword" onChange={ handleChange } value={ inputData.keyword } />
-                                <button type="submit" className="btn btn-outline-secondary" style={ { paddingBottom : "12px",  marginTop : "4px", fontSize : "13px", border : "1px solid gray"} } onClick={ handleClick }>🔍</button>
+                                <button type="submit" className="btn btn-outline-secondary" onClick={ handleClick }>🔍</button>
                             </div>
                         </td>
                     </tr>
@@ -290,7 +291,7 @@ function HubListComponent() {
             
             {/* 우측 상단 AI 추천 페이지로 이동하는 버튼 영역 */}
             <div align="right">
-                <button type="button" id="AI" onClick={ () => { navigate("/placeInfo/ai"); } }>AI에게 장소 및 일정 추천 받기</button>
+                <button type="button" id="AI" onClick={ () => { navigate("/hub/ai"); } }>AI에게 장소 및 일정 추천 받기</button>
             </div>
             
             <div style={{ height: "30px" }}></div>
@@ -318,9 +319,12 @@ function HubListComponent() {
             <br />
             
             {/* 거점 등록 폼 페이지로 이동하는 하단 버튼 영역 */}
-            <div>
-                <button type="button" className="btn btn-primary btn-sm" onClick={ () => { navigate("/placeInfo/enrollForm") } }>▶ 거점 등록</button>
-            </div>
+            
+            { (loginUser.authCode === "ADMIN") && (
+                <div>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={ () => { navigate("/hub/enrollForm") } }>▶ 거점 등록</button>
+                </div>
+            )}
             <br /><br />
 
         </div>

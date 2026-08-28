@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,6 +47,17 @@ public class SecurityConfig {
 //
 //        return http.build();
 //    }
+    
+    /**
+     * 정적 리소스(Static Resources) 경로에 대해 Spring Security 인증 예외 처리 설정
+     * 
+     * @return WebSecurityCustomizer 객체
+     */
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers("/resources/**");
+    }
     
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -95,6 +107,12 @@ public class SecurityConfig {
                                 HttpMethod.POST,
                                 "/employees"
                         ).permitAll()
+                        
+                        // Swagger UI 및 API 문서화 경로 허용
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                            ).permitAll()
                         
                         .requestMatchers(
                             "/employees/password"

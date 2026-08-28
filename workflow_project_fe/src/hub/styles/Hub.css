@@ -1,0 +1,251 @@
+.content {
+  width : 1000px;
+  margin : auto;
+  margin-top : 50px;
+  margin-bottom : 50px;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 50px;
+  padding: 50px 25px;
+}
+
+th {
+    background-color: #EAEAEA;
+}
+
+table * {
+    text-align: center;
+    margin: auto;
+    padding: 2px 2px;
+}
+
+input, textarea, select{
+    border: 1px solid rgb(167, 167, 167) !important;
+}
+
+tr:first-child{
+    border-top: 1px solid black;
+}
+
+tr:first-child td:last-child{
+    display: flex;
+    margin-top: 10px;
+}
+
+tr:first-child td:last-child label{
+    display: flex;
+    gap: 5px; 
+}
+
+tr:nth-child(2) td:last-child input {
+    width: 100px;
+    flex : 1;
+}
+
+tr:nth-child(2) td:nth-child(2) input {
+    background-color: white;
+}
+
+tr:last-child input {
+    margin-top: 5px;
+}
+
+tr {
+    border-bottom: 1px solid #bcbcbc;
+}
+
+th {
+    width: 110px !important;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.d-flex>div {
+    width: 180px;
+    height: 130px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    position: relative;
+    background-color: #fafafa
+}
+
+.confirm {
+    padding: 8px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 999px;
+}
+
+.confirm:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ai-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    
+    margin: 0 auto;
+}
+
+.ai-form .form-control {
+    flex : 1;
+}
+
+.area {
+    display: flex;
+}
+
+.content-off {
+    background-color: lightgray !important;
+}
+
+.title-area img {
+    width: 50%;
+    height: 250px;
+    border: 1px solid gray;
+}
+
+.span-area {
+    margin-left: 10px;
+    margin-top: 15px;
+    display: grid;
+    font-size: 18px;
+    row-gap: 1px;
+    width: 50%;
+}
+
+.span-area p { 
+    display: inline;
+    color: aqua;
+    cursor: pointer;
+    border-bottom: 1px solid aqua;
+}
+.span-area p:hover { 
+    color: rgb(0, 245, 245);
+    border-bottom: 1px solid rgb(0, 245, 245);
+}
+.span-area p:active { 
+    color: rgb(0, 216, 216);
+    border-bottom: 1px solid rgb(0, 216, 216);
+}
+
+.img-area {
+    width: 100%;
+    height: 250px;
+    justify-content: center;
+}
+
+.img-area img {
+    width: 50%;
+    height: 100%;
+    border: 1px solid gray;
+}
+
+#map {
+    width:  50%;
+    height: 300px;
+    border: 1px solid gray;
+}
+
+.button-area * {
+    border-radius: 99px !important;
+}
+
+.button-area button:first-child {
+    color: white;
+}
+
+.button-area button:last-child {
+    float: right;
+}
+
+#AI {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 40px;
+    padding: 13.5px 25.5px;
+    background-color: #0091FF;
+    color: white;
+    border: none;
+    font-size: 14px;
+}
+
+#AI:hover {
+    background-color: #0084e9;
+}
+
+select[name="subRegion"] {
+    width: 130px;
+}
+
+select[name="hubType"] {
+    width: 130px;
+    flex: 0 0 auto;
+}
+
+input[name="keyword"] {
+    width: 499px !important;
+    flex: 0 0 auto;
+    margin-bottom: 5px !important;
+}
+
+.search-filter-table button {
+    padding: 0px;
+    margin-top : 4px; 
+    font-size : 24.5px; 
+    border: 1px solid currentColor;
+}
+
+.list-area td {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-right: 80px;
+    padding-left: 0;
+}
+
+.list-area td img {
+    width : 90%;
+    border: 1px solid rgb(187, 187, 187);
+}
+
+.search-filter-table {
+    width: auto;
+}
+
+.table.list-area {
+    margin-top: 50px !important; /* 원하는 픽셀(px) 만큼 값을 조절하세요 */
+}
+
+.span-area {
+    display: grid;
+    font-size: 19px !important;
+    row-gap: 10px !important;
+    width: 400px;
+    margin-right: 50px; 
+}
+
+.table tr {
+    cursor: pointer;
+}
+
+.not-found {
+    background-color: transparent !important;
+    cursor: auto !important
+}
+
+.not-found td {
+    display: table-cell;
+}

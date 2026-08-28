@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 // 백엔드 AI 메시지 전송 API 함수 및 전용 CSS 임포트
-import { sendMessageApi } from "../api/placeinfoApi";
-import "../styles/AIComponent.css";
+import { sendMessageApi } from "../api/hubApi";
+import "../styles/Hub.css";
 
 function AIComponent() {
 
@@ -52,16 +52,18 @@ function AIComponent() {
             // AI 응답 수신 성공 시 AI 메시지를 대화 목록 배열에 추가
             // Functional Update(prev => ...)를 활용해 최신 messages 상태를 안전하게 참조
             setMessages((prev) => [...prev, { sender: "AI", text: response.data }]);
+
+            console.log(response);
             document.getElementById("messageInput").disabled = false;
             document.getElementById("confirm").disabled = false;
         } catch (error) {
             // AJAX 통신 예외 발생 시 에러 로그 출력
-            console.log("AI 요청용 ajax 통신 실패!", error);
+            console.error(error);
         }
     };
 
     return (
-        <div>
+        <div className="content">
             {/* 페이지 타이틀 */}
             <h2 align="center"><b>AI 추천</b></h2>
 

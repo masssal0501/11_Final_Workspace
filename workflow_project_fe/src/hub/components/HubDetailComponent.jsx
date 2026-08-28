@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import "../styles/HubDetailComponent.css";
-import { selectHubApi, deleteHubApi, BASE_URL } from "../api/placeinfoApi";
+import "../styles/Hub.css";
+import { selectHubApi, deleteHubApi, BASE_URL } from "../api/hubApi";
 
-function HubDetailComponent() {
+function HubDetailComponent(props) {
     
     // 카카오 API JavaScript 키
     const KAKAO_API_KEY = 'a00510cb26a4e33be1647f26b12df5c9';
@@ -30,6 +30,9 @@ function HubDetailComponent() {
                                     hubFileList : []});
     // 해당 거점의 평균 별점 데이터를 관리
     const [avgScore, setAvgScore] = useState(""); 
+
+    // 로그인한 사용자 정보 불러오기
+    const loginUser = props.loginUser;
     // 컴포넌트 마운트 시 또는 hubNo가 변경될 때 해당 거점의 기존 정보를 서버에서 조회
     useEffect(() =>{
         // 비동기 API 호출: 거점 상세 정보 조회
@@ -43,6 +46,7 @@ function HubDetailComponent() {
                 if(response.data != "") {
                     setHub(response.data.hub);
                     setAvgScore(response.data.avgScore);
+                    console.log(response.data)
                 } else {
                     // 데이터가 없는 경우 경고창 띄우고 목록으로 리다이렉트
                     alert("이미 삭제되었거나 없는 거점입니다.");
@@ -50,7 +54,7 @@ function HubDetailComponent() {
                 }
 
             } catch(error) {
-                console.log("거점 상세조회용 ajax 오류");
+                console.error(error);
             }
         }
 
@@ -68,7 +72,7 @@ function HubDetailComponent() {
             
             // 주소로 좌표를 검색하여 지도 및 마커 세팅
             const geocoder = new kakao.maps.services.Geocoder();
-            geocoder.addressSearch(hub.hubAddress, (result, status) => {
+            geocoder.addressSearch(hub.hubAddress, (result) => {
                 // 표시할 위치 좌표 (제주 카카오 본사 좌표 예시)
                 const markerPosition = new kakao.maps.LatLng(result[0].y, result[0].x);
 
@@ -126,7 +130,7 @@ function HubDetailComponent() {
             await navigator.clipboard.writeText(hub.hubAddress);
             alert('클립보드에 링크가 복사되었습니다.');
         } catch (error) {
-            alert('복사에 실패하였습니다');
+            console.error(error);
         }
     };
 
@@ -145,13 +149,13 @@ function HubDetailComponent() {
 
                 if(response.data === "success") {
                     alert("거점 중단에 성공했습니다.");
-                    navigate("/placeInfo/list"); // 성공 시 리스트 페이지로 이동
+                    navigate("/hub/list"); // 성공 시 리스트 페이지로 이동
                 } else {
                     alert("거점 중단에 실패했습니다.");
                 }
 
             } catch(error) {
-                console.log("거점 중단용 ajax 통신 실패");
+                console.error(error);
             }
         }
 
@@ -159,7 +163,7 @@ function HubDetailComponent() {
 
     // return 구문
     return (
-        <div style={ { backgroundColor: hub.hubStatus === 'CLOSED' ? 'lightgray' : 'white' }}>
+        <div className={ `content ${hub.hubStatus === 'CLOSED' && 'content-off'}` }>
             {/* 거점명 출력 */}
             <h2 align="center"><b>{ hub.hubName }</b></h2>
             <br /><br />
@@ -171,7 +175,7 @@ function HubDetailComponent() {
                 <div className="span-area">
                     <span>거점명 : { hub.hubName }</span>
                     <span>전화번호 : { hub.phone }</span>
-                    <span>1{ (hub.hubType === 1) ? "박" : "일" }박 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
+                    <span>1{ (hub.hubType === 1) ? "박" : "일" } 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
                     <span>운영 상태 : { (hub.hubStatus === "OPEN") ? (<b style={{color:'green'}}>운영중</b>) : ((hub.hubStatus === "PAUSED") ? (<b style={{color:'yellow'}}>일시중단</b>) : (<b style={{color:'red'}}>중단</b>)) }</span>
                     <span>최대 수용 인원 : { hub.maxCapacity }명</span>
                     <span>유형 : { (hub.hubType === 1) ? "숙소" : "공유 오피스" }</span>
@@ -226,9 +230,9 @@ function HubDetailComponent() {
             <br /><br />
             {/* 상태에 따른 수정/중단 버튼 및 공통 뒤로가기 버튼 */}
             <div className='button-area'>
-                { (hub.hubStatus === "CLOSED") ? "" : (
+                { (hub.hubStatus === "CLOSED" || loginUser.authCode !== "ADMIN") ? "" : (
                     <>
-                        <button className='btn btn-warning' onClick={ () => { navigate(`/placeInfo/updateForm/${hubNo}`) } }>수정하기</button>&nbsp;
+                        <button className='btn btn-warning' onClick={ () => { navigate(`/hub/updateForm/${hubNo}`) } }>수정하기</button>&nbsp;
                         <button className='btn btn-danger' onClick={ deleteHub }>중단하기</button>
                     </>
                 )}

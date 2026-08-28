@@ -18,11 +18,11 @@ import AmountForm from './amount/components/AmountForm';
 import AmountDetail from './amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
 
-import HubListComponent from './placeinfo/components/HubListComponent';
-import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
-import HubDetailComponent from './placeinfo/components/HubDetailComponent';
-import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
-import AIComponent from './placeinfo/components/AIComponent';
+import HubListComponent from './hub/components/HubListComponent';
+import HubEnrollFormComponent from './hub/components/HubEnrollFormComponent';
+import HubDetailComponent from './hub/components/HubDetailComponent';
+import HubUpdateFormComponent from './hub/components/HubUpdateFormComponent';
+import AIComponent from './hub/components/AIComponent';
 
 import TaskListComponent from './taskboard/components/TaskListComponent';
 import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
@@ -140,7 +140,6 @@ function App() {
                             />
                         }
                     />
-
                 </Routes>
 
             </div>
@@ -240,11 +239,11 @@ function App() {
                 <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
                 {/* 거점 페이지 라우트 */}
-                <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
-                <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
-                <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
-                <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
-                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
+                <Route path="/hub/list" element={ <HubListComponent loginUser={ loginUser } /> } />
+                <Route path="/hub/enrollForm" element={ <HubEnrollFormComponent loginUser={ loginUser } /> } />
+                <Route path="/hub/detail/:hubNo" element={ <HubDetailComponent loginUser={ loginUser } /> } />
+                <Route path="/hub/updateForm/:hubNo" element={ <HubUpdateFormComponent loginUser={ loginUser } />} />
+                <Route path="/hub/ai" element={ <AIComponent/> }></Route>
 
                 {/* 업무 게시판 라우트 */}
                 <Route path="/task/list" element={<TaskListComponent />} />
