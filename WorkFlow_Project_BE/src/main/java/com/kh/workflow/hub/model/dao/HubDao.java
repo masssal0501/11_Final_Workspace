@@ -63,5 +63,19 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     
     @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
     List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
+
+    @Query("""
+            SELECT h FROM Hub h 
+            WHERE (:mainRegion IS NULL OR :mainRegion = '' OR h.mainRegion LIKE CONCAT('%', :mainRegion, '%'))
+              AND (:subRegion IS NULL OR :subRegion = '' OR h.subRegion LIKE CONCAT('%', :subRegion, '%'))
+              AND (:hubType = 0 OR h.hubType = :hubType)
+              AND h.hubStatus = 'OPEN'
+            ORDER BY h.hubNo DESC
+        """)
+    List<Hub> findByMainRegionAndSubRegionAndHubType(
+        @Param("mainRegion") String mainRegion, 
+        @Param("subRegion") String subRegion, 
+        @Param("hubType") int hubType
+    );
     
 }

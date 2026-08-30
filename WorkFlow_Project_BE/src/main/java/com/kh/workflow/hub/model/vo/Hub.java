@@ -5,10 +5,10 @@ import java.util.List;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -65,7 +65,7 @@ public class Hub {
 	@Column(name="DESCRIPTION", length=300)
 	private String description;
 	
-	@Schema(description="시설", example="1", allowableValues= {"1", "2", "3"})
+	@Schema(description="시설", example="1", allowableValues= {"1", "2", "3", "4", "5"})
 	@Column(name="HUB_TYPE", columnDefinition="INT")
 	private int hubType;
 	
@@ -83,6 +83,7 @@ public class Hub {
 	
     @JsonIgnoreProperties({"hub"}) // JSON 변환 시 순환 참조 방지
     @OneToMany(mappedBy = "hub")
+    @JsonIgnore
     private List<HubFile> hubFileList;
     
 }

@@ -5,6 +5,10 @@ import axios from "axios";
 import "../styles/WorkcationDetail.css";
 
 function WorkcationDetailComponent() {
+
+    //BASE_URL 생성
+    const BASE_URL = 'http://localhost:8006/workflow';
+
     // URL 쿼리스트링이나 경로에서 상세 조회를 위한 ID 파라미터 추출 (예: ?no=1)
     const [searchParams] = useSearchParams();
     const workcationNo = searchParams.get("no");
@@ -17,7 +21,7 @@ function WorkcationDetailComponent() {
     useEffect(() => {
         if (!workcationNo) return;
 
-        axios.get(`http://localhost:8006/api/workcation/detail?no=${workcationNo}`)
+        axios.get(`${BASE_URL}/workcation/detail?no=${workcationNo}`)
             .then(res => {
                 setDetailData(res.data);
             })
@@ -80,7 +84,7 @@ function WorkcationDetailComponent() {
                             {region || "선택한 지역 없음"}
                         </td>
                     </tr>
-                    
+
                     {/* 거점 유형선택 */}
                     <tr>
                         <th>거점 유형</th>

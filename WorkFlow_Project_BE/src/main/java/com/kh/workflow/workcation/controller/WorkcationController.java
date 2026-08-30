@@ -54,6 +54,18 @@ public class WorkcationController {
 
 		return ResponseEntity.ok(map);
 	}
+	
+	@GetMapping("/hub/list")
+	public ResponseEntity<List<com.kh.workflow.hub.model.vo.Hub>> selectHubList(
+			@RequestParam(value="mainRegion", defaultValue="") String mainRegion,
+			@RequestParam(value="subRegion", defaultValue="") String subRegion,
+			@RequestParam(value="hubType", defaultValue="0") int hubType) {
+
+		// hubDao를 이용해 DB의 거점(workcation_hub) 테이블을 조회합니다.
+		List<com.kh.workflow.hub.model.vo.Hub> list = hubDao.findByMainRegionAndSubRegionAndHubType(mainRegion, subRegion, hubType);
+
+		return ResponseEntity.ok(list);
+	}
 
 	// 메인지역 드롭에 따른 목록 조회
 	@GetMapping("/hub/mainRegion")

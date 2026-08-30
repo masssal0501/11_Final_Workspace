@@ -14,6 +14,10 @@ export const OPTION_CONFIG = {
 };
 
 function WorkcationListComponent() {
+
+    //BASE_URL 생성
+    const BASE_URL = 'http://localhost:8006/workflow';
+
     const navigate = useNavigate(); // 페이지 이동 함수
 
     // 지역 관련 상태
@@ -36,7 +40,7 @@ function WorkcationListComponent() {
 
     // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
     useEffect(() => {
-        axios.get("http://localhost:8006/workflow/workcation/hub/mainRegion")
+        axios.get(`${BASE_URL}/workflow/workcation/hub/mainRegion`)
             .then(res => {
                 const data = Array.isArray(res.data) ? res.data : (res.data.list || []);
                 setMainRegionList(data);
@@ -50,7 +54,7 @@ function WorkcationListComponent() {
             setSubRegionList([]);
             return;
         }
-        axios.get(`http://localhost:8006/workflow/workcation/hub/subRegion?mainRegion=${mainRegion}`)
+        axios.get(`${BASE_URL}/workflow/workcation/hub/subRegion?mainRegion=${mainRegion}`)
             .then(res => setSubRegionList(res.data))
             .catch(err => console.error("서브 지역 로딩 실패: ", err));
     }, [mainRegion]);
@@ -62,7 +66,7 @@ function WorkcationListComponent() {
 
     const selectWorkcationList = async () => {
         try {
-            const response = await axios.get("http://localhost:8006/workflow/workcation/list", {
+            const response = await axios.get(`${BASE_URL}/workflow/workcation/list`, {
                 params: {
                     cpage: cpage,
                     condition: searchCondition,
@@ -86,7 +90,7 @@ function WorkcationListComponent() {
 
         const trArr = items.map((item) => (
             <tr key={item.workcationNo}
-                onClick={() => navigate(`/workcation/detail/${item.workcationNo}`)}>
+                onClick={() => navigate(`${BASE_URL}/workcation/detail/${item.workcationNo}`)}>
                 <td>{item.workcationNo}</td>
                 <td>{item.workcationTitle}</td>
                 <td>{item.regionName || "-"}</td>
