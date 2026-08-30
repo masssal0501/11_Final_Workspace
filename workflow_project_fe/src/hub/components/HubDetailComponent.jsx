@@ -14,11 +14,6 @@ function HubDetailComponent(props) {
     const navigate = useNavigate();
     // Kakao API 사용을 위한 window 객체 참조
     const { kakao } = window;
-    // 카카오 SDK 로더
-    const [loading, error] = useKakaoLoader({
-        appkey: 'a00510cb26a4e33be1647f26b12df5c9',
-        libraries: ['services'], // 주소 변환을 위해 필수
-    });
 
     // 거점 상세 정보 폼 데이터를 관리하는 통합 객체 State
     const [hub, setHub] = useState({hubNo : hubNo,
@@ -63,7 +58,7 @@ function HubDetailComponent(props) {
     // 주소를 좌표로 변환
     useEffect(() => {
         // 백엔드에서 주소 데이터를 아직 못 가져왔다면 지도를 그리지 않고 대기
-        if (!loading && hub.hubAddress) {
+        if (kakao && kakao.maps && hub.hubAddress) {
             // 주소로 좌표를 검색하여 지도 및 마커 세팅
             const geocoder = new kakao.maps.services.Geocoder();
             geocoder.addressSearch(hub.hubAddress, (result, status) => {
@@ -73,7 +68,7 @@ function HubDetailComponent(props) {
                 }
             });
         }
-    }, [loading, hub.hubAddress]);
+    }, [hub.hubAddress]);
 
     // 거점 주소를 클립보드에 복사하는 기능
     const handleCopyClipBoard = async () => {

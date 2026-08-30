@@ -49,7 +49,7 @@ import {
     Navigate
 } from "react-router-dom";
 
-
+import { useKakaoLoader } from "react-kakao-maps-sdk";
 
 function App() {
 
@@ -63,7 +63,12 @@ function App() {
             : null;
     });
 
-
+    // 카카오 SDK 로더
+    useKakaoLoader({
+        appkey: 'a00510cb26a4e33be1647f26b12df5c9',
+        libraries: ['services'] // 주소 변환을 위해 필수
+    });
+    
     /*
      * 로그인 성공
      */
