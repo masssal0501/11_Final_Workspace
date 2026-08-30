@@ -296,7 +296,7 @@ public class HubController {
 	@Operation(summary="거점 등록 (첨부파일 가능)", description="거점을 등록합니다.")
 	@SecurityRequirement(name="JWT")
 	@PostMapping(value="/hubs", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<String> insertHub(@RequestPart Hub hub, @RequestPart(value = "upfile", required = false) List<MultipartFile> upfiles, HttpSession session) {
+	public ResponseEntity<String> insertHub(Hub hub, @RequestPart(value = "upfile", required = false) List<MultipartFile> upfiles, HttpSession session) {
 		
 		List<HubFile> fileList = new ArrayList<>();
 		

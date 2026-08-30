@@ -145,9 +145,10 @@ function HubUpdateFormComponent(props) {
     const handleAddressSearch = () => {
         new kakao.Postcode({
             oncomplete: (data) => {
-                let address = data.address;
+                let address = data.roadAddress;
                 let sido = data.sido.substring(0, 2);
                 let sigungu = data.sigungu;
+                let buildingName = data.buildingName
 
                 // 서비스 허용 지역 조건 검증
                 if(sido === "강원" || sido === "제주" || sido === "부산") {
@@ -155,6 +156,7 @@ function HubUpdateFormComponent(props) {
                     region.hubAddress = address;
                     region.mainRegion = sido;
                     region.subRegion = sigungu;
+                    region.hubName = buildingName
                     setHub(region);
                 } else {
                     alert("지역은 강원, 제주, 부산만 가능합니다. ");

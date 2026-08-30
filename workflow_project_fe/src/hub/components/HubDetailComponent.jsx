@@ -1,20 +1,25 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk"
 import "../styles/Hub.css";
 import { selectHubApi, deleteHubApi, BASE_URL } from "../api/hubApi";
 
 function HubDetailComponent(props) {
     
-    // 카카오 API JavaScript 키
-    const KAKAO_API_KEY = 'a00510cb26a4e33be1647f26b12df5c9';
-    // 카카오 지도가 렌더링될 DOM 요소를 참조
-    const mapContainerRef = useRef(null);
-    // Kakao 우편번호 서비스 API 사용을 위한 window 객체 참조
-    const { kakao } = window;
+    // d변환된 좌표를 저장할 State
+    const [position, setPosition] = useState(null);
     // React Router의 useParams를 통해 URL 경로 파라미터에서 hubNo 추출
     const hubNo = useParams().hubNo;
     // 페이지 이동을 제어하는 React Router 훅
     const navigate = useNavigate();
+    // Kakao API 사용을 위한 window 객체 참조
+    const { kakao } = window;
+    // 카카오 SDK 로더
+    const [loading, error] = useKakaoLoader({
+        appkey: 'a00510cb26a4e33be1647f26b12df5c9',
+        libraries: ['services'], // 주소 변환을 위해 필수
+    });
+
     // 거점 상세 정보 폼 데이터를 관리하는 통합 객체 State
     const [hub, setHub] = useState({hubNo : hubNo,
                                     hubName : "",
@@ -37,92 +42,38 @@ function HubDetailComponent(props) {
     useEffect(() =>{
         // 비동기 API 호출: 거점 상세 정보 조회
         const selectBoard = async () => {
-
             try {
-
                 const response = await selectHubApi(hubNo);
-
                 // 조회 결과 데이터가 존재하는 경우
                 if(response.data != "") {
                     setHub(response.data.hub);
                     setAvgScore(response.data.avgScore);
-                    console.log(response.data)
                 } else {
                     // 데이터가 없는 경우 경고창 띄우고 목록으로 리다이렉트
                     alert("이미 삭제되었거나 없는 거점입니다.");
                     navigate("/placeInfo/list")
                 }
-
             } catch(error) {
                 console.error(error);
             }
         }
-
         selectBoard();
-
     }, [hubNo]);
 
-    // 거점 주소가 세팅된 후 카카오 지도 SDK 로드 및 마커 생성
+    // 주소를 좌표로 변환
     useEffect(() => {
         // 백엔드에서 주소 데이터를 아직 못 가져왔다면 지도를 그리지 않고 대기
-        if (!hub.hubAddress) return;
-
-        // 일반 지도 생성 함수
-        const initMap = () => {
-            
+        if (!loading && hub.hubAddress) {
             // 주소로 좌표를 검색하여 지도 및 마커 세팅
             const geocoder = new kakao.maps.services.Geocoder();
-            geocoder.addressSearch(hub.hubAddress, (result) => {
-                // 표시할 위치 좌표 (제주 카카오 본사 좌표 예시)
-                const markerPosition = new kakao.maps.LatLng(result[0].y, result[0].x);
-
-                const mapOption = {
-                    center: markerPosition, // 지도 중심 좌표
-                    level: 3 // 지도 확대/축소 레벨
-                };
-
-                // 지도 객체 생성
-                const map = new kakao.maps.Map(mapContainerRef.current, mapOption);
-
-                // 마커 생성 및 지도 위에 표시
-                const marker = new kakao.maps.Marker({
-                    position: markerPosition
-                });
-                marker.setMap(map);
-
-                // 마커 위에 거점명을 표시하는 인포윈도우 생성
-                const infowindow = new kakao.maps.InfoWindow({
-                    content: `<div style="width:150px;font-size:12px;text-align:center;padding:6px 0;">${ hub.hubName }</div>`
-                });
-                infowindow.open(map, marker);
-            });
-        };
-
-        // SDK가 로드되어 있다면 지도 생성
-        if (kakao && kakao.maps && window.kakao.maps.services) {
-            kakao.maps.load(initMap);
-            return;
-        }
-
-        // 스크립트 동적 로드
-        let script = document.getElementById('kakao-map-script');
-        if (!script) {
-            script = document.createElement('script');
-            script.id = 'kakao-map-script';
-            script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&libraries=services&autoload=false`;
-            script.async = true;
-
-            script.onload = () => {
-                kakao.maps.load(initMap);
-            };
-
-            document.head.appendChild(script);
-        } else {
-            script.addEventListener('load', () => {
-                kakao.maps.load(initMap);
+            geocoder.addressSearch(hub.hubAddress, (result, status) => {
+                if (status === kakao.maps.services.Status.OK) {
+                    // 표시할 위치 좌표
+                    setPosition({ lat: result[0].y, lng: result[0].x });
+                }
             });
         }
-    }, [hub.hubAddress]);
+    }, [loading, hub.hubAddress]);
 
     // 거점 주소를 클립보드에 복사하는 기능
     const handleCopyClipBoard = async () => {
@@ -196,8 +147,20 @@ function HubDetailComponent(props) {
                                                                        (avgScore >= 1) ? "★☆☆☆☆" : 
                                                                                              "☆☆☆☆☆"))))} ({ avgScore })</span>
                 </div>
-                {/* 지도가 실제로 그려질 Ref 대상 */}
-                <div id="map" ref={mapContainerRef} />
+                {/* 라이브러리 컴포넌트를 사용하여 지도 및 마커 렌더링 */}
+                {position && (
+                    <Map
+                        center={position} 
+                        style={{ width: "50%", height: "300px", border: "1px solid gray" }}
+                        level={3}
+                    >
+                        <MapMarker position={position}>
+                            <div style={{ width:"150px", fontSize:"12px", textAlign:"center", padding:"6px 0" }}>
+                                {hub.hubName}
+                            </div>
+                        </MapMarker>
+                    </Map>
+                )}
             </div>
             <br />
             <hr />

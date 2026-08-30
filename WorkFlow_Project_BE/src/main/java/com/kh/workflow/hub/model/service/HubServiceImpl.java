@@ -88,8 +88,7 @@ public class HubServiceImpl implements HubService {
 	                       HttpSession session) {
 	    
 	    // 거점 정보 조회 및 수정
-	    Hub hub = hubDao.findById(hubNo)
-	            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 거점입니다."));
+	    Hub hub = hubDao.findById(hubNo).orElse(null);
 	    
 	    hub.setMaxCapacity(hubData.getMaxCapacity());
 	    hub.setHubStatus(hubData.getHubStatus());

@@ -22,7 +22,7 @@ function HubEnrollFormComponent(props) {
     // <form> 요소의 유효성 검사 실행을 위한 Ref
     const formRef = useRef(null);
     // 폼 입력값 통합 State 관리
-    const [hubData, setHubData] = useState({
+    const [hub, setHub] = useState({
         mainRegion : "",
         subRegion : "",
         hubName : "",
@@ -39,40 +39,39 @@ function HubEnrollFormComponent(props) {
 
     // 폼 입력값 변경 공통 핸들러
     const handleChange = e => {
-        const newHubData = { ...hubData };
+        const newHub = { ...hub };
         // e.target.name에 지정된 속성명만 동적으로 업데이트
-        newHubData[e.target.name] = e.target.value;
-        setHubData(newHubData);
+        newHub[e.target.name] = e.target.value;
+        setHub(newHub);
     }
 
     // 폼 입력값 양옆 공백 삭제 핸들러
     const handleBlur = e => {
-        const newHubData = { ...hubData };
+        const newHub = { ...hub };
 
-        newHubData[e.target.name] = e.target.value.trim();
-        setHubData(newHubData);
+        newHub[e.target.name] = e.target.value.trim();
+        setHub(newHub);
     }
 
     // 카카오 우편번호 서비스 팝업 오픈 및 주소/지역 선택 핸들러
     const handleAddressSearch = () => {
         new kakao.Postcode({
             oncomplete: (data) => {
-                let address = data.address;
+                let address = data.roadAddress;
                 let sido = data.sido.substring(0, 2);
                 let sigungu = data.sigungu;
+                let buildingName = data.buildingName
 
                 // 서비스 허용 지역 조건 검증
                 if(sido === "강원" || sido === "제주" || sido === "부산") {
-                    // hubData의 hubAddress 및 주요/세부 지역 정보 업데이트
-                    setHubData(prevData => ({
-                        ...prevData,
-                        hubAddress : address,
-                        mainRegion :  sido,
-                        subRegion : sigungu
-                    }));
+                    const region = {...hub}
+                    region.hubAddress = address;
+                    region.mainRegion = sido;
+                    region.subRegion = sigungu;
+                    region.hubName = buildingName
+                    setHub(region);
                 } else {
                     alert("지역은 강원, 제주, 부산만 가능합니다. ");
-                    return;
                 }
             }
         }).open();
@@ -191,8 +190,8 @@ function HubEnrollFormComponent(props) {
             const formData = new FormData();
 
             // 반복문을 사용하여 일일이 append 하던 코드를 한 줄로 압축
-            Object.keys(hubData).forEach(key => {
-                formData.append(key, hubData[key]);
+            Object.keys(hub).forEach(key => {
+                formData.append(key, hub[key]);
             });
 
             // 새로 추가된 파일 객체만 필터링하여 FormData에 append
@@ -204,7 +203,7 @@ function HubEnrollFormComponent(props) {
             const response = await insertHubApi(formData);
 
             // 서버 응답 결과 처리
-            if(response.data == "success") {
+            if(response.data === "success") {
                 alert("거점 등록에 성공했습니다.");
                 navigate("/hub/list");
             } else {
@@ -243,7 +242,7 @@ function HubEnrollFormComponent(props) {
                                                 className="form-control"
                                                 placeholder="0"
                                                 name="maxCapacity"
-                                                value={ hubData.maxCapacity }
+                                                value={ hub.maxCapacity }
                                                 onChange={ handleChange }
                                                 onBlur={ handleBlur }
                                                 required
@@ -257,7 +256,7 @@ function HubEnrollFormComponent(props) {
                                             name="hubStatus"
                                             id="OPEN"
                                             value="OPEN"
-                                            checked={ hubData.hubStatus == "OPEN" }
+                                            checked={ hub.hubStatus == "OPEN" }
                                             onChange={ handleChange }/>운영중
                                         </label>&nbsp;
                                         <label htmlFor="PAUSED"><input
@@ -265,7 +264,7 @@ function HubEnrollFormComponent(props) {
                                             name="hubStatus"
                                             id="PAUSED"
                                             value="PAUSED"
-                                            checked={ hubData.hubStatus == "PAUSED" }
+                                            checked={ hub.hubStatus == "PAUSED" }
                                             onChange={ handleChange }/>일시중단
                                         </label>
                                     </td>
@@ -279,11 +278,12 @@ function HubEnrollFormComponent(props) {
                                             name="hubAddress"
                                             className="form-control"
                                             placeholder="주소를 입력해주세요."
-                                            value={ hubData.hubAddress }
+                                            value={ hub.hubAddress }
                                             onClick={ handleAddressSearch }
                                             autoComplete="off"
                                             onChange={ handleChange }
-                                            required/>
+                                            required
+                                            readOnly/>
                                     </td>
                                     <th>지역</th>
                                     <td>
@@ -291,14 +291,14 @@ function HubEnrollFormComponent(props) {
                                             <input
                                                 className="form-control"
                                                 name="mainRegion"
-                                                value={ hubData.mainRegion }
+                                                value={ hub.mainRegion }
                                                 onChange={ handleChange }
                                                 readOnly
                                                 required />
                                             <input
                                                 className="form-control"
                                                 name="subRegion"
-                                                value={ hubData.subRegion }
+                                                value={ hub.subRegion }
                                                 onChange={ handleChange }
                                                 readOnly
                                                 required />
@@ -315,7 +315,7 @@ function HubEnrollFormComponent(props) {
                                             className="form-control"
                                             maxLength="13"
                                             placeholder="전화번호를 입력해주세요.(-포함)"
-                                            value={ hubData.phone }
+                                            value={ hub.phone }
                                             onChange={ handleChange }
                                             onBlur={ handleBlur }
                                             required />
@@ -325,7 +325,7 @@ function HubEnrollFormComponent(props) {
                                         <select
                                             className="custom-select"
                                             name="hubType"
-                                            value={ hubData.hubType }
+                                            value={ hub.hubType }
                                             onChange={ handleChange }>
                                             <option value="1">숙소</option>
                                             <option value="2">공유오피스</option>
@@ -342,7 +342,7 @@ function HubEnrollFormComponent(props) {
                                             className="form-control"
                                             maxLength="20"
                                             placeholder="거점 이름을 입력해주세요."
-                                            value={ hubData.hubName }
+                                            value={ hub.hubName }
                                             onChange={ handleChange }
                                             onBlur={ handleBlur }
                                             required />
@@ -359,7 +359,7 @@ function HubEnrollFormComponent(props) {
                                             style={ { resize : "none" } }
                                             placeholder="이용시간 및 세부내용을 작성해주세요."
                                             maxLength="300"
-                                            value={ hubData.description }
+                                            value={ hub.description }
                                             onChange={ handleChange }
                                             onBlur={ handleBlur } >
                                         </textarea>
@@ -415,7 +415,7 @@ function HubEnrollFormComponent(props) {
                                             className="form-control"
                                             placeholder="0"
                                             min="0"
-                                            value={ hubData.price }
+                                            value={ hub.price }
                                             onChange={ handleChange }
                                             onBlur={ handleBlur }
                                             required />
