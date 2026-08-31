@@ -10,70 +10,6 @@ function Header({ loginUser, onLogout }) {
   // 프로필 드롭다운
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 로그인 사용자
-  // const [user, setUser] = useState(null);
-
-  // 로그인 사용자 정보 가져오기
-  // useEffect(() => {
-
-  //   const savedUser = localStorage.getItem("user");
-
-  //   if (savedUser) {
-
-  //     try {
-
-  //       const parsedUser = JSON.parse(savedUser);
-
-  //       setUser(parsedUser);
-
-  //     } catch (error) {
-
-  //       console.error(
-  //         "사용자 정보 불러오기 실패:",
-  //         error
-  //       );
-
-  //     }
-  //   }
-
-  // }, []);
-
-
-  // 로그아웃
-  // const handleLogout = async () => {
-
-  //   try {
-
-  //     await logout();
-
-  //   } catch (error) {
-
-  //     console.error(
-  //       "로그아웃 API 실패:",
-  //       error
-  //     );
-
-  //   } finally {
-
-  //     // JWT 삭제
-  //     localStorage.removeItem("accessToken");
-
-  //     // 사용자 정보 삭제
-  //     localStorage.removeItem("user");
-
-  //     // React state도 즉시 초기화
-  //     setUser(null);
-
-  //     // 드롭다운 닫기
-  //     setIsProfileOpen(false);
-
-
-  //     // 로그인 페이지 이동
-  //     navigate("/login");
-  //   }
-  // };
-
-
   // 마이페이지 이동
   const handleMyPage = () => {
 
@@ -90,38 +26,52 @@ function Header({ loginUser, onLogout }) {
       label: "워케이션 신청",
       icon: "▣",
       path: "/workcation/list",
+      roles: ["MANAGER", "STAFF"]
     },
     {
       id: "task",
       label: "업무 관리",
       icon: "☷",
       path: "/task/list",
+      roles: ["ADMIN", "MANAGER", "STAFF"]
     },
     {
       id: "employee",
       label: "직원 관리",
       icon: "☷",
       path: "/employee/list",
+      roles: ["ADMIN"]
     },
     {
       id: "amount",
       label: "비용 관리",
       icon: "₩",
       path: "/amount",
+      roles: ["ADMIN", "MANAGER", "STAFF"]
     },
     {
       id: "notice",
       label: "공지사항",
       icon: "♢",
       path: "/notice",
+      roles: ["ADMIN", "MANAGER", "STAFF"]
     },
     {
       id: "hub",
       label: "장소/거점",
       icon: "⌖",
       path: "/hub",
+      roles: ["ADMIN"]
     },
   ];
+
+  // 현재 사용자의 권한
+  const authCode = loginUser?.authCode;
+
+  // 현재 사용자가 볼 수 있는 메뉴만 필터링
+  const visibleMenus = menus.filter(menu =>
+    menu.roles.includes(authCode)
+  )
 
 
   // 메뉴 클릭
@@ -227,7 +177,7 @@ function Header({ loginUser, onLogout }) {
 
         <nav className="wf-nav">
 
-          {menus.map((menu) => (
+          {visibleMenus.map((menu) => (
 
             <button
               key={menu.id}
