@@ -251,7 +251,10 @@ function HubListComponent(props) {
     // return 구문
     return (
         <div className="content">
-            <h2 align="center"><b>거점 목록</b></h2>
+            <div className="position-relative d-flex align-items-center w-100 mb-4 hub-list-header">
+                <h2 className="m-0 w-100 text-center"><b>거점 목록</b></h2>
+                <button className="btn btn-outline-dark" onClick={ () => { navigate("/place/list") } }>지역 정보 목록으로</button>
+            </div>
             <br />
             {/* 상단 검색 필터 테이블 영역 */}
             <table align="left" className="search-filter-table">

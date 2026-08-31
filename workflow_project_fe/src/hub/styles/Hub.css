@@ -171,7 +171,7 @@ input[type="number"]::-webkit-outer-spin-button {
     background-color: #0091FF;
     color: white;
     border: none;
-    font-size: 14px;
+    font-size: 14.7px;
 }
 
 #AI:hover {
@@ -208,6 +208,7 @@ input[name="keyword"] {
     padding-bottom: 16px;
     padding-right: 80px;
     padding-left: 0;
+    border-top: none;
 }
 
 .list-area td img {
@@ -242,4 +243,11 @@ input[name="keyword"] {
 
 .not-found td {
     display: table-cell;
+}
+
+.hub-list-header button {
+    font-size: 20px;
+    border : 1px solid currentColor; 
+    position: absolute;
+    right: 0;
 }
