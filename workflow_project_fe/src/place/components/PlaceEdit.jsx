@@ -109,16 +109,33 @@ function PlaceEdit() {
     };
 
 
-    // 저장하기
     const handleSubmit = async (e) => {
 
         e.preventDefault();
 
         try {
 
+            const formData = new FormData();
+
+            formData.append(
+                "place",
+                new Blob(
+                    [JSON.stringify(place)],
+                    {
+                        type: "application/json"
+                    }
+                )
+            );
+
+            if (file) {
+                formData.append("file", file);
+            }
+
+            console.log("IS FORMDATA :", formData instanceof FormData);
+
             await placeApi.updatePlace(
                 hubNo,
-                place
+                formData
             );
 
             alert("지역 정보가 수정되었습니다.");
@@ -128,11 +145,11 @@ function PlaceEdit() {
         } catch (error) {
 
             console.log("지역 정보 수정 실패", error);
+            console.log("response:", error.response?.data);
 
             alert("지역 정보 수정에 실패했습니다.");
 
         }
-
     };
 
 

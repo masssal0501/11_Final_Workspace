@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { placeApi } from "../api/placeApi";
 import PlaceItem from "./PlaceItem";
@@ -18,6 +18,8 @@ function PlaceList() {
     const searchRegion = searchParams.get("region") || "";
     const searchSubRegion = searchParams.get("subRegion") || "";
     const cpage = parseInt(searchParams.get("cpage")) || 1;
+
+    const navigate = useNavigate();
 
     const [pageList, setPageList] = useState([]);
 
@@ -439,9 +441,13 @@ function PlaceList() {
 
 
                 {/* AI 추천 */}
-                <button className="ai-button">
-                    AI에게 장소 및 일정 추천 받기
-                </button>
+{/* AI 추천 */}
+<button
+    onClick={() => navigate("/placeInfo/ai")}
+    className="ai-button"
+>
+    AI에게 장소 및 일정 추천 받기
+</button>
 
             </div>
 

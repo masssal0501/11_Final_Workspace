@@ -256,6 +256,7 @@ function App() {
                 <Route path="/workflow/place/Form" element={ <PlaceForm /> } />
                 <Route path="/workflow/place/detail/:hubNo" element={ <PlaceDetail /> } />
                 <Route path="/workflow/place/edit/:hubNo" element={ <PlaceEdit /> } />
+                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
 
                 {/* 업무 게시판 라우트 */}
                 <Route path="/task/list" element={<TaskListComponent />} />

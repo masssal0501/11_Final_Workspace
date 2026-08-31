@@ -74,7 +74,9 @@ function PlaceDetail() {
 
 
     // 첫 번째 사진
-    const firstFile = place.hubFileList?.[0];
+    const firstFile = place.hubFileList?.find(
+    (file) => file.status === "Y"
+    );
 
 
     return (

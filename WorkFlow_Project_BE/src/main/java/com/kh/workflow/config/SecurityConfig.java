@@ -106,6 +106,11 @@ public class SecurityConfig {
                         .requestMatchers(
                             "/employees/password"
                         ).authenticated()
+                        
+                        // 장소 관련 API
+                        .requestMatchers(
+                                "/place/**"
+                        ).permitAll()
 
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
