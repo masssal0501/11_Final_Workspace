@@ -24,6 +24,11 @@ import HubDetailComponent from './placeinfo/components/HubDetailComponent';
 import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
 import AIComponent from './placeinfo/components/AIComponent';
 
+import PlaceList from './place/components/PlaceList';
+import PlaceForm from './place/components/PlaceForm';
+import PlaceDetail from './place/components/PlaceDetail';
+import PlaceEdit from './place/components/PlaceEdit';
+
 import TaskListComponent from './taskboard/components/TaskListComponent';
 import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 
@@ -245,6 +250,12 @@ function App() {
                 <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
                 <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
                 <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
+
+                {/* place */}
+                <Route path="/workflow/place/list" element={ <PlaceList /> } />
+                <Route path="/workflow/place/Form" element={ <PlaceForm /> } />
+                <Route path="/workflow/place/detail/:hubNo" element={ <PlaceDetail /> } />
+                <Route path="/workflow/place/edit/:hubNo" element={ <PlaceEdit /> } />
 
                 {/* 업무 게시판 라우트 */}
                 <Route path="/task/list" element={<TaskListComponent />} />

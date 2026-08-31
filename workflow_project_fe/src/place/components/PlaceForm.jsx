@@ -146,7 +146,10 @@ function PlaceForm() {
                     </select>
                 </div>
 
+                <br />
+
                 <div className="formGroup">
+                    <div className="placetype">
                     <h4>장소 유형</h4>
                     <select
                         name="hubType"
@@ -158,6 +161,7 @@ function PlaceForm() {
                         <option value="4">맛집</option>
                         <option value="5">관광지</option>
                     </select>
+                    </div>
                 </div>
 
                 <div className="formGroup">
@@ -201,9 +205,9 @@ function PlaceForm() {
                 <div className="formGroup">
                     <h4>상태</h4>
                     <select name="hubStatus" value={place.hubStatus} onChange={handleChange}>
-                        <option value="OPEN">✅ 운영중</option>
-                        <option value="PAUSED">⚠️ 일시중단</option>
-                        <option value="CLOSED">🚫 종료</option>
+                        <option value="OPEN">✅</option>
+                        <option value="PAUSED">⚠️</option>
+                        <option value="CLOSED">🚫</option>
                     </select>
                 </div>
 {/* ⚠️✅❌🚫 🟢🟠🔴 */}

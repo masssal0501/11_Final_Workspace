@@ -26,6 +26,8 @@ public class FileRenamePolicy {
 		
 		String savePath = session.getServletContext().getRealPath(path);
 
+		System.out.println("파일 저장 경로 = " + savePath);
+		
 		File filePath = new File(savePath);
 
 		if (!filePath.exists()) {

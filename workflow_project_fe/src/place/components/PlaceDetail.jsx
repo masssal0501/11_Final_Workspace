@@ -14,8 +14,8 @@ function PlaceDetail() {
     const [place, setPlace] = useState(null);
 
     // 관리자 여부 확인
-    const role = localStorage.getItem("role");
-    const isAdmin = role === "ADMIN";
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isAdmin = user?.authCode === "ADMIN";
 
 
     useEffect(() => {
@@ -31,6 +31,8 @@ function PlaceDetail() {
         try {
 
             const response = await placeApi.getPlaceDetail(hubNo);
+
+            console.log("상세조회 데이터:", response);
 
             setPlace(response);
 
@@ -71,6 +73,10 @@ function PlaceDetail() {
     };
 
 
+    // 첫 번째 사진
+    const firstFile = place.hubFileList?.[0];
+
+
     return (
 
         <div className="place-info">
@@ -81,31 +87,26 @@ function PlaceDetail() {
 
 
             <div>
+            {/* 사진 */}
+            <div className="place-image">
 
-                {/* 사진 */}
-                <div className="place-image">
+                {firstFile ? (
 
-                    {place.filePath ? (
+                    <img
+                        src={`http://localhost:8006/workflow${firstFile.filePath}/${firstFile.changeName}`}
+                        alt={place.hubName}
 
-                        <img
-                            src={`http://localhost:8080${place.filePath}`}
-                            alt={place.hubName}
-                            style={{
-                                width: "400px",
-                                height: "300px",
-                                objectFit: "cover"
-                            }}
-                        />
+                    />
 
-                    ) : (
+                ) : (
 
-                        <div>
-                            등록된 사진이 없습니다.
-                        </div>
+                    <div>
+                        등록된 사진이 없습니다.
+                    </div>
 
-                    )}
+                )}
 
-                </div>
+            </div>
 
 
                 {/* 제목 */}
@@ -115,50 +116,74 @@ function PlaceDetail() {
 
                 <br />
 
+
+                {/* 평점 */}
                 <div className="place-rating">
+
                     <span className="rating-star">⭐️</span>
-                    <span className="rating-score">평점</span>
-                    <span className="rating-value">-</span>
+
+                    <span className="rating-score">
+                        평점
+                    </span>
+
+                    <span className="rating-value">
+                        -
+                    </span>
+
                 </div>
+
 
                 {/* 설명 */}
                 <div>
 
                     <strong>상세 정보</strong>
+
                     <br />
-                    <div className="description">{place.description}</div>
+
+                    <div className="description">
+                        {place.description}
+                    </div>
 
                 </div>
 
                 <br />
 
+
                 {/* 주소 */}
                 <div>
 
                     <strong>주소</strong>
+
                     <br />
+
                     {place.mainRegion} {place.subRegion} {place.hubAddress}
 
                 </div>
 
                 <br />
 
+
                 {/* 전화번호 */}
                 <div>
 
                     <strong>전화번호</strong>
+
                     <br />
+
                     {place.phone}
 
                 </div>
 
                 <br />
 
+
                 {/* 허브 상태 */}
                 <div>
 
                     <strong>운영 상태</strong>
+
                     <br />
+
                     {getHubStatusText(place.hubStatus)}
 
                 </div>
@@ -171,8 +196,11 @@ function PlaceDetail() {
                 {/* 관리자에게만 수정하기 버튼 표시 */}
                 {isAdmin && (
 
-                    <button className="editButton"
-                        onClick={() => navigate(`/place/${hubNo}/edit`)}
+                    <button
+                        className="editButton"
+                        onClick={() =>
+                            navigate(`/workflow/place/edit/${hubNo}`)
+                        }
                     >
                         수정하기
                     </button>
@@ -180,7 +208,8 @@ function PlaceDetail() {
                 )}
 
 
-                <button className="backButton"
+                <button
+                    className="backButton"
                     onClick={() => navigate(-1)}
                 >
                     뒤로가기
