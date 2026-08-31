@@ -1,0 +1,541 @@
+/* =========================================================
+   Statistics.css
+   ========================================================= */
+
+
+/* =========================================================
+   전체 컨테이너
+   ========================================================= */
+
+.statistics-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 40px 50px;
+    box-sizing: border-box;
+    background-color: #f7f8fa;
+    min-height: 100vh;
+}
+
+
+/* =========================================================
+   헤더
+   ========================================================= */
+
+.statistics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.statistics-header h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: #222;
+}
+
+
+/* =========================================================
+   새로고침 버튼
+   ========================================================= */
+
+.refresh-button {
+    padding: 10px 18px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    background-color: #fff;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.refresh-button:hover {
+    background-color: #f1f3f5;
+    border-color: #bbb;
+}
+
+.refresh-button:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   요약 카드
+   ========================================================= */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.summary-card {
+    min-height: 120px;
+    padding: 22px;
+    box-sizing: border-box;
+
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+}
+
+.summary-title {
+    margin-bottom: 10px;
+
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.summary-value {
+    color: #222;
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.summary-description {
+    margin-top: 7px;
+    color: #999;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   차트 전체 영역
+   ========================================================= */
+
+.statistics-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   공통 통계 카드
+   ========================================================= */
+
+.statistics-card {
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+
+    padding: 24px;
+    box-sizing: border-box;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================================
+   카드 헤더
+   ========================================================= */
+
+.statistics-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.statistics-card-header h3 {
+    margin: 0;
+
+    color: #222;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   Pie Chart
+   ========================================================= */
+
+.pie-chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 380px;
+}
+
+
+/* =========================================================
+   Recharts Legend
+   ========================================================= */
+
+.pie-chart-wrapper
+.recharts-legend-wrapper {
+    padding-top: 5px;
+}
+
+.recharts-legend-item {
+    margin-right: 12px !important;
+}
+
+
+/* =========================================================
+   차트 빈 데이터
+   ========================================================= */
+
+.empty-chart {
+    width: 100%;
+    height: 380px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #999;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   월별 Bar Chart
+   ========================================================= */
+
+.statistics-card > div[style*="height: 380px"] {
+    min-height: 380px;
+}
+
+
+/* =========================================================
+   부서별 / 항목별 통계
+   ========================================================= */
+
+.department-statistics,
+.item-statistics {
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   테이블 Wrapper
+   ========================================================= */
+
+.statistics-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+/* =========================================================
+   통계 테이블
+   ========================================================= */
+
+.statistics-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.statistics-table thead {
+    background-color: #f8f9fb;
+}
+
+.statistics-table th {
+    height: 48px;
+    padding: 12px 15px;
+
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+
+    text-align: center;
+    white-space: nowrap;
+}
+
+.statistics-table td {
+    height: 52px;
+    padding: 12px 15px;
+
+    border-bottom: 1px solid #eee;
+
+    color: #444;
+    font-size: 14px;
+
+    text-align: center;
+    vertical-align: middle;
+}
+
+.statistics-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.statistics-table tbody tr:hover {
+    background-color: #fafafa;
+}
+
+.statistics-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   테이블 첫 번째 컬럼
+   ========================================================= */
+
+.statistics-table th:first-child,
+.statistics-table td:first-child {
+    width: 25%;
+}
+
+
+/* =========================================================
+   금액 컬럼
+   ========================================================= */
+
+.statistics-table td:nth-child(3),
+.statistics-table td:nth-child(4) {
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================================================
+   빈 데이터
+   ========================================================= */
+
+.empty-data {
+    min-height: 120px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #999;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   로딩
+   ========================================================= */
+
+.statistics-loading {
+    min-height: 400px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #666;
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   에러
+   ========================================================= */
+
+.statistics-error {
+    width: 100%;
+    max-width: 500px;
+
+    margin: 100px auto;
+    padding: 35px;
+
+    box-sizing: border-box;
+
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+
+    text-align: center;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-error h3 {
+    margin: 0 0 12px;
+
+    color: #d64545;
+    font-size: 20px;
+}
+
+.statistics-error p {
+    margin: 0 0 20px;
+
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.statistics-error button {
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 6px;
+
+    background-color: #333;
+    color: #fff;
+
+    font-size: 14px;
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.statistics-error button:hover {
+    background-color: #555;
+}
+
+
+/* =========================================================
+   Recharts Tooltip
+   ========================================================= */
+
+.recharts-tooltip-wrapper {
+    outline: none;
+}
+
+.recharts-default-tooltip {
+    padding: 10px 12px !important;
+
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+
+    background-color: #fff !important;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+
+/* =========================================================
+   반응형 - 1200px 이하
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .statistics-container {
+        padding: 25px 25px 40px;
+    }
+
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .statistics-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   반응형 - 768px 이하
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .statistics-container {
+        padding: 20px 15px 30px;
+    }
+
+    .statistics-header h2 {
+        font-size: 23px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 100px;
+        padding: 18px;
+    }
+
+    .summary-value {
+        font-size: 20px;
+    }
+
+    .statistics-card {
+        padding: 18px;
+    }
+
+    .statistics-card-header h3 {
+        font-size: 16px;
+    }
+
+    .pie-chart-wrapper {
+        height: 330px;
+    }
+
+    .empty-chart {
+        height: 330px;
+    }
+
+    .statistics-table {
+        min-width: 650px;
+    }
+}
+
+
+/* =========================================================
+   반응형 - 480px 이하
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .statistics-header {
+        align-items: flex-start;
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    .refresh-button {
+        width: 100%;
+    }
+
+    .statistics-header h2 {
+        font-size: 21px;
+    }
+
+    .summary-card {
+        padding: 16px;
+    }
+
+    .summary-title {
+        font-size: 13px;
+    }
+
+    .summary-value {
+        font-size: 18px;
+    }
+
+    .statistics-card {
+        padding: 15px;
+    }
+
+    .pie-chart-wrapper {
+        height: 300px;
+    }
+
+    .empty-chart {
+        height: 300px;
+    }
+}

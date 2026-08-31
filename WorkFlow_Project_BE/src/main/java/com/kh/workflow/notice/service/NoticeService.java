@@ -24,4 +24,8 @@ public interface NoticeService {
 	
 	// 공지사항 삭제용 서비스
 	int deleteNotice(int noticeNo);
+	
+	// 로그인 ID로 사원번호 조회
+    Integer selectEmpNoByLoginId(String loginId);
+	
 }

@@ -11,10 +11,23 @@ export default function NoticeDetail() {
     const [notice, setNotice] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // =========================================================
+    // 로그인 사용자 정보
+    // =========================================================
+
+    const loginMember =
+        JSON.parse(
+            sessionStorage.getItem('loginMember')
+        );
+
+    const isAdmin =
+        loginMember?.role === 'S';
+
 
     // =========================================================
     // 공지사항 상세 조회
     // =========================================================
+
     const fetchNoticeDetail = async () => {
 
         try {
@@ -65,6 +78,7 @@ export default function NoticeDetail() {
     // =========================================================
     // 날짜 포맷
     // =========================================================
+
     const formatDate = (date) => {
 
         if (!date) {
@@ -83,8 +97,93 @@ export default function NoticeDetail() {
 
 
     // =========================================================
+    // 삭제
+    // =========================================================
+
+    const handleDelete = async () => {
+
+        if (!isAdmin) {
+
+            alert(
+                '관리자만 삭제할 수 있습니다.'
+            );
+
+            return;
+
+        }
+
+
+        const confirmed =
+            window.confirm(
+                '공지사항을 삭제하시겠습니까?'
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            await noticeApi.deleteNotice(
+                noticeNo
+            );
+
+            alert(
+                '공지사항이 삭제되었습니다.'
+            );
+
+            navigate('/notice');
+
+        } catch (error) {
+
+            console.error(
+                '공지사항 삭제 실패:',
+                error
+            );
+
+            console.error(
+                '서버 응답:',
+                error.response?.data
+            );
+
+            alert(
+                error.response?.data?.message ||
+                '공지사항 삭제에 실패했습니다.'
+            );
+
+        }
+
+    };
+
+
+    // =========================================================
+    // 수정
+    // =========================================================
+
+    const handleUpdate = () => {
+
+        if (!isAdmin) {
+
+            alert(
+                '관리자만 수정할 수 있습니다.'
+            );
+
+            return;
+
+        }
+
+        navigate(
+            `/admin/notice/update/${noticeNo}`
+        );
+
+    };
+
+
+    // =========================================================
     // 로딩
     // =========================================================
+
     if (loading) {
 
         return (
@@ -105,6 +204,7 @@ export default function NoticeDetail() {
     // =========================================================
     // 데이터 없음
     // =========================================================
+
     if (!notice) {
 
         return (
@@ -157,13 +257,17 @@ export default function NoticeDetail() {
                         </span>
 
                         <span>
-                            작성일 : {formatDate(
-                                notice.createdAt
-                            )}
+                            작성일 : {
+                                formatDate(
+                                    notice.createdAt
+                                )
+                            }
                         </span>
 
                         <span>
-                            조회수 : {notice.viewCount ?? 0}
+                            조회수 : {
+                                notice.viewCount ?? 0
+                            }
                         </span>
 
                     </div>
@@ -191,11 +295,11 @@ export default function NoticeDetail() {
                     notice.fileList &&
                     notice.fileList.length > 0 && (
 
-                        <div className="notice-detail-file-area">
+                        <div className="notice-file-area">
 
-                            <div className="notice-detail-file-title">
+                            <h4>
                                 첨부파일
-                            </div>
+                            </h4>
 
 
                             {
@@ -206,43 +310,22 @@ export default function NoticeDetail() {
                                             key={
                                                 file.noticefileNo
                                             }
-                                            className="notice-detail-file"
+                                            className="notice-file"
                                         >
 
-                                            <span>
-                                                📎
-                                            </span>
+                                            <a
+                                                href={
+                                                    noticeApi.getFileDownloadUrl(
+                                                        file.noticefileNo
+                                                    )
+                                                }
+                                            >
 
-                                            {notice.fileList &&
- notice.fileList.length > 0 && (
+                                                📎 {
+                                                    file.originName
+                                                }
 
-    <div className="notice-file-area">
-
-        <h4>첨부파일</h4>
-
-        {notice.fileList.map((file) => (
-
-            <div
-                key={file.noticefileNo}
-                className="notice-file"
-            >
-
-                <a
-                    href={
-                        noticeApi.getFileDownloadUrl(
-                            file.noticefileNo
-                        )
-                    }
-                >
-                    📎 {file.originName}
-                </a>
-
-            </div>
-
-        ))}
-
-    </div>
-)}
+                                            </a>
 
                                         </div>
 
@@ -262,6 +345,9 @@ export default function NoticeDetail() {
 
                 <div className="notice-detail-buttons">
 
+
+                    {/* 목록 */}
+
                     <button
                         type="button"
                         className="btn-list"
@@ -271,6 +357,36 @@ export default function NoticeDetail() {
                     >
                         목록
                     </button>
+
+
+                    {/* 관리자 전용 */}
+
+                    {
+                        isAdmin && (
+
+                            <>
+
+                                <button
+                                    type="button"
+                                    className="btn-update"
+                                    onClick={handleUpdate}
+                                >
+                                    수정
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    className="btn-delete"
+                                    onClick={handleDelete}
+                                >
+                                    삭제
+                                </button>
+
+                            </>
+
+                        )
+                    }
 
                 </div>
 

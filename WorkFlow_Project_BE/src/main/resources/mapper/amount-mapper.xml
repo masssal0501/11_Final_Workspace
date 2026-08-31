@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.kh.workflow.amount.dao.AmountDao">
 
-
     <!-- =========================================================
          1. Amount ResultMap
          ========================================================= -->
-
     <resultMap id="amountResultMap"
                type="com.kh.workflow.amount.vo.Amount">
 
@@ -50,17 +47,14 @@
     </resultMap>
 
 
-    <!-- =========================================================
-         2. Item ResultMap
-         ========================================================= -->
-
+   
     <resultMap id="itemResultMap"
                type="com.kh.workflow.amount.vo.Amount$Item">
 
         <id property="itemNo"
             column="item_no"/>
 
-        <result property="cost"
+        <result property="amount"
                 column="cost"/>
 
         <result property="itemType"
@@ -81,15 +75,12 @@
     </resultMap>
 
 
-    <!-- =========================================================
-         3. Sponsor ResultMap
-         ========================================================= -->
-
+   
     <resultMap id="sponsorResultMap"
                type="com.kh.workflow.amount.vo.Amount$Sponsor">
 
-        <id property="amountListNo"
-            column="amount_list_no"/>
+        <id property="amountNo"
+            column="amount_no"/>
 
         <result property="sponsorName"
                 column="sponsor_name"/>
@@ -106,16 +97,12 @@
         <result property="remark"
                 column="remark"/>
 
-        <result property="amountNo"
-                column="amount_no"/>
-
     </resultMap>
 
 
     <!-- =========================================================
          4. File ResultMap
          ========================================================= -->
-
     <resultMap id="fileResultMap"
                type="com.kh.workflow.amount.vo.Amount$File">
 
@@ -146,7 +133,6 @@
     <!-- =========================================================
          5. 비용 신청 등록
          ========================================================= -->
-
     <insert id="insertAmount"
             parameterType="com.kh.workflow.amount.vo.Amount"
             useGeneratedKeys="true"
@@ -184,7 +170,6 @@
     <!-- =========================================================
          6. 비용 상세 항목 등록
          ========================================================= -->
-
     <insert id="insertAmountItem"
             parameterType="com.kh.workflow.amount.vo.Amount$Item"
             useGeneratedKeys="true"
@@ -202,7 +187,7 @@
         )
         VALUES
         (
-            #{cost},
+            #{amount},
             #{itemType},
             #{itemDate},
             #{itemApproved},
@@ -215,31 +200,29 @@
 
     <!-- =========================================================
          7. 지원금 등록
-         ========================================================= -->
 
+         amount_list에는 item_no가 없으므로 제외
+         ========================================================= -->
     <insert id="insertAmountSponsor"
-            parameterType="com.kh.workflow.amount.vo.Amount$Sponsor"
-            useGeneratedKeys="true"
-            keyProperty="amountListNo"
-            keyColumn="amount_list_no">
+            parameterType="com.kh.workflow.amount.vo.Amount$Sponsor">
 
         INSERT INTO amount_list
         (
+            amount_no,
             sponsor_name,
             amount,
             payment_date,
             status,
-            remark,
-            amount_no
+            remark
         )
         VALUES
         (
+            #{amountNo},
             #{sponsorName},
             #{amount},
             #{paymentDate},
             #{status},
-            #{remark},
-            #{amountNo}
+            #{remark}
         )
 
     </insert>
@@ -248,7 +231,6 @@
     <!-- =========================================================
          8. 첨부파일 등록
          ========================================================= -->
-
     <insert id="insertAmountFile"
             parameterType="com.kh.workflow.amount.vo.Amount$File"
             useGeneratedKeys="true"
@@ -280,7 +262,6 @@
     <!-- =========================================================
          9. 비용 상세 조회
          ========================================================= -->
-
     <select id="selectAmountById"
             parameterType="int"
             resultMap="amountResultMap">
@@ -314,7 +295,6 @@
     <!-- =========================================================
          10. 전체 비용 신청 개수
          ========================================================= -->
-
     <select id="getAmountListCount"
             resultType="int">
 
@@ -326,17 +306,8 @@
 
     <!-- =========================================================
          11. 전체 비용 신청 목록
-         =========================================================
-         
-         PageInfo
-         ├── offset
-         └── limit
-         
-         MySQL LIMIT 방식
          ========================================================= -->
-
     <select id="selectAmountList"
-            parameterType="com.kh.workflow.common.model.vo.PageInfo"
             resultMap="amountResultMap">
 
         SELECT
@@ -364,43 +335,28 @@
             a.created_at DESC,
             a.amount_no DESC
 
-        LIMIT #{offset}, #{limit}
+        LIMIT #{pi.offset}, #{pi.boardLimit}
 
     </select>
 
 
     <!-- =========================================================
-         12. 워케이션별 비용 신청 개수
+         12. 특정 워케이션 비용 신청 개수
          ========================================================= -->
-
     <select id="getAmountCountByWorkcationNo"
             parameterType="int"
             resultType="int">
 
         SELECT COUNT(*)
-
         FROM amount
-
         WHERE workcation_no = #{workcationNo}
 
     </select>
 
 
     <!-- =========================================================
-         13. 워케이션별 비용 신청 목록
-         =========================================================
-         
-         DAO
-         @Param("workcationNo") int workcationNo
-         @Param("pi") PageInfo pi
-         
-         XML
-         #{workcationNo}
-         #{pi.offset}
-         #{pi.limit}
-         
+         13. 특정 워케이션 비용 신청 목록
          ========================================================= -->
-
     <select id="selectAmountListByWorkcationNo"
             resultMap="amountResultMap">
 
@@ -431,15 +387,12 @@
             a.created_at DESC,
             a.amount_no DESC
 
-        LIMIT #{pi.offset}, #{pi.limit}
+        LIMIT #{pi.offset}, #{pi.boardLimit}
 
     </select>
 
 
-    <!-- =========================================================
-         14. 비용 상세 항목 조회
-         ========================================================= -->
-
+   
     <select id="selectAmountItemsByAmountNo"
             parameterType="int"
             resultMap="itemResultMap">
@@ -457,33 +410,32 @@
 
         WHERE amount_no = #{amountNo}
 
-        ORDER BY item_no ASC
+        ORDER BY
+            item_no ASC
 
     </select>
 
 
     <!-- =========================================================
          15. 지원금 조회
-         ========================================================= -->
 
-    <select id="selectSponsorsByAmountNo"
+         amount_list에는 item_no가 없으므로 제외
+         ========================================================= -->
+    <select id="selectSponsorByAmountNo"
             parameterType="int"
             resultMap="sponsorResultMap">
 
         SELECT
-            amount_list_no,
+            amount_no,
             sponsor_name,
             amount,
             payment_date,
             status,
-            remark,
-            amount_no
+            remark
 
         FROM amount_list
 
         WHERE amount_no = #{amountNo}
-
-        ORDER BY amount_list_no ASC
 
     </select>
 
@@ -491,7 +443,6 @@
     <!-- =========================================================
          16. 첨부파일 조회
          ========================================================= -->
-
     <select id="selectAmountFilesByAmountNo"
             parameterType="int"
             resultMap="fileResultMap">
@@ -508,10 +459,10 @@
         FROM amount_file
 
         WHERE amount_no = #{amountNo}
-
           AND status = 'Y'
 
-        ORDER BY amountattachment_no ASC
+        ORDER BY
+            amountattachment_no ASC
 
     </select>
 
@@ -519,7 +470,6 @@
     <!-- =========================================================
          17. 비용 신청 수정
          ========================================================= -->
-
     <update id="updateAmount"
             parameterType="com.kh.workflow.amount.vo.Amount">
 
@@ -538,7 +488,6 @@
     <!-- =========================================================
          18. 결재 상태 변경
          ========================================================= -->
-
     <update id="updateApprovalStatus"
             parameterType="com.kh.workflow.amount.vo.Amount">
 
@@ -568,7 +517,6 @@
     <!-- =========================================================
          19. 첨부파일 삭제
          ========================================================= -->
-
     <delete id="deleteFile"
             parameterType="int">
 
@@ -582,7 +530,6 @@
     <!-- =========================================================
          20. 비용 신청 취소
          ========================================================= -->
-
     <update id="cancelAmount"
             parameterType="int">
 
@@ -607,7 +554,6 @@
     <!-- =========================================================
          21. 기존 Item 삭제
          ========================================================= -->
-
     <delete id="deleteAmountItemsByAmountNo"
             parameterType="int">
 
@@ -621,7 +567,6 @@
     <!-- =========================================================
          22. 기존 Sponsor 삭제
          ========================================================= -->
-
     <delete id="deleteAmountSponsorsByAmountNo"
             parameterType="int">
 
@@ -632,229 +577,248 @@
     </delete>
 
 
-    <!-- =========================================================
-         23. 통계 - 전체 요약
-         ========================================================= -->
 
-    <select id="getStatisticsSummary"
-            resultType="map">
+<!-- =========================================================
+     23. 통계 - 전체 요약
+     
+     상태 코드
+     A = 승인
+     R = 검토
+     H = 보류
+     J = 반려
+     C = 취소
 
-        SELECT
+     ★ 총 지급액은 승인(A)만 포함
+     ★ 반려(J)는 절대 포함하지 않음
+     ========================================================= -->
+<select id="getStatisticsSummary"
+        resultType="map">
 
-            COUNT(*) AS totalCount,
+    SELECT
 
-            COALESCE(
-                SUM(requested_amount),
-                0
-            ) AS totalRequestedAmount,
+        /* 전체 신청 건수 */
+        COUNT(*) AS totalCount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'A'
-                        THEN approved_amount
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS totalApprovedAmount,
+        /* 전체 신청 금액 */
+        COALESCE(
+            SUM(requested_amount),
+            0
+        ) AS totalRequestedAmount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'R'
-                        THEN 1
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS reviewCount,
+        /* 총 지급액 = 승인된 금액만 */
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN status = 'A'
+                    THEN COALESCE(approved_amount, 0)
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS totalApprovedAmount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'A'
-                        THEN 1
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS approvedCount,
+        /* 검토 */
+        SUM(
+            CASE
+                WHEN status = 'R'
+                THEN 1
+                ELSE 0
+            END
+        ) AS reviewCount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'H'
-                        THEN 1
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS holdCount,
+        /* 승인 */
+        SUM(
+            CASE
+                WHEN status = 'A'
+                THEN 1
+                ELSE 0
+            END
+        ) AS approvedCount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'J'
-                        THEN 1
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS rejectedCount,
+        /* 보류 */
+        SUM(
+            CASE
+                WHEN status = 'H'
+                THEN 1
+                ELSE 0
+            END
+        ) AS holdCount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'C'
-                        THEN 1
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS cancelledCount
+        /* 반려 */
+        SUM(
+            CASE
+                WHEN status = 'J'
+                THEN 1
+                ELSE 0
+            END
+        ) AS rejectedCount,
 
-        FROM amount
+        /* 취소 */
+        SUM(
+            CASE
+                WHEN status = 'C'
+                THEN 1
+                ELSE 0
+            END
+        ) AS cancelledCount
 
-    </select>
+    FROM amount
 
-
-    <!-- =========================================================
-         24. 통계 - 부서별
-         ========================================================= -->
-
-    <select id="getDeptStatistics"
-            resultType="map">
-
-        SELECT
-
-            d.dep_id AS depId,
-
-            d.dep_title AS depTitle,
-
-            COUNT(a.amount_no) AS amountCount,
-
-            COALESCE(
-                SUM(a.requested_amount),
-                0
-            ) AS requestedAmount,
-
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN a.status = 'A'
-                        THEN a.approved_amount
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS approvedAmount
-
-        FROM department d
-
-        LEFT JOIN employee e
-            ON d.dep_id = e.dep_id
-
-        LEFT JOIN workcation_info w
-            ON e.emp_no = w.emp_no
-
-        LEFT JOIN amount a
-            ON w.workcation_no = a.workcation_no
-
-        GROUP BY
-            d.dep_id,
-            d.dep_title
-
-        ORDER BY
-            d.dep_id
-
-    </select>
+</select>
 
 
-    <!-- =========================================================
-         25. 통계 - 월별
-         ========================================================= -->
+<!-- =========================================================
+     24. 통계 - 부서별
+     
+     ★ 지급액은 승인(A)만 계산
+     ★ 반려(J)는 지급액 0
+     ========================================================= -->
+<select id="getDeptStatistics"
+        resultType="map">
 
-    <select id="getMonthlyStatistics"
-            resultType="map">
+    SELECT
 
-        SELECT
+        d.dep_id AS depId,
 
-            DATE_FORMAT(
-                requested_at,
-                '%Y-%m'
-            ) AS month,
+        d.dep_title AS depTitle,
 
-            COUNT(*) AS amountCount,
+        /* 비용 신청 건수 */
+        COUNT(a.amount_no) AS amountCount,
 
-            COALESCE(
-                SUM(requested_amount),
-                0
-            ) AS requestedAmount,
+        /* 신청 금액 */
+        COALESCE(
+            SUM(a.requested_amount),
+            0
+        ) AS requestedAmount,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN status = 'A'
-                        THEN approved_amount
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS approvedAmount
+        /* 지급액 = 승인(A)만 */
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN a.status = 'A'
+                    THEN COALESCE(a.approved_amount, 0)
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS approvedAmount
 
-        FROM amount
+    FROM department d
 
-        GROUP BY
-            DATE_FORMAT(
-                requested_at,
-                '%Y-%m'
-            )
+    LEFT JOIN employee e
+        ON d.dep_id = e.dep_id
 
-        ORDER BY
-            month ASC
+    LEFT JOIN workcation_info w
+        ON e.emp_no = w.emp_no
 
-    </select>
+    LEFT JOIN amount a
+        ON w.workcation_no = a.workcation_no
+
+    GROUP BY
+        d.dep_id,
+        d.dep_title
+
+    ORDER BY
+        d.dep_id ASC
+
+</select>
 
 
-    <!-- =========================================================
-         26. 통계 - 비용 항목별
-         ========================================================= -->
+<!-- =========================================================
+     25. 통계 - 월별
+     
+     ★ 월별 지급액도 승인(A)만 계산
+     ★ 반려(J)는 지급액에 포함하지 않음
+     ========================================================= -->
+<select id="getMonthlyStatistics"
+        resultType="map">
 
-    <select id="getItemStatistics"
-            resultType="map">
+    SELECT
 
-        SELECT
+        DATE_FORMAT(
+            requested_at,
+            '%Y-%m'
+        ) AS month,
 
-            ai.item_type AS itemType,
+        /* 신청 건수 */
+        COUNT(*) AS amountCount,
 
-            COUNT(ai.item_no) AS itemCount,
+        /* 신청 금액 */
+        COALESCE(
+            SUM(requested_amount),
+            0
+        ) AS requestedAmount,
 
-            COALESCE(
-                SUM(ai.cost),
-                0
-            ) AS totalAmount,
+        /* 지급액 = 승인(A)만 */
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN status = 'A'
+                    THEN COALESCE(approved_amount, 0)
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS approvedAmount
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN ai.item_approved = 'A'
-                        THEN ai.cost
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS approvedAmount
+    FROM amount
 
-        FROM amount_item ai
+    WHERE requested_at IS NOT NULL
 
-        GROUP BY
-            ai.item_type
+    GROUP BY
+        DATE_FORMAT(
+            requested_at,
+            '%Y-%m'
+        )
 
-        ORDER BY
-            totalAmount DESC
+    ORDER BY
+        month ASC
 
-    </select>
+</select>
+
+
+<select id="getItemStatistics"
+        resultType="map">
+
+    SELECT
+
+        ai.item_type AS itemType,
+
+        /* 항목 건수 */
+        COUNT(ai.item_no) AS itemCount,
+
+        /* 전체 비용 */
+        COALESCE(
+            SUM(ai.cost),
+            0
+        ) AS totalAmount,
+
+        /* 승인된 비용만 */
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN a.status = 'A'
+                    THEN COALESCE(ai.cost, 0)
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS approvedAmount
+
+    FROM amount_item ai
+
+    LEFT JOIN amount a
+        ON ai.amount_no = a.amount_no
+
+    GROUP BY
+        ai.item_type
+
+    ORDER BY
+        totalAmount DESC
+
+</select>
+
 
 
 </mapper>
+

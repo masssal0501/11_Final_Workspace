@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { noticeApi } from '../api/noticeApi';
 import '../styles/Notice.css';
@@ -16,65 +16,154 @@ export default function NoticeInsert() {
     const [loading, setLoading] = useState(false);
 
 
+    // =========================================================
+    // 관리자 권한 확인
+    // =========================================================
+
+    useEffect(() => {
+
+        const loginMember =
+            JSON.parse(
+                sessionStorage.getItem('loginMember')
+            );
+
+        // 관리자 권한 = S
+        if (loginMember?.role !== 'S') {
+
+            alert(
+                '관리자만 공지사항을 등록할 수 있습니다.'
+            );
+
+            navigate('/notice');
+
+        }
+
+    }, [navigate]);
+
+
+    // =========================================================
     // 제목
+    // =========================================================
+
     const handleTitleChange = (e) => {
+
         setNoticeTitle(e.target.value);
+
     };
 
 
+    // =========================================================
     // 내용
+    // =========================================================
+
     const handleContentChange = (e) => {
+
         setNoticeContent(e.target.value);
+
     };
 
 
-    // 중요 공지 여부
+    // =========================================================
+    // 공지 상태
+    // =========================================================
+
     const handleStatusChange = (e) => {
+
         setNoticeStatus(e.target.value);
+
     };
 
 
+    // =========================================================
     // 파일 선택
+    // =========================================================
+
     const handleFileChange = (e) => {
 
-        const selectedFiles = Array.from(e.target.files);
+        const selectedFiles =
+            Array.from(e.target.files);
 
         setFiles(selectedFiles);
+
     };
 
 
+    // =========================================================
     // 파일 제거
+    // =========================================================
+
     const handleRemoveFile = (index) => {
 
         setFiles(prev =>
             prev.filter((_, i) => i !== index)
         );
+
     };
 
 
+    // =========================================================
     // 등록
+    // =========================================================
+
     const handleSubmit = async (e) => {
 
         e.preventDefault();
+
 
         if (loading) {
             return;
         }
 
 
-        if (!noticeTitle.trim()) {
+        // =====================================================
+        // 관리자 확인
+        // =====================================================
 
-            alert('공지사항 제목을 입력해주세요.');
+        const loginMember =
+            JSON.parse(
+                sessionStorage.getItem('loginMember')
+            );
+
+        if (loginMember?.role !== 'S') {
+
+            alert(
+                '관리자만 공지사항을 등록할 수 있습니다.'
+            );
+
+            navigate('/notice');
 
             return;
+
         }
 
 
-        if (!noticeContent.trim()) {
+        // =====================================================
+        // 제목 검증
+        // =====================================================
 
-            alert('공지사항 내용을 입력해주세요.');
+        if (!noticeTitle.trim()) {
+
+            alert(
+                '공지사항 제목을 입력해주세요.'
+            );
 
             return;
+
+        }
+
+
+        // =====================================================
+        // 내용 검증
+        // =====================================================
+
+        if (!noticeContent.trim()) {
+
+            alert(
+                '공지사항 내용을 입력해주세요.'
+            );
+
+            return;
+
         }
 
 
@@ -83,52 +172,59 @@ export default function NoticeInsert() {
             setLoading(true);
 
 
-            /*
-             * FormData 생성
-             */
-            const formData = new FormData();
+            // =================================================
+            // FormData
+            // =================================================
+
+            const formData =
+                new FormData();
 
 
-            /*
-             * Notice 객체
-             *
-             * Spring @RequestPart("notice")
-             * 와 연결
-             */
+            // =================================================
+            // Notice 객체
+            // =================================================
+
             const notice = {
 
-                noticeTitle: noticeTitle,
+                noticeTitle:
+                    noticeTitle.trim(),
 
-                noticeContent: noticeContent,
+                noticeContent:
+                    noticeContent,
 
-                noticeStatus: noticeStatus
+                noticeStatus:
+                    noticeStatus
 
             };
 
 
-            /*
-             * JSON Blob으로 추가
-             *
-             * Content-Type:
-             * application/json
-             */
+            // =================================================
+            // JSON Blob
+            // =================================================
+
             formData.append(
+
                 'notice',
+
                 new Blob(
-                    [JSON.stringify(notice)],
+                    [
+                        JSON.stringify(
+                            notice
+                        )
+                    ],
                     {
-                        type: 'application/json'
+                        type:
+                            'application/json'
                     }
                 )
+
             );
 
 
-            /*
-             * 첨부파일 추가
-             *
-             * Spring:
-             * @RequestPart(value = "files", required = false)
-             */
+            // =================================================
+            // 첨부파일
+            // =================================================
+
             files.forEach((file) => {
 
                 formData.append(
@@ -150,19 +246,27 @@ export default function NoticeInsert() {
             );
 
 
-            /*
-             * API 호출
-             */
-            await noticeApi.insertNotice(formData);
+            // =================================================
+            // API 호출
+            // =================================================
+
+            await noticeApi.insertNotice(
+                formData
+            );
 
 
-            alert('공지사항이 등록되었습니다.');
+            alert(
+                '공지사항이 등록되었습니다.'
+            );
 
 
-            /*
-             * 관리자 공지사항 목록으로 이동
-             */
-            navigate('/admin/notice');
+            // =================================================
+            // 관리자 공지사항 목록
+            // =================================================
+
+            navigate(
+                '/admin/notice'
+            );
 
 
         } catch (error) {
@@ -189,8 +293,10 @@ export default function NoticeInsert() {
 
 
             alert(
+                error.response?.data?.message ||
                 '공지사항 등록에 실패했습니다.'
             );
+
 
         } finally {
 
@@ -201,7 +307,10 @@ export default function NoticeInsert() {
     };
 
 
+    // =========================================================
     // 취소
+    // =========================================================
+
     const handleCancel = () => {
 
         if (
@@ -210,9 +319,11 @@ export default function NoticeInsert() {
             files.length > 0
         ) {
 
-            const result = window.confirm(
-                '작성 중인 내용이 있습니다.\n정말 취소하시겠습니까?'
-            );
+            const result =
+                window.confirm(
+                    '작성 중인 내용이 있습니다.\n' +
+                    '정말 취소하시겠습니까?'
+                );
 
             if (!result) {
                 return;
@@ -221,10 +332,16 @@ export default function NoticeInsert() {
         }
 
 
-        navigate('/admin/notice');
+        navigate(
+            '/admin/notice'
+        );
 
     };
 
+
+    // =========================================================
+    // 화면
+    // =========================================================
 
     return (
 
@@ -244,7 +361,11 @@ export default function NoticeInsert() {
                 onSubmit={handleSubmit}
             >
 
-                {/* 제목 */}
+
+                {/* =================================================
+                    제목
+                ================================================= */}
+
                 <div className="notice-form-row">
 
                     <label htmlFor="noticeTitle">
@@ -255,7 +376,9 @@ export default function NoticeInsert() {
                         id="noticeTitle"
                         type="text"
                         value={noticeTitle}
-                        onChange={handleTitleChange}
+                        onChange={
+                            handleTitleChange
+                        }
                         placeholder="공지사항 제목을 입력해주세요."
                         maxLength={200}
                         disabled={loading}
@@ -264,7 +387,10 @@ export default function NoticeInsert() {
                 </div>
 
 
-                {/* 상태 */}
+                {/* =================================================
+                    상태
+                ================================================= */}
+
                 <div className="notice-form-row">
 
                     <label htmlFor="noticeStatus">
@@ -274,7 +400,9 @@ export default function NoticeInsert() {
                     <select
                         id="noticeStatus"
                         value={noticeStatus}
-                        onChange={handleStatusChange}
+                        onChange={
+                            handleStatusChange
+                        }
                         disabled={loading}
                     >
 
@@ -295,8 +423,13 @@ export default function NoticeInsert() {
                 </div>
 
 
-                {/* 내용 */}
-                <div className="notice-form-row notice-content-row">
+                {/* =================================================
+                    내용
+                ================================================= */}
+
+                <div
+                    className="notice-form-row notice-content-row"
+                >
 
                     <label htmlFor="noticeContent">
                         내용
@@ -305,7 +438,9 @@ export default function NoticeInsert() {
                     <textarea
                         id="noticeContent"
                         value={noticeContent}
-                        onChange={handleContentChange}
+                        onChange={
+                            handleContentChange
+                        }
                         placeholder="공지사항 내용을 입력해주세요."
                         rows={15}
                         disabled={loading}
@@ -314,7 +449,10 @@ export default function NoticeInsert() {
                 </div>
 
 
-                {/* 첨부파일 */}
+                {/* =================================================
+                    첨부파일
+                ================================================= */}
+
                 <div className="notice-form-row">
 
                     <label htmlFor="noticeFiles">
@@ -327,36 +465,50 @@ export default function NoticeInsert() {
                             id="noticeFiles"
                             type="file"
                             multiple
-                            onChange={handleFileChange}
+                            onChange={
+                                handleFileChange
+                            }
                             disabled={loading}
                         />
 
 
-                        {/* 선택된 파일 */}
                         {
                             files.length > 0 && (
 
-                                <div className="notice-selected-files">
+                                <div
+                                    className="notice-selected-files"
+                                >
 
                                     {
                                         files.map(
-                                            (file, index) => (
+                                            (
+                                                file,
+                                                index
+                                            ) => (
 
                                                 <div
-                                                    key={`${file.name}-${index}`}
+                                                    key={
+                                                        `${file.name}-${index}`
+                                                    }
                                                     className="notice-selected-file"
                                                 >
 
                                                     <span>
-                                                        📎 {file.name}
+                                                        📎 {
+                                                            file.name
+                                                        }
                                                     </span>
 
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            handleRemoveFile(index)
+                                                            handleRemoveFile(
+                                                                index
+                                                            )
                                                         }
-                                                        disabled={loading}
+                                                        disabled={
+                                                            loading
+                                                        }
                                                     >
                                                         삭제
                                                     </button>
@@ -377,13 +529,20 @@ export default function NoticeInsert() {
                 </div>
 
 
-                {/* 버튼 */}
-                <div className="notice-form-buttons">
+                {/* =================================================
+                    버튼
+                ================================================= */}
+
+                <div
+                    className="notice-form-buttons"
+                >
 
                     <button
                         type="button"
                         className="notice-btn"
-                        onClick={handleCancel}
+                        onClick={
+                            handleCancel
+                        }
                         disabled={loading}
                     >
                         취소

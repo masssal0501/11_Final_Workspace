@@ -121,5 +121,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         DELETE FROM notice
         WHERE notice_no = #{noticeNo}
     </delete>
+    
+    <!-- 로그인 ID로 사원번호 조회 -->
+<select id="selectEmpNoByLoginId"
+        parameterType="string"
+        resultType="int">
+
+    SELECT emp_no
+    FROM employee
+    WHERE emp_id = #{_parameter}
+
+</select>
 
 </mapper>

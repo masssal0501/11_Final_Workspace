@@ -27,7 +27,10 @@ import com.kh.workflow.common.model.vo.PageInfo;
 
 @RestController
 @RequestMapping("/api/v1/amounts")
-@CrossOrigin(originPatterns = "*", allowCredentials = "true")
+@CrossOrigin(
+    originPatterns = "*",
+    allowCredentials = "true"
+)
 public class AmountController {
 
     private final AmountService amountService;
@@ -37,91 +40,47 @@ public class AmountController {
     }
 
 
-    /**
-     * ============================================================
-     * 비용 정산 전체 목록 조회 + 페이징
-     *
-     * GET /api/v1/amounts?page=1
-     * ============================================================
-     */
+    // ============================================================
+    // 1. 전체 비용 신청 목록 + 페이징
+    //
+    // GET /api/v1/amounts?page=1
+    // ============================================================
     @GetMapping
     public ResponseEntity<?> getAmountList(
-            @RequestParam(value = "page", defaultValue = "1") int page) {
+            @RequestParam(
+                value = "page",
+                defaultValue = "1"
+            )
+            int page) {
 
         try {
 
-            // 한 페이지에 보여줄 게시글 수
             int boardLimit = 10;
-
-            // 하단에 보여줄 페이지 버튼 수
             int pageLimit = 5;
 
-            // 잘못된 페이지 방지
             if (page < 1) {
                 page = 1;
             }
 
-            // 전체 비용 신청 개수
             int listCount =
                     amountService.getAmountListCount();
 
-            // PageInfo 생성
-            PageInfo pi = new PageInfo(
-                    listCount,
-                    page,
-                    pageLimit,
-                    boardLimit
-            );
+            PageInfo pi =
+                    new PageInfo(
+                        listCount,
+                        page,
+                        pageLimit,
+                        boardLimit
+                    );
 
-            // 현재 페이지 목록 조회
             List<Amount> list =
                     amountService.selectAmountList(pi);
 
-            // React로 전달할 데이터
             Map<String, Object> result =
-                    new HashMap<>();
-
-            result.put("list", list);
-
-            result.put(
-                    "page",
-                    pi.getCurrentPage()
-            );
-
-            result.put(
-                    "pageLimit",
-                    pi.getPageLimit()
-            );
-
-            result.put(
-                    "boardLimit",
-                    pi.getBoardLimit()
-            );
-
-            result.put(
-                    "limit",
-                    pi.getBoardLimit()
-            );
-
-            result.put(
-                    "listCount",
-                    pi.getListCount()
-            );
-
-            result.put(
-                    "maxPage",
-                    pi.getMaxPage()
-            );
-
-            result.put(
-                    "startPage",
-                    pi.getStartPage()
-            );
-
-            result.put(
-                    "endPage",
-                    pi.getEndPage()
-            );
+                    createPagingResult(
+                        list,
+                        pi
+                    );
 
             return ResponseEntity.ok(result);
 
@@ -130,7 +89,9 @@ public class AmountController {
             e.printStackTrace();
 
             return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .status(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                    )
                     .body(
                         "비용 목록 조회 실패: "
                         + e.getMessage()
@@ -139,13 +100,13 @@ public class AmountController {
     }
 
 
-    /**
-     * ============================================================
-     * 비용 정산 신청
-     *
-     * POST /api/v1/amounts
-     * ============================================================
-     */
+    // ============================================================
+    // 2. 비용 정산 신청
+    //
+    // POST /api/v1/amounts
+    //
+    // multipart/form-data
+    // ============================================================
     @PostMapping
     public ResponseEntity<?> createAmount(
             @ModelAttribute Amount amount,
@@ -153,12 +114,37 @@ public class AmountController {
                 value = "file",
                 required = false
             )
-            MultipartFile file) {
+            MultipartFile[] files) {
 
         try {
 
-            // 첨부파일 처리
-            if (file != null && !file.isEmpty()) {
+            /*
+             * ----------------------------------------------------
+             * amount 기본값
+             * ----------------------------------------------------
+             */
+
+            if (amount.getStatus() == null) {
+                amount.setStatus("R");
+            }
+
+            /*
+             * ----------------------------------------------------
+             * 첨부파일 처리
+             *
+             * Amount.File
+             *   ├─ filePath
+             *   ├─ originName
+             *   ├─ changeName
+             *   ├─ status
+             *   └─ amountNo
+             * ----------------------------------------------------
+             */
+
+            List<Amount.File> amountFileList =
+                    new ArrayList<>();
+
+            if (files != null) {
 
                 String uploadDir =
                         "C:/upload/receipts/";
@@ -170,50 +156,82 @@ public class AmountController {
                     dir.mkdirs();
                 }
 
-                String originalFilename =
-                        file.getOriginalFilename();
+                for (MultipartFile file : files) {
 
-                String savedFilename =
-                        UUID.randomUUID()
-                        + "_"
-                        + originalFilename;
+                    if (
+                        file == null
+                        || file.isEmpty()
+                    ) {
+                        continue;
+                    }
 
-                file.transferTo(
-                    new File(
-                        uploadDir
-                        + savedFilename
-                    )
-                );
+                    String originalFilename =
+                            file.getOriginalFilename();
 
+                    if (
+                        originalFilename == null
+                        || originalFilename.isBlank()
+                    ) {
+                        continue;
+                    }
 
-                // 파일 VO 생성
-                Amount.File fileVo =
-                        new Amount.File();
+                    String savedFilename =
+                            UUID.randomUUID()
+                            + "_"
+                            + originalFilename;
 
-                fileVo.setOriginName(
-                        originalFilename
-                );
+                    File savedFile =
+                            new File(
+                                uploadDir
+                                + savedFilename
+                            );
 
-                fileVo.setChangeName(
-                        savedFilename
-                );
+                    file.transferTo(savedFile);
 
-                fileVo.setFilePath(
-                        "/upload/receipts/"
-                        + savedFilename
-                );
+                    Amount.File fileVo =
+                            new Amount.File();
 
+                    fileVo.setOriginName(
+                            originalFilename
+                    );
 
-                List<Amount.File> fileList =
-                        new ArrayList<>();
+                    fileVo.setChangeName(
+                            savedFilename
+                    );
 
-                fileList.add(fileVo);
+                    fileVo.setFilePath(
+                            "/upload/receipts/"
+                            + savedFilename
+                    );
 
-                amount.setFileList(fileList);
+                    /*
+                     * Y = 사용
+                     */
+                    fileVo.setStatus("Y");
+
+                    amountFileList.add(fileVo);
+                }
             }
 
+            amount.setFileList(
+                    amountFileList
+            );
 
+
+            /*
+             * ----------------------------------------------------
+             * Service에서
+             *
+             * 1. amount INSERT
+             * 2. amount_item INSERT
+             * 3. amount_list INSERT
+             * 4. amount_file INSERT
+             *
+             * 처리
+             * ----------------------------------------------------
+             */
             amountService.insertAmount(amount);
+
 
             return ResponseEntity
                     .status(HttpStatus.CREATED)
@@ -235,22 +253,21 @@ public class AmountController {
     }
 
 
-    /**
-     * ============================================================
-     * 비용 단건 상세 조회
-     *
-     * GET /api/v1/amounts/{amountNo}
-     * ============================================================
-     */
+    // ============================================================
+    // 3. 비용 상세 조회
+    //
+    // GET /api/v1/amounts/{amountNo}
+    // ============================================================
     @GetMapping("/{amountNo}")
     public ResponseEntity<?> getAmountById(
-            @PathVariable("amountNo") int amountNo) {
+            @PathVariable("amountNo")
+            int amountNo) {
 
         try {
 
             Amount amount =
                     amountService.selectAmountById(
-                            amountNo
+                        amountNo
                     );
 
             if (amount == null) {
@@ -282,16 +299,17 @@ public class AmountController {
     }
 
 
-    /**
-     * ============================================================
-     * 특정 워케이션의 비용 신청 목록 + 페이징
-     *
-     * GET /api/v1/amounts/workcation/{workcationNo}?page=1
-     * ============================================================
-     */
+    // ============================================================
+    // 4. 워케이션별 비용 신청 목록 + 페이징
+    //
+    // GET
+    // /api/v1/amounts/workcation/{workcationNo}?page=1
+    // ============================================================
     @GetMapping("/workcation/{workcationNo}")
     public ResponseEntity<?> getAmountListByWorkcation(
-            @PathVariable("workcationNo") int workcationNo,
+            @PathVariable("workcationNo")
+            int workcationNo,
+
             @RequestParam(
                 value = "page",
                 defaultValue = "1"
@@ -300,26 +318,19 @@ public class AmountController {
 
         try {
 
-            // 페이지당 게시글 수
             int boardLimit = 10;
-
-            // 페이지 버튼 수
             int pageLimit = 5;
 
             if (page < 1) {
                 page = 1;
             }
 
-
-            // 해당 워케이션 전체 개수
             int listCount =
                     amountService
                     .getAmountCountByWorkcationNo(
                         workcationNo
                     );
 
-
-            // PageInfo 생성
             PageInfo pi =
                     new PageInfo(
                         listCount,
@@ -328,8 +339,6 @@ public class AmountController {
                         boardLimit
                     );
 
-
-            // 현재 페이지 목록
             List<Amount> list =
                     amountService
                     .selectAmountListByWorkcationNo(
@@ -337,55 +346,11 @@ public class AmountController {
                         pi
                     );
 
-
             Map<String, Object> result =
-                    new HashMap<>();
-
-            result.put(
-                    "list",
-                    list
-            );
-
-            result.put(
-                    "page",
-                    pi.getCurrentPage()
-            );
-
-            result.put(
-                    "pageLimit",
-                    pi.getPageLimit()
-            );
-
-            result.put(
-                    "boardLimit",
-                    pi.getBoardLimit()
-            );
-
-            result.put(
-                    "limit",
-                    pi.getBoardLimit()
-            );
-
-            result.put(
-                    "listCount",
-                    pi.getListCount()
-            );
-
-            result.put(
-                    "maxPage",
-                    pi.getMaxPage()
-            );
-
-            result.put(
-                    "startPage",
-                    pi.getStartPage()
-            );
-
-            result.put(
-                    "endPage",
-                    pi.getEndPage()
-            );
-
+                    createPagingResult(
+                        list,
+                        pi
+                    );
 
             return ResponseEntity.ok(result);
 
@@ -405,17 +370,20 @@ public class AmountController {
     }
 
 
-    /**
-     * ============================================================
-     * 비용 정산 신청 수정
-     *
-     * PUT /api/v1/amounts/{amountNo}
-     * ============================================================
-     */
+    // ============================================================
+    // 5. 비용 신청 수정
+    //
+    // PUT /api/v1/amounts/{amountNo}
+    //
+    // multipart/form-data
+    // ============================================================
     @PutMapping("/{amountNo}")
     public ResponseEntity<?> updateAmount(
-            @PathVariable("amountNo") int amountNo,
+            @PathVariable("amountNo")
+            int amountNo,
+
             @ModelAttribute Amount amount,
+
             @RequestParam(
                 value = "file",
                 required = false
@@ -426,10 +394,11 @@ public class AmountController {
 
             amount.setAmountNo(amountNo);
 
-
-            List<MultipartFile> fileList =
+            /*
+             * 새로운 첨부파일만 Service에 전달
+             */
+            List<MultipartFile> uploadFiles =
                     new ArrayList<>();
-
 
             if (files != null) {
 
@@ -439,18 +408,15 @@ public class AmountController {
                         file != null
                         && !file.isEmpty()
                     ) {
-
-                        fileList.add(file);
+                        uploadFiles.add(file);
                     }
                 }
             }
 
-
             amountService.updateAmount(
                     amount,
-                    fileList
+                    uploadFiles
             );
-
 
             return ResponseEntity.ok(
                 "비용 신청이 수정되었습니다."
@@ -480,16 +446,15 @@ public class AmountController {
     }
 
 
-    /**
-     * ============================================================
-     * 비용 신청 취소
-     *
-     * PATCH /api/v1/amounts/{amountNo}/cancel
-     * ============================================================
-     */
+    // ============================================================
+    // 6. 비용 신청 취소
+    //
+    // PATCH /api/v1/amounts/{amountNo}/cancel
+    // ============================================================
     @PatchMapping("/{amountNo}/cancel")
     public ResponseEntity<?> cancelAmount(
-            @PathVariable("amountNo") int amountNo) {
+            @PathVariable("amountNo")
+            int amountNo) {
 
         try {
 
@@ -498,7 +463,6 @@ public class AmountController {
                         amountNo
                     );
 
-
             if (result > 0) {
 
                 return ResponseEntity.ok(
@@ -506,12 +470,13 @@ public class AmountController {
                 );
             }
 
-
             return ResponseEntity
                     .status(
                         HttpStatus.BAD_REQUEST
                     )
-                    .body("취소 실패");
+                    .body(
+                        "취소할 수 없는 비용 신청입니다."
+                    );
 
         } catch (IllegalArgumentException e) {
 
@@ -530,78 +495,152 @@ public class AmountController {
                         HttpStatus.INTERNAL_SERVER_ERROR
                     )
                     .body(
-                        "취소 중 오류 발생"
+                        "취소 중 오류 발생: "
+                        + e.getMessage()
                     );
         }
     }
 
 
-    /**
-     * ============================================================
-     * 비용 결재 상태 변경
-     *
-     * PATCH /api/v1/amounts/{amountNo}/approval
-     * ============================================================
-     */
+    // ============================================================
+    // 7. 비용 결재 상태 변경
+    //
+    // PATCH
+    // /api/v1/amounts/{amountNo}/approval
+    //
+    // amount
+    // └─ amount_no
+    //
+    // amount_list
+    // └─ amount_no
+    //
+    // 현재 DB 구조상 지원금은 1건
+    // ============================================================
     @PatchMapping("/{amountNo}/approval")
-    public ResponseEntity<Void> updateApproval(
-            @PathVariable("amountNo") int amountNo,
-            @RequestParam("status") String status,
-            @RequestParam("approvedAmount") int approvedAmount,
+    public ResponseEntity<?> updateApproval(
+
+            @PathVariable("amountNo")
+            int amountNo,
+
+            @RequestParam("status")
+            String status,
+
+            @RequestParam(
+                value = "approvedAmount",
+                defaultValue = "0"
+            )
+            int approvedAmount,
+
             @RequestParam(
                 value = "comment",
                 required = false
             )
             String comment,
+
             @RequestParam(
                 value = "sponsorName",
                 required = false
             )
             String sponsorName,
+
             @RequestParam(
                 value = "sponsorAmount",
                 defaultValue = "0"
             )
             int sponsorAmount,
+
             @RequestParam(
                 value = "sponsorStatus",
                 required = false
             )
             String sponsorStatus,
+
             @RequestParam(
                 value = "remark",
                 required = false
             )
             String remark) {
 
+        try {
 
-        amountService.updateApprovalWithSponsor(
-            amountNo,
-            status,
-            approvedAmount,
-            comment,
-            sponsorName,
-            sponsorAmount,
-            sponsorStatus,
-            remark
-        );
+            /*
+             * 상태값 검증
+             */
+            if (
+                status == null
+                || !isValidAmountStatus(status)
+            ) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                            "잘못된 비용 결재 상태입니다."
+                        );
+            }
 
 
-        return ResponseEntity
-                .ok()
-                .build();
+            /*
+             * 승인(A)이 아닌 경우
+             * 승인금액이 음수가 되지 않도록 처리
+             */
+            if (approvedAmount < 0) {
+                approvedAmount = 0;
+            }
+
+
+            /*
+             * 지원금 금액 검증
+             */
+            if (sponsorAmount < 0) {
+                sponsorAmount = 0;
+            }
+
+
+            amountService.updateApprovalWithSponsor(
+                amountNo,
+                status,
+                approvedAmount,
+                comment,
+                sponsorName,
+                sponsorAmount,
+                sponsorStatus,
+                remark
+            );
+
+
+            return ResponseEntity.ok(
+                "결재 상태가 변경되었습니다."
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                    )
+                    .body(
+                        "결재 처리 중 오류 발생: "
+                        + e.getMessage()
+                    );
+        }
     }
 
 
-    /**
-     * ============================================================
-     * 통계 데이터
-     *
-     * GET /api/v1/amounts/statistics
-     * ============================================================
-     */
+    // ============================================================
+    // 8. 통계
+    //
+    // GET /api/v1/amounts/statistics
+    // ============================================================
     @GetMapping("/statistics")
-    public ResponseEntity<Map<String, Object>> getStatistics() {
+    public ResponseEntity<?> getStatistics() {
 
         try {
 
@@ -617,9 +656,97 @@ public class AmountController {
             e.printStackTrace();
 
             return ResponseEntity
-                    .internalServerError()
-                    .build();
+                    .status(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                    )
+                    .body(
+                        "통계 조회 실패: "
+                        + e.getMessage()
+                    );
         }
     }
 
+
+    // ============================================================
+    // 9. 페이징 응답 생성
+    //
+    // 전체 목록 / 워케이션별 목록 공통
+    // ============================================================
+    private Map<String, Object> createPagingResult(
+            List<Amount> list,
+            PageInfo pi) {
+
+        Map<String, Object> result =
+                new HashMap<>();
+
+        result.put(
+                "list",
+                list
+        );
+
+        result.put(
+                "page",
+                pi.getCurrentPage()
+        );
+
+        result.put(
+                "pageLimit",
+                pi.getPageLimit()
+        );
+
+        result.put(
+                "boardLimit",
+                pi.getBoardLimit()
+        );
+
+        result.put(
+                "limit",
+                pi.getBoardLimit()
+        );
+
+        result.put(
+                "listCount",
+                pi.getListCount()
+        );
+
+        result.put(
+                "maxPage",
+                pi.getMaxPage()
+        );
+
+        result.put(
+                "startPage",
+                pi.getStartPage()
+        );
+
+        result.put(
+                "endPage",
+                pi.getEndPage()
+        );
+
+        return result;
+    }
+
+
+    // ============================================================
+    // 10. Amount 상태값 검증
+    //
+    // A = 승인
+    // C = 취소
+    // H = 보류
+    // J = 반려
+    // R = 검토
+    // ============================================================
+    private boolean isValidAmountStatus(
+            String status) {
+
+        return
+            "A".equals(status)
+            || "C".equals(status)
+            || "H".equals(status)
+            || "J".equals(status)
+            || "R".equals(status);
+    }
+
 }
+

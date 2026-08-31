@@ -1,40 +1,189 @@
 package com.kh.workflow.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.kh.workflow.config.jwt.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
+    // 비밀번호 암호화
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // 개발 환경 CSRF 비활성화
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            );
-
-        return http.build();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
+    // Spring Security 설정
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(
+//            HttpSecurity http
+//    ) throws Exception {
+//
+//        http
+//            // CORS 활성화
+//            .cors(cors -> {})
+//
+//            // CSRF 비활성화
+//            .csrf(csrf -> csrf.disable())
+//
+//            // 현재는 모든 요청 허용
+//            .authorizeHttpRequests(auth ->
+//                auth.anyRequest().permitAll()
+//            );
+//
+//        return http.build();
+//    }
+    
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) throws Exception {
+
+        return http
+
+                .cors(cors -> {})
+
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // CORS Preflight
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        // 로그인
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/employees/login"
+                        ).permitAll()
+                        
+                        // 로그아웃
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/logout"
+                    	).permitAll()
+
+                        // 아이디 중복 확인
+                        .requestMatchers(
+                                "/employees/checkId"
+                        ).permitAll()
+
+                        // 직원 등록
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/employees"
+                        ).permitAll()
+                        
+                        .requestMatchers(
+                            "/employees/password"
+                        ).authenticated()
+
+                        
+                        // 통계페이지 추후 관리자로 수정
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/statistics"
+                        	).permitAll()
+                        
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/workcation/**"
+                        	).permitAll()
+                        
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/admin/cost/list"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/*"
+                        	).permitAll()
+                     // 공지사항
+                        .requestMatchers(
+                            "/api/v1/notice/**"
+                        ).permitAll()
+                        // 나머지는 JWT 필요
+                        .anyRequest().authenticated()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                .build();
+    }
+
+    // CORS 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*");
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        CorsConfiguration configuration =
+                new CorsConfiguration();
+
+        // React 개발 서버
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:5173")
+        );
+
+        // 허용 HTTP Method
+        configuration.setAllowedMethods(
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
+        );
+
+        // 허용 Header
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
+
+        // 쿠키/인증정보 허용
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
+
         return source;
     }
 }

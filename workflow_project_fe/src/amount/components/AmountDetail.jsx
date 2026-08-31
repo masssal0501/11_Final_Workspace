@@ -21,7 +21,11 @@ export default function AmountDetail() {
 
   // =========================================================
   // 지원금 정보
-  // amount_list 기준
+  //
+  // DB
+  // amount_list
+  //
+  // amount와 직접 연결
   // =========================================================
 
   const [sponsorName, setSponsorName] =
@@ -43,160 +47,118 @@ export default function AmountDetail() {
 
   useEffect(() => {
 
-    const fetchDetail = async () => {
+  if (!amountNo) {
+    console.error('❌ amountNo가 없습니다.');
+    setLoading(false);
+    return;
+  }
 
-      try {
+  const fetchDetail = async () => {
 
-        setLoading(true);
+    try {
 
-        const response =
-          await amountApi.getAmountById(amountNo);
+      setLoading(true);
 
-        console.log(
-          '📌 비용 상세:',
-          response
+      console.log('=================================');
+      console.log('📌 비용 상세 조회 시작');
+      console.log('📌 amountNo:', amountNo);
+      console.log('=================================');
+
+      const data = await amountApi.getAmountById(amountNo);
+
+      console.log('📌 비용 상세 데이터:', data);
+
+      // ⭐ 가장 중요
+      setDetail(data);
+
+      // 승인 금액
+      setApprovedAmount(
+        data.approvedAmount != null
+          ? String(data.approvedAmount)
+          : ''
+      );
+
+      // 결재 의견
+      setComment(
+        data.amountComment || ''
+      );
+
+      // 지원금
+      if (
+        Array.isArray(data.sponsorList) &&
+        data.sponsorList.length > 0
+      ) {
+
+        const sponsor = data.sponsorList[0];
+
+        setSponsorName(
+          sponsor.sponsorName ||
+          '회사지원금'
         );
 
-        console.log(
-          '📌 신청 정보:',
-          {
-            amountNo: response?.amountNo,
-            requestedAmount:
-              response?.requestedAmount,
-            approvedAmount:
-              response?.approvedAmount,
-            status:
-              response?.status,
-            amountComment:
-              response?.amountComment,
-            workcationNo:
-              response?.workcationNo,
-            empName:
-              response?.empName
-          }
+        setSponsorAmount(
+          sponsor.amount != null
+            ? String(sponsor.amount)
+            : ''
         );
 
-        console.log(
-          '📌 비용 항목:',
-          response?.itemList
+        setSponsorStatus(
+          sponsor.status ||
+          'PAID'
         );
 
-        console.log(
-          '📌 첨부파일:',
-          response?.fileList
+        setRemark(
+          sponsor.remark ||
+          ''
         );
 
-        setDetail(response);
+      } else {
 
-        if (!response) {
-          return;
-        }
-
-
-        // =====================================================
-        // 승인 금액
-        // =====================================================
-
-        setApprovedAmount(
-          response.approvedAmount !== null &&
-          response.approvedAmount !== undefined
-            ? response.approvedAmount
-            : response.requestedAmount ?? ''
-        );
-
-
-        // =====================================================
-        // 결재 의견
-        // amount.amount_comment
-        // =====================================================
-
-        setComment(
-          response.amountComment ?? ''
-        );
-
-
-        // =====================================================
-        // 기존 지원금 조회
-        //
-        // itemList
-        //   └ sponsorList
-        //       └ amount_list
-        // =====================================================
-
-        const sponsors =
-          (response.itemList || [])
-            .flatMap(
-              item =>
-                item.sponsorList || []
-            );
-
-        console.log(
-          '📌 전체 지원금:',
-          sponsors
-        );
-
-
-        if (sponsors.length > 0) {
-
-          // 현재 구조에서는 첫 번째 지원금을
-          // 관리자 수정 대상으로 사용
-
-          const firstSponsor =
-            sponsors[0];
-
-          setSponsorName(
-            firstSponsor.sponsorName ||
-            '회사지원금'
-          );
-
-          setSponsorAmount(
-            firstSponsor.amount ??
-            ''
-          );
-
-          setSponsorStatus(
-            firstSponsor.status ||
-            'PAID'
-          );
-
-          setRemark(
-            firstSponsor.remark ||
-            ''
-          );
-        }
-
-      } catch (error) {
-
-        console.error(
-          '❌ 비용 상세 조회 실패:',
-          error
-        );
-
-        console.error(
-          '서버 응답:',
-          error.response?.data
-        );
-
-        alert(
-          error.response?.data?.message ||
-          error.response?.data ||
-          '데이터를 불러오는 데 실패했습니다.'
-        );
-
-      } finally {
-
-        setLoading(false);
+        setSponsorName('회사지원금');
+        setSponsorAmount('');
+        setSponsorStatus('PAID');
+        setRemark('');
 
       }
 
-    };
+    } catch (error) {
 
+      console.error(
+        '❌ 비용 상세 조회 실패:',
+        error
+      );
 
-    if (amountNo) {
-      fetchDetail();
+      console.error(
+        '상태 코드:',
+        error.response?.status
+      );
+
+      console.error(
+        '서버 응답:',
+        error.response?.data
+      );
+
+      alert(
+        error.response?.data?.message ||
+        error.response?.data ||
+        '데이터를 불러오는 데 실패했습니다.'
+      );
+
+    } finally {
+
+      console.log(
+        '📌 비용 상세 조회 종료'
+      );
+
+      setLoading(false);
+
     }
 
-  }, [amountNo]);
+  };
+
+  fetchDetail();
+
+}, [amountNo]);
 
 
   // =========================================================
@@ -270,6 +232,7 @@ export default function AmountDetail() {
 
   // =========================================================
   // 비용 유형
+  //
   // amount_item.item_type
   // =========================================================
 
@@ -365,30 +328,39 @@ export default function AmountDetail() {
 
   // =========================================================
   // 비용 항목
-  // amount_item.cost 합계
+  //
+  // DB:
+  // amount_item.amount
   // =========================================================
 
+  const itemList =
+    Array.isArray(detail.itemList)
+      ? detail.itemList
+      : [];
+
+
   const totalItemAmount =
-    (detail.itemList || []).reduce(
+    itemList.reduce(
       (sum, item) =>
         sum +
-        (Number(item.cost) || 0),
+        (Number(item.amount) || 0),
       0
     );
 
 
   // =========================================================
-  // 기존 지원금
+  // 지원금
   //
-  // amount_list.amount
+  // DB:
+  // amount_list
+  //
+  // itemList 내부가 아님
   // =========================================================
 
   const sponsorList =
-    (detail.itemList || [])
-      .flatMap(
-        item =>
-          item.sponsorList || []
-      );
+    Array.isArray(detail.sponsorList)
+      ? detail.sponsorList
+      : [];
 
 
   const totalExistingSponsorAmount =
@@ -421,7 +393,7 @@ export default function AmountDetail() {
   // =========================================================
   // 총 지급 금액
   //
-  // 회사 승인 + 지원금
+  // 승인 금액 + 지원금
   // =========================================================
 
   const grandTotal =
@@ -438,7 +410,7 @@ export default function AmountDetail() {
 
 
   // =========================================================
-  // 승인 + 지원금 초과 여부
+  // 초과 여부
   // =========================================================
 
   const isOverRequested =
@@ -454,8 +426,13 @@ export default function AmountDetail() {
     e.preventDefault();
 
 
+    // 승인 금액
+
     const parsedApprovedAmount =
       Number(approvedAmount);
+
+
+    // 지원금
 
     const parsedSponsorAmount =
       Number(sponsorAmount || 0);
@@ -480,7 +457,7 @@ export default function AmountDetail() {
 
 
     // =======================================================
-    // 신청 금액 초과
+    // 승인 금액 > 신청 금액
     // =======================================================
 
     if (
@@ -546,6 +523,28 @@ export default function AmountDetail() {
 
 
     // =======================================================
+    // 지원기관명
+    // =======================================================
+
+    const trimmedSponsorName =
+      sponsorName.trim();
+
+
+    if (
+      parsedSponsorAmount > 0 &&
+      !trimmedSponsorName
+    ) {
+
+      alert(
+        '지원금이 있는 경우 지원기관명을 입력해주세요.'
+      );
+
+      return;
+
+    }
+
+
+    // =======================================================
     // 최종 확인
     // =======================================================
 
@@ -556,7 +555,8 @@ export default function AmountDetail() {
         `신청자: ${detail.empName || '정보 없음'}\n` +
         `신청 금액: ${formatMoney(requestedAmount)}\n` +
         `승인 금액: ${formatMoney(parsedApprovedAmount)}\n` +
-        `지원금: ${formatMoney(parsedSponsorAmount)}`
+        `지원금: ${formatMoney(parsedSponsorAmount)}\n` +
+        `총 지급 예정: ${formatMoney(calculatedTotal)}`
       );
 
 
@@ -565,34 +565,80 @@ export default function AmountDetail() {
     }
 
 
+    // =======================================================
+    // 서버 요청
+    // =======================================================
+
     try {
 
-      // =====================================================
-      // AmountServiceImpl
-      //
-      // updateApprovalWithSponsor(
-      //     amountNo,
-      //     status,
-      //     approvedAmount,
-      //     comment,
-      //     sponsorName,
-      //     sponsorAmount,
-      //     sponsorStatus,
-      //     remark
-      // )
-      // =====================================================
+      console.log(
+        '================================='
+      );
+
+      console.log(
+        '===== 비용 승인 처리 ====='
+      );
+
+      console.log(
+        'amountNo:',
+        detail.amountNo
+      );
+
+      console.log(
+        'status:',
+        'A'
+      );
+
+      console.log(
+        'approvedAmount:',
+        parsedApprovedAmount
+      );
+
+      console.log(
+        'comment:',
+        comment
+      );
+
+      console.log(
+        'sponsorName:',
+        trimmedSponsorName
+      );
+
+      console.log(
+        'sponsorAmount:',
+        parsedSponsorAmount
+      );
+
+      console.log(
+        'sponsorStatus:',
+        sponsorStatus
+      );
+
+      console.log(
+        'remark:',
+        remark
+      );
+
+      console.log(
+        '================================='
+      );
+
 
       await amountApi.updateApproval(
         detail.amountNo,
         'A',
         parsedApprovedAmount,
         comment,
-        sponsorName,
+        trimmedSponsorName,
         parsedSponsorAmount,
         sponsorStatus,
         remark
       );
 
+
+      // =====================================================
+      // 완료
+      // =====================================================
 
       alert(
         '승인 및 지원금 반영이 완료되었습니다.'
@@ -600,6 +646,7 @@ export default function AmountDetail() {
 
 
       // 관리자 비용 목록으로 이동
+
       navigate('/admin/cost/list');
 
     } catch (error) {
@@ -848,25 +895,20 @@ export default function AmountDetail() {
             }}
           >
 
-            {detail.itemList &&
-            detail.itemList.length > 0 ? (
+            {itemList.length > 0 ? (
 
               <>
 
-                {detail.itemList.map(
+                {itemList.map(
                   (item, index) => {
 
-                    const itemCost =
-                      Number(item.cost) || 0;
+                    // =================================================
+                    // DB: amount_item.amount
+                    // =================================================
 
-                    const itemSponsorTotal =
-                      (item.sponsorList || [])
-                        .reduce(
-                          (sum, sponsor) =>
-                            sum +
-                            (Number(sponsor.amount) || 0),
-                          0
-                        );
+                    const itemAmount =
+                      Number(item.amount) || 0;
+
 
                     return (
 
@@ -916,7 +958,9 @@ export default function AmountDetail() {
                               textAlign: 'right'
                             }}
                           >
-                            {formatMoney(itemCost)}
+                            {formatMoney(
+                              itemAmount
+                            )}
                           </span>
 
 
@@ -928,8 +972,10 @@ export default function AmountDetail() {
                               flex: 1
                             }}
                           >
-                            {item.itemDescription ||
-                              '설명 없음'}
+                            {
+                              item.itemDescription ||
+                              '설명 없음'
+                            }
                           </span>
 
                         </div>
@@ -944,7 +990,10 @@ export default function AmountDetail() {
                             color: '#777'
                           }}
                         >
-                          사용일: {formatDate(item.itemDate)}
+                          사용일:{' '}
+                          {formatDate(
+                            item.itemDate
+                          )}
                         </div>
 
 
@@ -960,30 +1009,8 @@ export default function AmountDetail() {
                               color: '#666'
                             }}
                           >
-                            항목 승인:
-                            {' '}
+                            항목 승인:{' '}
                             {item.itemApproved}
-                          </div>
-
-                        )}
-
-
-                        {/* 항목별 지원금 */}
-
-                        {itemSponsorTotal > 0 && (
-
-                          <div
-                            style={{
-                              marginTop: '8px',
-                              fontSize: '13px',
-                              color: '#555'
-                            }}
-                          >
-                            항목 지원금:
-                            {' '}
-                            {formatMoney(
-                              itemSponsorTotal
-                            )}
                           </div>
 
                         )}
@@ -1062,17 +1089,18 @@ export default function AmountDetail() {
 
           <div className="file-list-wrapper info-value">
 
-            {detail.fileList &&
-            detail.fileList.length > 0 ? (
+            {Array.isArray(detail.fileList) &&
+             detail.fileList.length > 0 ? (
 
               <ul className="file-list">
 
                 {detail.fileList.map(
-                  (file) => (
+                  (file, index) => (
 
                     <li
                       key={
-                        file.amountattachmentNo
+                        file.amountattachmentNo ||
+                        index
                       }
                       className="file-item"
                     >
@@ -1187,7 +1215,7 @@ export default function AmountDetail() {
 
 
           {/* =================================================
-              수정 가능한 경우
+              검토중 / 보류
           ================================================= */}
 
           {canEditable ? (
@@ -1301,7 +1329,6 @@ export default function AmountDetail() {
 
           ) : (
 
-
             /* =================================================
                승인 완료 후 지원금 표시
             ================================================= */
@@ -1326,47 +1353,65 @@ export default function AmountDetail() {
                     >
 
                       <p>
+
                         <strong>
                           지원기관:
                         </strong>
+
                         {' '}
-                        {sponsor.sponsorName ||
-                          '미지정'}
+
+                        {
+                          sponsor.sponsorName ||
+                          '미지정'
+                        }
+
                       </p>
 
 
                       <p>
+
                         <strong>
                           지원금액:
                         </strong>
+
                         {' '}
+
                         {formatMoney(
                           sponsor.amount
                         )}
+
                       </p>
 
 
                       <p>
+
                         <strong>
                           지급상태:
                         </strong>
+
                         {' '}
+
                         {getSponsorStatusText(
                           sponsor.status
                         )}
+
                       </p>
 
 
                       {sponsor.paymentDate && (
 
                         <p>
+
                           <strong>
                             지급일:
                           </strong>
+
                           {' '}
+
                           {formatDate(
                             sponsor.paymentDate
                           )}
+
                         </p>
 
                       )}
@@ -1375,11 +1420,15 @@ export default function AmountDetail() {
                       {sponsor.remark && (
 
                         <p>
+
                           <strong>
                             특이사항:
                           </strong>
+
                           {' '}
+
                           {sponsor.remark}
+
                         </p>
 
                       )}
@@ -1415,7 +1464,11 @@ export default function AmountDetail() {
           </span>
 
           <span className="grand-total-value">
-            {formatMoney(grandTotal)}
+
+            {formatMoney(
+              grandTotal
+            )}
+
           </span>
 
         </div>
@@ -1477,6 +1530,7 @@ export default function AmountDetail() {
 
         </div>
 
+
       </form>
 
     </div>
@@ -1484,3 +1538,4 @@ export default function AmountDetail() {
   );
 
 }
+

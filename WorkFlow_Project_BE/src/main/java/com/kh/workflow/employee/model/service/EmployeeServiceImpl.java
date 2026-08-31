@@ -45,7 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     @Transactional
     public EmployeeCreateResponse createEmployee(EmployeeCreateRequest request) {
-    	
+
     	// 사번(로그인 아이디) 중복 확인
         if (employeeDao.existsByEmpId(
                 request.getEmpId()
@@ -79,7 +79,6 @@ public class EmployeeServiceImpl implements EmployeeService{
                 passwordEncoder.encode(
                         temporaryPassword
                 );
-        
     	
         // 1. Request DTO → Entity
         Employee employee = new Employee();
@@ -225,7 +224,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     public LoginResponse login(LoginRequest request) {
-    	System.out.println("====== 진짜 해시값: " + passwordEncoder.encode("1234") + " ======");
+
         Employee employee =
         		employeeDao.findByEmpId(request.getEmpId())
                         .orElseThrow(() ->
@@ -562,5 +561,5 @@ public class EmployeeServiceImpl implements EmployeeService{
                 .jobCode(employee.getJobCode())
                 .build();
     }
-
+	
 }

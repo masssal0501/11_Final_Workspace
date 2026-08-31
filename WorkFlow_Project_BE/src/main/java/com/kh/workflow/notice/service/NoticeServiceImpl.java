@@ -53,4 +53,12 @@ public class NoticeServiceImpl implements NoticeService {
 		return noticeDao.deleteNotice(sqlSession, noticeNo);
 	}
 
+	@Override
+	public Integer selectEmpNoByLoginId(String loginId) {
+
+	    return noticeDao.selectEmpNoByLoginId(
+	            sqlSession,
+	            loginId
+	    );
+	}
 }

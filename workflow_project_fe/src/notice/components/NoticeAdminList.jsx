@@ -7,6 +7,10 @@ export default function NoticeAdminList() {
 
     const navigate = useNavigate();
 
+    // =========================================================
+    // 상태
+    // =========================================================
+
     const [noticeList, setNoticeList] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -14,7 +18,7 @@ export default function NoticeAdminList() {
     const [currentPage, setCurrentPage] = useState(1);
 
     // 한 페이지 게시글 수
-    const [limit] = useState(10);
+    const limit = 10;
 
     // 전체 게시글 수
     const [listCount, setListCount] = useState(0);
@@ -22,52 +26,51 @@ export default function NoticeAdminList() {
     // 한 번에 보여줄 페이지 번호
     const pageSize = 5;
 
-    // =========================
-    // 검색 상태 추가
-    // =========================
-    const [condition, setCondition] = useState('title'); // 기본 검색 조건 (제목)
-    const [keyword, setKeyword] = useState('');           // 입력된 검색어
-    const [searchKeyword, setSearchKeyword] = useState(''); // 실제 API에 전달되는 검색어
+    // 검색 조건
+    const [condition, setCondition] = useState('title');
+
+    // 검색 입력값
+    const [keyword, setKeyword] = useState('');
+
+    // 실제 검색에 사용되는 검색어
+    const [searchKeyword, setSearchKeyword] = useState('');
 
 
-    // =========================
-    // 목록 조회
-    // =========================
+    // =========================================================
+    // 공지사항 목록 조회
+    // =========================================================
 
-    const fetchList = async (page, searchCondition, searchKw) => {
+    const fetchNoticeList = async () => {
 
         try {
 
             setLoading(true);
 
-            // 검색 조건 및 키워드를 포함하여 API 호출
-            const data =
-                await noticeApi.getNoticeList(
-                    page,
-                    limit,
-                    searchCondition,
-                    searchKw
-                );
-
-            console.log(
-                '관리자 공지사항 목록:',
-                data
+            const data = await noticeApi.getNoticeList(
+                currentPage,
+                limit,
+                condition,
+                searchKeyword
             );
 
+            console.log('관리자 공지사항 목록:', data);
+
+            // 목록
             setNoticeList(
-                Array.isArray(data?.list)
-                    ? data.list
+                Array.isArray(data.noticeList)
+                    ? data.noticeList
                     : []
             );
 
+            // 전체 게시글 수
             setListCount(
-                data?.listCount ?? 0
+                Number(data.listCount ?? 0)
             );
 
         } catch (error) {
 
             console.error(
-                '공지사항 목록 조회 실패:',
+                '관리자 공지사항 목록 조회 실패:',
                 error
             );
 
@@ -82,31 +85,37 @@ export default function NoticeAdminList() {
     };
 
 
-    // =========================
-    // 페이지 또는 검색어 변경 시 조회
-    // =========================
+    // =========================================================
+    // 페이지 / 검색 조건 변경 시 목록 조회
+    // =========================================================
 
     useEffect(() => {
 
-        fetchList(currentPage, condition, searchKeyword);
+        fetchNoticeList();
 
     }, [currentPage, searchKeyword]);
 
 
-    // =========================
-    // 검색 버튼 클릭 핸들러
-    // =========================
+    // =========================================================
+    // 검색
+    // =========================================================
 
     const handleSearch = (e) => {
+
         e.preventDefault();
-        setCurrentPage(1); // 검색 시 1페이지로 초기화
-        setSearchKeyword(keyword); // 검색 실행 시점에 반영
+
+        // 검색 조건이 바뀌었지만 검색어가 같아도
+        // 다시 조회할 수 있도록 페이지를 1로 이동
+        setCurrentPage(1);
+
+        setSearchKeyword(keyword);
+
     };
 
 
-    // =========================
-    // 날짜
-    // =========================
+    // =========================================================
+    // 날짜 포맷
+    // =========================================================
 
     const formatDate = (date) => {
 
@@ -121,39 +130,35 @@ export default function NoticeAdminList() {
         }
 
         return d.toLocaleDateString('ko-KR');
+
     };
 
 
-    // =========================
-    // 삭제
-    // =========================
+    // =========================================================
+    // 공지사항 삭제
+    // =========================================================
 
-    const handleDelete = async (
-        e,
-        noticeNo
-    ) => {
+    const handleDelete = async (e, noticeNo) => {
 
         e.stopPropagation();
 
-        if (
-            !window.confirm(
-                '이 공지사항을 삭제하시겠습니까?'
-            )
-        ) {
+        const confirmed = window.confirm(
+            '이 공지사항을 삭제하시겠습니까?'
+        );
+
+        if (!confirmed) {
             return;
         }
 
         try {
 
-            await noticeApi.deleteNotice(
-                noticeNo
-            );
+            await noticeApi.deleteNotice(noticeNo);
 
             alert('삭제되었습니다.');
 
             /*
-             * 현재 페이지의 마지막 글을 삭제해서
-             * 페이지가 비게 되는 경우를 방지
+             * 현재 페이지에 글이 하나만 있었고
+             * 1페이지가 아니라면 이전 페이지로 이동
              */
             if (
                 noticeList.length === 1 &&
@@ -166,7 +171,8 @@ export default function NoticeAdminList() {
 
             } else {
 
-                fetchList(currentPage, condition, searchKeyword);
+                // 현재 페이지 다시 조회
+                await fetchNoticeList();
 
             }
 
@@ -178,7 +184,8 @@ export default function NoticeAdminList() {
             );
 
             alert(
-                '삭제에 실패했습니다.'
+                error.response?.data ||
+                '공지사항 삭제에 실패했습니다.'
             );
 
         }
@@ -186,14 +193,13 @@ export default function NoticeAdminList() {
     };
 
 
-    // =========================
+    // =========================================================
     // 페이징 계산
-    // =========================
+    // =========================================================
 
-    const maxPage =
-        Math.ceil(
-            listCount / limit
-        );
+    const maxPage = Math.ceil(
+        listCount / limit
+    );
 
     const startPage =
         Math.floor(
@@ -207,9 +213,9 @@ export default function NoticeAdminList() {
         );
 
 
-    // =========================
+    // =========================================================
     // 페이지 이동
-    // =========================
+    // =========================================================
 
     const handlePageChange = (page) => {
 
@@ -230,9 +236,9 @@ export default function NoticeAdminList() {
     };
 
 
-    // =========================
+    // =========================================================
     // 로딩
-    // =========================
+    // =========================================================
 
     if (loading) {
 
@@ -251,14 +257,17 @@ export default function NoticeAdminList() {
     }
 
 
+    // =========================================================
+    // 화면
+    // =========================================================
+
     return (
 
         <div className="notice-container">
 
-
-            {/* =========================
+            {/* =================================================
                 관리자 헤더
-            ========================= */}
+            ================================================= */}
 
             <div className="notice-header">
 
@@ -270,9 +279,7 @@ export default function NoticeAdminList() {
                     type="button"
                     className="notice-btn primary"
                     onClick={() =>
-                        navigate(
-                            '/admin/notice/insert'
-                        )
+                        navigate('/admin/notice/insert')
                     }
                 >
                     공지사항 등록
@@ -281,29 +288,56 @@ export default function NoticeAdminList() {
             </div>
 
 
-            {/* =========================
-                검색창 영역
-            ========================= */}
+            {/* =================================================
+                검색
+            ================================================= */}
 
-            <form onSubmit={handleSearch} className="notice-search">
-                
-                <select 
-                    value={condition} 
-                    onChange={(e) => setCondition(e.target.value)}
-                    style={{ height: '40px', padding: '0 8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            <form
+                onSubmit={handleSearch}
+                className="notice-search"
+            >
+
+                <select
+                    value={condition}
+                    onChange={(e) =>
+                        setCondition(e.target.value)
+                    }
+                    style={{
+                        height: '40px',
+                        padding: '0 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #ddd'
+                    }}
                 >
-                    <option value="title">제목</option>
-                    <option value="content">내용</option>
-                    <option value="writer">작성자</option>
-                    <option value="titleContent">제목+내용</option>
+
+                    <option value="title">
+                        제목
+                    </option>
+
+                    <option value="content">
+                        내용
+                    </option>
+
+                    <option value="writer">
+                        작성자
+                    </option>
+
+                    <option value="titleContent">
+                        제목+내용
+                    </option>
+
                 </select>
+
 
                 <input
                     type="text"
                     placeholder="검색어를 입력해주세요."
                     value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
+                    onChange={(e) =>
+                        setKeyword(e.target.value)
+                    }
                 />
+
 
                 <button type="submit">
                     검색
@@ -312,9 +346,9 @@ export default function NoticeAdminList() {
             </form>
 
 
-            {/* =========================
-                공지사항 테이블
-            ========================= */}
+            {/* =================================================
+                공지사항 목록
+            ================================================= */}
 
             <table className="notice-table">
 
@@ -323,15 +357,10 @@ export default function NoticeAdminList() {
                     <tr>
 
                         <th>번호</th>
-
                         <th>제목</th>
-
                         <th>작성자</th>
-
                         <th>작성일</th>
-
                         <th>조회수</th>
-
                         <th>관리</th>
 
                     </tr>
@@ -341,276 +370,242 @@ export default function NoticeAdminList() {
 
                 <tbody>
 
-                    {
-                        noticeList.length === 0
+                    {noticeList.length === 0 ? (
 
-                        ?
+                        <tr>
 
-                        (
-                            <tr>
+                            <td
+                                colSpan="6"
+                                className="notice-empty"
+                            >
+                                등록된 공지사항이 없습니다.
+                            </td>
 
-                                <td
-                                    colSpan="6"
-                                    className="notice-empty"
-                                >
-                                    등록된 공지사항이 없습니다.
+                        </tr>
+
+                    ) : (
+
+                        noticeList.map((notice) => (
+
+                            <tr
+                                key={notice.noticeNo}
+                            >
+
+                                {/* 번호 */}
+
+                                <td>
+                                    {notice.noticeNo}
                                 </td>
 
-                            </tr>
-                        )
 
-                        :
+                                {/* 제목 */}
 
-                        noticeList.map(
-                            (notice) => (
-
-                                <tr
-                                    key={
-                                        notice.noticeNo
+                                <td
+                                    className="notice-title-cell"
+                                    onClick={() =>
+                                        navigate(
+                                            `/notice/${notice.noticeNo}`
+                                        )
                                     }
                                 >
 
+                                    {notice.noticeStatus ===
+                                        'IMPORTANT' && (
 
-                                    {/* 번호 */}
+                                        <span className="notice-important">
+                                            중요
+                                        </span>
 
-                                    <td>
-                                        {
-                                            notice.noticeNo
-                                        }
-                                    </td>
+                                    )}
+
+                                    {notice.noticeTitle}
+
+                                </td>
 
 
-                                    {/* 제목 */}
+                                {/* 작성자 */}
 
-                                    <td
-                                        className="notice-title-cell"
-                                        onClick={() =>
+                                <td>
+                                    {notice.empName || '-'}
+                                </td>
+
+
+                                {/* 작성일 */}
+
+                                <td>
+                                    {formatDate(
+                                        notice.createdAt
+                                    )}
+                                </td>
+
+
+                                {/* 조회수 */}
+
+                                <td>
+                                    {notice.viewCount ?? 0}
+                                </td>
+
+
+                                {/* 관리 */}
+
+                                <td>
+
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+
+                                            e.stopPropagation();
+
                                             navigate(
-                                                `/notice/${notice.noticeNo}`
+                                                `/admin/notice/update/${notice.noticeNo}`
+                                            );
+
+                                        }}
+                                    >
+                                        수정
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        onClick={(e) =>
+                                            handleDelete(
+                                                e,
+                                                notice.noticeNo
                                             )
                                         }
                                     >
+                                        삭제
+                                    </button>
 
-                                        {
-                                            notice.noticeStatus ===
-                                            'IMPORTANT'
-                                            &&
-                                            (
-                                                <span className="notice-important">
-                                                    중요
-                                                </span>
-                                            )
-                                        }
+                                </td>
 
-                                        {
-                                            notice.noticeTitle
-                                        }
+                            </tr>
 
-                                    </td>
+                        ))
 
-
-                                    {/* 작성자 */}
-
-                                    <td>
-                                        {
-                                            notice.empName ||
-                                            '-'
-                                        }
-                                    </td>
-
-
-                                    {/* 작성일 */}
-
-                                    <td>
-                                        {
-                                            formatDate(
-                                                notice.createdAt
-                                            )
-                                        }
-                                    </td>
-
-
-                                    {/* 조회수 */}
-
-                                    <td>
-                                        {
-                                            notice.viewCount ??
-                                            0
-                                        }
-                                    </td>
-
-
-                                    {/* 관리 */}
-
-                                    <td>
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-
-                                                e.stopPropagation();
-
-                                                navigate(
-                                                    `/admin/notice/update/${notice.noticeNo}`
-                                                );
-
-                                            }}
-                                        >
-                                            수정
-                                        </button>
-
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) =>
-                                                handleDelete(
-                                                    e,
-                                                    notice.noticeNo
-                                                )
-                                            }
-                                        >
-                                            삭제
-                                        </button>
-
-                                    </td>
-
-                                </tr>
-
-                            )
-                        )
-                    }
+                    )}
 
                 </tbody>
 
             </table>
 
 
-            {/* =========================
+            {/* =================================================
                 페이징
-            ========================= */}
+            ================================================= */}
 
-            {
-                maxPage > 0 && (
+            {maxPage > 0 && (
 
-                    <div className="notice-pagination">
+                <div className="notice-pagination">
 
+                    {/* 처음 */}
 
-                        {/* 처음 */}
-
-                        <button
-                            type="button"
-                            disabled={
-                                currentPage === 1
-                            }
-                            onClick={() =>
-                                handlePageChange(1)
-                            }
-                        >
-                            «
-                        </button>
+                    <button
+                        type="button"
+                        disabled={
+                            currentPage === 1
+                        }
+                        onClick={() =>
+                            handlePageChange(1)
+                        }
+                    >
+                        «
+                    </button>
 
 
-                        {/* 이전 */}
+                    {/* 이전 */}
 
-                        <button
-                            type="button"
-                            disabled={
-                                currentPage === 1
-                            }
-                            onClick={() =>
-                                handlePageChange(
-                                    currentPage - 1
-                                )
-                            }
-                        >
-                            ‹
-                        </button>
-
-
-                        {/* 페이지 번호 */}
-
-                        {
-                            Array.from(
-                                {
-                                    length:
-                                        endPage -
-                                        startPage +
-                                        1
-                                },
-                                (_, index) => {
-
-                                    const page =
-                                        startPage +
-                                        index;
-
-                                    return (
-
-                                        <button
-                                            key={page}
-                                            type="button"
-                                            className={
-                                                currentPage ===
-                                                page
-                                                    ? 'active'
-                                                    : ''
-                                            }
-                                            onClick={() =>
-                                                handlePageChange(
-                                                    page
-                                                )
-                                            }
-                                        >
-                                            {page}
-                                        </button>
-
-                                    );
-
-                                }
+                    <button
+                        type="button"
+                        disabled={
+                            currentPage === 1
+                        }
+                        onClick={() =>
+                            handlePageChange(
+                                currentPage - 1
                             )
                         }
+                    >
+                        ‹
+                    </button>
 
 
-                        {/* 다음 */}
+                    {/* 페이지 번호 */}
 
-                        <button
-                            type="button"
-                            disabled={
-                                currentPage ===
-                                maxPage
-                            }
-                            onClick={() =>
-                                handlePageChange(
-                                    currentPage + 1
-                                )
-                            }
-                        >
-                            ›
-                        </button>
+                    {Array.from(
+                        {
+                            length:
+                                endPage -
+                                startPage +
+                                1
+                        },
+                        (_, index) => {
+
+                            const page =
+                                startPage +
+                                index;
+
+                            return (
+
+                                <button
+                                    key={page}
+                                    type="button"
+                                    className={
+                                        currentPage === page
+                                            ? 'active'
+                                            : ''
+                                    }
+                                    onClick={() =>
+                                        handlePageChange(page)
+                                    }
+                                >
+                                    {page}
+                                </button>
+
+                            );
+
+                        }
+                    )}
 
 
-                        {/* 마지막 */}
+                    {/* 다음 */}
 
-                        <button
-                            type="button"
-                            disabled={
-                                currentPage ===
-                                maxPage
-                            }
-                            onClick={() =>
-                                handlePageChange(
-                                    maxPage
-                                )
-                            }
-                        >
-                            »
-                        </button>
+                    <button
+                        type="button"
+                        disabled={
+                            currentPage === maxPage
+                        }
+                        onClick={() =>
+                            handlePageChange(
+                                currentPage + 1
+                            )
+                        }
+                    >
+                        ›
+                    </button>
 
-                    </div>
 
-                )
-            }
+                    {/* 마지막 */}
+
+                    <button
+                        type="button"
+                        disabled={
+                            currentPage === maxPage
+                        }
+                        onClick={() =>
+                            handlePageChange(maxPage)
+                        }
+                    >
+                        »
+                    </button>
+
+                </div>
+
+            )}
 
         </div>
 
     );
+
 }

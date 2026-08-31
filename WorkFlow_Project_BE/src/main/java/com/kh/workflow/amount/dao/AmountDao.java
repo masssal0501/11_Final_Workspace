@@ -12,55 +12,190 @@ import com.kh.workflow.common.model.vo.PageInfo;
 @Mapper
 public interface AmountDao {
 
+    // =========================================================
+    // 1. 비용 신청 등록
+    // =========================================================
+
     int insertAmount(Amount amount);
+
+
+    // =========================================================
+    // 2. 비용 상세 항목 등록
+    // =========================================================
 
     int insertAmountItem(Amount.Item item);
 
+
+    // =========================================================
+    // 3. 지원금 등록
+    //
+    // amount_list는 amount_no 기준 1:1 구조
+    // =========================================================
+
     int insertAmountSponsor(Amount.Sponsor sponsor);
+
+
+    // =========================================================
+    // 4. 첨부파일 등록
+    // =========================================================
 
     int insertAmountFile(Amount.File file);
 
-    Amount selectAmountById(int amountNo);
-    
+
+    // =========================================================
+    // 5. 비용 단건 조회
+    // =========================================================
+
+    Amount selectAmountById(
+            int amountNo
+    );
+
+
+    // =========================================================
+    // 6. 전체 비용 신청 개수
+    // =========================================================
+
     int getAmountListCount();
 
- // 전체 목록 조회 (페이징)
-    List<Amount> selectAmountList(@Param("pi") PageInfo pi);
 
-    // 전체 개수
+    // =========================================================
+    // 7. 전체 비용 신청 목록
+    // =========================================================
+
+    List<Amount> selectAmountList(
+            @Param("pi") PageInfo pi
+    );
+
+
+    // =========================================================
+    // 8. 워케이션별 비용 신청 개수
+    // =========================================================
+
     int getAmountCountByWorkcationNo(
             @Param("workcationNo") int workcationNo
     );
 
-    // 페이징 목록
+
+    // =========================================================
+    // 9. 워케이션별 비용 신청 목록
+    // =========================================================
+
     List<Amount> selectAmountListByWorkcationNo(
             @Param("workcationNo") int workcationNo,
             @Param("pi") PageInfo pi
     );
 
-    List<Amount.Item> selectAmountItemsByAmountNo(int amountNo);
 
-    List<Amount.Sponsor> selectSponsorsByAmountNo(int amountNo);
+    // =========================================================
+    // 10. 비용 상세 항목 조회
+    // =========================================================
 
-    List<Amount.File> selectAmountFilesByAmountNo(int amountNo);
+    List<Amount.Item> selectAmountItemsByAmountNo(
+            int amountNo
+    );
 
-    int updateAmount(Amount amount);
 
-    int updateApprovalStatus(Amount amount);
+    // =========================================================
+    // 11. 지원금 조회
+    //
+    // amount_list.amount_no가 PK이므로
+    // 하나의 amount에 하나의 Sponsor만 존재
+    // =========================================================
 
-    int deleteFile(int amountattachmentNo);
+    Amount.Sponsor selectSponsorByAmountNo(
+            int amountNo
+    );
 
-    int cancelAmount(int amountNo);
 
-    int deleteAmountItemsByAmountNo(int amountNo);
+    // =========================================================
+    // 12. 첨부파일 조회
+    // =========================================================
 
-    int deleteAmountSponsorsByAmountNo(int amountNo);
+    List<Amount.File> selectAmountFilesByAmountNo(
+            int amountNo
+    );
+
+
+    // =========================================================
+    // 13. 비용 신청 수정
+    // =========================================================
+
+    int updateAmount(
+            Amount amount
+    );
+
+
+    // =========================================================
+    // 14. 결재 상태 변경
+    // =========================================================
+
+    int updateApprovalStatus(
+            Amount amount
+    );
+
+
+    // =========================================================
+    // 15. 첨부파일 삭제
+    // =========================================================
+
+    int deleteFile(
+            int amountattachmentNo
+    );
+
+
+    // =========================================================
+    // 16. 비용 신청 취소
+    // =========================================================
+
+    int cancelAmount(
+            int amountNo
+    );
+
+
+    // =========================================================
+    // 17. 기존 비용 상세 항목 전체 삭제
+    // =========================================================
+
+    int deleteAmountItemsByAmountNo(
+            int amountNo
+    );
+
+
+    // =========================================================
+    // 18. 기존 지원금 삭제
+    // =========================================================
+
+    int deleteAmountSponsorsByAmountNo(
+            int amountNo
+    );
+
+
+    // =========================================================
+    // 19. 전체 통계
+    // =========================================================
 
     Map<String, Object> getStatisticsSummary();
 
+
+    // =========================================================
+    // 20. 부서별 통계
+    // =========================================================
+
     List<Map<String, Object>> getDeptStatistics();
+
+
+    // =========================================================
+    // 21. 월별 통계
+    // =========================================================
 
     List<Map<String, Object>> getMonthlyStatistics();
 
+
+    // =========================================================
+    // 22. 비용 항목별 통계
+    // =========================================================
+
     List<Map<String, Object>> getItemStatistics();
+
 }
+

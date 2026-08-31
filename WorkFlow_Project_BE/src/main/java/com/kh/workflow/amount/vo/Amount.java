@@ -1,6 +1,5 @@
 package com.kh.workflow.amount.vo;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,25 +17,25 @@ public class Amount {
     // 1. amount
     // =========================================================
 
-    /** amount_no */
+    /** amount.amount_no */
     private Integer amountNo;
 
-    /** requested_amount */
+    /** amount.requested_amount */
     private Integer requestedAmount;
 
-    /** approved_amount */
+    /** amount.approved_amount */
     private Integer approvedAmount;
 
-    /** requested_at */
+    /** amount.requested_at */
     private Date requestedAt;
 
-    /** approved_at */
+    /** amount.approved_at */
     private Date approvedAt;
 
-    /** created_at */
+    /** amount.created_at */
     private Date createdAt;
 
-    /** updated_at */
+    /** amount.updated_at */
     private Date updatedAt;
 
     /**
@@ -48,13 +47,13 @@ public class Amount {
      */
     private String status;
 
-    /** amount_comment */
+    /** amount.amount_comment */
     private String amountComment;
 
-    /** workcation_no */
+    /** amount.workcation_no */
     private Integer workcationNo;
 
-    /** 신청자 이름 JOIN용 */
+    /** employee.emp_name */
     private String empName;
 
 
@@ -63,11 +62,13 @@ public class Amount {
     // =========================================================
 
     /**
-     * 하나의 정산(amount)에 여러 비용 항목이 존재할 수 있음
+     * 하나의 정산 신청에 여러 비용 항목이 존재할 수 있음.
      *
-     * amount.amount_no
-     *        ↓
-     * amount_item.amount_no
+     * amount
+     *   └─ amount_no
+     *        ├─ amount_item 1
+     *        ├─ amount_item 2
+     *        └─ amount_item 3
      */
     private List<Item> itemList = new ArrayList<>();
 
@@ -77,15 +78,16 @@ public class Amount {
     // =========================================================
 
     /**
-     * 하나의 정산(amount)에 여러 지급/후원 내역이 존재할 수 있음
+     * 하나의 정산에 연결된 지원금 정보.
      *
-     * amount.amount_no
-     *        ↓
-     * amount_list.amount_no
+     * 현재 DB의 amount_list는
      *
-     * ※ amount_list에는 item_no가 없음
+     * PRIMARY KEY (amount_no)
+     *
+     * 이므로 하나의 amount에
+     * 하나의 amount_list만 연결할 수 있음.
      */
-    private List<Sponsor> sponsorList = new ArrayList<>();
+    private Sponsor sponsor;
 
 
     // =========================================================
@@ -93,7 +95,7 @@ public class Amount {
     // =========================================================
 
     /**
-     * 하나의 정산(amount)에 여러 첨부파일이 존재할 수 있음
+     * 하나의 정산에 여러 첨부파일이 존재할 수 있음.
      */
     private List<File> fileList = new ArrayList<>();
 
@@ -107,21 +109,29 @@ public class Amount {
     @AllArgsConstructor
     public static class Item {
 
-        /** item_no */
+        /** amount_item.item_no */
         private Integer itemNo;
 
         /**
-         * cost
+         * amount_item.amount
          *
-         * DB:
-         * DECIMAL(15,2)
+         * 비용 항목 금액
          */
-        private BigDecimal amount;
+        private Integer amount;
 
-        /** item_type */
+        /**
+         * amount_item.amountamountitem_type
+         *
+         * S : 숙박
+         * T : 교통
+         * E : 체험
+         * F : 식비
+         * V : 차량
+         * O : 기타
+         */
         private String itemType;
 
-        /** item_date */
+        /** amount_item.item_date */
         private Date itemDate;
 
         /**
@@ -133,10 +143,10 @@ public class Amount {
          */
         private String itemApproved;
 
-        /** item_description */
+        /** amount_item.item_description */
         private String itemDescription;
 
-        /** amount_no */
+        /** amount_item.amount_no */
         private Integer amountNo;
     }
 
@@ -150,16 +160,21 @@ public class Amount {
     @AllArgsConstructor
     public static class Sponsor {
 
-        /** amount_list_no */
-        private Integer amountListNo;
+        /**
+         * 현재 DB에는 amount_list_no가 없음.
+         *
+         * PK는 amount_no.
+         */
+        /** amount_list.amount_no */
+        private Integer amountNo;
 
-        /** sponsor_name */
+        /** amount_list.sponsor_name */
         private String sponsorName;
 
-        /** amount */
+        /** amount_list.amount */
         private Integer amount;
 
-        /** payment_date */
+        /** amount_list.payment_date */
         private Date paymentDate;
 
         /**
@@ -169,11 +184,11 @@ public class Amount {
          */
         private String status;
 
-        /** remark */
+        /** amount_list.remark */
         private String remark;
 
-        /** amount_no */
-        private Integer amountNo;
+        /** amount_list.item_no */
+        private Integer itemNo;
     }
 
 
@@ -186,25 +201,28 @@ public class Amount {
     @AllArgsConstructor
     public static class File {
 
-        /** amountattachment_no */
+        /** amount_file.amountattachment_no */
         private Integer amountattachmentNo;
 
-        /** file_path */
+        /** amount_file.file_path */
         private String filePath;
 
-        /** origin_name */
+        /** amount_file.origin_name */
         private String originName;
 
-        /** change_name */
+        /** amount_file.change_name */
         private String changeName;
 
-        /** updated_at */
+        /** amount_file.updated_at */
         private Date updatedAt;
 
-        /** Y : 사용 / N : 삭제 */
+        /**
+         * Y : 사용
+         * N : 삭제
+         */
         private String status;
 
-        /** amount_no */
+        /** amount_file.amount_no */
         private Integer amountNo;
     }
 }

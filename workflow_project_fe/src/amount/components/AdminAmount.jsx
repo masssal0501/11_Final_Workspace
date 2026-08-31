@@ -3,101 +3,197 @@ import { useNavigate } from 'react-router-dom';
 import { amountApi } from '../api/amountApi';
 import '../styles/AmountStyle.css';
 
-export default function AdminAmount({ workcationNo }) {
+export default function AdminAmount() {
+
+  console.log('🔥🔥 AdminAmount 컴포넌트 실행');
 
   const navigate = useNavigate();
 
   const [amounts, setAmounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
 
   // =========================================================
-  // 비용 신청 목록 조회
+  // 현재 상태 확인
   // =========================================================
+
+  console.log('🔥 현재 loading:', loading);
+  console.log('🔥 현재 amounts:', amounts);
+  console.log('🔥 현재 amounts length:', amounts.length);
+
+
+  // =========================================================
+  // 관리자 전체 비용 신청 목록 조회
+  // =========================================================
+
   const fetchAmountList = async () => {
+
+    console.log('🔥 fetchAmountList 시작');
 
     try {
 
-      const data =
-        await amountApi.getAmountListByWorkcation(
-          workcationNo
-        );
+      setLoading(true);
 
-      console.log('📋 관리자 비용 목록:', data);
+      console.log('🔥 관리자 전체 비용 목록 API 호출');
+
+      const data = await amountApi.getAmountList();
+
+      console.log(
+        '📋 관리자 전체 정산 신청 목록:',
+        data
+      );
+
+
+      // =====================================================
+      // 서버 응답 구조
+      //
+      // {
+      //   pageLimit: 5,
+      //   startPage: 1,
+      //   boardLimit: 10,
+      //   limit: 10,
+      //   page: 1,
+      //   endPage: 1,
+      //   maxPage: 1,
+      //   listCount: 5,
+      //   list: [...]
+      // }
+      // =====================================================
+
+      let list = [];
+
 
       if (Array.isArray(data)) {
 
-        data.forEach((amount) => {
+        list = data;
 
-          console.log(
-            `신청번호 ${amount.amountNo}`
-          );
+      } else if (Array.isArray(data?.list)) {
 
-          console.log(
-            '신청금액:',
-            amount.requestedAmount
-          );
-
-          console.log(
-            '승인금액:',
-            amount.approvedAmount
-          );
-
-          console.log(
-            '상태:',
-            amount.status
-          );
-
-          console.log(
-            '상세항목:',
-            amount.itemList
-          );
-
-          console.log(
-            '지원금:',
-            amount.sponsorList
-          );
-
-          console.log(
-            '첨부파일:',
-            amount.fileList
-          );
-
-        });
-
-        setAmounts(data);
-
-      } else {
-
-        setAmounts([]);
+        list = data.list;
 
       }
+
+
+      console.log(
+        '📋 관리자 정산 신청 목록:',
+        list
+      );
+
+      console.log(
+        '📋 관리자 정산 신청 개수:',
+        list.length
+      );
+
+
+      // =====================================================
+      // 개별 데이터 확인
+      // =====================================================
+
+      list.forEach((amount, index) => {
+
+        console.log(
+          `===== 정산 데이터 ${index + 1} =====`
+        );
+
+        console.log(
+          '신청번호:',
+          amount.amountNo
+        );
+
+        console.log(
+          '사원명:',
+          amount.empName
+        );
+
+        console.log(
+          '워케이션 번호:',
+          amount.workcationNo
+        );
+
+        console.log(
+          '신청금액:',
+          amount.requestedAmount
+        );
+
+        console.log(
+          '승인금액:',
+          amount.approvedAmount
+        );
+
+        console.log(
+          '상태:',
+          amount.status
+        );
+
+        console.log(
+          '신청일:',
+          amount.requestedAt
+        );
+
+      });
+
+
+      // =====================================================
+      // 상태 저장
+      // =====================================================
+
+      setAmounts(list);
+
+      console.log(
+        '🔥 setAmounts 실행 완료'
+      );
 
     } catch (error) {
 
       console.error(
-        '목록 로딩 실패:',
+        '❌ 관리자 정산 신청 목록 조회 실패:',
         error
       );
 
+      console.error(
+        '❌ 서버 응답:',
+        error.response?.data
+      );
+
+      console.error(
+        '❌ HTTP 상태:',
+        error.response?.status
+      );
+
       setAmounts([]);
+
+    } finally {
+
+      console.log(
+        '🔥 fetchAmountList finally'
+      );
+
+      setLoading(false);
 
     }
 
   };
 
 
+  // =========================================================
+  // 최초 진입
+  // =========================================================
+
   useEffect(() => {
 
-    if (workcationNo) {
-      fetchAmountList();
-    }
+    console.log(
+      '🔥🔥 AdminAmount useEffect 실행'
+    );
 
-  }, [workcationNo]);
+    fetchAmountList();
+
+  }, []);
 
 
   // =========================================================
   // 날짜 포맷
   // =========================================================
+
   const formatDate = (date) => {
 
     if (!date) {
@@ -106,7 +202,7 @@ export default function AdminAmount({ workcationNo }) {
 
     const d = new Date(date);
 
-    if (isNaN(d.getTime())) {
+    if (Number.isNaN(d.getTime())) {
       return '-';
     }
 
@@ -129,134 +225,78 @@ export default function AdminAmount({ workcationNo }) {
   // =========================================================
   // 금액 포맷
   // =========================================================
-  const formatMoney = (amount) => {
+
+  const formatMoney = (value) => {
 
     if (
-      amount === null ||
-      amount === undefined ||
-      amount === ''
+      value === null ||
+      value === undefined ||
+      value === ''
     ) {
       return '-';
     }
 
-    const number =
-      Number(amount);
+    const number = Number(value);
 
-    if (isNaN(number)) {
+    if (Number.isNaN(number)) {
       return '-';
     }
 
-    return `${number.toLocaleString()} 원`;
+    return `${number.toLocaleString('ko-KR')} 원`;
 
   };
 
 
   // =========================================================
-  // 상세 비용 합계
-  //
-  // DB:
-  // amount_item.cost
-  //
-  // VO:
-  // Amount.Item.amount
+  // 상태 배지
   // =========================================================
-  const getTotalCost = (amount) => {
 
-    if (
-      !amount ||
-      !Array.isArray(amount.itemList)
-    ) {
-      return 0;
-    }
+  const getStatusBadge = (status) => {
 
-    return amount.itemList.reduce(
-      (sum, item) => {
+    const statusMap = {
 
-        return (
-          sum +
-          (Number(item.amount) || 0)
-        );
+      R: '검토중',
+      A: '승인됨',
+      J: '반려됨',
+      H: '보류됨',
+      C: '취소됨'
 
-      },
-      0
+    };
+
+
+    return (
+      <span
+        className={`status-badge status-${status}`}
+      >
+        {statusMap[status] || status || '-'}
+      </span>
     );
-
-  };
-
-
-  // =========================================================
-  // 지원금 합계
-  //
-  // DB:
-  // amount_list.amount
-  //
-  // VO:
-  // Amount.sponsorList
-  // =========================================================
-  const getTotalSponsor = (amount) => {
-
-    if (
-      !amount ||
-      !Array.isArray(amount.sponsorList)
-    ) {
-      return 0;
-    }
-
-    return amount.sponsorList.reduce(
-      (sum, sponsor) => {
-
-        return (
-          sum +
-          (Number(sponsor.amount) || 0)
-        );
-
-      },
-      0
-    );
-
-  };
-
-
-  // =========================================================
-  // 총합산 금액
-  //
-  // 상세 비용 + 지원금
-  // =========================================================
-  const getGrandTotal = (amount) => {
-
-    const totalCost =
-      getTotalCost(amount);
-
-    const totalSponsor =
-      getTotalSponsor(amount);
-
-    return totalCost + totalSponsor;
 
   };
 
 
   // =========================================================
   // 결재 처리
-  //
-  // A = 승인
-  // H = 보류
-  // J = 반려
   // =========================================================
+
   const handleApproval = async (
     e,
     item,
     status
   ) => {
 
+    // 행 클릭 방지
     e.stopPropagation();
+
 
     let comment = '';
     let approvedAmount = 0;
 
 
-    // =====================================================
+    // =======================================================
     // 보류 / 반려
-    // =====================================================
+    // =======================================================
+
     if (
       status === 'H' ||
       status === 'J'
@@ -267,16 +307,22 @@ export default function AdminAmount({ workcationNo }) {
           ? '보류 사유를 입력하세요.'
           : '반려 사유를 입력하세요.';
 
+
       const inputComment =
         window.prompt(reasonTitle);
 
+
+      // 취소
       if (inputComment === null) {
         return;
       }
 
+
       comment =
         inputComment.trim();
 
+
+      // 빈 값
       if (!comment) {
 
         alert(
@@ -292,9 +338,10 @@ export default function AdminAmount({ workcationNo }) {
     }
 
 
-    // =====================================================
+    // =======================================================
     // 승인
-    // =====================================================
+    // =======================================================
+
     if (status === 'A') {
 
       const inputAmt =
@@ -305,21 +352,27 @@ export default function AdminAmount({ workcationNo }) {
           0
         );
 
+
+      // 취소
       if (inputAmt === null) {
         return;
       }
+
 
       const cleanAmount =
         String(inputAmt)
           .replace(/,/g, '')
           .trim();
 
+
       approvedAmount =
         Number(cleanAmount);
 
+
+      // 금액 검증
       if (
         cleanAmount === '' ||
-        isNaN(approvedAmount) ||
+        Number.isNaN(approvedAmount) ||
         approvedAmount < 0
       ) {
 
@@ -332,13 +385,15 @@ export default function AdminAmount({ workcationNo }) {
       }
 
 
-      // -----------------------------------------------------
-      // 신청금액 초과 방지
-      // -----------------------------------------------------
+      // =====================================================
+      // 신청 금액보다 많이 승인할 수 없음
+      // =====================================================
+
       const requestedAmount =
         Number(
           item.requestedAmount
         ) || 0;
+
 
       if (
         approvedAmount >
@@ -358,17 +413,18 @@ export default function AdminAmount({ workcationNo }) {
     }
 
 
-    // =====================================================
+    // =======================================================
     // 서버 요청
-    // =====================================================
+    // =======================================================
+
     try {
 
       console.log(
-        '================================='
+        '================================'
       );
 
       console.log(
-        '===== 결재 처리 시작 ====='
+        '===== 정산 결재 처리 ====='
       );
 
       console.log(
@@ -377,12 +433,7 @@ export default function AdminAmount({ workcationNo }) {
       );
 
       console.log(
-        '기존 status:',
-        item.status
-      );
-
-      console.log(
-        '처리할 status:',
+        'status:',
         status
       );
 
@@ -397,7 +448,7 @@ export default function AdminAmount({ workcationNo }) {
       );
 
       console.log(
-        '================================='
+        '================================'
       );
 
 
@@ -409,19 +460,15 @@ export default function AdminAmount({ workcationNo }) {
       );
 
 
-      // ===================================================
+      // =====================================================
       // 완료 메시지
-      // ===================================================
+      // =====================================================
+
       const statusMessage = {
 
-        A:
-          '승인 처리가 완료되었습니다.',
-
-        H:
-          '보류 처리가 완료되었습니다.',
-
-        J:
-          '반려 처리가 완료되었습니다.'
+        A: '승인 처리가 완료되었습니다.',
+        H: '보류 처리가 완료되었습니다.',
+        J: '반려 처리가 완료되었습니다.'
 
       };
 
@@ -432,23 +479,30 @@ export default function AdminAmount({ workcationNo }) {
       );
 
 
-      // ===================================================
+      // =====================================================
       // 목록 새로고침
-      // ===================================================
+      // =====================================================
+
       await fetchAmountList();
 
 
     } catch (error) {
 
       console.error(
-        '결재 처리 실패:',
+        '❌ 결재 처리 실패:',
         error
       );
 
       console.error(
-        '서버 응답:',
+        '❌ 서버 응답:',
         error.response?.data
       );
+
+      console.error(
+        '❌ HTTP 상태:',
+        error.response?.status
+      );
+
 
       alert(
         error.response?.data?.message ||
@@ -462,55 +516,64 @@ export default function AdminAmount({ workcationNo }) {
 
 
   // =========================================================
-  // 상태 뱃지
+  // 로딩 화면
   // =========================================================
-  const getStatusBadge = (status) => {
 
-    const statusMap = {
+  if (loading) {
 
-      R: '검토중',
-
-      A: '승인됨',
-
-      J: '반려됨',
-
-      H: '보류됨',
-
-      C: '취소됨'
-
-    };
+    console.log(
+      '⏳ 관리자 비용 목록 로딩 중'
+    );
 
 
     return (
 
-      <span
-        className={`status-badge status-${status}`}
-      >
+      <div className="amount-container">
 
-        {
-          statusMap[status] ||
-          status ||
-          '-'
-        }
+        <div
+          style={{
+            padding: '40px',
+            textAlign: 'center'
+          }}
+        >
+          정산 신청 목록을 불러오는 중입니다...
+        </div>
 
-      </span>
+      </div>
 
     );
 
-  };
+  }
+
+
+  // =========================================================
+  // 로딩 완료 후 렌더링 확인
+  // =========================================================
+
+  console.log(
+    '🔥🔥 화면 렌더링 amounts:',
+    amounts
+  );
+
+  console.log(
+    '🔥🔥 amounts length:',
+    amounts.length
+  );
 
 
   // =========================================================
   // 화면
   // =========================================================
+
   return (
 
     <div className="amount-container">
 
 
       {/* =====================================================
-          상단 헤더
+          헤더
       ====================================================== */}
+
       <div
         style={{
           display: 'flex',
@@ -521,27 +584,21 @@ export default function AdminAmount({ workcationNo }) {
       >
 
         <h2
-          className="amount-title admin"
+          className="amount-title"
           style={{
             margin: 0
           }}
         >
-
           비용 정산 결재 관리 (관리자)
-
         </h2>
 
 
         <button
           type="button"
           className="btn btn-secondary"
-
           onClick={() =>
-            navigate(
-              '/admin/statistics'
-            )
+            navigate('/admin/statistics')
           }
-
           style={{
             padding: '8px 16px',
             backgroundColor: '#6c757d',
@@ -551,17 +608,16 @@ export default function AdminAmount({ workcationNo }) {
             cursor: 'pointer'
           }}
         >
-
           📊 정산 통계 보기
-
         </button>
 
       </div>
 
 
       {/* =====================================================
-          결재 목록
+          전체 정산 신청 목록
       ====================================================== */}
+
       <table className="amount-table">
 
         <thead>
@@ -581,15 +637,7 @@ export default function AdminAmount({ workcationNo }) {
             </th>
 
             <th className="text-right">
-              상세 비용
-            </th>
-
-            <th className="text-right">
-              지원금
-            </th>
-
-            <th className="text-right">
-              총합산 금액
+              승인 금액
             </th>
 
             <th className="text-center">
@@ -611,282 +659,212 @@ export default function AdminAmount({ workcationNo }) {
 
         <tbody>
 
-          {
-            amounts.length === 0
-              ? (
+          {/* =================================================
+              데이터 없음
+          ================================================== */}
 
-                <tr>
+          {amounts.length === 0 ? (
 
-                  <td
-                    colSpan="9"
-                    className="text-center"
-                  >
+            <tr>
 
-                    정산 신청 내역이 없습니다.
+              <td
+                colSpan="7"
+                className="text-center"
+              >
+                정산 신청 내역이 없습니다.
+              </td>
 
-                  </td>
+            </tr>
 
-                </tr>
+          ) : (
 
-              )
-              : (
+            /* ===============================================
+               데이터 출력
+            ================================================ */
 
-                amounts.map((item) => {
+            amounts.map((item) => (
 
-                  // =================================================
-                  // 신청 금액
-                  // =================================================
-                  const requestedAmt =
-                    Number(
-                      item.requestedAmount
-                    ) || 0;
+              <tr
+                key={item.amountNo}
+                onClick={() =>
+                  navigate(
+                    `/cost/detail/${item.amountNo}`
+                  )
+                }
+                style={{
+                  cursor: 'pointer'
+                }}
+              >
 
 
-                  // =================================================
-                  // 승인 금액
-                  // =================================================
-                  const approvedAmt =
+                {/* 신청번호 */}
+
+                <td className="text-center">
+
+                  {item.amountNo}
+
+                </td>
+
+
+                {/* 사원명 */}
+
+                <td className="text-center">
+
+                  {item.empName || '-'}
+
+                </td>
+
+
+                {/* 신청 금액 */}
+
+                <td className="text-right">
+
+                  {formatMoney(
+                    item.requestedAmount
+                  )}
+
+                </td>
+
+
+                {/* 승인 금액 */}
+
+                <td className="text-right">
+
+                  {
                     item.approvedAmount !== null &&
                     item.approvedAmount !== undefined
-                      ? Number(
+                      ? formatMoney(
                           item.approvedAmount
                         )
-                      : null;
+                      : '-'
+                  }
+
+                </td>
 
 
-                  // =================================================
-                  // 상세 비용
-                  // amount_item.cost
-                  // =================================================
-                  const totalCost =
-                    getTotalCost(item);
+                {/* 상태 */}
+
+                <td className="text-center">
+
+                  {getStatusBadge(
+                    item.status
+                  )}
+
+                </td>
 
 
-                  // =================================================
-                  // 지원금
-                  // amount_list.amount
-                  // =================================================
-                  const totalSponsorAmt =
-                    getTotalSponsor(item);
+                {/* 신청일 */}
+
+                <td className="text-center">
+
+                  {formatDate(
+                    item.requestedAt
+                  )}
+
+                </td>
 
 
-                  // =================================================
-                  // 총합산
-                  // =================================================
-                  const grandTotal =
-                    getGrandTotal(item);
+                {/* =================================================
+                    결재 처리
+                ================================================== */}
+
+                <td className="text-center">
+
+                  {
+                    ['R', 'H'].includes(
+                      item.status
+                    ) ? (
+
+                      <>
 
 
-                  return (
+                        {/* 승인 */}
 
-                    <tr
-                      key={item.amountNo}
-
-                      onClick={() =>
-                        navigate(
-                          `/cost/detail/${item.amountNo}`
-                        )
-                      }
-
-                      style={{
-                        cursor: 'pointer'
-                      }}
-                    >
-
-
-                      {/* 신청번호 */}
-                      <td className="text-center">
-
-                        {item.amountNo}
-
-                      </td>
+                        <button
+                          type="button"
+                          className="btn btn-approve"
+                          onClick={(e) =>
+                            handleApproval(
+                              e,
+                              item,
+                              'A'
+                            )
+                          }
+                        >
+                          승인
+                        </button>
 
 
-                      {/* 신청자 */}
-                      <td className="text-center">
+                        {/* 반려 */}
 
-                        {item.empName || '-'}
-
-                      </td>
-
-
-                      {/* 신청금액 */}
-                      <td className="text-right">
-
-                        {formatMoney(
-                          requestedAmt
-                        )}
-
-                      </td>
-
-
-                      {/* 상세 비용 */}
-                      <td className="text-right">
-
-                        {
-                          totalCost > 0
-                            ? formatMoney(
-                                totalCost
-                              )
-                            : '-'
-                        }
-
-                      </td>
+                        <button
+                          type="button"
+                          className="btn btn-reject"
+                          onClick={(e) =>
+                            handleApproval(
+                              e,
+                              item,
+                              'J'
+                            )
+                          }
+                        >
+                          반려
+                        </button>
 
 
-                      {/* 지원금 */}
-                      <td className="text-right">
+                        {/* 보류 */}
 
                         {
-                          totalSponsorAmt > 0
-                            ? formatMoney(
-                                totalSponsorAmt
-                              )
-                            : '-'
-                        }
+                          item.status === 'R' && (
 
-                      </td>
+                            <button
+                              type="button"
+                              className="btn btn-hold"
+                              onClick={(e) =>
+                                handleApproval(
+                                  e,
+                                  item,
+                                  'H'
+                                )
+                              }
+                            >
+                              보류
+                            </button>
 
-
-                      {/* 총합산 금액 */}
-                      <td className="text-right">
-
-                        {
-                          grandTotal > 0
-                            ? formatMoney(
-                                grandTotal
-                              )
-                            : '-'
-                        }
-
-                      </td>
-
-
-                      {/* 상태 */}
-                      <td className="text-center">
-
-                        {getStatusBadge(
-                          item.status
-                        )}
-
-                      </td>
-
-
-                      {/* 신청일 */}
-                      <td className="text-center">
-
-                        {formatDate(
-                          item.requestedAt
-                        )}
-
-                      </td>
-
-
-                      {/* 결재 처리 */}
-                      <td className="text-center">
-
-                        {
-                          ['R', 'H'].includes(
-                            item.status
                           )
-                            ? (
-
-                              <>
-
-                                {/* 승인 */}
-                                <button
-                                  type="button"
-                                  className="btn btn-approve"
-
-                                  onClick={(e) =>
-                                    handleApproval(
-                                      e,
-                                      item,
-                                      'A'
-                                    )
-                                  }
-                                >
-
-                                  승인
-
-                                </button>
-
-
-                                {/* 반려 */}
-                                <button
-                                  type="button"
-                                  className="btn btn-reject"
-
-                                  onClick={(e) =>
-                                    handleApproval(
-                                      e,
-                                      item,
-                                      'J'
-                                    )
-                                  }
-                                >
-
-                                  반려
-
-                                </button>
-
-
-                                {/* 보류 */}
-                                {
-                                  item.status === 'R' && (
-
-                                    <button
-                                      type="button"
-                                      className="btn btn-hold"
-
-                                      onClick={(e) =>
-                                        handleApproval(
-                                          e,
-                                          item,
-                                          'H'
-                                        )
-                                      }
-                                    >
-
-                                      보류
-
-                                    </button>
-
-                                  )
-                                }
-
-                              </>
-
-                            )
-                            : (
-
-                              <span className="text-disabled">
-
-                                {
-                                  item.status === 'C'
-                                    ? '신청자 취소건'
-                                    : '처리 완료'
-                                }
-
-                              </span>
-
-                            )
                         }
 
-                      </td>
 
-                    </tr>
+                      </>
 
-                  );
+                    ) : (
 
-                })
+                      <span className="text-disabled">
 
-              )
-          }
+                        {
+                          item.status === 'C'
+                            ? '신청자 취소건'
+                            : '처리 완료'
+                        }
+
+                      </span>
+
+                    )
+                  }
+
+                </td>
+
+
+              </tr>
+
+            ))
+
+          )}
 
         </tbody>
 
       </table>
+
 
     </div>
 
