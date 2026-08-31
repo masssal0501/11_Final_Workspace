@@ -35,7 +35,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Override
 	@Transactional
-	public void insertWorkcationEnroll(Map<String, Object> paramMap) {
+	public void insertWorkcationEnrollForm(Map<String, Object> paramMap) {
 
 		// 편의성을 통한 제목 자동 생성
 		String mainRegion = (String) paramMap.get("mainRegion");
@@ -63,6 +63,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 		info.setEndAt(endAt);
 		info.setEmployee(employee); // Employee 연관 객체 세팅
 
+		info.setApproverState("W");//JAP가 인서트할때 W지정 등록
+		
 		WorkcationInfo workcation = workcationDao.save(info);
 
 		// Hub 객체 생성
@@ -73,7 +75,12 @@ public class WorkcationServiceImpl implements WorkcationService {
 		reservation.setWorkcation(workcation);
 		reservation.setHub(hub);
 		reservation.setUserCapacity(hubNo);
+		reservation.setRsvStart(startAt);
+		reservation.setRsvEnd(endAt);
 
 		reservationDao.save(reservation);
 	}
+
+	
+	
 }

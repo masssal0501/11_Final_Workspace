@@ -11,14 +11,20 @@ export const OPTION_CONFIG = {
 };
 
 function WorkcationEnrollFormComponent() {
+
     // 지역 데이터 state (WorkcationItemComponent 기능 포함)
     const [mainRegion, setMainRegion] = useState("");
     const [subRegion, setSubRegion] = useState("");
     const [mainRegionDrop, setMainRegionDrop] = useState([]);
-    const [subRegionDrop, setSubRegionDrop] = useState([]);
+    const [subRegionDrop, setSubRegionDrop] = useState([]); 
+    
+       //신청날짜와 현재날짜 생성
+    const [startDate, setStartDate] = useState(getToday());
+    const [endDate, setEndDate] = useState(getToday());
+    const [programVisitDate, setProgramVisitDate] = useState(getTomorrow());
+    const [restaurantVisitDate, setRestaurantVisitDate] = useState(getTomorrow());
+    const [tourVisitDate, setTourVisitDate] = useState(getTomorrow());
 
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
     const [userCapacity, setUserCapacity] = useState(1);
     const [taskPurpose, setTaskPurpose] = useState("");
 
@@ -37,9 +43,15 @@ function WorkcationEnrollFormComponent() {
     const [taskName, setTaskName] = useState("");
     const [days, setDays] = useState("");
 
-    // 비용 계산용 추가 state (교통비, 기타)
-    const [trafficFee, setTrafficFee] = useState(0);
-    const [etcFee, setEtcFee] = useState(0);
+    //교통비,기타 비용 칸 공백
+    const [transportText, setTransportText] = useState("");
+    const [etcText, setEtcText] = useState("");
+
+    //교통
+    const handleTextChange = (e, setter) =>{
+        const val = e.target.value;
+        setter(val === "" ? "" : Number(val));
+    }
 
     // BASE_URL 생성
     const BASE_URL = 'http://localhost:8006/workflow';
@@ -177,12 +189,26 @@ function WorkcationEnrollFormComponent() {
             }
         }));
     };
+    
+        //오늘날짜 구하기
+    function getToday() {
+        const d = new Date();
+        return d.toISOString().split('T')[0];
+    }
+
+    //내일 날짜(방문일) 구하기
+    function getTomorrow() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+    }
 
     /** 누른 버튼에 따라 해당 tr을 보여주는 함수 */
     const renderBtnRow = (key) => {
         const placeConfig = OPTION_CONFIG[key];
         if (!placeConfig) return null;
 
+        const isSelected = selectedBtns.includes(key);
         const itemList = optionPlaceDrop[key] || [];
         const hubItemList = itemList.filter(item => (item.hubStatus) !== 'CLOSE'); // CLOSE 상태 제외
         const hasValiItem = hubItemList.length > 0;
@@ -194,6 +220,17 @@ function WorkcationEnrollFormComponent() {
         return (
             <tr key={key}>
                 <th>{placeConfig.label}</th>
+
+                {!isSelected ? (
+                    <td colSpan={3}>
+                        <button type="button"
+                                className=""
+                                disabled={!selectHubNo}
+                                onClick={()=> handleAddBtns(key)}>
+                                    + {placeConfig.label} 추가
+                                </button>
+                    </td>
+                )}
                 <td>
                     <select name={`${key}No`}
                         value={selectedHub ? selectedHub.hubNo : ""}
@@ -206,26 +243,26 @@ function WorkcationEnrollFormComponent() {
                             {hasValiItem
                                 ? `${placeConfig.label} 선택`
                                 : `해당하는 ${placeConfig.label}이(가) 없습니다.`}
-                       </option>
-                    {hubItemList.map((item, index) => {
-                        const status = item.hubStatus;
-                        const isPaused = status === 'PAUSED';
-                        const isClosed = status === 'CLOSED';
-                        const isDisabled = isPaused || isClosed;
+                        </option>
+                        {hubItemList.map((item, index) => {
+                            const status = item.hubStatus;
+                            const isPaused = status === 'PAUSED';
+                            const isClosed = status === 'CLOSED';
+                            const isDisabled = isPaused || isClosed;
 
-                        const statusLabel = isClosed 
-                                                    ? "종료" : isPaused 
-                                                    ? "일시중단" : (item.price 
-                                                    ? `${item.price.toLocaleString()}원` : "무료 입장");
+                            const statusLabel = isClosed
+                                ? "종료" : isPaused
+                                    ? "일시중단" : (item.price
+                                        ? `${item.price.toLocaleString()}원` : "무료 입장");
 
-                        return (
-                               <option
-                                key={item.hubNo || index}
-                                value={item.hubNo}
-                                disabled={isDisabled}
-                                style={isDisabled ? { color: "#999999" } : {}}>
-                                {item.hubName} / {statusLabel}
-                            </option>
+                            return (
+                                <option
+                                    key={item.hubNo || index}
+                                    value={item.hubNo}
+                                    disabled={isDisabled}
+                                    style={isDisabled ? { color: "#999999" } : {}}>
+                                    {item.hubName} / {statusLabel}
+                                </option>
                             );
                         })}
                     </select>
@@ -234,7 +271,7 @@ function WorkcationEnrollFormComponent() {
                 <td className="optionBtn-date">
                     <input type="date"
                         name={`${key}date`}
-                        value={selectedDate}
+                        value={selectedDate || getTomorrow()}
                         onChange={(e) => handlePlaceDate(key, "date", e.target.value)} />
                     <button type="button"
                         className="remove-btn"
@@ -269,7 +306,7 @@ function WorkcationEnrollFormComponent() {
     }, 0);
 
     // 총액 계산
-    const totalCost = hubPrice + optionsPrice + Number(trafficFee) + Number(etcFee);
+    const totalCost = hubPrice + optionsPrice + Number(transportText) + Number(etcText);
 
     // 지자체 지원금
     const hubSupport = hubType === "office" ? hubPrice : Math.min(hubPrice, 200000);
@@ -294,8 +331,8 @@ function WorkcationEnrollFormComponent() {
             subRegion,
             placeType: hubType,
             hubNo: Number(selectHubNo),
-            trafficFee: Number(trafficFee),
-            etcFee: Number(etcFee),
+            transportText: Number(transportText),
+            etcText: Number(etcText),
             totalCost,
             personalCost,
 
@@ -320,15 +357,13 @@ function WorkcationEnrollFormComponent() {
             console.error("실패", err);
             alert("오류가 발생했습니다.");
         }
-    };
+    };   
 
     return (
         <div className="workcatrion-enroll-container">
             <h2 align="center">워케이션 신청</h2>
 
-            <button className="insert-btn" type="button" onClick={handleSubmit}>
-                제출하기
-            </button>
+
             <table className="workcation-form-table">
                 <tbody>
                     <tr>
@@ -449,10 +484,10 @@ function WorkcationEnrollFormComponent() {
                                             const isDisabled = isPaused || isClosed; // 비활성화 조건
 
                                             // 표시할 라벨 문구
-                                            const statusLabel = isClosed 
-                                                    ? "종료" : isPaused 
-                                                    ? "일시중단" : (hub?.price 
-                                                    ? `${hub.price.toLocaleString()}원` : "가격 정보 없음");
+                                            const statusLabel = isClosed
+                                                ? "종료" : isPaused
+                                                    ? "일시중단" : (hub?.price
+                                                        ? `${hub.price.toLocaleString()}원` : "가격 정보 없음");
 
                                             return (
                                                 <option key={`hub-${hub?.hubNo || index}`}
@@ -472,6 +507,7 @@ function WorkcationEnrollFormComponent() {
                     {selectedBtns.map((type) => renderBtnRow(type))}
                 </tbody>
             </table>
+
 
             {/**오피스/숙소까지 최종선택 되엇을시  */}
             <div className="plus-btn-group">
@@ -547,16 +583,18 @@ function WorkcationEnrollFormComponent() {
                         <span>교통비</span>
                         <div className="left-price-input">
                             <input type="number"
-                                value={trafficFee}
-                                onChange={(e) => setTrafficFee(Number(e.target.value))} />원
+                                value={transportText}
+                                onChange={(e) => handleTextChange(e, setTransportText)} 
+                                placeholder="" />원
                         </div>
                     </div>
                     <div className="left-price-row">
                         <span>기타</span>
                         <div className="left-price-input">
                             <input type="number"
-                                value={etcFee}
-                                onChange={(e) => setEtcFee(Number(e.target.value))} />원
+                                value={etcText}
+                                onChange={(e) => handleTextChange(e, setEtcText)} 
+                                placeholder="" />원
                         </div>
                     </div>
                     <hr />
@@ -582,11 +620,14 @@ function WorkcationEnrollFormComponent() {
                     </div>
                     <hr />
                     <div>
-                        <span>회사/개인부담금</span>
+                        <span>개인부담금</span>
                         <strong>{personalCost.toLocaleString()}원</strong>
                     </div>
                 </div>
             </div>
+            <button className="insert-btn" type="button" onClick={handleSubmit}>
+                제출하기
+            </button>
         </div>
     );
 }

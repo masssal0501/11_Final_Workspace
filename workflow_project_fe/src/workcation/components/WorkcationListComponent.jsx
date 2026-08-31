@@ -40,7 +40,7 @@ function WorkcationListComponent() {
 
     // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
     useEffect(() => {
-        axios.get(`${BASE_URL}/workflow/workcation/hub/mainRegion`)
+        axios.get(`${BASE_URL}/workcation/hub/mainRegion`)
             .then(res => {
                 const data = Array.isArray(res.data) ? res.data : (res.data.list || []);
                 setMainRegionList(data);
@@ -54,7 +54,7 @@ function WorkcationListComponent() {
             setSubRegionList([]);
             return;
         }
-        axios.get(`${BASE_URL}/workflow/workcation/hub/subRegion?mainRegion=${mainRegion}`)
+        axios.get(`${BASE_URL}/workcation/hub/subRegion?mainRegion=${mainRegion}`)
             .then(res => setSubRegionList(res.data))
             .catch(err => console.error("서브 지역 로딩 실패: ", err));
     }, [mainRegion]);
@@ -66,7 +66,7 @@ function WorkcationListComponent() {
 
     const selectWorkcationList = async () => {
         try {
-            const response = await axios.get(`${BASE_URL}/workflow/workcation/list`, {
+            const response = await axios.get(`${BASE_URL}/workcation/list`, {
                 params: {
                     cpage: cpage,
                     condition: searchCondition,

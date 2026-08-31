@@ -40,3 +40,8 @@
 .all-price-container{
     width: 600px;
 }
+
+.optional-row-empty {
+    background-color: #fafafa; /* 아주 옅은 회색 배경 */
+    border: 1px dashed #e0e0e0; /* 옅은 점선 테두리 */
+}

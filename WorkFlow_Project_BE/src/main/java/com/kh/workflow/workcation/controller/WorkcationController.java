@@ -81,14 +81,15 @@ public class WorkcationController {
 		return ResponseEntity.ok(list);
 	}
 	
-	@PostMapping("/enrollForm")
-	public ResponseEntity<String> insertWorkcationEnroll(@RequestBody Map<String, Object> paramMap){
+	//워켕션 신청등록 폼
+	@PostMapping("/hub/enrollForm")
+	public ResponseEntity<String> insertWorkcationEnrollForm(@RequestBody Map<String, Object> paramMap){
 		
-		int empNo=1001;
+		int empNo=1;
 		paramMap.put("empNo",empNo);
 		
-		workcationService.insertWorkcationEnroll(paramMap);
+		workcationService.insertWorkcationEnrollForm(paramMap);
 		return ResponseEntity.ok("신청 완료");
 	}
-
+	
 }
