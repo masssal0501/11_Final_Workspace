@@ -81,9 +81,29 @@ public class PlaceServiceImpl implements PlaceService {
         return placeDao.deletePlace(hubNo);
     }
 
-	@Override
-	public HubFile updatePlaceFile(HubFile hubFile) {
-		return hubFileDao.save(hubFile);
-	}
+    @Transactional
+    @Override
+    public HubFile updatePlaceFile(HubFile hubFile) {
+
+        int hubNo = hubFile.getHub().getHubNo();
+
+        // 기존에 사용 중인 사진 조회
+        HubFile existingFile =
+                hubFileDao.findFirstByHub_HubNoAndStatusOrderByHubfileNoDesc(
+                        hubNo,
+                        "Y"
+                );
+
+        // 기존 사진이 있으면 사용 중지
+        if (existingFile != null) {
+            existingFile.setStatus("N");
+            hubFileDao.save(existingFile);
+        }
+
+        // 새 사진 등록
+        hubFile.setStatus("Y");
+
+        return hubFileDao.save(hubFile);
+    }
 
 }

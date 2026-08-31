@@ -73,18 +73,11 @@ export const placeApi = {
         return response.data;
     },
 
-
-    // 장소 정보 수정
     updatePlace: async (hubNo, formData) => {
 
         const response = await axiosInstance.put(
             `${BASE_URL}/${hubNo}`,
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            }
+            formData
         );
 
         return response.data;
