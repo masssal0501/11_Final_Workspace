@@ -43,6 +43,8 @@ import EmployeeList from "./employee/components/EmployeeList";
 import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
+import ErrorPage from "./common/components/ErrorPage";
+
 import {
     Routes,
     Route,
@@ -222,22 +224,11 @@ function App() {
                 <Route path="/cost/apply" element={<AmountForm />} />
 
                 {/* 📌 비용 정산 상세 페이지 라우트 추가 */}
-                    <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
-                
-                {/* 관리자용 정산 페이지 */}
-                <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+                <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
 
-                {/* 📌 통계 페이지 라우트 추가 */}
-                    <Route path="/admin/statistics" element={<StatisticsPage />} />
-                
+                {/* 공지사항 */}
                 <Route path="/notice" element={<NoticeListPage />} />
-
                 <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
-                <Route path="/admin/notice" element={<NoticeAdminListPage />} />
-
-                <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
-
-                <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
                 {/* placeInfo */}
                 <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
@@ -255,95 +246,44 @@ function App() {
                 <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
                 <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
 
-
-
-                <Route
-                    path="/"
-                    element={
-                        <Navigate
-                            to="/dashboard"
-                            replace
-                        />
-                    }
-                />
-
-                <Route
-                    path="/dashboard"
-                    element={
-                        <div>대시보드</div>
-                    }
-                />
+                {/* 대시보드 */}
+                <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+                <Route path="/dashboard" element={<div>대시보드</div>}/>
 
                 {/* 마이페이지 */}
-
-                <Route
-                    path="/myPage"
-                    element={<MyPageForm />}
-                />
-
-                <Route
-                    path="/myPage/update"
-                    element={<UpdateMyPageForm />}
-                />
+                <Route path="/myPage" element={<MyPageForm />}/>
+                <Route path="/myPage/update" element={<UpdateMyPageForm />} />
 
                 {/* 비밀번호 변경 */}
-
-                <Route
-                    path="/changePW"
-                    element={<ChangePWForm />}
-                />
-
-                {/* 직원 */}
-
-                <Route
-                    path="/employee/enrollForm"
-                    element={
-                        <EmployeeEnrollFormComponent />
-                    }
-                />
-
-                <Route
-                    path="/employee/list"
-                    element={<EmployeeList />}
-                />
-
-                <Route
-                    path='/employee/detail/:empNo'
-                    element={<EmployeeDetail />}
-                />
-
-                <Route
-                    path="/employee/edit/:empNo"
-                    element={<EmployeeEdit />}
-                />
+                <Route path="/changePW" element={<ChangePWForm />} />
 
                 {/* 관리자 */}
-
                 {loginUser.authCode === "ADMIN" && (
+                    <>
+                        {/* 직원 관리 */}
+                        <Route path="/employee/enrollForm" element={ <EmployeeEnrollFormComponent /> }/>
+                        <Route path="/employee/list" element={<EmployeeList />} />
+                        <Route path='/employee/detail/:empNo' element={<EmployeeDetail />} />
+                        <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
 
-                    <Route
-                        path="/admin"
-                        element={
-                            <div>
-                                관리자 페이지
-                            </div>
-                        }
-                    />
+                        {/* 관리자용 정산 페이지 */}
+                        <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
 
+                        {/* 공지사항 */}
+                        {/* <Route path="/admin/notice" element={<NoticeAdminListPage />} /> */}
+                        <Route path="/notice/insert" element={<NoticeWritePage />} />
+                        <Route path="/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+
+                        {/* 📌 통계 페이지 라우트 추가 */}
+                        <Route path="/admin/statistics" element={<StatisticsPage />} />
+                    </>
                 )}
 
                 {/* 부서장 */}
 
                 {loginUser.authCode === "MANAGER" && (
 
-                    <Route
-                        path="/manager"
-                        element={
-                            <div>
-                                부서장 페이지
-                            </div>
-                        }
-                    />
+                    <Route path="/manager" element={ <div> 부서장 페이지 </div>}/>
 
                 )}
 
@@ -351,26 +291,13 @@ function App() {
 
                 {loginUser.authCode === "STAFF" && (
 
-                    <Route
-                        path="/employee"
-                        element={
-                            <div>
-                                사원 페이지
-                            </div>
-                        }
-                    />
+                    <Route path="/staff" element={ <div> 사원 페이지 </div> } />
 
                 )}
 
-                {/* <Route
-                    path="*"
-                    element={
-                        <Navigate
-                            to="/error"
-                            replace
-                        />
-                    }
-                /> */}
+                {/* 그 외 페이지 접속 시 */}
+                <Route path="*" element={ <Navigate to="/error" replace />}/>
+                <Route path="/error" element={ <ErrorPage /> }/>
 
             </Routes>
 
