@@ -38,9 +38,6 @@ public class NoticeController {
     // 공지사항 목록 조회
     //
     // GET /api/v1/notice
-    //
-    // 예:
-    // /api/v1/notice?page=1&limit=10&condition=title&keyword=
     // =========================================================
 
     @GetMapping
@@ -60,12 +57,10 @@ public class NoticeController {
 
         try {
 
-            // 페이지가 1보다 작아지는 것 방지
             if (page < 1) {
                 page = 1;
             }
 
-            // limit이 잘못 들어오는 것 방지
             if (limit < 1) {
                 limit = 10;
             }
@@ -79,7 +74,7 @@ public class NoticeController {
 
 
             // -------------------------------------------------
-            // 검색 + 페이징 조건
+            // 검색 조건
             // -------------------------------------------------
 
             Map<String, Object> map = new HashMap<>();
@@ -91,7 +86,7 @@ public class NoticeController {
 
 
             // -------------------------------------------------
-            // 공지사항 목록 조회
+            // 목록 조회
             // -------------------------------------------------
 
             ArrayList<Notice> noticeList =
@@ -99,7 +94,7 @@ public class NoticeController {
 
 
             // -------------------------------------------------
-            // 전체 공지사항 개수 조회
+            // 전체 개수
             // -------------------------------------------------
 
             int listCount =
@@ -107,7 +102,7 @@ public class NoticeController {
 
 
             // -------------------------------------------------
-            // 응답 데이터
+            // 응답
             // -------------------------------------------------
 
             Map<String, Object> response =
@@ -175,11 +170,8 @@ public class NoticeController {
     //
     // POST /api/v1/notice
     //
-    // Content-Type:
-    // multipart/form-data
-    //
-    // notice = JSON
-    // files  = 첨부파일
+    // ★ ADMIN만 가능
+    // authority.auth_code = ADMIN
     // =========================================================
 
     @PostMapping(
@@ -201,16 +193,7 @@ public class NoticeController {
         try {
 
             // -------------------------------------------------
-            // 첨부파일
-            // -------------------------------------------------
-
-            if (files != null && !files.isEmpty()) {
-                notice.setFiles(files);
-            }
-
-
-            // -------------------------------------------------
-            // 로그인 사용자 확인
+            // 로그인 확인
             // -------------------------------------------------
 
             if (authentication == null ||
@@ -222,42 +205,67 @@ public class NoticeController {
             }
 
 
-            /*
-             * JWT Authentication에서 로그인 사용자 정보를
-             * 가져오는 부분
-             *
-             * 현재 JwtAuthenticationFilter에서
-             * Authentication에 무엇을 넣고 있는지에 따라
-             * 이 부분은 맞춰줘야 합니다.
-             *
-             * 예를 들어 authentication.getName()이
-             * 사원번호라면 아래처럼 사용합니다.
-             */
+            // -------------------------------------------------
+            // 관리자 권한 확인
+            //
+            // authority.auth_code = ADMIN
+            // -------------------------------------------------
 
-            String loginId = authentication.getName();
+            String loginId =
+                    authentication.getName();
+
+
+            boolean isAdmin =
+                    noticeService.isAdmin(loginId);
+
+
+            if (!isAdmin) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body("관리자만 공지사항을 등록할 수 있습니다.");
+            }
+
+
+            // -------------------------------------------------
+            // 로그인 사용자 사원번호 조회
+            // -------------------------------------------------
 
             Integer empNo =
                     noticeService.selectEmpNoByLoginId(loginId);
 
+
             if (empNo == null) {
+
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
                         .body("로그인 사용자 정보를 찾을 수 없습니다.");
             }
 
+
             notice.setEmpNo(empNo);
 
 
             // -------------------------------------------------
-            // 로그인한 사용자의 사원번호 설정
+            // 첨부파일
             // -------------------------------------------------
 
-            notice.setEmpNo(empNo);
+            if (files != null && !files.isEmpty()) {
+
+                notice.setFiles(files);
+
+            }
 
 
             System.out.println(
                     "공지사항 등록 사용자 empNo = "
                     + notice.getEmpNo()
+            );
+
+
+            System.out.println(
+                    "공지사항 등록 사용자 loginId = "
+                    + loginId
             );
 
 
@@ -281,14 +289,6 @@ public class NoticeController {
                     .status(HttpStatus.BAD_REQUEST)
                     .body("공지사항 등록에 실패했습니다.");
 
-        } catch (NumberFormatException e) {
-
-            e.printStackTrace();
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("로그인 사용자 사원번호가 올바르지 않습니다.");
-
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -308,8 +308,8 @@ public class NoticeController {
     //
     // PUT /api/v1/notice/{noticeNo}
     //
-    // Content-Type:
-    // multipart/form-data
+    // ★ ADMIN만 가능
+    // authority.auth_code = ADMIN
     // =========================================================
 
     @PutMapping(
@@ -327,21 +327,78 @@ public class NoticeController {
                     value = "files",
                     required = false
             )
-            List<MultipartFile> files) {
+            List<MultipartFile> files,
+
+            Authentication authentication) {
 
         try {
 
-            // URL의 noticeNo를 Notice 객체에 설정
-            notice.setNoticeNo(noticeNo);
+            // -------------------------------------------------
+            // 로그인 확인
+            // -------------------------------------------------
 
+            if (authentication == null ||
+                !authentication.isAuthenticated()) {
 
-            // 첨부파일
-            if (files != null && !files.isEmpty()) {
-                notice.setFiles(files);
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body("로그인이 필요합니다.");
             }
 
 
+            // -------------------------------------------------
+            // 관리자 권한 확인
+            // -------------------------------------------------
+
+            String loginId =
+                    authentication.getName();
+
+
+            boolean isAdmin =
+                    noticeService.isAdmin(loginId);
+
+
+            if (!isAdmin) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body("관리자만 공지사항을 수정할 수 있습니다.");
+            }
+
+
+            // -------------------------------------------------
+            // URL의 noticeNo 설정
+            // -------------------------------------------------
+
+            notice.setNoticeNo(noticeNo);
+
+
+            // -------------------------------------------------
+            // 첨부파일
+            // -------------------------------------------------
+
+            if (files != null && !files.isEmpty()) {
+
+                notice.setFiles(files);
+
+            }
+
+
+            System.out.println(
+                    "공지사항 수정 사용자 loginId = "
+                    + loginId
+            );
+
+            System.out.println(
+                    "공지사항 수정 noticeNo = "
+                    + noticeNo
+            );
+
+
+            // -------------------------------------------------
             // 수정
+            // -------------------------------------------------
+
             int result =
                     noticeService.updateNotice(notice);
 
@@ -376,14 +433,67 @@ public class NoticeController {
     // 공지사항 삭제
     //
     // DELETE /api/v1/notice/{noticeNo}
+    //
+    // ★ ADMIN만 가능
+    // authority.auth_code = ADMIN
     // =========================================================
 
     @DeleteMapping("/{noticeNo}")
     public ResponseEntity<?> deleteNotice(
 
-            @PathVariable int noticeNo) {
+            @PathVariable int noticeNo,
+
+            Authentication authentication) {
 
         try {
+
+            // -------------------------------------------------
+            // 로그인 확인
+            // -------------------------------------------------
+
+            if (authentication == null ||
+                !authentication.isAuthenticated()) {
+
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body("로그인이 필요합니다.");
+            }
+
+
+            // -------------------------------------------------
+            // 관리자 권한 확인
+            // -------------------------------------------------
+
+            String loginId =
+                    authentication.getName();
+
+
+            boolean isAdmin =
+                    noticeService.isAdmin(loginId);
+
+
+            if (!isAdmin) {
+
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body("관리자만 공지사항을 삭제할 수 있습니다.");
+            }
+
+
+            System.out.println(
+                    "공지사항 삭제 사용자 loginId = "
+                    + loginId
+            );
+
+            System.out.println(
+                    "공지사항 삭제 noticeNo = "
+                    + noticeNo
+            );
+
+
+            // -------------------------------------------------
+            // 삭제
+            // -------------------------------------------------
 
             int result =
                     noticeService.deleteNotice(noticeNo);

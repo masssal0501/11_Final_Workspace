@@ -11,7 +11,10 @@ import com.kh.workflow.notice.vo.Notice;
 @Repository
 public class NoticeDao {
 
+    // =========================================================
     // 공지사항 개수 조회
+    // =========================================================
+
     public int selectNoticeCount(
             SqlSessionTemplate sqlSession,
             Map<String, Object> map) {
@@ -23,8 +26,10 @@ public class NoticeDao {
     }
 
 
+    // =========================================================
     // 공지사항 목록 조회
- // 공지사항 목록 조회
+    // =========================================================
+
     public ArrayList<Notice> selectNoticeList(
             SqlSessionTemplate sqlSession,
             Map<String, Object> map) {
@@ -38,7 +43,10 @@ public class NoticeDao {
     }
 
 
+    // =========================================================
     // 공지사항 등록
+    // =========================================================
+
     public int insertNotice(
             SqlSessionTemplate sqlSession,
             Notice n) {
@@ -50,7 +58,10 @@ public class NoticeDao {
     }
 
 
+    // =========================================================
     // 공지사항 상세 조회
+    // =========================================================
+
     public Notice selectNotice(
             SqlSessionTemplate sqlSession,
             int noticeNo) {
@@ -62,7 +73,10 @@ public class NoticeDao {
     }
 
 
+    // =========================================================
     // 공지사항 수정
+    // =========================================================
+
     public int updateNotice(
             SqlSessionTemplate sqlSession,
             Notice n) {
@@ -74,7 +88,10 @@ public class NoticeDao {
     }
 
 
+    // =========================================================
     // 공지사항 삭제
+    // =========================================================
+
     public int deleteNotice(
             SqlSessionTemplate sqlSession,
             int noticeNo) {
@@ -86,7 +103,10 @@ public class NoticeDao {
     }
 
 
+    // =========================================================
     // 로그인 ID로 사원번호 조회
+    // =========================================================
+
     public Integer selectEmpNoByLoginId(
             SqlSessionTemplate sqlSession,
             String loginId) {
@@ -96,4 +116,25 @@ public class NoticeDao {
                 loginId
         );
     }
+
+
+    // =========================================================
+    // 관리자 권한 확인
+    //
+    // authority.auth_code = 'ADMIN'
+    // =========================================================
+
+    public boolean isAdmin(
+            SqlSessionTemplate sqlSession,
+            String loginId) {
+
+        Boolean result = sqlSession.selectOne(
+                "noticeMapper.isAdmin",
+                loginId
+        );
+
+        return Boolean.TRUE.equals(result);
+    }
+
 }
+

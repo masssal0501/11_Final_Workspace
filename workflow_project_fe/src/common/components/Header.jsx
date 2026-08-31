@@ -95,7 +95,7 @@ function Header() {
       id: "amount",
       label: "비용 관리",
       icon: "₩",
-      path: "/amount",
+      path: "/cost/list",
     },
     {
       id: "notice",

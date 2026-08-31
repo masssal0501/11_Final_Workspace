@@ -118,7 +118,7 @@ public class SecurityConfig {
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts"
                         	).permitAll()
-                        
+                        // 관리자 정산 추후 권한 수정
                         .requestMatchers(
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts/admin/cost/list"
@@ -132,6 +132,12 @@ public class SecurityConfig {
                         .requestMatchers(
                             "/api/v1/notice/**"
                         ).permitAll()
+                        
+                        // 관리자 공지사항 추후 권한 수정
+                        .requestMatchers(
+                                "/api/v1/admin/notice/**"
+                            ).permitAll()
+            
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
                 )

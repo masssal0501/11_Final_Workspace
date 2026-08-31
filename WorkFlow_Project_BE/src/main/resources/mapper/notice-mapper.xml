@@ -1,91 +1,228 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="noticeMapper">
 
-    <!-- 전체/검색된 공지사항 개수 -->
-    <select id="selectNoticeCount" parameterType="map" resultType="int">
+
+    <!-- =========================================================
+         전체/검색된 공지사항 개수
+    ========================================================== -->
+
+    <select id="selectNoticeCount"
+            parameterType="map"
+            resultType="int">
+
         SELECT COUNT(*)
+
         FROM notice n
-        JOIN employee e ON n.emp_no = e.emp_no
+
+        JOIN employee e
+            ON n.emp_no = e.emp_no
+
         WHERE n.notice_status != 'UNVISIBLE'
+
+
         <if test="keyword != null and keyword != ''">
+
             <choose>
+
                 <when test="condition == 'title'">
-                    AND n.notice_title LIKE CONCAT('%', #{keyword}, '%')
+
+                    AND n.notice_title
+                        LIKE CONCAT('%', #{keyword}, '%')
+
                 </when>
+
+
                 <when test="condition == 'content'">
-                    AND n.notice_content LIKE CONCAT('%', #{keyword}, '%')
+
+                    AND n.notice_content
+                        LIKE CONCAT('%', #{keyword}, '%')
+
                 </when>
+
+
                 <when test="condition == 'writer'">
-                    AND e.emp_name LIKE CONCAT('%', #{keyword}, '%')
+
+                    AND e.emp_name
+                        LIKE CONCAT('%', #{keyword}, '%')
+
                 </when>
+
+
                 <otherwise>
-                    AND (n.notice_title LIKE CONCAT('%', #{keyword}, '%') OR n.notice_content LIKE CONCAT('%', #{keyword}, '%'))
+
+                    AND (
+                        n.notice_title
+                            LIKE CONCAT('%', #{keyword}, '%')
+
+                        OR
+
+                        n.notice_content
+                            LIKE CONCAT('%', #{keyword}, '%')
+                    )
+
                 </otherwise>
+
             </choose>
+
         </if>
+
     </select>
 
-    <!-- 공지사항 목록 (검색 및 페이징 적용) -->
-    <select id="selectNoticeList" parameterType="map" resultType="com.kh.workflow.notice.vo.Notice">
+
+
+    <!-- =========================================================
+         공지사항 목록
+         검색 + 페이징
+    ========================================================== -->
+
+    <select id="selectNoticeList"
+            parameterType="map"
+            resultType="com.kh.workflow.notice.vo.Notice">
+
         SELECT
-            n.notice_no AS noticeNo,
-            n.notice_title AS noticeTitle,
+
+            n.notice_no      AS noticeNo,
+
+            n.notice_title   AS noticeTitle,
+
             n.notice_content AS noticeContent,
-            n.created_at AS createdAt,
-            n.notice_status AS noticeStatus,
-            n.view_count AS viewCount,
-            n.emp_no AS empNo,
-            e.emp_name AS empName
+
+            n.created_at     AS createdAt,
+
+            n.notice_status  AS noticeStatus,
+
+            n.view_count     AS viewCount,
+
+            n.emp_no         AS empNo,
+
+            e.emp_name       AS empName
+
         FROM notice n
-        JOIN employee e ON n.emp_no = e.emp_no
+
+        JOIN employee e
+            ON n.emp_no = e.emp_no
+
         WHERE n.notice_status != 'UNVISIBLE'
+
+
         <if test="keyword != null and keyword != ''">
+
             <choose>
+
                 <when test="condition == 'title'">
-                    AND n.notice_title LIKE CONCAT('%', #{keyword}, '%')
+
+                    AND n.notice_title
+                        LIKE CONCAT('%', #{keyword}, '%')
+
                 </when>
+
+
                 <when test="condition == 'content'">
-                    AND n.notice_content LIKE CONCAT('%', #{keyword}, '%')
+
+                    AND n.notice_content
+                        LIKE CONCAT('%', #{keyword}, '%')
+
                 </when>
+
+
                 <when test="condition == 'writer'">
-                    AND e.emp_name LIKE CONCAT('%', #{keyword}, '%')
+
+                    AND e.emp_name
+                        LIKE CONCAT('%', #{keyword}, '%')
+
                 </when>
+
+
                 <otherwise>
-                    AND (n.notice_title LIKE CONCAT('%', #{keyword}, '%') OR n.notice_content LIKE CONCAT('%', #{keyword}, '%'))
+
+                    AND (
+                        n.notice_title
+                            LIKE CONCAT('%', #{keyword}, '%')
+
+                        OR
+
+                        n.notice_content
+                            LIKE CONCAT('%', #{keyword}, '%')
+                    )
+
                 </otherwise>
+
             </choose>
+
         </if>
+
+
         ORDER BY
+
             CASE
-                WHEN n.notice_status = 'IMPORTANT' THEN 0
+
+                WHEN n.notice_status = 'IMPORTANT'
+                    THEN 0
+
                 ELSE 1
+
             END,
+
             n.created_at DESC
+
+
         LIMIT #{offset}, #{limit}
+
     </select>
 
-    <!-- 상세 조회 -->
-    <select id="selectNotice" parameterType="int" resultType="com.kh.workflow.notice.vo.Notice">
+
+
+    <!-- =========================================================
+         공지사항 상세 조회
+    ========================================================== -->
+
+    <select id="selectNotice"
+            parameterType="int"
+            resultType="com.kh.workflow.notice.vo.Notice">
+
         SELECT
-            N.NOTICE_NO       AS noticeNo,
-            N.NOTICE_TITLE    AS noticeTitle,
-            N.NOTICE_CONTENT  AS noticeContent,
-            N.CREATED_AT      AS createdAt,
-            N.NOTICE_STATUS   AS noticeStatus,
-            N.VIEW_COUNT      AS viewCount,
-            N.EMP_NO          AS empNo,
-            E.EMP_NAME        AS empName
-        FROM notice N
-        JOIN employee E ON N.EMP_NO = E.EMP_NO
-        WHERE N.NOTICE_NO = #{noticeNo}
+
+            n.notice_no       AS noticeNo,
+
+            n.notice_title    AS noticeTitle,
+
+            n.notice_content  AS noticeContent,
+
+            n.created_at      AS createdAt,
+
+            n.notice_status   AS noticeStatus,
+
+            n.view_count      AS viewCount,
+
+            n.emp_no          AS empNo,
+
+            e.emp_name        AS empName
+
+        FROM notice n
+
+        JOIN employee e
+            ON n.emp_no = e.emp_no
+
+        WHERE n.notice_no = #{noticeNo}
+
     </select>
 
-    <!-- 등록 -->
-    <insert id="insertNotice" parameterType="com.kh.workflow.notice.vo.Notice" useGeneratedKeys="true" keyProperty="noticeNo">
+
+
+    <!-- =========================================================
+         공지사항 등록
+    ========================================================== -->
+
+    <insert id="insertNotice"
+            parameterType="com.kh.workflow.notice.vo.Notice"
+            useGeneratedKeys="true"
+            keyProperty="noticeNo">
+
         INSERT INTO notice
         (
             notice_title,
@@ -95,6 +232,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             view_count,
             emp_no
         )
+
         VALUES
         (
             #{noticeTitle},
@@ -104,33 +242,98 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             0,
             #{empNo}
         )
+
     </insert>
 
-    <!-- 수정 -->
-    <update id="updateNotice" parameterType="com.kh.workflow.notice.vo.Notice">
+
+
+    <!-- =========================================================
+         공지사항 수정
+    ========================================================== -->
+
+    <update id="updateNotice"
+            parameterType="com.kh.workflow.notice.vo.Notice">
+
         UPDATE notice
+
         SET
-            notice_title = #{noticeTitle},
+
+            notice_title   = #{noticeTitle},
+
             notice_content = #{noticeContent},
-            notice_status = #{noticeStatus}
+
+            notice_status  = #{noticeStatus}
+
         WHERE notice_no = #{noticeNo}
+
     </update>
 
-    <!-- 삭제 -->
-    <delete id="deleteNotice" parameterType="int">
+
+
+    <!-- =========================================================
+         공지사항 삭제
+    ========================================================== -->
+
+    <delete id="deleteNotice"
+            parameterType="int">
+
         DELETE FROM notice
+
         WHERE notice_no = #{noticeNo}
+
     </delete>
-    
-    <!-- 로그인 ID로 사원번호 조회 -->
-<select id="selectEmpNoByLoginId"
-        parameterType="string"
-        resultType="int">
 
-    SELECT emp_no
-    FROM employee
-    WHERE emp_id = #{_parameter}
 
-</select>
+
+    <!-- =========================================================
+         로그인 ID → 사원번호 조회
+    ========================================================== -->
+
+    <select id="selectEmpNoByLoginId"
+            parameterType="string"
+            resultType="int">
+
+        SELECT emp_no
+
+        FROM employee
+
+        WHERE emp_id = #{_parameter}
+
+    </select>
+
+
+
+    <!-- =========================================================
+         로그인 ID → 관리자 여부 확인
+         
+         employee.auth_code
+                ↓
+         authority.auth_code
+                ↓
+         ADMIN
+    ========================================================== -->
+
+    <select id="selectIsAdminByLoginId"
+            parameterType="string"
+            resultType="boolean">
+
+        SELECT EXISTS (
+
+            SELECT 1
+
+            FROM employee e
+
+            JOIN authority a
+                ON e.auth_code = a.auth_code
+
+            WHERE e.emp_id = #{_parameter}
+
+              AND a.auth_code = 'ADMIN'
+
+        )
+
+    </select>
+
 
 </mapper>
+

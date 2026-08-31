@@ -227,6 +227,9 @@ export default function UserAmountList({ workcationNo }) {
 
   const handleCancel = async (item) => {
 
+    console.log('📌 조회할 workcationNo:', no);
+console.log('📌 워케이션 비용 조회 응답:', data);
+
     if (!item?.amountNo) {
 
       alert(

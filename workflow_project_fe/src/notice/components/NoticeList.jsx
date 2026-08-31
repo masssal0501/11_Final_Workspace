@@ -10,17 +10,6 @@ export default function NoticeList() {
     const [noticeList, setNoticeList] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // =========================================================
-    // 로그인 사용자
-    // 관리자 Role = S
-    // =========================================================
-
-    const loginMember = JSON.parse(
-        sessionStorage.getItem('loginMember') || 'null'
-    );
-
-    const isAdmin = loginMember?.role === 'S';
-
 
     // =========================================================
     // 현재 페이지
@@ -238,31 +227,6 @@ export default function NoticeList() {
 
 
     // =========================================================
-    // 관리자 등록 페이지 이동
-    // =========================================================
-
-    const handleInsert = () => {
-
-        // 프론트에서 한 번 더 관리자 확인
-        if (!isAdmin) {
-
-            alert(
-                '관리자만 공지사항을 등록할 수 있습니다.'
-            );
-
-            return;
-
-        }
-
-
-        navigate(
-            '/admin/notice/insert'
-        );
-
-    };
-
-
-    // =========================================================
     // 로딩
     // =========================================================
 
@@ -303,23 +267,6 @@ export default function NoticeList() {
                 <h2>
                     공지사항
                 </h2>
-
-
-                {/* =================================================
-                    관리자만 등록 버튼 표시
-                ================================================= */}
-
-                {isAdmin && (
-
-                    <button
-                        type="button"
-                        className="notice-btn primary"
-                        onClick={handleInsert}
-                    >
-                        공지사항 등록
-                    </button>
-
-                )}
 
             </div>
 
