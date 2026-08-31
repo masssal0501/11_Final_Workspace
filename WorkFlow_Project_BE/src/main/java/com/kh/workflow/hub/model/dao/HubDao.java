@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 import com.kh.workflow.hub.model.vo.Hub;
 
 /**
@@ -85,4 +86,12 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
             WHERE r.hub_no = :hubNo AND sq.question_type = 'SCORE'
             """, nativeQuery = true)
 	Double selectAvgScore(@Param("hubNo") int hubNo);
+    
+    @Query("""
+    		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(h.mainRegion, COUNT(h))
+    		FROM Hub h
+    		WHERE h.hubType = 2
+    		GROUP BY h.mainRegion
+    		""")
+    List<ChartDataDto> HubShareList();
 }

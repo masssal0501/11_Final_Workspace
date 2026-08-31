@@ -28,7 +28,7 @@ import lombok.ToString;
  */
 @Schema(description="거점 첨부파일 엔티티")
 @Entity
-@Table(name="HUB_FILE")
+@Table(name="hub_file")
 @DynamicInsert
 @DynamicUpdate
 @NoArgsConstructor

@@ -306,7 +306,7 @@ function HubUpdateFormComponent(props) {
                     <br />
                     {/* 거점 수정 입력 폼 */}
                     <form ref={formRef}>
-                        <table width="100%">
+                        <table width="100%" className="hub-table">
                             <tbody>
                                 {/* 사용 가능 인원, 운영 여부, 거점 유형 */}
                                 <tr>
@@ -445,7 +445,7 @@ function HubUpdateFormComponent(props) {
                                 <tr>
                                     <th>첨부 이미지</th>
                                     <td colSpan="5">
-                                        <div className="d-flex" style={{ gap: "15px" }}>
+                                        <div className="d-flex hub-form" style={{ gap: "15px" }}>
                                             {[0, 1, 2].map((index) => (
                                                 <div 
                                                     key={index}

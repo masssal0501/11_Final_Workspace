@@ -43,6 +43,8 @@ import EmployeeList from "./employee/components/EmployeeList";
 import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
+import AdminComponent from "./dashboard/components/AdminComponent";
+
 import {
     Routes,
     Route,
@@ -261,7 +263,7 @@ function App() {
 
 
 
-                <Route
+                {/* <Route
                     path="/"
                     element={
                         <Navigate
@@ -269,13 +271,15 @@ function App() {
                             replace
                         />
                     }
-                />
+                /> */}
 
                 <Route
                     path="/dashboard"
-                    element={
-                        <div>대시보드</div>
-                    }
+                    element={ loginUser.authCode === "ADMIN" ? (
+                        <AdminComponent />
+                    ) : (
+                        <></> // 매니저나 일반 유저일 때 보여줄 빈 화면 
+                    )}
                 />
 
                 {/* 마이페이지 */}

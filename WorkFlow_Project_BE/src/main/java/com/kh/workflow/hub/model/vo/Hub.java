@@ -22,11 +22,11 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 워케이션 거점(Hub) 정보를 관리하는 JPA 엔티티 클래스
+ * 워케이션 거점(hub) 정보를 관리하는 JPA 엔티티 클래스
  */
 @Schema(description="거점 엔티티")
 @Entity
-@Table(name="Hub")
+@Table(name="hub")
 @DynamicInsert
 @DynamicUpdate
 @NoArgsConstructor

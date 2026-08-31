@@ -1,0 +1,24 @@
+.admin-dashboard-1 {
+    background-color: rgb(235, 235, 235);
+    font-size: x-large;
+    padding: 10px;
+}
+
+.admin-dashboard-2 p {
+    font-size: large;
+}
+
+.admin-dashboard-3 p {
+    font-size: large;
+    padding: 0px 38px;
+}
+
+.admin-dashboard-3 div {
+    font-size: large;
+}
+
+.admin-dashboard-4 div {
+    font-size: large;
+    padding: 10px 40px;
+    border-bottom: 1px solid black;
+}

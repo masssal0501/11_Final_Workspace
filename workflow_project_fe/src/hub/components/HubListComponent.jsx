@@ -257,7 +257,7 @@ function HubListComponent(props) {
             </div>
             <br />
             {/* 상단 검색 필터 테이블 영역 */}
-            <table align="left" className="search-filter-table">
+            <table align="left" className="search-filter-table hub-table">
                 <tbody>
                     <tr style={ { border : "none" } }>
                         <td>지역 : </td>
@@ -300,7 +300,7 @@ function HubListComponent(props) {
             <div style={{ height: "30px" }}></div>
 
             {/* 거점 목록이 나열되는 메인 테이블 영역 */}
-            <table className="table table-hover list-area">
+            <table className="table table-hover list-area hub-table">
                 <thead></thead>
                 <tbody> 
                     {/* 서버로부터 받아와서 생성한 실제 아이템 컴포넌트들(HubItemComponent)이 이 자리에 뿌려집니다. */}

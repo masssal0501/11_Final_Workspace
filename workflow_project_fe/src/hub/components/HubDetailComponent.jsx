@@ -114,7 +114,7 @@ function HubDetailComponent(props) {
             <h2 align="center"><b>{ hub.hubName }</b></h2>
             <br /><br />
             {/* 썸네일 이미지와 기본 정보 */}
-            <div className="title-area area">
+            <div className="title-area d-flex">
                 {hub.hubFileList && hub.hubFileList.length > 0 && (
                     <img src={`${BASE_URL.replace('/hubs', '')}${hub.hubFileList[0].filePath}/${hub.hubFileList[0].changeName}`} alt="썸네일 이미지" />
                 )}
@@ -131,7 +131,7 @@ function HubDetailComponent(props) {
             <hr />
             <br />
             {/* 클립보드 복사 버튼, 별점 렌더링, 카카오 맵 컨테이너 */}
-            <div className="content-area area">
+            <div className="content-area d-flex">
                 {/* 일반 지도가 렌더링되는 영역 */}
                 <div className="span-area big-font">
                     <span style={ { fontSize: "19px" } }>주소 : { hub.hubAddress }<br/><p onClick={ handleCopyClipBoard }>※복사하기</p></span>
@@ -173,7 +173,7 @@ function HubDetailComponent(props) {
                     <br />
                     <hr />
                     <br />
-                    <div className="img-area area">
+                    <div className="img-area d-flex">
                     {/* hubFileList가 존재할 때만 실행되며, 0번(썸네일)을 제외한 나머지 이미지들만 반복해서 그려줍니다. */}
                         {hub.hubFileList && hub.hubFileList.slice(1).map((file, index) => (
                             <img 

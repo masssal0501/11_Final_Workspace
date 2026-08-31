@@ -9,62 +9,62 @@
   padding: 50px 25px;
 }
 
-th {
+.hub-table th {
     background-color: #EAEAEA;
 }
 
-table * {
+.hub-table * {
     text-align: center;
     margin: auto;
     padding: 2px 2px;
 }
 
-input, textarea, select{
+.hub-table input, textarea, select{
     border: 1px solid rgb(167, 167, 167) !important;
 }
 
-tr:first-child{
+.hub-table tr:first-child{
     border-top: 1px solid black;
 }
 
-tr:first-child td:last-child{
+.hub-table tr:first-child td:last-child{
     display: flex;
     margin-top: 10px;
 }
 
-tr:first-child td:last-child label{
+.hub-table tr:first-child td:last-child label{
     display: flex;
     gap: 5px; 
 }
 
-tr:nth-child(2) td:last-child input {
+.hub-table tr:nth-child(2) td:last-child input {
     width: 100px;
     flex : 1;
 }
 
-tr:nth-child(2) td:nth-child(2) input {
+.hub-table tr:nth-child(2) td:nth-child(2) input {
     background-color: white;
 }
 
-tr:last-child input {
+.hub-table tr:last-child input {
     margin-top: 5px;
 }
 
-tr {
+.hub-table tr {
     border-bottom: 1px solid #bcbcbc;
 }
 
-th {
+.hub-table th {
     width: 110px !important;
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+.hub-table input[type="number"]::-webkit-inner-spin-button,
+.hub-table input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.d-flex>div {
+.hub-form>div {
     width: 180px;
     height: 130px;
     border-radius: 6px;
@@ -94,16 +94,11 @@ input[type="number"]::-webkit-outer-spin-button {
     justify-content: center;
     align-items: center;
     gap: 12px;
-    
     margin: 0 auto;
 }
 
 .ai-form .form-control {
     flex : 1;
-}
-
-.area {
-    display: flex;
 }
 
 .content-off {
@@ -178,16 +173,16 @@ input[type="number"]::-webkit-outer-spin-button {
     background-color: #0084e9;
 }
 
-select[name="subRegion"] {
+.hub-table select[name="subRegion"] {
     width: 130px;
 }
 
-select[name="hubType"] {
+.hub-table select[name="hubType"] {
     width: 130px;
     flex: 0 0 auto;
 }
 
-input[name="keyword"] {
+.hub-table input[name="keyword"] {
     width: 499px !important;
     flex: 0 0 auto;
     margin-bottom: 5px !important;

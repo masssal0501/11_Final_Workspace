@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import axiosInstance from "../../common/api/axiosInstance"
 
 const BASE_URL = 'http://localhost:8006/workflow/hubs';
