@@ -206,18 +206,26 @@ function WorkcationEnrollFormComponent() {
                             {hasValiItem
                                 ? `${placeConfig.label} 선택`
                                 : `해당하는 ${placeConfig.label}이(가) 없습니다.`}
-                        </option>
-                        {hubItemList.map((item, index) => {
-                            const status = item.hubStatus;
-                            const isPaused = status === 'PAUSED';
+                       </option>
+                    {hubItemList.map((item, index) => {
+                        const status = item.hubStatus;
+                        const isPaused = status === 'PAUSED';
+                        const isClosed = status === 'CLOSED';
+                        const isDisabled = isPaused || isClosed;
 
-                            return (
-                                <option
-                                    key={item.hubNo || index}
-                                    value={item.hubNo}
-                                    disabled={isPaused} >
-                                    {item.hubName} / {isPaused ? "일시중단" : (item.price ? `${item.price.toLocaleString()}원` : "가격 정보 없음")}
-                                </option>
+                        const statusLabel = isClosed 
+                                                    ? "종료" : isPaused 
+                                                    ? "일시중단" : (item.price 
+                                                    ? `${item.price.toLocaleString()}원` : "무료 입장");
+
+                        return (
+                               <option
+                                key={item.hubNo || index}
+                                value={item.hubNo}
+                                disabled={isDisabled}
+                                style={isDisabled ? { color: "#999999" } : {}}>
+                                {item.hubName} / {statusLabel}
+                            </option>
                             );
                         })}
                     </select>
@@ -437,12 +445,21 @@ function WorkcationEnrollFormComponent() {
                                         {valiHubList.map((hub, index) => {
                                             const status = hub.hubStatus;
                                             const isPaused = status === 'PAUSED';
+                                            const isClosed = status === 'CLOSED';
+                                            const isDisabled = isPaused || isClosed; // 비활성화 조건
+
+                                            // 표시할 라벨 문구
+                                            const statusLabel = isClosed 
+                                                    ? "종료" : isPaused 
+                                                    ? "일시중단" : (hub?.price 
+                                                    ? `${hub.price.toLocaleString()}원` : "가격 정보 없음");
 
                                             return (
                                                 <option key={`hub-${hub?.hubNo || index}`}
                                                     value={hub?.hubNo}
-                                                    disabled={isPaused} >
-                                                    {hub?.hubName} / {isPaused ? "일시중단" : (hub?.price ? `${hub.price.toLocaleString()}원` : "가격 정보 없음")}
+                                                    disabled={isDisabled}
+                                                    style={isDisabled ? { color: "#999999" } : {}}>
+                                                    {hub?.hubName} / {statusLabel}
                                                 </option>
                                             );
                                         })}
