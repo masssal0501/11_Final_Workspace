@@ -140,7 +140,7 @@ function PlaceEdit() {
 
             alert("지역 정보가 수정되었습니다.");
 
-            navigate(`/place/${hubNo}`);
+            navigate(`/workflow/place/detail/${hubNo}`);
 
         } catch (error) {
 
