@@ -93,3 +93,79 @@
     color: #888;
     cursor: default;
 }
+
+
+/* 검색 영역 */
+.employeeSearchArea {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.employeeSearchArea select {
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+}
+
+.employeeSearchArea input {
+    width: 250px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.employeeSearchArea input:focus,
+.employeeSearchArea select:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+
+/* 검색 결과 수 */
+.employeeResultCount {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+
+/* 페이지네이션 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.pagination button {
+    min-width: 35px;
+    height: 35px;
+    padding: 0 10px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #f5f5f5;
+}
+
+.pagination button.active {
+    background: #333;
+    color: white;
+    border-color: #333;
+}
+
+.pagination button:disabled {
+    color: #aaa;
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
