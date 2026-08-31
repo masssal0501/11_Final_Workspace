@@ -1,9 +1,8 @@
 import "../styles/Header.css";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { logout } from "../../employee/api/employeeApi";
+import { useState } from "react";
 
-function Header() {
+function Header({ loginUser, onLogout }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
   const navigate = useNavigate();
@@ -12,60 +11,67 @@ function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // 로그인 사용자
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
 
   // 로그인 사용자 정보 가져오기
-  useEffect(() => {
+  // useEffect(() => {
 
-    const savedUser = localStorage.getItem("user");
+  //   const savedUser = localStorage.getItem("user");
 
-    if (savedUser) {
+  //   if (savedUser) {
 
-      try {
+  //     try {
 
-        const parsedUser = JSON.parse(savedUser);
+  //       const parsedUser = JSON.parse(savedUser);
 
-        setUser(parsedUser);
+  //       setUser(parsedUser);
 
-      } catch (error) {
+  //     } catch (error) {
 
-        console.error(
-          "사용자 정보 불러오기 실패:",
-          error
-        );
+  //       console.error(
+  //         "사용자 정보 불러오기 실패:",
+  //         error
+  //       );
 
-      }
-    }
+  //     }
+  //   }
 
-  }, []);
+  // }, []);
 
 
   // 로그아웃
-  const handleLogout = async () => {
+  // const handleLogout = async () => {
 
-    try {
+  //   try {
 
-      await logout();
+  //     await logout();
 
-    } catch (error) {
+  //   } catch (error) {
 
-      console.error(
-        "로그아웃 API 실패:",
-        error
-      );
+  //     console.error(
+  //       "로그아웃 API 실패:",
+  //       error
+  //     );
 
-    } finally {
+  //   } finally {
 
-      // JWT 삭제
-      localStorage.removeItem("accessToken");
+  //     // JWT 삭제
+  //     localStorage.removeItem("accessToken");
 
-      // 사용자 정보 삭제
-      localStorage.removeItem("user");
+  //     // 사용자 정보 삭제
+  //     localStorage.removeItem("user");
 
-      // 로그인 페이지 이동
-      navigate("/login");
-    }
-  };
+  //     // React state도 즉시 초기화
+  //     setUser(null);
+
+  //     // 드롭다운 닫기
+  //     setIsProfileOpen(false);
+
+
+  //     // 로그인 페이지 이동
+  //     navigate("/login");
+  //   }
+  // };
 
 
   // 마이페이지 이동
@@ -277,8 +283,8 @@ function Header() {
 
               <div className="wf-profile-image">
 
-                {user?.empName
-                  ? user.empName.charAt(0)
+                {loginUser?.empName
+                  ? loginUser.empName.charAt(0)
                   : "?"}
 
               </div>
@@ -290,11 +296,11 @@ function Header() {
 
                 <div className="wf-profile-name">
 
-                  {user?.empName || "사용자"}
+                  {loginUser?.empName || "사용자"}
 
                   <span>
                     {getAuthName(
-                      user?.authCode
+                      loginUser?.authCode
                     )}
                   </span>
 
@@ -303,7 +309,7 @@ function Header() {
                 <div className="wf-profile-department">
 
                   {getDepartmentName(
-                    user?.depId
+                    loginUser?.depId
                   )}
 
                 </div>
@@ -341,7 +347,7 @@ function Header() {
                 <button
                   type="button"
                   className="logout-button"
-                  onClick={handleLogout}
+                  onClick={onLogout}
                 >
                   <span>↪</span>
                   로그아웃
