@@ -146,7 +146,10 @@ function PlaceForm() {
                     </select>
                 </div>
 
+                <br />
+
                 <div className="formGroup">
+                    <div className="placetype">
                     <h4>장소 유형</h4>
                     <select
                         name="hubType"
@@ -158,6 +161,7 @@ function PlaceForm() {
                         <option value="4">맛집</option>
                         <option value="5">관광지</option>
                     </select>
+                    </div>
                 </div>
 
                 <div className="formGroup">

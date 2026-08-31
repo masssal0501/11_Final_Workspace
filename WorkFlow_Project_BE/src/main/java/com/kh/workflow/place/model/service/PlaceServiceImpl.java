@@ -7,15 +7,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.workflow.hub.model.dao.HubFileDao;
+import com.kh.workflow.hub.model.vo.Hub;
+import com.kh.workflow.hub.model.vo.HubFile;
 import com.kh.workflow.place.model.dao.PlaceDao;
-
-import com.kh.workflow.place.model.vo.Hub;
 
 @Service
 public class PlaceServiceImpl implements PlaceService {
 
     @Autowired
     private PlaceDao placeDao;
+    
+    @Autowired
+    private HubFileDao hubFileDao;
 
     @Transactional(readOnly = true)
     @Override
@@ -55,8 +59,14 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Transactional
     @Override
-    public Hub insertPlace(Hub h, MultipartFile file) {
+    public Hub insertPlace(Hub h) {
         return placeDao.save(h);
+    }
+    
+    @Transactional
+    @Override
+    public HubFile insertPlaceFile(HubFile file) {
+        return hubFileDao.save(file);
     }
 
     @Transactional

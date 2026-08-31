@@ -46,11 +46,12 @@ public class JwtAuthenticationFilter
         // JWT 검증
         if (jwtUtil.validateToken(token)) {
 
-            String empId =
-                    jwtUtil.getEmpId(token);
+            String empId = jwtUtil.getEmpId(token);
+            String authCode = jwtUtil.getAuthCode(token);
 
-            String authCode =
-                    jwtUtil.getAuthCode(token);
+            System.out.println("===== JWT 인증 성공 =====");
+            System.out.println("empId : " + empId);
+            System.out.println("authCode : " + authCode);
 
             SimpleGrantedAuthority authority =
                     new SimpleGrantedAuthority(
@@ -67,6 +68,13 @@ public class JwtAuthenticationFilter
             SecurityContextHolder
                     .getContext()
                     .setAuthentication(authentication);
+
+            System.out.println(
+                    "Authentication : " +
+                    SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+            );
         }
 
         filterChain.doFilter(request, response);

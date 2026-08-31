@@ -31,6 +31,7 @@
 /* 각각의 입력 영역 */
 .formGroup {
     margin-bottom: 24px;
+    
 }
 
 /* 항목 제목 */
@@ -210,4 +211,7 @@
     .buttonGroup button {
         width: 100%;
     }
+}
+.placetype{
+    padding-top: 30px;
 }

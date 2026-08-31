@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.kh.workflow.place.model.vo.Hub;
+import com.kh.workflow.hub.model.vo.Hub;
 
 public interface PlaceDao extends JpaRepository<Hub, Integer> {
 
@@ -15,7 +15,8 @@ public interface PlaceDao extends JpaRepository<Hub, Integer> {
     @Query("""
         SELECT h
         FROM Hub h
-        WHERE (:type IS NULL OR h.hubType = :type)
+        WHERE h.hubType IN (3, 4, 5)
+          AND (:type IS NULL OR h.hubType = :type)
           AND (:region IS NULL OR h.mainRegion = :region)
           AND (:subRegion IS NULL OR h.subRegion = :subRegion)
         ORDER BY h.hubNo DESC
