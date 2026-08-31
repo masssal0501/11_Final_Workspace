@@ -1,0 +1,118 @@
+.error-page {
+    width: 100%;
+    min-height: calc(100vh - 120px);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: #f8f9fa;
+}
+
+.error-container {
+    width: 500px;
+    padding: 60px 40px;
+
+    text-align: center;
+
+    background-color: #ffffff;
+    border-radius: 16px;
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* 경고 아이콘 */
+.error-icon {
+    width: 70px;
+    height: 70px;
+
+    margin: 0 auto 25px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 50%;
+
+    background-color: #f1f3f5;
+    color: #495057;
+
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.error-container h1 {
+    margin: 0 0 15px;
+
+    font-size: 26px;
+    font-weight: 700;
+
+    color: #212529;
+}
+
+.error-container p {
+    margin: 0 0 35px;
+
+    font-size: 16px;
+    color: #6c757d;
+
+    line-height: 1.6;
+}
+
+/* 버튼 영역 */
+.error-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.error-buttons button {
+    width: 140px;
+    height: 45px;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+/* 전 페이지 */
+.error-back-btn {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.error-back-btn:hover {
+    background-color: #dee2e6;
+}
+
+/* 대시보드 */
+.error-dashboard-btn {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+.error-dashboard-btn:hover {
+    background-color: #212529;
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+    .error-container {
+        width: calc(100% - 40px);
+        padding: 45px 25px;
+    }
+
+    .error-buttons {
+        flex-direction: column;
+    }
+
+    .error-buttons button {
+        width: 100%;
+    }
+}

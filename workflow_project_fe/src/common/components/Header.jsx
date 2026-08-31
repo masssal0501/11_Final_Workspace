@@ -19,49 +19,150 @@ function Header({ loginUser, onLogout }) {
   };
 
 
+  // =========================
   // 메뉴
+  // =========================
   const menus = [
     {
       id: "workcation",
-      label: "워케이션 신청",
+      label: "워케이션",
       icon: "▣",
       path: "/workcation/list",
-      roles: ["MANAGER", "STAFF"]
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+
+      children: [ 
+        { 
+          label: "워케이션 신청", 
+          path: "/workcation/enrollform" ,
+          roles: ["MANAGER", "STAFF"]
+        }, 
+        { 
+          label: "부서 워케이션 목록", 
+          path: "/workcation/deptList",
+          roles: ["MANAGER"]
+        } ,
+        { 
+          label: "신청 내역 목록", 
+          path: "/workcation/list"
+        } ,
+        { 
+          label: "시설 예약 관리", 
+          path: "/workcation/reservation",
+          roles: ["ADMIN"]
+        }         
+      ]
     },
     {
       id: "task",
       label: "업무 관리",
       icon: "☷",
       path: "/task/list",
-      roles: ["ADMIN", "MANAGER", "STAFF"]
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+      
+      children: [ 
+        { 
+          label: "내 업무", 
+          path: "/task/list",
+          roles: ["MANAGER", "STAFF"]
+        }, 
+        { 
+          label: "업무 이력", 
+          path: "/task/history" 
+        } , 
+        { 
+          label: "업무 현황", 
+          path: "/task/list",
+          roles:["ADMIN", "MANAGER"]
+        } 
+      ]
+    },
+    {
+      id: "cost",
+      label: "비용 관리",
+      icon: "₩",
+      path: "/cost/list",
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+
+      children: [ 
+        { 
+          label: "정산 신청", 
+          path: "/cost/apply" ,
+          roles: ["MANAGER", "STAFF"]
+        } ,
+        { 
+          label: "정산 목록", 
+          path: "/cost/list" 
+        }, 
+        { 
+          label: "지원금 목록", 
+          path: "/subsidy/list" ,
+          rolse:["ADMIN"]
+        }, 
+      ]
     },
     {
       id: "employee",
       label: "직원 관리",
       icon: "☷",
       path: "/employee/list",
-      roles: ["ADMIN"]
+
+      roles: ["ADMIN"],
+
+      children: [ 
+        { 
+          label: "직원 목록", 
+          path: "/employee/list" 
+        }, 
+        { 
+          label: "직원 등록", 
+          path: "/employee/enrollForm" 
+        } 
+      ]
     },
     {
-      id: "amount",
-      label: "비용 관리",
-      icon: "₩",
-      path: "/amount",
-      roles: ["ADMIN", "MANAGER", "STAFF"]
+      id: "placeInfo",
+      label: "장소/거점",
+      icon: "⌖",
+      path: "/placeInfo/list",
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+
+      children: [ 
+        { 
+          label: "장소 정보", 
+          path: "/placeInfo/list" 
+        }, 
+        { 
+          label: "AI 여행 일정 추천", 
+          path: "/placeInfo/ai" 
+        },     
+        { 
+          label: "거점 등록", 
+          path: "/placeInfo/enrollForm",
+          roles:["ADMIN"]
+        } 
+      ]      
     },
     {
       id: "notice",
       label: "공지사항",
       icon: "♢",
       path: "/notice",
-      roles: ["ADMIN", "MANAGER", "STAFF"]
-    },
-    {
-      id: "hub",
-      label: "장소/거점",
-      icon: "⌖",
-      path: "/hub",
-      roles: ["ADMIN"]
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+      children: [ 
+        { 
+          label: "공지사항", 
+          path: "/notice"
+        }, 
+        { 
+          label: "공지사항 작성", 
+          path: "/notice/insert",
+          roles:["ADMIN"]
+        } 
+      ]
     },
   ];
 
@@ -81,6 +182,11 @@ function Header({ loginUser, onLogout }) {
 
     navigate(menu.path);
     // React Router를 사용한다면 navigate(menu.path) 사용
+  };
+
+  // 하위 메뉴 이동 
+  const handleSubMenuClick = (path) => { 
+    navigate(path); 
   };
 
 
@@ -179,8 +285,14 @@ function Header({ loginUser, onLogout }) {
 
           {visibleMenus.map((menu) => (
 
-            <button
+            <div
               key={menu.id}
+              className="wf-nav-dropdown"
+            >
+
+            {/* 상위 메뉴 */}
+
+            <button
               className={`wf-nav-item ${
                 activeMenu === menu.id
                   ? "active"
@@ -198,6 +310,39 @@ function Header({ loginUser, onLogout }) {
               </span>
 
             </button>
+
+            {/* 하위 메뉴 */}
+
+            {menu.children && menu.children.length > 0 && ( 
+              <div className="wf-submenu"> 
+              
+                {menu.children .filter(child => { 
+                  
+                // roles가 없으면 모든 권한 허용 
+                if (!child.roles) { 
+                  return true; 
+                } 
+                
+                return child.roles.includes( 
+                  loginUser?.authCode 
+                ); 
+              
+              }) .map((child) => ( 
+
+                <button 
+                  key={child.path} 
+                  type="button" 
+                  onClick={() => handleSubMenuClick( child.path ) } 
+                >   
+                  {child.label} 
+                
+                </button> 
+              ))} 
+            
+            </div> 
+          )}
+
+            </div>
 
           ))}
 
