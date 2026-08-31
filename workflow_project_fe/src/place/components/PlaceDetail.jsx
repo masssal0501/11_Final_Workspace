@@ -212,9 +212,9 @@ function PlaceDetail() {
 
                 <button
                     className="backButton"
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate("/workflow/place/list")}
                 >
-                    뒤로가기
+                    목록으로
                 </button>
 
             </div>
