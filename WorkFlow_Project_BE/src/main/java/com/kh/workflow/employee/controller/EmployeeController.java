@@ -20,6 +20,7 @@ import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
+import com.kh.workflow.employee.model.dto.EmployeeRoleUpdateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
@@ -158,14 +159,14 @@ public class EmployeeController {
     @PatchMapping("/{empNo}/role")
     public ResponseEntity<Void> updateRole(
             @PathVariable Integer empNo,
-            @RequestParam String authCode
+            @RequestBody EmployeeRoleUpdateRequest request
     ) {
 
         employeeService.updateEmployeeRole(
                 empNo,
-                authCode
+                request
         );
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

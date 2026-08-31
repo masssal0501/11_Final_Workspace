@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../styles/EmployeeList.css";
 
 import { useNavigate } from "react-router-dom";
@@ -11,11 +11,31 @@ function EmployeeList() {
     // 직원 목록
     const [employees, setEmployees] = useState([]);
 
-    // 로딩 상태
+    // 로딩
     const [loading, setLoading] = useState(true);
 
+    // 검색어
+    const [searchKeyword, setSearchKeyword] = useState("");
 
-    // 부서
+    // 검색 대상
+    const [searchType, setSearchType] = useState("all");
+
+    // 부서 필터
+    const [depFilter, setDepFilter] = useState("");
+
+    // 상태 필터
+    const [statusFilter, setStatusFilter] = useState("");
+
+    // 현재 페이지
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // 페이지당 직원 수
+    const itemsPerPage = 5;
+
+
+    /*
+     * 부서명
+     */
     const getDepName = (depId) => {
 
         switch (depId) {
@@ -28,10 +48,10 @@ function EmployeeList() {
 
             case "D3":
                 return "FE 개발";
-            
+
             case "D4":
                 return "BE 개발";
-            
+
             case "D5":
                 return "데이터";
 
@@ -40,11 +60,15 @@ function EmployeeList() {
 
             default:
                 return "";
+
         }
+
     };
 
 
-    // 직위
+    /*
+     * 직위
+     */
     const getJobName = (jobCode) => {
 
         switch (jobCode) {
@@ -66,8 +90,11 @@ function EmployeeList() {
 
             default:
                 return "";
+
         }
+
     };
+
 
     /*
      * 직원 목록 조회
@@ -105,6 +132,7 @@ function EmployeeList() {
                 setLoading(false);
 
             }
+
         };
 
         loadEmployees();
@@ -113,7 +141,145 @@ function EmployeeList() {
 
 
     /*
-     * 직원 등록 페이지 이동
+     * 검색 + 필터링
+     */
+    const filteredEmployees = useMemo(() => {
+
+        return employees.filter((employee) => {
+
+            /*
+             * 검색
+             */
+            const keyword =
+                searchKeyword.trim().toLowerCase();
+
+            let matchesSearch = true;
+
+            if (keyword) {
+
+                const empName =
+                    employee.empName?.toLowerCase() || "";
+
+                const empId =
+                    employee.empId?.toLowerCase() || "";
+
+                const depName =
+                    getDepName(employee.depId)
+                        .toLowerCase();
+
+                if (searchType === "name") {
+
+                    matchesSearch =
+                        empName.includes(keyword);
+
+                } else if (searchType === "id") {
+
+                    matchesSearch =
+                        empId.includes(keyword);
+
+                } else {
+
+                    matchesSearch =
+                        empName.includes(keyword) ||
+                        empId.includes(keyword) ||
+                        depName.includes(keyword);
+
+                }
+
+            }
+
+
+            /*
+             * 부서 필터
+             */
+            const matchesDepartment =
+                depFilter === "" ||
+                employee.depId === depFilter;
+
+
+            /*
+             * 상태 필터
+             */
+            const matchesStatus =
+                statusFilter === "" ||
+                employee.status === statusFilter;
+
+
+            return (
+                matchesSearch &&
+                matchesDepartment &&
+                matchesStatus
+            );
+
+        });
+
+    }, [
+        employees,
+        searchKeyword,
+        searchType,
+        depFilter,
+        statusFilter
+    ]);
+
+
+    /*
+     * 전체 페이지 수
+     */
+    const totalPages =
+        Math.ceil(
+            filteredEmployees.length /
+            itemsPerPage
+        );
+
+
+    /*
+     * 현재 페이지 데이터
+     */
+    const currentEmployees =
+        filteredEmployees.slice(
+            (currentPage - 1) * itemsPerPage,
+            currentPage * itemsPerPage
+        );
+
+
+    /*
+     * 검색 / 필터 변경
+     * → 1페이지로 이동
+     */
+    const handleSearchChange = (e) => {
+
+        setSearchKeyword(e.target.value);
+        setCurrentPage(1);
+
+    };
+
+
+    const handleSearchTypeChange = (e) => {
+
+        setSearchType(e.target.value);
+        setCurrentPage(1);
+
+    };
+
+
+    const handleDepFilterChange = (e) => {
+
+        setDepFilter(e.target.value);
+        setCurrentPage(1);
+
+    };
+
+
+    const handleStatusFilterChange = (e) => {
+
+        setStatusFilter(e.target.value);
+        setCurrentPage(1);
+
+    };
+
+
+    /*
+     * 직원 등록
      */
     const handleAddEmployee = () => {
 
@@ -123,16 +289,30 @@ function EmployeeList() {
 
 
     /*
-     * 직원 상세 페이지 이동
+     * 직원 상세
      */
     const handleEmployeeClick = (empNo) => {
 
-        console.log(
-            "직원 상세:",
-            empNo
+        navigate(
+            `/employee/detail/${empNo}`
         );
 
-        navigate(`/employee/detail/${empNo}`);
+    };
+
+
+    /*
+     * 페이지 이동
+     */
+    const handlePageChange = (page) => {
+
+        if (
+            page < 1 ||
+            page > totalPages
+        ) {
+            return;
+        }
+
+        setCurrentPage(page);
 
     };
 
@@ -147,7 +327,11 @@ function EmployeeList() {
             <div className="employeeListPage">
 
                 <div className="employeeListHeader">
-                    <h2>직원 관리</h2>
+
+                    <h2>
+                        직원 관리
+                    </h2>
+
                 </div>
 
                 <div>
@@ -165,13 +349,14 @@ function EmployeeList() {
 
         <div className="employeeListPage">
 
-            {/* 페이지 상단 */}
+            {/* =========================
+                페이지 상단
+            ========================= */}
             <div className="employeeListHeader">
 
                 <h2>
                     직원 관리
                 </h2>
-
 
                 <button
                     className="addEmployeeBtn"
@@ -184,7 +369,111 @@ function EmployeeList() {
             </div>
 
 
-            {/* 직원 목록 */}
+            {/* =========================
+                검색 / 필터
+            ========================= */}
+            <div className="employeeSearchArea">
+
+                {/* 검색 대상 */}
+                <select
+                    value={searchType}
+                    onChange={handleSearchTypeChange}
+                >
+                    <option value="all">
+                        전체
+                    </option>
+
+                    <option value="name">
+                        이름
+                    </option>
+
+                    <option value="id">
+                        아이디
+                    </option>
+                </select>
+
+
+                {/* 검색어 */}
+                <input
+                    type="text"
+                    placeholder="검색어를 입력하세요"
+                    value={searchKeyword}
+                    onChange={handleSearchChange}
+                />
+
+
+                {/* 부서 */}
+                <select
+                    value={depFilter}
+                    onChange={handleDepFilterChange}
+                >
+                    <option value="">
+                        전체 부서
+                    </option>
+
+                    <option value="D1">
+                        기획
+                    </option>
+
+                    <option value="D2">
+                        디자인
+                    </option>
+
+                    <option value="D3">
+                        FE 개발
+                    </option>
+
+                    <option value="D4">
+                        BE 개발
+                    </option>
+
+                    <option value="D5">
+                        데이터
+                    </option>
+
+                    <option value="D6">
+                        QA
+                    </option>
+
+                </select>
+
+
+                {/* 상태 */}
+                <select
+                    value={statusFilter}
+                    onChange={handleStatusFilterChange}
+                >
+
+                    <option value="">
+                        전체 상태
+                    </option>
+
+                    <option value="Y">
+                        활성
+                    </option>
+
+                    <option value="N">
+                        비활성
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            {/* =========================
+                검색 결과 수
+            ========================= */}
+            <div className="employeeResultCount">
+
+                총 {filteredEmployees.length}명
+
+            </div>
+
+
+            {/* =========================
+                직원 목록
+            ========================= */}
             <div className="employeeTableWrapper">
 
                 <table className="employeeTable">
@@ -220,44 +509,50 @@ function EmployeeList() {
 
                     <tbody>
 
-                        {employees.length > 0 ? (
+                        {currentEmployees.length > 0 ? (
 
-                            employees.map((employee) => (
+                            currentEmployees.map(
+                                (employee) => (
 
-                                <tr
-                                    key={employee.empNo}
-                                    onClick={() =>
-                                        handleEmployeeClick(
-                                            employee.empNo
-                                        )
-                                    }
-                                >
+                                    <tr
+                                        key={employee.empNo}
+                                        onClick={() =>
+                                            handleEmployeeClick(
+                                                employee.empNo
+                                            )
+                                        }
+                                    >
 
-                                    <td>
-                                        {getDepName(employee.depId)}
-                                    </td>
+                                        <td>
+                                            {getDepName(
+                                                employee.depId
+                                            )}
+                                        </td>
 
-                                    <td>
-                                        {employee.empName}
-                                    </td>
+                                        <td>
+                                            {employee.empName}
+                                        </td>
 
-                                    <td>
-                                        {getJobName(employee.jobCode)}
-                                    </td>
+                                        <td>
+                                            {getJobName(
+                                                employee.jobCode
+                                            )}
+                                        </td>
 
-                                    <td>
-                                        {employee.empId}
-                                    </td>
+                                        <td>
+                                            {employee.empId}
+                                        </td>
 
-                                    <td>
-                                        {employee.status === "Y"
-                                            ? "활성"
-                                            : "비활성"}
-                                    </td>
+                                        <td>
+                                            {employee.status === "Y"
+                                                ? "활성"
+                                                : "비활성"}
+                                        </td>
 
-                                </tr>
+                                    </tr>
 
-                            ))
+                                )
+                            )
 
                         ) : (
 
@@ -267,7 +562,7 @@ function EmployeeList() {
                                     colSpan={5}
                                     className="emptyEmployee"
                                 >
-                                    등록된 직원이 없습니다.
+                                    검색 결과가 없습니다.
                                 </td>
 
                             </tr>
@@ -279,6 +574,71 @@ function EmployeeList() {
                 </table>
 
             </div>
+
+
+            {/* =========================
+                페이지네이션
+            ========================= */}
+            {totalPages > 0 && (
+
+                <div className="pagination">
+
+                    {/* 이전 */}
+                    <button
+                        type="button"
+                        disabled={currentPage === 1}
+                        onClick={() =>
+                            handlePageChange(
+                                currentPage - 1
+                            )
+                        }
+                    >
+                        이전
+                    </button>
+
+
+                    {/* 페이지 번호 */}
+                    {Array.from(
+                        { length: totalPages },
+                        (_, index) => index + 1
+                    ).map((page) => (
+
+                        <button
+                            type="button"
+                            key={page}
+                            className={
+                                currentPage === page
+                                    ? "active"
+                                    : ""
+                            }
+                            onClick={() =>
+                                handlePageChange(page)
+                            }
+                        >
+                            {page}
+                        </button>
+
+                    ))}
+
+
+                    {/* 다음 */}
+                    <button
+                        type="button"
+                        disabled={
+                            currentPage === totalPages
+                        }
+                        onClick={() =>
+                            handlePageChange(
+                                currentPage + 1
+                            )
+                        }
+                    >
+                        다음
+                    </button>
+
+                </div>
+
+            )}
 
         </div>
 

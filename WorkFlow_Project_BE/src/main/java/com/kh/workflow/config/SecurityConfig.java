@@ -112,6 +112,18 @@ public class SecurityConfig {
                                 "/place/**"
                         ).permitAll()
 
+	                     // 관리자 - 계정 상태 변경
+	                    .requestMatchers(
+	                            HttpMethod.PATCH,
+	                            "/employees/*/status"
+	                    ).hasRole("ADMIN")
+	
+	                    // 관리자 - 역할 / 부서 / 직위 변경
+	                    .requestMatchers(
+	                            HttpMethod.PATCH,
+	                            "/employees/*/role"
+	                    ).hasRole("ADMIN")
+
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
                 )

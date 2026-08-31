@@ -172,17 +172,12 @@ export const getEmployeeList = async () => {
  */
 export const updateEmployeeRole = async (
     empNo,
-    authCode
+    roleData
 ) => {
 
     const response = await axiosInstance.patch(
         `/employees/${empNo}/role`,
-        null,
-        {
-            params: {
-                authCode,
-            },
-        }
+        roleData
     );
 
     return response.data;

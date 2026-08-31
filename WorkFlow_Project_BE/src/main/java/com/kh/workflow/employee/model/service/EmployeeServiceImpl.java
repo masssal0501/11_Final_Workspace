@@ -13,6 +13,7 @@ import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
+import com.kh.workflow.employee.model.dto.EmployeeRoleUpdateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
@@ -520,7 +521,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     public void updateEmployeeRole(
             Integer empNo,
-            String authCode
+            EmployeeRoleUpdateRequest request
     ) {
 
         Employee employee =
@@ -532,7 +533,9 @@ public class EmployeeServiceImpl implements EmployeeService{
                         );
 
 
-        employee.setAuthCode(authCode);
+        employee.setAuthCode(request.getAuthCode());
+        employee.setDepId(request.getDepId());
+        employee.setJobCode(request.getJobCode());
     }
 
 
