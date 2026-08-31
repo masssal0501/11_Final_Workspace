@@ -23,6 +23,8 @@ import com.kh.workflow.place.model.service.PlaceService;
 
 import jakarta.servlet.http.HttpSession;
 
+
+
 @RestController
 @RequestMapping("/place")
 public class PlaceController {
@@ -128,13 +130,27 @@ public class PlaceController {
     public ResponseEntity<String> updatePlace(
             @PathVariable int hubNo,
             @RequestPart("place") Hub h,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            HttpSession session) {
 
         // URL의 hubNo를 기준으로 수정
         h.setHubNo(hubNo);
 
-        Hub updatePlace = placeService.updatePlace(h, file);
+        Hub updatePlace = placeService.updatePlace(h);
 
+        if(updatePlace != null && file != null && !file.isEmpty()) {
+        	String changeName = FileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
+        	
+        	HubFile hubFile = new HubFile();
+        	
+        	hubFile.setHub(updatePlace);
+        	hubFile.setFilePath("/resources/upload/hub");
+        	hubFile.setOriginName(file.getOriginalFilename());
+        	hubFile.setChangeName(changeName);
+        	
+        	placeService.updatePlaceFile(hubFile);
+        }
+        
         String message =
                 (updatePlace != null)
                 ? "success"

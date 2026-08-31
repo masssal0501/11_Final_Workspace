@@ -5,11 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.hub.model.dao.HubFileDao;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
+
 import com.kh.workflow.place.model.dao.PlaceDao;
 
 @Service
@@ -65,13 +65,13 @@ public class PlaceServiceImpl implements PlaceService {
     
     @Transactional
     @Override
-    public HubFile insertPlaceFile(HubFile file) {
-        return hubFileDao.save(file);
+    public HubFile insertPlaceFile(HubFile hubFile) {
+        return hubFileDao.save(hubFile);
     }
 
     @Transactional
     @Override
-    public Hub updatePlace(Hub h, MultipartFile file) {
+    public Hub updatePlace(Hub h) {
         return placeDao.save(h);
     }
 
@@ -80,5 +80,10 @@ public class PlaceServiceImpl implements PlaceService {
     public int deletePlace(int hubNo) {
         return placeDao.deletePlace(hubNo);
     }
+
+	@Override
+	public HubFile updatePlaceFile(HubFile hubFile) {
+		return hubFileDao.save(hubFile);
+	}
 
 }

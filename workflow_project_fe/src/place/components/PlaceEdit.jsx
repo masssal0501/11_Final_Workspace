@@ -158,7 +158,7 @@ function PlaceEdit() {
 
 
                     {/* 거점 이름 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>거점 이름 : </h4>
 
@@ -173,7 +173,7 @@ function PlaceEdit() {
 
 
                     {/* 메인 지역 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>지역명 : </h4>
 
@@ -205,8 +205,7 @@ function PlaceEdit() {
 
 
                     {/* 하위 지역 */}
-                    <div>
-
+                    <div className="formGroup">
                         <h4>상세지역명 : </h4>
 
                         <select
@@ -237,13 +236,10 @@ function PlaceEdit() {
                             }
 
                         </select>
-
                     </div>
-
-
                     {/* 장소 유형 */}
-                    <div>
-
+                    <div className="formGroup">
+                            <div className="Detail">
                         <h4>장소 유형 : </h4>
 
                         <select
@@ -269,12 +265,12 @@ function PlaceEdit() {
                             </option>
 
                         </select>
-
+                            </div>
                     </div>
 
 
                     {/* 운영 상태 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>운영 상태 : </h4>
 
@@ -285,15 +281,15 @@ function PlaceEdit() {
                         >
 
                             <option value="OPEN">
-                                🟢
+                                ✅
                             </option>
 
                             <option value="PAUSED">
-                                🟠
+                                ⚠️
                             </option>
 
                             <option value="CLOSED">
-                                🔴
+                                🚫
                             </option>
 
                         </select>
@@ -302,7 +298,7 @@ function PlaceEdit() {
 
 
                     {/* 주소 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>주소 : </h4>
 
@@ -317,7 +313,7 @@ function PlaceEdit() {
 
 
                     {/* 전화번호 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>전화번호 : </h4>
 
@@ -332,7 +328,7 @@ function PlaceEdit() {
 
 
                     {/* 설명 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>지역 설명 : </h4>
 
@@ -345,7 +341,7 @@ function PlaceEdit() {
                     </div>
 
                     {/* 사진 첨부 */}
-                    <div>
+                    <div className="formGroup">
 
                         <h4>사진 첨부 : </h4>
 
@@ -360,20 +356,17 @@ function PlaceEdit() {
 
                 </div>
 
-
-                <div>
-
-                    <button type="submit">
+                <div className="buttonGroup">
+                    <button type="submit" className="submitBtn">
                         저장하기
                     </button>
-
                     <button
                         type="button"
+                        className="backBtn"
                         onClick={() => navigate(-1)}
                     >
                         뒤로가기
                     </button>
-
                 </div>
 
             </form>
