@@ -165,6 +165,20 @@ export const getEmployeeList = async () => {
     return response.data;
 };
 
+/*
+ * USR-009
+ * 아이디 찾기
+ */
+export const findEmployeeId = async (data) => {
+
+    const response = await axiosInstance.post(
+        "/employees/findId",
+        data
+    );
+
+    return response.data;
+};
+
 
 /*
  * USR-011
