@@ -19,7 +19,7 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/workcation")
+@RequestMapping("/approval")
 public class ApprovalController {
 	
 	@Autowired

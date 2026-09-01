@@ -1,15 +1,38 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import "../style/ApprovalReject.css";
+import { useEffect, useState } from "react";
+
+import axiosInstance from "../../../../common/api/axiosInstance";
 
 function ApprovalReject() {
 
     const { workcationNo } = useParams();
 
-    const navigate = useNacigate();
+    const navigate = useNavigate();
+
+    // const [workcationInfo, setWorkcationInfo ] = useState(null);
+
+    const [workcationInfo, setWorkcationInfo] = useState({
+    workcationTitle: "제주 워케이션",
+    workPlan: "제주 지역에서 원격 근무를 진행하며 업무를 수행합니다.",
+    createdAt: "2026-09-01",
+    startAt: "2026-09-10",
+    endAt: "2026-09-15",
+    approverState: "W",
+    approverComment: "",
+    employee: {
+        empNo: 10
+    }
+});
+
+    const [approverState, setApproverState] = useState("W");
+    const [approverComment, setApproverComment] = useState("");
 
     const user = JSON.parse(localStorage.getItem("user"));
-    const isAdmin = user?.authCode === "ADMIN" || "MANAGER";
+    const isAdmin =
+    user?.authCode === "ADMIN" ||
+    user?.authCode === "MANAGER";
 
     // 워케이션 신청 상세 내역
     const selectApprovalDetail = async() => {
@@ -18,61 +41,116 @@ function ApprovalReject() {
 
             console.log("상세조회 데이터 :", response);
 
-            selectDuplicateDomain(response);
+            setWorkcationInfo(response);
+            setApproverState(response.approverState);
+            setApproverComment(response.approverComment || "");
         } catch (error) {
             console.log("워케이션 신청 상세 내역 조회 실패", error);
+        }
+    };
+    // useEffect(() => {
+    // selectApprovalDetail();
+    // }, [workcationNo]);
+
+    if(!workcationInfo) {
+
+        return <div>로딩중...</div>
+    }
+
+    // 승인 상태 표시
+    const getApprovalStatus = (approvalState) => {
+        if (approvalState === "W"){
+            return "대기"
+        }
+            if (approvalState === "H"){
+            return "보류"
+        }
+            if (approvalState === "R"){
+            return "검토"
+        }
+            if (approvalState === "J"){
+            return "반려"
         }
     };
 
     
     return (
         <div className="rejectPage">
-            <h2>반려 페이지</h2>
+            <h3>반려 페이지</h3>
             <hr />
+        <div>
+            <h2 align="center">
+                {workcationInfo.workcationTitle}
+            </h2>
+        </div>
+
+        <br />
+        <br />
+
+        <div align="right">
+            <h6>사원 번호</h6>
+            <h7 align="right">
+                {workcationInfo.employee?.empNo}
+            </h7>
+        </div>
+
+
+        <div align="right"> 
+            <h6>작성날짜</h6>
+            <h7 align="left">
+                {workcationInfo.createdAt}
+            </h7>
+        </div>
+
+        <br />
+
+        <div align="right">
+            <h6>워케이션 기간</h6>
+            <h7 align="left">
+                {workcationInfo.startAt}
+            </h7>
+            <h7>~</h7>
+            <h7 align="left">
+                {workcationInfo.endAt}
+            </h7>
+        </div>
+
+        <br />
+
+        <div>
+            <h5>업무계획</h5>
+            <div className="planBox">
+            {workcationInfo.workPlan}
+            </div>
+        </div>
+            <br />
             <div>
-                <h5 align="center">{workcationTitle}</h5>
+                <h5>상태</h5>
+            <select
+                name="approverState"
+                value={approverState}
+                onChange={(e) => setApproverState(e.target.value)}
+                id="approverState"
+            />
             </div>
             <br />
             <div>
-                <h5 align="left">{emp_no}</h5>
-            </div>
-            <br />
-            <div>
-                <h5 align="left">{createdAt}</h5>
-            </div>
-            <br />
-            <div>
-                <h5 align="left">{startAt}</h5> &nbsp;
-                <h5 align="left">{endAt}</h5>
-            </div>
-            <br />
-            <div>
-                <h4>업무계획</h4><br />
-                {workPlan}
-            </div>
-            <br />
-            <div>
-                <select name="approvalState"
-                value={approvalState} 
-                id="approvalState">
-                    <option value="W">대기</option>
-                    <option value="H">보류</option>
-                    <option value="R">검토</option>
-                    <option value="J">반려</option>
-                </select>
-            </div>
-            <br />
-            <div>
-                <textarea name="" id="">{approvalComment}</textarea>
+                <h5>반려 사유</h5>
+                <textarea className="rejectBox"
+                value={approverComment}
+                onChange={(e) => setApprovalComment(e.target.value)}
+                />
             </div>
 
-            <div>
+            <br />
+
+            <div align="right">
                 <button type="submit" className="submit-btn">
                     등록하기
                 </button>
-            </div>
 
-            <div>
+                &nbsp;&nbsp;
+
                 <button type="button" className="back-btn" onClick={() => navigate(-1)}>
                     이전으로
                 </button>
