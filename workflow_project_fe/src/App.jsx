@@ -308,8 +308,10 @@ function App() {
                 )}
 
                 {/* 그 외 페이지 접속 시 */}
-                <Route path="*" element={ <Navigate to="/error" replace />}/>
+                <Route path="/login" element={ <Navigate to="/" replace />}/>
                 <Route path="/error" element={ <ErrorPage /> }/>
+                <Route path="*" element={ <Navigate to="/error" replace />}/>
+                
 
             </Routes>
 
