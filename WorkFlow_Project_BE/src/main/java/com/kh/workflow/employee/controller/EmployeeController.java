@@ -153,6 +153,17 @@ public class EmployeeController {
                 employeeService.getEmployeeList()
         );
     }
+    
+    // USR-009
+    @PostMapping("/findId")
+    public ResponseEntity<?> findEmployeeId(
+            @RequestBody FindIdRequest request
+    ) {
+
+        return ResponseEntity.ok(
+            employeeService.findEmployeeId(request)
+        );
+    }
 
 
     // USR-011
