@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk"
+import { Map, MapMarker } from "react-kakao-maps-sdk"
 import "../styles/Hub.css";
 import { selectHubApi, deleteHubApi, BASE_URL } from "../api/hubApi";
 
@@ -58,7 +58,7 @@ function HubDetailComponent(props) {
     // 주소를 좌표로 변환
     useEffect(() => {
         // 백엔드에서 주소 데이터를 아직 못 가져왔다면 지도를 그리지 않고 대기
-        if (kakao && kakao.maps && hub.hubAddress) {
+        if (kakao && kakao.maps && kakao.maps.services && hub.hubAddress) {
             // 주소로 좌표를 검색하여 지도 및 마커 세팅
             const geocoder = new kakao.maps.services.Geocoder();
             geocoder.addressSearch(hub.hubAddress, (result, status) => {
@@ -90,8 +90,6 @@ function HubDetailComponent(props) {
             try {
 
                 const response = await deleteHubApi(hubNo);
-
-                console.log(response);
 
                 if(response.data === "success") {
                     alert("거점 중단에 성공했습니다.");
@@ -135,6 +133,7 @@ function HubDetailComponent(props) {
                 {/* 일반 지도가 렌더링되는 영역 */}
                 <div className="span-area big-font">
                     <span style={ { fontSize: "19px" } }>주소 : { hub.hubAddress }<br/><p onClick={ handleCopyClipBoard }>※복사하기</p></span>
+                    <span><button className="btn btn-outline-warning kakao-map-go" onClick={ () => { if (!position) return; window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`); } }>Kakao 지도 바로 가기</button></span>
                     <span style={ { fontSize: "26px" } }>평균 별점 : { (avgScore === 5) ? "★★★★★" : (
                                                                        (avgScore >= 4) ? "★★★★☆" : (
                                                                        (avgScore >= 3) ? "★★★☆☆" : (

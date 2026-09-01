@@ -12,33 +12,15 @@ function AdminComponent() {
         inProgress: 0,
         budgetExhaustionRate: 0,
         usageRate: 0,
-        totalParticipants: 0,
         totalBudget: 0,
         avgSatisfaction: 0,
         avgDuration: 0,
-        supportFund: 0
+        supportFund: 0,
+        totalParticipants: 0,
+        waitingList: [],
+        monthlyData: [],
+        shareData: []
     });
-
-    // 승인대기 목록 데이터
-    const [waitingList, setWaitingList] = useState([]);
-
-    // 차트용 데이터
-    // 월별 참가 현황 데이터
-    const [monthlyData, setMonthlyData] = useState([
-        { month: '1월', count: 4 },
-        { month: '2월', count: 7 },
-        { month: '3월', count: 12 },
-        { month: '4월', count: 9 },
-        { month: '5월', count: 14 },
-        { month: '6월', count: 10 },
-    ]);
-
-    // 거점 오피스별 점유율 데이터
-    const [shareData, setShareData] = useState([
-        { name: '제주', value: 55, color: '#8884d8' },
-        { name: '강원', value: 35, color: '#ff8042' },
-        { name: '부산', value: 12, color: '#00C49F' },
-    ]);
 
     // 항목별 지출 비중 데이터
     const [categoryData, setCategoryData] = useState([
@@ -71,8 +53,6 @@ function AdminComponent() {
                 // 백엔드에서 넘어온 데이터로 상태 업데이트
   
                 setData(response.data);
-                setShareData(response.data.shareData)
-
             } catch (error) {
                 console.error(error);
             }
@@ -82,7 +62,7 @@ function AdminComponent() {
     }, []);
 
     // 거점 오피스별 데이터의 전체 합계 계산
-    const totalShareValue = shareData.reduce((sum, item) => sum + (item.value || 0), 0);
+    const totalShareValue = data.shareData.reduce((sum, item) => sum + (item.value || 0), 0);
 
     const getOfficeColor = (name) => {
         if (name === '강원') return '#ff8042';
@@ -135,12 +115,11 @@ function AdminComponent() {
         <div className="content">
             <div className="admin-dashboard-1" align="center">이번달 워케이션 현황</div>
             <br />
-            <div className="d-flex justify-content-between admin-dashboard-2">
+            <div className="d-flex justify-content-between admin-dashboard-3">
                 <p>총 신청 건수 : { data.totalApply }건</p>
                 <p>승인대기 : { data.waiting }건</p>
                 <p>현재 진행중 : { data.inProgress }건</p>
                 <p>예산 소진율 : { data.budgetExhaustionRate }%</p>
-                <p>워케이션 이용률 : { data.usageRate }%</p>
             </div>
             <br /><br />
             <div className="d-flex text-center admin-dashboard-1">
@@ -150,9 +129,9 @@ function AdminComponent() {
             <br />
             <div className="d-flex text-center">
                 <div className="w-50">
-                    <table>
+                    <table className="table">
                         <thead>
-                            <tr>
+                            <tr style={ { cursor : "auto" } }>
                                 <th>이름</th>
                                 <th>부서</th>
                                 <th>지역</th>
@@ -161,13 +140,13 @@ function AdminComponent() {
                             </tr>
                         </thead>
                         <tbody>
-                            {waitingList.length > 0 ? (
-                                waitingList.map((item, index) => (
-                                    <tr key={index}>
+                            {data.waitingList.length > 0 ? (
+                                data.waitingList.map((item, index) => (
+                                    <tr key={index} style={ { cursor : "auto" } }>
                                         <td>{item.empName}</td>
                                         <td>{item.depTitle}</td>
                                         <td>{item.mainRegion}</td>
-                                        <td>{item.startAt}~{item.endAt}</td>
+                                        <td>{item.startAt.substring(5, 10)}~{item.endAt.substring(5, 10)}</td>
                                         <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
                                     </tr>
                                 ))
@@ -197,10 +176,13 @@ function AdminComponent() {
             <br />
             <div className="d-flex justify-content-between admin-dashboard-3">
                 <p>총 참여 인원 : { data.totalParticipants } 명</p>
-                <p>총 집행 예산 : { data.totalBudget } 만원</p>
-                <p>평균 만족도 : { data.avgSatisfaction } / 5.0</p>
+                <p>총 집행 예산 : { data.totalBudget }원</p>
+                <p>평균 만족도 : { data.avgSatisfaction } / 5.0</p>                
+            </div>
+            <div className="d-flex justify-content-between admin-dashboard-3">
                 <p>평균 워케이션 기간 : { data.avgDuration }일</p>
                 <p>보유 지원금 : { data.supportFund }원</p>
+                <p>워케이션 이용률 : { data.usageRate }%</p>
             </div>
             <br /><hr />
             <div className="d-flex text-center admin-dashboard-1">
@@ -210,11 +192,11 @@ function AdminComponent() {
            <div className="d-flex text-center py-3" style={ { height: '300px' } }>
                 <div className="w-50 h-100">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={monthlyData}>
-                            <XAxis dataKey="month" />
+                        <BarChart data={data.monthlyData.map(item => ({ ...item, name: `${item.name}월` }))}>
+                            <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="count" fill="#333333" barSize={30} />
+                            <Bar dataKey="value" fill="#333333" barSize={30} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -222,7 +204,7 @@ function AdminComponent() {
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie 
-                                data={shareData} 
+                                data={data.shareData} 
                                 dataKey="value" 
                                 nameKey="name" 
                                 cx="50%" 

@@ -87,11 +87,13 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
             """, nativeQuery = true)
 	Double selectAvgScore(@Param("hubNo") int hubNo);
     
+    // 관리자 대시보드
+    // 거점 오피스별 점유율
     @Query("""
     		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(h.mainRegion, COUNT(h))
     		FROM Hub h
     		WHERE h.hubType = 2
     		GROUP BY h.mainRegion
     		""")
-    List<ChartDataDto> HubShareList();
+    List<ChartDataDto> HubShareData();
 }

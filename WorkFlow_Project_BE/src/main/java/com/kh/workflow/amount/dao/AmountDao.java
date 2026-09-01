@@ -63,4 +63,14 @@ public interface AmountDao {
     List<Map<String, Object>> getMonthlyStatistics();
 
     List<Map<String, Object>> getItemStatistics();
+
+    // 관리자 대시보드
+    // 예산 소집율
+	int selectBudgetExhaustionRate();
+
+	// 총 집행 예산
+	int selectTotalBudget();
+
+	// 보유 지원금
+	int selectSupportFund();
 }

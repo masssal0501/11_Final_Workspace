@@ -18,11 +18,11 @@ public class AdminDto {
 	private int inProgress;
 	private int budgetExhaustionRate;
 	private int usageRate;
-	private int totalParticipants;
 	private int totalBudget;
 	private double avgSatisfaction;
 	private int avgDuration;
 	private int supportFund;
+	private int totalParticipants;
 	private List<WaitingListDto> waitingList;
 	private List<ChartDataDto> monthlyData;
 	private List<ChartDataDto> shareData;

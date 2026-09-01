@@ -855,6 +855,34 @@
             totalAmount DESC
 
     </select>
-
-
+    
+    <!-- =========================================================
+         27. 관리자 대시보드 - 예산 소진율
+         ========================================================= -->
+    <select id="selectBudgetExhaustionRate" resultType="int">
+        SELECT 
+            COALESCE(
+                (SUM(a.approved_amount)/SUM(s.approved_amount)) * 100, 
+            0)
+        FROM support_list s
+        JOIN amount_support a ON a.amount_no = s.amount_no
+        WHERE EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM a.approved_at)
+    </select>
+    
+    <!-- =========================================================
+         28. 관리자 대시보드 - 총 집행 예산
+         ========================================================= -->
+    <select id="selectTotalBudget" resultType="int">
+        SELECT COALESCE(SUM(a.approved_amount), 0)
+        FROM amount_support a
+    </select>
+    
+    <!-- =========================================================
+         29. 관리자 대시보드 - 보유 지원금
+         ========================================================= -->
+    <select id="selectSupportFund" resultType="int">
+        SELECT COALESCE(SUM(s.approved_amount), 0)
+        FROM support_list s
+    </select>
+    
 </mapper>
