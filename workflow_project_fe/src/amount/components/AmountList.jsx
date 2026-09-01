@@ -11,19 +11,26 @@ export default function AmountList({ workcationNo }) {
 
 
   // =========================================================
-  // 해당 워케이션의 정산 신청 목록 조회
+  // 해당 워케이션의 비용 정산 신청 목록 조회
   //
-  // 사용자 화면
-  //
+  // Amount VO
+  // amountNo
+  // requestedAmount
+  // approvedAmount
+  // requestedAt
+  // status
   // workcationNo
-  //      ↓
-  // amount
-  //      ↓
-  // 해당 워케이션의 정산 신청 목록
   // =========================================================
   const fetchAmountList = async () => {
 
-    if (!workcationNo) {
+    // ---------------------------------------------------------
+    // workcationNo가 없는 경우
+    // ---------------------------------------------------------
+    if (
+      workcationNo === null ||
+      workcationNo === undefined ||
+      workcationNo === ''
+    ) {
 
       console.log(
         '⚠️ workcationNo가 없습니다.'
@@ -40,10 +47,27 @@ export default function AmountList({ workcationNo }) {
 
       setLoading(true);
 
+      console.log(
+        '================================='
+      );
+
+      console.log(
+        '📌 워케이션 비용 목록 조회'
+      );
+
+      console.log(
+        '📌 workcationNo:',
+        workcationNo
+      );
+
+      console.log(
+        '================================='
+      );
+
 
       const data =
         await amountApi.getAmountListByWorkcation(
-          workcationNo
+          Number(workcationNo)
         );
 
 
@@ -53,23 +77,31 @@ export default function AmountList({ workcationNo }) {
       );
 
 
-      // =====================================================
-      // 서버 응답 형태
+      // =======================================================
+      // 서버 응답 형태 대응
+      //
+      // 1. 배열
+      // [
+      //   {
+      //     amountNo: 1,
+      //     requestedAmount: 100000,
+      //     approvedAmount: 90000,
+      //     requestedAt: "...",
+      //     status: "R",
+      //     workcationNo: 1
+      //   }
+      // ]
+      //
+      // 2. PageInfo 형태
       //
       // {
-      //   pageLimit: 5,
-      //   startPage: 1,
-      //   boardLimit: 10,
-      //   limit: 10,
-      //   page: 1,
-      //   endPage: 1,
-      //   listCount: 5,
-      //   maxPage: 1,
       //   list: [...]
+      //   listCount: 5,
+      //   page: 1,
+      //   maxPage: 1,
+      //   ...
       // }
-      //
-      // 혹시 API가 배열을 바로 반환하는 경우도 대응
-      // =====================================================
+      // =======================================================
 
       const list =
         Array.isArray(data)
@@ -80,7 +112,7 @@ export default function AmountList({ workcationNo }) {
 
 
       console.log(
-        '📋 현재 워케이션 정산 신청 목록:',
+        '📋 현재 워케이션 비용 목록:',
         list
       );
 
@@ -96,12 +128,16 @@ export default function AmountList({ workcationNo }) {
       );
 
       console.error(
-        '서버 응답:',
+        '❌ 상태 코드:',
+        error.response?.status
+      );
+
+      console.error(
+        '❌ 서버 응답:',
         error.response?.data
       );
 
       setAmounts([]);
-
 
     } finally {
 
@@ -113,7 +149,7 @@ export default function AmountList({ workcationNo }) {
 
 
   // =========================================================
-  // workcationNo가 변경되면 다시 조회
+  // workcationNo 변경 시 다시 조회
   // =========================================================
   useEffect(() => {
 
@@ -123,17 +159,23 @@ export default function AmountList({ workcationNo }) {
 
 
   // =========================================================
-  // 상태명
+  // Amount.status 상태명
+  //
+  // A : 승인
+  // C : 취소
+  // H : 보류
+  // J : 반려
+  // R : 검토
   // =========================================================
   const getStatusText = (status) => {
 
     const statusMap = {
 
-      R: '검토중',
       A: '승인됨',
-      J: '반려됨',
+      C: '취소됨',
       H: '보류됨',
-      C: '취소됨'
+      J: '반려됨',
+      R: '검토중'
 
     };
 
@@ -148,6 +190,8 @@ export default function AmountList({ workcationNo }) {
 
   // =========================================================
   // 날짜 포맷
+  //
+  // Amount.requestedAt
   // =========================================================
   const formatDate = (date) => {
 
@@ -183,6 +227,9 @@ export default function AmountList({ workcationNo }) {
 
   // =========================================================
   // 금액 포맷
+  //
+  // Amount.requestedAmount
+  // Amount.approvedAmount
   // =========================================================
   const formatMoney = (value) => {
 
@@ -213,8 +260,23 @@ export default function AmountList({ workcationNo }) {
 
   // =========================================================
   // 상세 페이지 이동
+  //
+  // Amount.amountNo 사용
   // =========================================================
   const handleDetail = (amountNo) => {
+
+    if (
+      amountNo === null ||
+      amountNo === undefined
+    ) {
+
+      alert(
+        '비용 신청 번호가 없습니다.'
+      );
+
+      return;
+    }
+
 
     navigate(
       `/cost/detail/${amountNo}`
@@ -238,7 +300,10 @@ export default function AmountList({ workcationNo }) {
             textAlign: 'center'
           }}
         >
-          비용 정산 신청 내역을 불러오는 중입니다...
+
+          비용 정산 신청 내역을
+          불러오는 중입니다...
+
         </div>
 
       </div>
@@ -255,9 +320,11 @@ export default function AmountList({ workcationNo }) {
 
     <div className="amount-container">
 
+
       {/* =====================================================
           제목
       ====================================================== */}
+
       <h2 className="amount-title">
 
         워케이션 비용 정산 신청 내역
@@ -268,6 +335,7 @@ export default function AmountList({ workcationNo }) {
       {/* =====================================================
           워케이션 번호
       ====================================================== */}
+
       <div
         style={{
           marginBottom: '15px',
@@ -286,8 +354,9 @@ export default function AmountList({ workcationNo }) {
 
 
       {/* =====================================================
-          정산 신청 목록
+          비용 신청 목록
       ====================================================== */}
+
       <table className="amount-table">
 
         <thead>
@@ -325,9 +394,11 @@ export default function AmountList({ workcationNo }) {
 
         <tbody>
 
+
           {/* =================================================
-              신청 내역 없음
+              데이터 없음
           ================================================== */}
+
           {amounts.length === 0 ? (
 
             <tr>
@@ -345,6 +416,7 @@ export default function AmountList({ workcationNo }) {
 
           ) : (
 
+
             amounts.map((item) => (
 
               <tr
@@ -361,9 +433,11 @@ export default function AmountList({ workcationNo }) {
                 }}
               >
 
-                {/* =================================================
+
+                {/* =========================================
                     신청번호
-                ================================================== */}
+                ========================================== */}
+
                 <td className="text-center">
 
                   {item.amountNo}
@@ -371,9 +445,10 @@ export default function AmountList({ workcationNo }) {
                 </td>
 
 
-                {/* =================================================
+                {/* =========================================
                     신청 금액
-                ================================================== */}
+                ========================================== */}
+
                 <td className="text-right">
 
                   {formatMoney(
@@ -383,33 +458,34 @@ export default function AmountList({ workcationNo }) {
                 </td>
 
 
-                {/* =================================================
+                {/* =========================================
                     승인 금액
-                ================================================== */}
+                ========================================== */}
+
                 <td className="text-right">
 
-                  {
-                    item.approvedAmount !== null &&
-                    item.approvedAmount !== undefined
+                  {item.approvedAmount !== null &&
+                   item.approvedAmount !== undefined
 
-                      ? formatMoney(
-                          item.approvedAmount
-                        )
+                    ? formatMoney(
+                        item.approvedAmount
+                      )
 
-                      : '-'
+                    : '-'
                   }
 
                 </td>
 
 
-                {/* =================================================
+                {/* =========================================
                     상태
-                ================================================== */}
+                ========================================== */}
+
                 <td className="text-center">
 
                   <span
                     className={
-                      `status-badge status-${item.status}`
+                      `status-badge status-${item.status || 'UNKNOWN'}`
                     }
                   >
 
@@ -422,9 +498,10 @@ export default function AmountList({ workcationNo }) {
                 </td>
 
 
-                {/* =================================================
+                {/* =========================================
                     신청일
-                ================================================== */}
+                ========================================== */}
+
                 <td className="text-center">
 
                   {formatDate(
@@ -434,9 +511,10 @@ export default function AmountList({ workcationNo }) {
                 </td>
 
 
-                {/* =================================================
+                {/* =========================================
                     상세
-                ================================================== */}
+                ========================================== */}
+
                 <td className="text-center">
 
                   <button
@@ -459,6 +537,7 @@ export default function AmountList({ workcationNo }) {
                   </button>
 
                 </td>
+
 
               </tr>
 

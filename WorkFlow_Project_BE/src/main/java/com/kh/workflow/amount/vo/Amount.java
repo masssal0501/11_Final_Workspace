@@ -39,6 +39,8 @@ public class Amount {
     private Date updatedAt;
 
     /**
+     * amount.status
+     *
      * A : 승인
      * C : 취소
      * H : 보류
@@ -53,49 +55,49 @@ public class Amount {
     /** amount.workcation_no */
     private Integer workcationNo;
 
-    /** employee.emp_name */
+
+    // =========================================================
+    // 조회용
+    // =========================================================
+
+    /**
+     * employee.emp_name
+     *
+     * amount 조회 시 employee와 JOIN하여 사용
+     */
     private String empName;
 
 
     // =========================================================
-    // 2. amount_item
+    // amount_item
     // =========================================================
 
     /**
-     * 하나의 정산 신청에 여러 비용 항목이 존재할 수 있음.
-     *
-     * amount
-     *   └─ amount_no
-     *        ├─ amount_item 1
-     *        ├─ amount_item 2
-     *        └─ amount_item 3
+     * amount 1 : N amount_item
      */
     private List<Item> itemList = new ArrayList<>();
 
 
     // =========================================================
-    // 3. amount_list
+    // amount_list
     // =========================================================
 
     /**
-     * 하나의 정산에 연결된 지원금 정보.
+     * amount 1 : N amount_list
      *
-     * 현재 DB의 amount_list는
-     *
-     * PRIMARY KEY (amount_no)
-     *
-     * 이므로 하나의 amount에
-     * 하나의 amount_list만 연결할 수 있음.
+     * 주의:
+     * amount_list의 PK는 amount_list_no
+     * amount_no는 amount를 참조하는 FK
      */
-    private Sponsor sponsor;
+    private List<Sponsor> sponsorList = new ArrayList<>();
 
 
     // =========================================================
-    // 4. amount_file
+    // amount_file
     // =========================================================
 
     /**
-     * 하나의 정산에 여러 첨부파일이 존재할 수 있음.
+     * amount 1 : N amount_file
      */
     private List<File> fileList = new ArrayList<>();
 
@@ -112,15 +114,12 @@ public class Amount {
         /** amount_item.item_no */
         private Integer itemNo;
 
-        /**
-         * amount_item.amount
-         *
-         * 비용 항목 금액
-         */
+        /** amount_item.amount */
         private Integer amount;
 
         /**
-         * amount_item.amountamountitem_type
+         * 실제 DB 컬럼명:
+         * amountamountitem_type
          *
          * S : 숙박
          * T : 교통
@@ -135,6 +134,8 @@ public class Amount {
         private Date itemDate;
 
         /**
+         * amount_item.item_approved
+         *
          * A : 승인
          * C : 취소
          * H : 보류
@@ -161,11 +162,17 @@ public class Amount {
     public static class Sponsor {
 
         /**
-         * 현재 DB에는 amount_list_no가 없음.
+         * amount_list.amount_list_no
          *
-         * PK는 amount_no.
+         * PK
          */
-        /** amount_list.amount_no */
+        private Integer amountListNo;
+
+        /**
+         * amount_list.amount_no
+         *
+         * FK -> amount.amount_no
+         */
         private Integer amountNo;
 
         /** amount_list.sponsor_name */
@@ -178,6 +185,8 @@ public class Amount {
         private Date paymentDate;
 
         /**
+         * amount_list.status
+         *
          * PAID   : 지급
          * UNPAID : 미지급
          * HOLD   : 보류
@@ -187,7 +196,13 @@ public class Amount {
         /** amount_list.remark */
         private String remark;
 
-        /** amount_list.item_no */
+        /**
+         * amount_list.item_no
+         *
+         * FK -> amount_item.item_no
+         *
+         * NULL 가능
+         */
         private Integer itemNo;
     }
 
@@ -201,7 +216,11 @@ public class Amount {
     @AllArgsConstructor
     public static class File {
 
-        /** amount_file.amountattachment_no */
+        /**
+         * amount_file.amountattachment_no
+         *
+         * PK
+         */
         private Integer amountattachmentNo;
 
         /** amount_file.file_path */
@@ -217,6 +236,8 @@ public class Amount {
         private Date updatedAt;
 
         /**
+         * amount_file.status
+         *
          * Y : 사용
          * N : 삭제
          */
@@ -226,3 +247,4 @@ public class Amount {
         private Integer amountNo;
     }
 }
+

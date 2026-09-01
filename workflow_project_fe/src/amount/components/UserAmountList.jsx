@@ -1,61 +1,199 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState
+} from 'react';
+
 import { useNavigate } from 'react-router-dom';
+
 import { amountApi } from '../api/amountApi';
+
 import '../styles/AmountStyle.css';
 
-export default function UserAmountList({ workcationNo }) {
+
+// =========================================================
+// 사용자 비용 정산 신청 목록
+// =========================================================
+//
+// Amount VO 기준
+//
+// amountNo
+// requestedAmount
+// approvedAmount
+// requestedAt
+// approvedAt
+// status
+// amountComment
+// workcationNo
+// empName
+// itemList
+// sponsorList
+// fileList
+//
+// 목록에서는 아래 필드만 사용
+//
+// amountNo
+// requestedAmount
+// approvedAmount
+// requestedAt
+// status
+//
+// =========================================================
+
+export default function UserAmountList({
+  workcationNo
+}) {
 
   const navigate = useNavigate();
 
+
+  // =========================================================
+  // 상태
+  // =========================================================
+
   const [amounts, setAmounts] = useState([]);
+
   const [loading, setLoading] = useState(false);
 
 
   // =========================================================
-  // 비용 신청 목록 조회
+  // 비용 정산 신청 목록 조회
+  // =========================================================
   //
-  // amount.workcation_no
-  //        ↓
+  // workcationNo
+  //      ↓
   // AmountController
-  //        ↓
+  //      ↓
   // AmountService
-  //        ↓
+  //      ↓
   // AmountDao
-  //        ↓
+  //      ↓
   // selectAmountListByWorkcationNo
+  //
   // =========================================================
 
   const fetchAmountList = useCallback(async () => {
 
-    // 워케이션 번호가 없으면 조회하지 않음
+    // -------------------------------------------------------
+    // workcationNo가 없는 경우
+    // -------------------------------------------------------
+
     if (
       workcationNo === null ||
       workcationNo === undefined ||
       workcationNo === ''
     ) {
+
+      console.log(
+        '⚠️ workcationNo가 없습니다.'
+      );
+
       setAmounts([]);
+
       return;
     }
+
 
     try {
 
       setLoading(true);
 
-      const data =
-        await amountApi.getAmountListByWorkcation(
-          Number(workcationNo)
+
+      // -----------------------------------------------------
+      // 숫자로 변환
+      // -----------------------------------------------------
+
+      const no = Number(workcationNo);
+
+
+      if (!Number.isFinite(no) || no <= 0) {
+
+        console.error(
+          '❌ 잘못된 workcationNo:',
+          workcationNo
         );
 
+        setAmounts([]);
+
+        return;
+      }
+
+
       console.log(
-        '📌 내 비용 정산 신청 목록:',
+        '================================='
+      );
+
+      console.log(
+        '📌 사용자 비용 목록 조회'
+      );
+
+      console.log(
+        '📌 workcationNo:',
+        no
+      );
+
+      console.log(
+        '================================='
+      );
+
+
+      // -----------------------------------------------------
+      // API 호출
+      // -----------------------------------------------------
+
+      const data =
+        await amountApi.getAmountListByWorkcation(no);
+
+
+      console.log(
+        '📌 비용 정산 목록 응답:',
         data
       );
 
-      setAmounts(
-        Array.isArray(data)
-          ? data
-          : []
+
+      // -----------------------------------------------------
+      // Controller 응답 구조
+      // -----------------------------------------------------
+      //
+      // {
+      //   list: [...],
+      //   page: 1,
+      //   pageLimit: 5,
+      //   boardLimit: 10,
+      //   limit: 10,
+      //   listCount: 10,
+      //   maxPage: 1,
+      //   startPage: 1,
+      //   endPage: 1
+      // }
+      //
+      // 배열을 직접 반환하는 경우도 대응
+      // -----------------------------------------------------
+
+      let list = [];
+
+
+      if (Array.isArray(data)) {
+
+        list = data;
+
+      } else if (
+        Array.isArray(data?.list)
+      ) {
+
+        list = data.list;
+
+      }
+
+
+      console.log(
+        '📋 최종 비용 목록:',
+        list
       );
+
+
+      setAmounts(list);
+
 
     } catch (error) {
 
@@ -64,7 +202,19 @@ export default function UserAmountList({ workcationNo }) {
         error
       );
 
+      console.error(
+        '상태 코드:',
+        error.response?.status
+      );
+
+      console.error(
+        '서버 응답:',
+        error.response?.data
+      );
+
+
       setAmounts([]);
+
 
     } finally {
 
@@ -76,7 +226,7 @@ export default function UserAmountList({ workcationNo }) {
 
 
   // =========================================================
-  // 워케이션 번호 변경 시 목록 다시 조회
+  // workcationNo 변경 시 목록 재조회
   // =========================================================
 
   useEffect(() => {
@@ -87,78 +237,50 @@ export default function UserAmountList({ workcationNo }) {
 
 
   // =========================================================
-  // 날짜 포맷
-  //
-  // DB requested_at
+  // Amount.status
   // =========================================================
-
-  const formatDate = (date) => {
-
-    if (!date) {
-      return '-';
-    }
-
-    const d = new Date(date);
-
-    if (Number.isNaN(d.getTime())) {
-      return '-';
-    }
-
-    const year =
-      d.getFullYear();
-
-    const month =
-      String(d.getMonth() + 1)
-        .padStart(2, '0');
-
-    const day =
-      String(d.getDate())
-        .padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  };
-
-
-  // =========================================================
-  // 금액 포맷
-  // =========================================================
-
-  const formatMoney = (amount) => {
-
-    if (
-      amount === null ||
-      amount === undefined ||
-      amount === ''
-    ) {
-      return '-';
-    }
-
-    const number = Number(amount);
-
-    if (Number.isNaN(number)) {
-      return '-';
-    }
-
-    return `${number.toLocaleString('ko-KR')} 원`;
-  };
-
-
-  // =========================================================
-  // 상태 이름
   //
   // R : 검토
   // A : 승인
   // H : 보류
   // J : 반려
   // C : 취소
+  //
   // =========================================================
 
   const statusMap = {
+
     R: '검토중',
+
     A: '승인됨',
+
     H: '보류됨',
+
     J: '반려됨',
+
     C: '취소됨'
+
+  };
+
+
+  // =========================================================
+  // 상태명
+  // =========================================================
+
+  const getStatusText = (status) => {
+
+    if (!status) {
+
+      return '알 수 없음';
+
+    }
+
+
+    return (
+      statusMap[status] ||
+      status
+    );
+
   };
 
 
@@ -169,66 +291,164 @@ export default function UserAmountList({ workcationNo }) {
   const getStatusBadge = (status) => {
 
     return (
+
       <span
-        className={`status-badge status-${status || 'UNKNOWN'}`}
+        className={
+          `status-badge status-${status || 'UNKNOWN'}`
+        }
       >
-        {statusMap[status] || '알 수 없음'}
+
+        {getStatusText(status)}
+
       </span>
+
     );
+
   };
 
 
   // =========================================================
-  // 비용 신청 상세 / 수정
+  // 날짜 포맷
+  // =========================================================
   //
-  // 수정 가능
-  // R 검토
-  // H 보류
+  // Amount.requestedAt
   //
-  // 수정 불가
-  // A 승인
-  // J 반려
-  // C 취소
+  // yyyy-MM-dd
+  //
   // =========================================================
 
-  const handleEdit = (item) => {
+  const formatDate = (date) => {
 
-    if (!item?.amountNo) {
+    if (!date) {
 
-      alert('비용 신청 번호가 없습니다.');
-      return;
+      return '-';
 
     }
 
-    if (!['R', 'H'].includes(item.status)) {
+
+    const d = new Date(date);
+
+
+    if (
+      Number.isNaN(
+        d.getTime()
+      )
+    ) {
+
+      return '-';
+
+    }
+
+
+    const year =
+      d.getFullYear();
+
+
+    const month =
+      String(
+        d.getMonth() + 1
+      ).padStart(2, '0');
+
+
+    const day =
+      String(
+        d.getDate()
+      ).padStart(2, '0');
+
+
+    return `${year}-${month}-${day}`;
+
+  };
+
+
+  // =========================================================
+  // 금액 포맷
+  // =========================================================
+  //
+  // Amount VO
+  //
+  // requestedAmount
+  // approvedAmount
+  //
+  // BigDecimal → Number 변환 후 표시
+  //
+  // =========================================================
+
+  const formatMoney = (amount) => {
+
+    if (
+      amount === null ||
+      amount === undefined ||
+      amount === ''
+    ) {
+
+      return '-';
+
+    }
+
+
+    const number =
+      Number(amount);
+
+
+    if (
+      Number.isNaN(number)
+    ) {
+
+      return '-';
+
+    }
+
+
+    return (
+      `${number.toLocaleString('ko-KR')} 원`
+    );
+
+  };
+
+
+  // =========================================================
+  // 비용 신청 상세 조회
+  // =========================================================
+
+  const handleDetail = (amountNo) => {
+
+    if (
+      amountNo === null ||
+      amountNo === undefined ||
+      amountNo === ''
+    ) {
 
       alert(
-        '검토중 또는 보류 상태의 비용 신청만 수정할 수 있습니다.'
+        '비용 신청 번호가 없습니다.'
       );
 
       return;
+
     }
 
+
     navigate(
-      `/cost/apply/${item.amountNo}`
+      `/cost/detail/${amountNo}`
     );
+
   };
 
 
   // =========================================================
-  // 비용 신청 취소
+  // 비용 신청 수정
+  // =========================================================
   //
-  // R / H만 취소 가능
+  // R : 수정 가능
+  // H : 수정 가능
   //
-  // A 승인 → 취소 불가
-  // J 반려 → 취소 불가
-  // C 취소 → 취소 불가
+  // A : 수정 불가
+  // J : 수정 불가
+  // C : 수정 불가
+  //
   // =========================================================
 
-  const handleCancel = async (item) => {
-
-    console.log('📌 조회할 workcationNo:', no);
-console.log('📌 워케이션 비용 조회 응답:', data);
+  const handleEdit = (item) => {
 
     if (!item?.amountNo) {
 
@@ -237,41 +457,141 @@ console.log('📌 워케이션 비용 조회 응답:', data);
       );
 
       return;
+
     }
 
 
-    if (!['R', 'H'].includes(item.status)) {
+    if (
+      !['R', 'H'].includes(
+        item.status
+      )
+    ) {
+
+      alert(
+        '검토중 또는 보류 상태의 비용 신청만 수정할 수 있습니다.'
+      );
+
+      return;
+
+    }
+
+
+    // -------------------------------------------------------
+    // 수정 페이지
+    // -------------------------------------------------------
+
+    navigate(
+      `/cost/apply/${item.amountNo}`
+    );
+
+  };
+
+
+  // =========================================================
+  // 비용 신청 취소
+  // =========================================================
+  //
+  // R / H 상태만 취소 가능
+  //
+  // =========================================================
+
+  const handleCancel = async (item) => {
+
+    if (!item?.amountNo) {
+
+      alert(
+        '비용 신청 번호가 없습니다.'
+      );
+
+      return;
+
+    }
+
+
+    // -------------------------------------------------------
+    // 상태 확인
+    // -------------------------------------------------------
+
+    if (
+      !['R', 'H'].includes(
+        item.status
+      )
+    ) {
 
       alert(
         '검토중 또는 보류 상태의 신청만 취소할 수 있습니다.'
       );
 
       return;
+
     }
 
 
+    // -------------------------------------------------------
+    // 확인
+    // -------------------------------------------------------
+
     const confirmed =
       window.confirm(
-        `[신청번호 ${item.amountNo}] 비용 정산 신청을 취소하시겠습니까?`
+
+        `[신청번호 ${item.amountNo}] ` +
+        `비용 정산 신청을 취소하시겠습니까?`
+
       );
 
 
     if (!confirmed) {
+
       return;
+
     }
 
 
     try {
 
+      console.log(
+        '================================='
+      );
+
+      console.log(
+        '📌 비용 신청 취소'
+      );
+
+      console.log(
+        'amountNo:',
+        item.amountNo
+      );
+
+      console.log(
+        'status:',
+        item.status
+      );
+
+      console.log(
+        '================================='
+      );
+
+
+      // -----------------------------------------------------
+      // 서버 취소 요청
+      // -----------------------------------------------------
+
       await amountApi.cancelAmount(
         item.amountNo
       );
+
 
       alert(
         '비용 정산 신청이 취소되었습니다.'
       );
 
+
+      // -----------------------------------------------------
+      // 목록 재조회
+      // -----------------------------------------------------
+
       await fetchAmountList();
+
 
     } catch (error) {
 
@@ -280,15 +600,37 @@ console.log('📌 워케이션 비용 조회 응답:', data);
         error
       );
 
-      const message =
+      console.error(
+        '상태 코드:',
+        error.response?.status
+      );
+
+      console.error(
+        '서버 응답:',
+        error.response?.data
+      );
+
+
+      const responseData =
         error?.response?.data;
 
+
       if (
-        typeof message === 'string' &&
-        message.trim() !== ''
+        typeof responseData === 'string' &&
+        responseData.trim() !== ''
       ) {
 
-        alert(message);
+        alert(
+          responseData
+        );
+
+      } else if (
+        responseData?.message
+      ) {
+
+        alert(
+          responseData.message
+        );
 
       } else {
 
@@ -299,6 +641,7 @@ console.log('📌 워케이션 비용 조회 응답:', data);
       }
 
     }
+
   };
 
 
@@ -319,12 +662,43 @@ console.log('📌 워케이션 비용 조회 응답:', data);
       );
 
       return;
+
     }
+
+
+    // -------------------------------------------------------
+    // 신규 신청
+    // -------------------------------------------------------
 
     navigate(
       `/cost/apply?workcationNo=${workcationNo}`
     );
+
   };
+
+
+  // =========================================================
+  // 로딩
+  // =========================================================
+
+  if (loading) {
+
+    return (
+
+      <div className="amount-container">
+
+        <div className="amount-loading">
+
+          비용 정산 신청 내역을
+          불러오는 중입니다...
+
+        </div>
+
+      </div>
+
+    );
+
+  }
 
 
   // =========================================================
@@ -335,199 +709,286 @@ console.log('📌 워케이션 비용 조회 응답:', data);
 
     <div className="amount-container">
 
+
       {/* =====================================================
           헤더
-          ===================================================== */}
+      ====================================================== */}
 
       <div className="amount-header">
 
         <h2 className="amount-title">
+
           내 비용 정산 신청 내역
+
         </h2>
+
 
         <button
           type="button"
           className="btn btn-primary"
           onClick={handleApply}
         >
+
           + 비용 신청하기
+
         </button>
 
       </div>
 
 
       {/* =====================================================
-          로딩
-          ===================================================== */}
+          워케이션 번호
+      ====================================================== */}
 
-      {loading ? (
+      <div
+        style={{
+          marginBottom: '15px',
+          fontSize: '14px',
+          color: '#666'
+        }}
+      >
 
-        <div className="amount-loading">
-          비용 정산 신청 내역을 불러오는 중입니다...
-        </div>
+        워케이션 번호 :
 
-      ) : (
+        <strong
+          style={{
+            marginLeft: '5px'
+          }}
+        >
 
-        <table className="amount-table">
+          {workcationNo || '-'}
 
-          <thead>
+        </strong>
 
-            <tr className="user-table-header">
+      </div>
 
-              <th className="text-center">
-                신청번호
-              </th>
 
-              <th className="text-right">
-                신청 금액
-              </th>
+      {/* =====================================================
+          비용 신청 목록
+      ====================================================== */}
 
-              <th className="text-right">
-                승인 금액
-              </th>
+      <table className="amount-table">
 
-              <th className="text-center">
-                상태
-              </th>
+        <thead>
 
-              <th className="text-center">
-                신청일
-              </th>
+          <tr className="user-table-header">
 
-              <th className="text-center">
-                신청 관리
-              </th>
+            <th className="text-center">
+              신청번호
+            </th>
+
+            <th className="text-right">
+              신청 금액
+            </th>
+
+            <th className="text-right">
+              승인 금액
+            </th>
+
+            <th className="text-center">
+              상태
+            </th>
+
+            <th className="text-center">
+              신청일
+            </th>
+
+            <th className="text-center">
+              신청 관리
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+
+          {/* =================================================
+              데이터 없음
+          ================================================== */}
+
+          {amounts.length === 0 ? (
+
+            <tr>
+
+              <td
+                colSpan="6"
+                className="text-center"
+              >
+
+                신청 내역이 없습니다.
+
+              </td>
 
             </tr>
 
-          </thead>
+          ) : (
+
+            amounts.map((item) => (
+
+              <tr
+                key={item.amountNo}
+              >
 
 
-          <tbody>
+                {/* ===========================================
+                    신청번호
+                ============================================ */}
 
-            {/* =================================================
-                데이터 없음
-                ================================================= */}
+                <td className="text-center">
 
-            {amounts.length === 0 ? (
+                  {item.amountNo}
 
-              <tr>
+                </td>
 
-                <td
-                  colSpan="6"
-                  className="text-center"
-                >
-                  신청 내역이 없습니다.
+
+                {/* ===========================================
+                    신청 금액
+                ============================================ */}
+
+                <td className="text-right">
+
+                  {formatMoney(
+                    item.requestedAmount
+                  )}
+
+                </td>
+
+
+                {/* ===========================================
+                    승인 금액
+                ============================================ */}
+
+                <td className="text-right">
+
+                  {formatMoney(
+                    item.approvedAmount
+                  )}
+
+                </td>
+
+
+                {/* ===========================================
+                    상태
+                ============================================ */}
+
+                <td className="text-center">
+
+                  {getStatusBadge(
+                    item.status
+                  )}
+
+                </td>
+
+
+                {/* ===========================================
+                    신청일
+                ============================================ */}
+
+                <td className="text-center">
+
+                  {formatDate(
+                    item.requestedAt
+                  )}
+
+                </td>
+
+
+                {/* ===========================================
+                    신청 관리
+                ============================================ */}
+
+                <td className="text-center">
+
+
+                  {/* -----------------------------------------
+                      R / H
+                      수정 + 취소
+                  ------------------------------------------ */}
+
+                  {['R', 'H'].includes(
+                    item.status
+                  ) ? (
+
+                    <>
+
+                      <button
+                        type="button"
+                        className="btn btn-edit"
+                        onClick={() =>
+                          handleEdit(item)
+                        }
+                      >
+
+                        수정
+
+                      </button>
+
+
+                      <button
+                        type="button"
+                        className="btn btn-cancel"
+                        onClick={() =>
+                          handleCancel(item)
+                        }
+                      >
+
+                        취소
+
+                      </button>
+
+                    </>
+
+                  ) : (
+
+                    /* ---------------------------------------
+                       A / J / C
+                       변경 불가
+                    ---------------------------------------- */
+
+                    <span className="text-disabled">
+
+                      변경 불가
+
+                    </span>
+
+                  )}
+
                 </td>
 
               </tr>
 
-            ) : (
+            ))
 
-              amounts.map((item) => (
+          )}
 
-                <tr
-                  key={item.amountNo}
-                >
+        </tbody>
 
-                  {/* 신청번호 */}
-
-                  <td className="text-center">
-                    {item.amountNo}
-                  </td>
+      </table>
 
 
-                  {/* 신청 금액 */}
+      {/* =====================================================
+          안내
+      ====================================================== */}
 
-                  <td className="text-right">
-                    {formatMoney(
-                      item.requestedAmount
-                    )}
-                  </td>
+      <div
+        style={{
+          marginTop: '12px',
+          fontSize: '13px',
+          color: '#777'
+        }}
+      >
 
+        ※ 검토중 또는 보류 상태의 신청만
+        수정 및 취소할 수 있습니다.
 
-                  {/* 승인 금액 */}
+      </div>
 
-                  <td className="text-right">
-                    {formatMoney(
-                      item.approvedAmount
-                    )}
-                  </td>
-
-
-                  {/* 상태 */}
-
-                  <td className="text-center">
-                    {getStatusBadge(
-                      item.status
-                    )}
-                  </td>
-
-
-                  {/* 신청일 */}
-
-                  <td className="text-center">
-                    {formatDate(
-                      item.requestedAt
-                    )}
-                  </td>
-
-
-                  {/* 신청 관리 */}
-
-                  <td className="text-center">
-
-                    {['R', 'H'].includes(
-                      item.status
-                    ) ? (
-
-                      <>
-
-                        <button
-                          type="button"
-                          className="btn btn-edit"
-                          onClick={() =>
-                            handleEdit(item)
-                          }
-                        >
-                          수정
-                        </button>
-
-                        <button
-                          type="button"
-                          className="btn btn-cancel"
-                          onClick={() =>
-                            handleCancel(item)
-                          }
-                        >
-                          취소
-                        </button>
-
-                      </>
-
-                    ) : (
-
-                      <span className="text-disabled">
-                        변경 불가
-                      </span>
-
-                    )}
-
-                  </td>
-
-                </tr>
-
-              ))
-
-            )}
-
-          </tbody>
-
-        </table>
-
-      )}
 
     </div>
 
   );
+
 }

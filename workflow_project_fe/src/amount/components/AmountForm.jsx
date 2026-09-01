@@ -8,29 +8,60 @@ export default function AmountForm({
 }) {
 
   // =========================================================
-  // 비용 신청 기본 데이터
+  // Amount VO 기준
   //
-  // requestedAmount
-  // → 직접 입력하지 않음
-  // → itemList 금액을 자동 합산
+  // Amount
+  // - workcationNo
+  // - requestedAmount
+  // - amountComment
+  // - itemList
+  // - files
   //
-  // 첨부파일
-  // → 최소 1개 필수
+  // Amount.Item
+  // - itemType
+  // - amount
+  // - itemDate
+  // - itemDescription
+  //
+  // 서버에서 자동 처리되는 값
+  // - amountNo
+  // - approvedAmount
+  // - requestedAt
+  // - approvedAt
+  // - createdAt
+  // - updatedAt
+  // - status
+  // - itemNo
+  // - itemApproved
+  // =========================================================
+
+
+  // =========================================================
+  // 기본 비용 항목
+  // =========================================================
+
+  const createEmptyItem = () => ({
+    itemType: 'S',
+    amount: '',
+    itemDate: '',
+    itemDescription: ''
+  });
+
+
+  // =========================================================
+  // 폼 데이터
   // =========================================================
 
   const [formData, setFormData] = useState({
 
     workcationNo: workcationNo || '',
 
+    requestedAmount: 0,
+
     amountComment: '',
 
     itemList: [
-      {
-        itemType: 'S',
-        amount: '',
-        itemDate: '',
-        itemDescription: ''
-      }
+      createEmptyItem()
     ],
 
     files: []
@@ -45,27 +76,18 @@ export default function AmountForm({
   useEffect(() => {
 
     setFormData((prev) => ({
+
       ...prev,
+
       workcationNo: workcationNo || ''
+
     }));
 
   }, [workcationNo]);
 
 
   // =========================================================
-  // 기본 항목
-  // =========================================================
-
-  const createEmptyItem = () => ({
-    itemType: 'S',
-    amount: '',
-    itemDate: '',
-    itemDescription: ''
-  });
-
-
-  // =========================================================
-  // 상세 항목 추가
+  // 비용 항목 추가
   // =========================================================
 
   const handleAddItem = () => {
@@ -85,7 +107,7 @@ export default function AmountForm({
 
 
   // =========================================================
-  // 상세 항목 삭제
+  // 비용 항목 삭제
   // =========================================================
 
   const handleRemoveItem = (index) => {
@@ -104,11 +126,10 @@ export default function AmountForm({
 
       ...prev,
 
-      itemList:
-        prev.itemList.filter(
-          (_, itemIndex) =>
-            itemIndex !== index
-        )
+      itemList: prev.itemList.filter(
+        (_, itemIndex) =>
+          itemIndex !== index
+      )
 
     }));
 
@@ -116,7 +137,7 @@ export default function AmountForm({
 
 
   // =========================================================
-  // 기본 정보 변경
+  // Amount 기본 필드 변경
   // =========================================================
 
   const handleChange = (e) => {
@@ -138,7 +159,7 @@ export default function AmountForm({
 
 
   // =========================================================
-  // 상세 항목 변경
+  // Amount.Item 필드 변경
   // =========================================================
 
   const handleItemChange = (
@@ -149,8 +170,9 @@ export default function AmountForm({
 
     setFormData((prev) => {
 
-      const updatedItems =
-        [...prev.itemList];
+      const updatedItems = [
+        ...prev.itemList
+      ];
 
       updatedItems[index] = {
 
@@ -174,13 +196,14 @@ export default function AmountForm({
 
 
   // =========================================================
-  // 첨부파일 변경
+  // 파일 변경
   // =========================================================
 
   const handleFileChange = (e) => {
 
-    const files =
-      Array.from(e.target.files || []);
+    const files = Array.from(
+      e.target.files || []
+    );
 
     setFormData((prev) => ({
 
@@ -194,9 +217,11 @@ export default function AmountForm({
 
 
   // =========================================================
-  // 상세 항목 합계
+  // 비용 항목 합계
   //
-  // requestedAmount는 이 값을 자동으로 사용
+  // Amount.requestedAmount
+  // =
+  // Amount.itemList[].amount 합계
   // =========================================================
 
   const getItemTotal = () => {
@@ -204,10 +229,15 @@ export default function AmountForm({
     return formData.itemList.reduce(
       (sum, item) => {
 
-        return (
-          sum +
-          (Number(item.amount) || 0)
-        );
+        const amount =
+          Number(item.amount);
+
+        return sum +
+          (
+            Number.isFinite(amount)
+              ? amount
+              : 0
+          );
 
       },
       0
@@ -218,8 +248,6 @@ export default function AmountForm({
 
   // =========================================================
   // 총 신청 금액
-  //
-  // 사용자가 입력하지 않고 자동 계산
   // =========================================================
 
   const requestedAmount =
@@ -243,7 +271,7 @@ export default function AmountForm({
 
 
   // =========================================================
-  // 폼 제출
+  // 제출
   // =========================================================
 
   const handleSubmit = async (e) => {
@@ -252,10 +280,14 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 워케이션 번호 검증
+    // 1. workcationNo
     // =======================================================
 
-    if (!formData.workcationNo) {
+    if (
+      formData.workcationNo === null ||
+      formData.workcationNo === undefined ||
+      formData.workcationNo === ''
+    ) {
 
       alert(
         '워케이션 정보가 없습니다.'
@@ -267,11 +299,11 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 비용 항목 검증
+    // 2. itemList
     // =======================================================
 
     if (
-      !formData.itemList ||
+      !Array.isArray(formData.itemList) ||
       formData.itemList.length === 0
     ) {
 
@@ -285,7 +317,7 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 각 항목 검증
+    // 3. 각 Item 검증
     // =======================================================
 
     for (
@@ -297,20 +329,24 @@ export default function AmountForm({
       const item =
         formData.itemList[i];
 
-      const itemAmount =
-        Number(item.amount);
 
+      // itemType
 
       if (!item.itemType) {
 
         alert(
-          `${i + 1}번째 항목의 유형을 선택해주세요.`
+          `${i + 1}번째 비용 항목의 유형을 선택해주세요.`
         );
 
         return;
 
       }
 
+
+      // amount
+
+      const itemAmount =
+        Number(item.amount);
 
       if (
         !Number.isFinite(itemAmount) ||
@@ -318,24 +354,28 @@ export default function AmountForm({
       ) {
 
         alert(
-          `${i + 1}번째 항목의 금액을 올바르게 입력해주세요.`
+          `${i + 1}번째 비용 항목의 금액을 올바르게 입력해주세요.`
         );
 
         return;
 
       }
 
+
+      // itemDate
 
       if (!item.itemDate) {
 
         alert(
-          `${i + 1}번째 항목의 사용일을 입력해주세요.`
+          `${i + 1}번째 비용 항목의 사용일을 입력해주세요.`
         );
 
         return;
 
       }
 
+
+      // itemDescription
 
       if (
         !item.itemDescription ||
@@ -343,7 +383,7 @@ export default function AmountForm({
       ) {
 
         alert(
-          `${i + 1}번째 항목의 내용을 입력해주세요.`
+          `${i + 1}번째 비용 항목의 내용을 입력해주세요.`
         );
 
         return;
@@ -354,12 +394,11 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 총 신청 금액
+    // 4. requestedAmount
     // =======================================================
 
     const totalAmount =
       getItemTotal();
-
 
     if (
       !Number.isFinite(totalAmount) ||
@@ -376,11 +415,11 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 첨부파일 필수
+    // 5. 첨부파일
     // =======================================================
 
     if (
-      !formData.files ||
+      !Array.isArray(formData.files) ||
       formData.files.length === 0
     ) {
 
@@ -394,7 +433,7 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 최종 확인
+    // 6. 최종 확인
     // =======================================================
 
     const confirmed =
@@ -402,9 +441,13 @@ export default function AmountForm({
 
         `비용 정산 신청서를 제출하시겠습니까?\n\n` +
 
-        `신청 금액: ${formatMoney(
-          totalAmount
-        )}원\n` +
+        `워케이션 번호: ${
+          formData.workcationNo
+        }\n` +
+
+        `신청 금액: ${
+          formatMoney(totalAmount)
+        }원\n` +
 
         `비용 항목: ${
           formData.itemList.length
@@ -425,10 +468,24 @@ export default function AmountForm({
 
 
     // =======================================================
-    // 서버 전송 데이터
+    // 7. Amount VO 기준 요청 데이터
     //
-    // requestedAmount
-    // → 항목 합계 자동 계산
+    // Amount
+    // {
+    //     workcationNo,
+    //     requestedAmount,
+    //     amountComment,
+    //     itemList,
+    //     files
+    // }
+    //
+    // Item
+    // {
+    //     itemType,
+    //     amount,
+    //     itemDate,
+    //     itemDescription
+    // }
     // =======================================================
 
     const requestData = {
@@ -440,7 +497,9 @@ export default function AmountForm({
         totalAmount,
 
       amountComment:
-        formData.amountComment?.trim() || '',
+        formData.amountComment
+          ? formData.amountComment.trim()
+          : '',
 
       itemList:
         formData.itemList.map(
@@ -468,13 +527,45 @@ export default function AmountForm({
 
 
     console.log(
-      '📤 비용 신청 데이터:',
-      requestData
+      '================================='
+    );
+
+    console.log(
+      '📤 비용 신청 요청 데이터'
+    );
+
+    console.log(
+      'workcationNo:',
+      requestData.workcationNo
+    );
+
+    console.log(
+      'requestedAmount:',
+      requestData.requestedAmount
+    );
+
+    console.log(
+      'amountComment:',
+      requestData.amountComment
+    );
+
+    console.log(
+      'itemList:',
+      requestData.itemList
+    );
+
+    console.log(
+      'files:',
+      requestData.files
+    );
+
+    console.log(
+      '================================='
     );
 
 
     // =======================================================
-    // 등록
+    // 8. 서버 등록
     // =======================================================
 
     try {
@@ -498,7 +589,7 @@ export default function AmountForm({
 
 
       // =====================================================
-      // 성공 후 콜백
+      // 9. 성공 콜백
       // =====================================================
 
       if (onSuccess) {
@@ -511,13 +602,15 @@ export default function AmountForm({
 
 
       // =====================================================
-      // 폼 초기화
+      // 10. 폼 초기화
       // =====================================================
 
       setFormData({
 
         workcationNo:
           workcationNo || '',
+
+        requestedAmount: 0,
 
         amountComment: '',
 
@@ -530,7 +623,10 @@ export default function AmountForm({
       });
 
 
-      // 파일 input 초기화
+      // =====================================================
+      // 11. 파일 input 초기화
+      // =====================================================
+
       const fileInput =
         document.getElementById(
           'amount-file-input'
@@ -542,12 +638,16 @@ export default function AmountForm({
 
       }
 
-
     } catch (error) {
 
       console.error(
         '❌ 비용 신청 실패:',
         error
+      );
+
+      console.error(
+        'HTTP 상태:',
+        error.response?.status
       );
 
       console.error(
@@ -577,9 +677,12 @@ export default function AmountForm({
 
   return (
 
-    <div
-      className="amount-container"
-    >
+    <div className="amount-container">
+
+
+      {/* ===================================================
+          제목
+      ==================================================== */}
 
       <h2 className="amount-title">
         비용 정산 신청
@@ -592,9 +695,9 @@ export default function AmountForm({
       >
 
 
-        {/* ===================================================
+        {/* =================================================
             워케이션 번호
-        ==================================================== */}
+        ================================================== */}
 
         <div className="info-row">
 
@@ -611,10 +714,10 @@ export default function AmountForm({
         </div>
 
 
-        {/* ===================================================
+        {/* =================================================
             총 신청 금액
-            → 자동 계산
-        ==================================================== */}
+            Amount.requestedAmount
+        ================================================== */}
 
         <div className="info-row">
 
@@ -647,9 +750,10 @@ export default function AmountForm({
         </div>
 
 
-        {/* ===================================================
+        {/* =================================================
             신청 사유
-        ==================================================== */}
+            Amount.amountComment
+        ================================================== */}
 
         <div
           className="info-row"
@@ -691,9 +795,9 @@ export default function AmountForm({
         </div>
 
 
-        {/* ===================================================
-            비용 항목
-        ==================================================== */}
+        {/* =================================================
+            비용 상세 항목
+        ================================================== */}
 
         <div
           style={{
@@ -713,14 +817,14 @@ export default function AmountForm({
               fontSize: '13px'
             }}
           >
-            ※ 비용 항목의 금액을 입력하면
-            총 신청 금액이 자동으로 계산됩니다.
+            ※ 각 비용 항목의 금액 합계가
+            총 신청 금액으로 자동 계산됩니다.
           </div>
 
 
           {/* =================================================
-              항목 목록
-          ================================================= */}
+              itemList
+          ================================================== */}
 
           {formData.itemList.map(
             (item, index) => (
@@ -735,6 +839,7 @@ export default function AmountForm({
                   borderRadius: '8px'
                 }}
               >
+
 
                 {/* ===========================================
                     항목 헤더
@@ -773,7 +878,7 @@ export default function AmountForm({
 
 
                 {/* ===========================================
-                    항목 유형
+                    itemType
                 ============================================ */}
 
                 <div
@@ -832,7 +937,7 @@ export default function AmountForm({
 
 
                 {/* ===========================================
-                    금액
+                    amount
                 ============================================ */}
 
                 <div
@@ -878,7 +983,7 @@ export default function AmountForm({
 
 
                 {/* ===========================================
-                    사용일
+                    itemDate
                 ============================================ */}
 
                 <div
@@ -913,7 +1018,7 @@ export default function AmountForm({
 
 
                 {/* ===========================================
-                    설명
+                    itemDescription
                 ============================================ */}
 
                 <div>
@@ -965,9 +1070,9 @@ export default function AmountForm({
         </div>
 
 
-        {/* ===================================================
-            항목 합계
-        ==================================================== */}
+        {/* =================================================
+            총 신청 금액
+        ================================================== */}
 
         <div
           style={{
@@ -999,9 +1104,10 @@ export default function AmountForm({
         </div>
 
 
-        {/* ===================================================
+        {/* =================================================
             첨부파일
-        ==================================================== */}
+            Amount.files
+        ================================================== */}
 
         <div
           className="info-row"
@@ -1031,6 +1137,7 @@ export default function AmountForm({
               }
               required
             />
+
 
             <div
               style={{
@@ -1076,9 +1183,9 @@ export default function AmountForm({
         </div>
 
 
-        {/* ===================================================
-            버튼
-        ==================================================== */}
+        {/* =================================================
+            제출
+        ================================================== */}
 
         <div
           style={{
@@ -1097,6 +1204,7 @@ export default function AmountForm({
           </button>
 
         </div>
+
 
       </form>
 

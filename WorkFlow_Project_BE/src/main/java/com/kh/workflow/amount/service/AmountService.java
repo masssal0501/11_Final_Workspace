@@ -11,14 +11,14 @@ import com.kh.workflow.common.model.vo.PageInfo;
 public interface AmountService {
 
     // =========================================================
-    // 1. 전체 비용 신청 개수 조회
+    // 1. 전체 비용 신청 개수
     // =========================================================
 
     int getAmountListCount();
 
 
     // =========================================================
-    // 2. 전체 비용 신청 목록 조회
+    // 2. 전체 비용 신청 목록
     // =========================================================
 
     List<Amount> selectAmountList(PageInfo pi);
@@ -26,6 +26,11 @@ public interface AmountService {
 
     // =========================================================
     // 3. 비용 신청 등록
+    //
+    // Amount
+    // ├─ itemList
+    // ├─ sponsor
+    // └─ fileList
     // =========================================================
 
     int insertAmount(Amount amount);
@@ -33,11 +38,6 @@ public interface AmountService {
 
     // =========================================================
     // 4. 비용 상세 조회
-    //
-    // Amount
-    //  ├─ itemList
-    //  ├─ sponsor
-    //  └─ fileList
     // =========================================================
 
     Amount selectAmountById(int amountNo);
@@ -61,10 +61,17 @@ public interface AmountService {
 
 
     // =========================================================
-    // 7. 결재 상태 변경
+    // 7. 비용 결재 상태 변경
+    //
+    // Controller에서 전달한 값을 그대로 받음
     // =========================================================
 
-    int updateApprovalStatus(Amount amount);
+    int updateApprovalStatus(
+            int amountNo,
+            String status,
+            int approvedAmount,
+            String comment
+    );
 
 
     // =========================================================
@@ -78,7 +85,7 @@ public interface AmountService {
 
 
     // =========================================================
-    // 9. 개별 첨부파일 삭제
+    // 9. 첨부파일 삭제
     // =========================================================
 
     int deleteFile(int amountattachmentNo);
@@ -94,8 +101,8 @@ public interface AmountService {
     // =========================================================
     // 11. 결재 + 지원금 처리
     //
-    // amount_list는 amount_no를 PK로 사용하므로
-    // 하나의 amount에 하나의 Sponsor만 연결
+    // Amount
+    // └─ sponsor : Sponsor
     // =========================================================
 
     void updateApprovalWithSponsor(
@@ -103,10 +110,7 @@ public interface AmountService {
             String status,
             int approvedAmount,
             String comment,
-            String sponsorName,
-            int sponsorAmount,
-            String sponsorStatus,
-            String remark
+            Amount.Sponsor sponsor
     );
 
 
@@ -115,6 +119,5 @@ public interface AmountService {
     // =========================================================
 
     Map<String, Object> getFullStatistics();
-
 }
 
