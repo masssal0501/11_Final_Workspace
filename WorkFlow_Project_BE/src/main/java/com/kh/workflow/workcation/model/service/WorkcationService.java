@@ -1,6 +1,5 @@
 package com.kh.workflow.workcation.model.service;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
@@ -14,7 +13,7 @@ public interface WorkcationService {
 
 	void insertWorkcationEnrollForm(Map<String, Object> paramMap);
 	
-
+	void insertWorkcation(WorkcationInfo workcartion);
 	
 	
 }

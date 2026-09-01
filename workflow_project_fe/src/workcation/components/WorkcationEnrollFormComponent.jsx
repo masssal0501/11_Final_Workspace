@@ -11,14 +11,12 @@ export const OPTION_CONFIG = {
 };
 
 function WorkcationEnrollFormComponent() {
-
     // 지역 데이터 state (WorkcationItemComponent 기능 포함)
     const [mainRegion, setMainRegion] = useState("");
     const [subRegion, setSubRegion] = useState("");
     const [mainRegionDrop, setMainRegionDrop] = useState([]);
-    const [subRegionDrop, setSubRegionDrop] = useState([]); 
-    
-       //신청날짜와 현재날짜 생성
+    const [subRegionDrop, setSubRegionDrop] = useState([]);
+
     const [startDate, setStartDate] = useState(getToday());
     const [endDate, setEndDate] = useState(getToday());
     const [programVisitDate, setProgramVisitDate] = useState(getTomorrow());
@@ -43,14 +41,28 @@ function WorkcationEnrollFormComponent() {
     const [taskName, setTaskName] = useState("");
     const [days, setDays] = useState("");
 
-    //교통비,기타 비용 칸 공백
+    // 비용 계산용 추가 state (교통비, 기타)
     const [transportText, setTransportText] = useState("");
     const [etcText, setEtcText] = useState("");
 
+
     //교통
-    const handleTextChange = (e, setter) =>{
+    const handleTextChange = (e, setter) => {
         const val = e.target.value;
         setter(val === "" ? "" : Number(val));
+    }
+
+    //오늘날짜 구하기
+    function getToday() {
+        const d = new Date();
+        return d.toISOString().split('T')[0];
+    }
+
+    //내일 날짜(방문일) 구하기
+    function getTomorrow() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
     }
 
     // BASE_URL 생성
@@ -189,19 +201,6 @@ function WorkcationEnrollFormComponent() {
             }
         }));
     };
-    
-        //오늘날짜 구하기
-    function getToday() {
-        const d = new Date();
-        return d.toISOString().split('T')[0];
-    }
-
-    //내일 날짜(방문일) 구하기
-    function getTomorrow() {
-        const d = new Date();
-        d.setDate(d.getDate() + 1);
-        return d.toISOString().split('T')[0];
-    }
 
     /** 누른 버튼에 따라 해당 tr을 보여주는 함수 */
     const renderBtnRow = (key) => {
@@ -218,67 +217,72 @@ function WorkcationEnrollFormComponent() {
         const selectedDate = selectedOptObj.date || "";
 
         return (
-            <tr key={key}>
+            <tr key={key}
+                className={!isSelected ? "option-btn-empty" : ""} >
                 <th>{placeConfig.label}</th>
 
                 {!isSelected ? (
+                    /** 1)아직 선택하지 않았을 시 고정자리에 + 표시 */
                     <td colSpan={3}>
-                        <button type="button"
-                                className=""
-                                disabled={!selectHubNo}
-                                onClick={()=> handleAddBtns(key)}>
-                                    + {placeConfig.label} 추가
-                                </button>
+                        <button
+                            type="button"
+                            className="add-option-btn"
+                            disabled={!selectHubNo}
+                            onClick={() => handleAddBtns(key)} >
+                            + {placeConfig.label} 추가
+                        </button>
                     </td>
-                )}
-                <td>
-                    <select name={`${key}No`}
-                        value={selectedHub ? selectedHub.hubNo : ""}
-                        disabled={!hasValiItem} // 데이터 없을시 박스 비활성화
-                        onChange={(e) => {
-                            const found = hubItemList.find(item => String(item?.hubNo) === e.target.value);
-                            handlePlaceDate(key, "item", found || null);
-                        }}>
-                        <option value="">
-                            {hasValiItem
-                                ? `${placeConfig.label} 선택`
-                                : `해당하는 ${placeConfig.label}이(가) 없습니다.`}
-                        </option>
-                        {hubItemList.map((item, index) => {
-                            const status = item.hubStatus;
-                            const isPaused = status === 'PAUSED';
-                            const isClosed = status === 'CLOSED';
-                            const isDisabled = isPaused || isClosed;
-
-                            const statusLabel = isClosed
-                                ? "종료" : isPaused
-                                    ? "일시중단" : (item.price
-                                        ? `${item.price.toLocaleString()}원` : "무료 입장");
-
-                            return (
-                                <option
-                                    key={item.hubNo || index}
-                                    value={item.hubNo}
-                                    disabled={isDisabled}
-                                    style={isDisabled ? { color: "#999999" } : {}}>
-                                    {item.hubName} / {statusLabel}
+                ) : (
+                    /* 2) 클릭후 활성화 되엇을 시 셀렉박스 + 방문일 + X 표시*/
+                    <>
+                        <td>
+                            <select name={`${key}No`}
+                                value={selectedHub ? selectedHub.hubNo : ""}
+                                disabled={!hasValiItem} // 데이터 없을시 박스 비활성화
+                                onChange={(e) => {
+                                    const found = hubItemList.find(item => String(item?.hubNo) === e.target.value);
+                                    handlePlaceDate(key, "item", found || null);
+                                }}>
+                                <option value="">
+                                    {hasValiItem
+                                        ? `${placeConfig.label} 선택`
+                                        : `해당하는 ${placeConfig.label}이(가) 없습니다.`}
                                 </option>
-                            );
-                        })}
-                    </select>
-                </td>
-                <th>방문일</th>
-                <td className="optionBtn-date">
-                    <input type="date"
-                        name={`${key}date`}
-                        value={selectedDate || getTomorrow()}
-                        onChange={(e) => handlePlaceDate(key, "date", e.target.value)} />
-                    <button type="button"
-                        className="remove-btn"
-                        onClick={() => handleRemoveBtn(key)}>
-                        X
-                    </button>
-                </td>
+                                {hubItemList.map((item, index) => {
+                                    const status = item.hubStatus;
+                                    const isPaused = status === 'PAUSED';
+                                    const isClosed = status === 'CLOSED';
+                                    const isDisabled = isPaused || isClosed;
+                                    const statusLabel = isClosed
+                                        ? " 종료" : isPaused
+                                            ? "일시중단" : (item.price ? `${item.price.toLocaleString()}원` : "무료입장");
+
+                                    return (
+                                        <option
+                                            key={item.hubNo || index}
+                                            value={item.hubNo}
+                                            disabled={isDisabled}
+                                            style={isDisabled ? { color: "#999999" } : {}} >
+                                            {item.hubName} / {statusLabel}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </td>
+                        <th>방문일</th>
+                        <td className="optionBtn-date">
+                            <input type="date"
+                                name={`${key}date`}
+                                value={selectedDate || getTomorrow()}
+                                onChange={(e) => handlePlaceDate(key, "date", e.target.value)} />
+                            <button type="button"
+                                className="remove-btn"
+                                onClick={() => handleRemoveBtn(key)}>
+                                X
+                            </button>
+                        </td>
+                    </>
+                )}
             </tr>
         );
     };
@@ -357,13 +361,15 @@ function WorkcationEnrollFormComponent() {
             console.error("실패", err);
             alert("오류가 발생했습니다.");
         }
-    };   
+    };
 
     return (
         <div className="workcatrion-enroll-container">
             <h2 align="center">워케이션 신청</h2>
 
-
+            <button className="insert-btn" type="button" onClick={handleSubmit}>
+                제출하기
+            </button>
             <table className="workcation-form-table">
                 <tbody>
                     <tr>
@@ -480,21 +486,12 @@ function WorkcationEnrollFormComponent() {
                                         {valiHubList.map((hub, index) => {
                                             const status = hub.hubStatus;
                                             const isPaused = status === 'PAUSED';
-                                            const isClosed = status === 'CLOSED';
-                                            const isDisabled = isPaused || isClosed; // 비활성화 조건
-
-                                            // 표시할 라벨 문구
-                                            const statusLabel = isClosed
-                                                ? "종료" : isPaused
-                                                    ? "일시중단" : (hub?.price
-                                                        ? `${hub.price.toLocaleString()}원` : "가격 정보 없음");
 
                                             return (
                                                 <option key={`hub-${hub?.hubNo || index}`}
                                                     value={hub?.hubNo}
-                                                    disabled={isDisabled}
-                                                    style={isDisabled ? { color: "#999999" } : {}}>
-                                                    {hub?.hubName} / {statusLabel}
+                                                    disabled={isPaused} >
+                                                    {hub?.hubName} / {isPaused ? "일시중단" : (hub?.price ? `${hub.price.toLocaleString()}원` : "가격 정보 없음")}
                                                 </option>
                                             );
                                         })}
@@ -503,36 +500,16 @@ function WorkcationEnrollFormComponent() {
                             </tr>
                         );
                     })()}
-
-                    {selectedBtns.map((type) => renderBtnRow(type))}
+                    {/**오피스/숙소까지 최종선택 되엇을시  */}
+                    {renderBtnRow("program")}
+                    {renderBtnRow("restaurant")}
+                    {renderBtnRow("tour")}
                 </tbody>
             </table>
 
 
-            {/**오피스/숙소까지 최종선택 되엇을시  */}
-            <div className="plus-btn-group">
-                {!selectedBtns.includes("program") && (
-                    <button type="button"
-                        disabled={!selectHubNo}
-                        onClick={() => handleAddBtns("program")}>
-                        + 체험 프로그램
-                    </button>
-                )}
-                {!selectedBtns.includes("restaurant") && (
-                    <button type="button"
-                        disabled={!selectHubNo}
-                        onClick={() => handleAddBtns("restaurant")}>
-                        + 맛집
-                    </button>
-                )}
-                {!selectedBtns.includes("tour") && (
-                    <button type="button"
-                        disabled={!selectHubNo}
-                        onClick={() => handleAddBtns("tour")}>
-                        + 관광지
-                    </button>
-                )}
-            </div>
+
+
 
             <div className="task-plan-container">
                 <h3 align="center">업무 계획</h3>
@@ -582,10 +559,9 @@ function WorkcationEnrollFormComponent() {
                     <div className="left-price-row">
                         <span>교통비</span>
                         <div className="left-price-input">
-                            <input type="number"
+                            <input type="text"
                                 value={transportText}
-                                onChange={(e) => handleTextChange(e, setTransportText)} 
-                                placeholder="" />원
+                                onChange={(e) => setTransportText(Number(e.target.value))} />원
                         </div>
                     </div>
                     <div className="left-price-row">
@@ -593,8 +569,7 @@ function WorkcationEnrollFormComponent() {
                         <div className="left-price-input">
                             <input type="number"
                                 value={etcText}
-                                onChange={(e) => handleTextChange(e, setEtcText)} 
-                                placeholder="" />원
+                                onChange={(e) => setEtcText(Number(e.target.value))} />원
                         </div>
                     </div>
                     <hr />
@@ -625,9 +600,6 @@ function WorkcationEnrollFormComponent() {
                     </div>
                 </div>
             </div>
-            <button className="insert-btn" type="button" onClick={handleSubmit}>
-                제출하기
-            </button>
         </div>
     );
 }

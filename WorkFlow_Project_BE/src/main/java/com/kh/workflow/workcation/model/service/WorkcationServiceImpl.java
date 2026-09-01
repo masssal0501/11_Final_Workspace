@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.workflow.amount.dao.AmountDao;
+import com.kh.workflow.amount.model.vo.Amount;
 // Employee 엔티티 패키지 경로에 맞게 확인 필요
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
@@ -26,6 +28,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Autowired
 	private ReservationDao reservationDao;
+	
+	@Autowired
+	private AmountDao amountDao; 
 
 	@Override
 	public Page<WorkcationInfo> selectWorkcationList(Pageable pageable) {
@@ -63,7 +68,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		info.setEndAt(endAt);
 		info.setEmployee(employee); // Employee 연관 객체 세팅
 
-		info.setApproverState("W");//JAP가 인서트할때 W지정 등록
+		info.setApproverState("W");//JPA가 인서트할때 W지정 등록
 		
 		WorkcationInfo workcation = workcationDao.save(info);
 
@@ -79,8 +84,23 @@ public class WorkcationServiceImpl implements WorkcationService {
 		reservation.setRsvEnd(endAt);
 
 		reservationDao.save(reservation);
+		
+		//프론트에서 넘어온 총 지원금(예상금액)		
+		Amount amount = new Amount();
+		amount.setWorkcationNo(workcation.getWorkcationNo());
+		
+		Integer approvedAmount = 0;
+		if(paramMap.get("totalSupport") != null) {
+			approvedAmount = Integer.parseInt(paramMap.get("totalSupport").toString());
+		}
+		
+		amount.setApprovedAmount(approvedAmount);
+		
+		amount.setRequestedAt(LocalDateTime.now());
+		amount.setCreatedAt(LocalDateTime.now());		
+		amount.setStatus("W");
+		amountDao.save(amount);
+		
+		
 	}
-
-	
-	
 }

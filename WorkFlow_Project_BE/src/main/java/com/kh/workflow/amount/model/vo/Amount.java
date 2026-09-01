@@ -18,7 +18,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="amount")
+@Table(name="amount_support")
 
 @NoArgsConstructor
 @Setter
@@ -31,9 +31,6 @@ public class Amount {
 	@GeneratedValue(strategy =GenerationType.IDENTITY)
 	@Column(name="amount_no")
     private Integer amountNo;
-
-    @Column(name="requested_amount", nullable =false)
-    private Integer requestedAmount;
 
     @Column(name="approved_amount")
     private Integer approvedAmount;
