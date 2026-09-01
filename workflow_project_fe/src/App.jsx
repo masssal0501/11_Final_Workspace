@@ -48,6 +48,7 @@ import EmployeeList from "./employee/components/EmployeeList";
 import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
+import LocationCheckModal from "./common/components/LocationCheckModal";
 import ErrorPage from "./common/components/ErrorPage";
 
 import {

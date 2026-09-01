@@ -1,0 +1,253 @@
+.locationModalOverlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 9999;
+}
+
+
+.locationModal {
+
+    width: 650px;
+
+    max-width: 90vw;
+
+    background: white;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Header */
+
+.locationModalHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 20px 24px;
+
+    border-bottom: 1px solid #eee;
+}
+
+
+.locationModalHeader h2 {
+
+    margin: 0;
+
+    font-size: 20px;
+}
+
+
+.modalCloseBtn {
+
+    border: none;
+
+    background: none;
+
+    font-size: 28px;
+
+    cursor: pointer;
+
+    color: #777;
+}
+
+
+/* 거점 정보 */
+
+.hubInfo {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 15px 24px;
+
+    background: #f8f9fa;
+}
+
+
+.hubInfo strong {
+
+    font-size: 15px;
+}
+
+
+.hubInfo span {
+
+    color: #666;
+
+    font-size: 13px;
+}
+
+
+/* 지도 */
+
+.locationMap {
+
+    width: 100%;
+
+    height: 350px;
+}
+
+
+/* 위치 정보 */
+
+.locationInfo {
+
+    padding: 20px 24px;
+
+    text-align: center;
+}
+
+
+.distanceInfo {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-bottom: 15px;
+
+    font-size: 14px;
+}
+
+
+.distanceInfo strong {
+
+    font-size: 18px;
+}
+
+
+/* 출근 가능 */
+
+.checkAvailable {
+
+    padding: 14px;
+
+    border-radius: 8px;
+
+    background: #eaf8ef;
+
+    color: #198754;
+
+    font-weight: 600;
+}
+
+
+.checkAvailable span {
+
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 12px;
+
+    font-weight: normal;
+}
+
+
+/* 출근 불가 */
+
+.checkUnavailable {
+
+    padding: 14px;
+
+    border-radius: 8px;
+
+    background: #fff1f1;
+
+    color: #dc3545;
+
+    font-weight: 600;
+}
+
+
+.checkUnavailable span {
+
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 12px;
+
+    font-weight: normal;
+}
+
+
+/* 오류 */
+
+.locationError {
+
+    color: #dc3545;
+
+    font-size: 14px;
+}
+
+
+/* Footer */
+
+.locationModalFooter {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 16px 24px;
+
+    border-top: 1px solid #eee;
+}
+
+
+.locationModalFooter button {
+
+    padding: 10px 18px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 6px;
+
+    background: white;
+
+    cursor: pointer;
+}
+
+
+.locationModalFooter .checkInBtn {
+
+    background: #2563eb;
+
+    color: white;
+
+    border: none;
+}
+
+
+.locationModalFooter .checkInBtn:disabled {
+
+    background: #ccc;
+
+    cursor: not-allowed;
+}
