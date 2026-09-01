@@ -10,7 +10,7 @@ import NoticeListPage from './pages/notice/NoticeListPage';
 import NoticeDetailPage from './pages/notice/NoticeDetailPage';
 import NoticeUpdatePage from './pages/notice/NoticeUpdatePage';
 import NoticeWritePage from './pages/notice/NoticeWritePage';
-import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
+
 
 import AmountPage from './pages/amount/AmountPage';
 import AdminAmountPage from './pages/amount/AdminAmountPage';
@@ -233,11 +233,11 @@ function App() {
                 <Route path="/notice" element={<NoticeListPage />} />
 
                 <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
-                <Route path="/admin/notice" element={<NoticeAdminListPage />} />
+               
 
-                <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
+                <Route path="/notice/insert" element={<NoticeWritePage />} />
 
-                <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+                <Route path="/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
                 {/* placeInfo */}
                 <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>

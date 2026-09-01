@@ -133,10 +133,14 @@ public class SecurityConfig {
                             "/api/v1/notice/**"
                         ).permitAll()
                         
-                        // 관리자 공지사항 추후 권한 수정
                         .requestMatchers(
-                                "/api/v1/admin/notice/**"
+                                "/api/v1/notice/insert/"
                             ).permitAll()
+                        .requestMatchers(
+                                "/api/v1/notice/update/**"
+                            ).permitAll()
+                        
+                       
             
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()

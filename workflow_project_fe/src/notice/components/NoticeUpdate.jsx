@@ -53,7 +53,7 @@ export default function NoticeUpdate() {
                 '공지사항을 불러오지 못했습니다.'
             );
 
-            navigate('/admin/notice');
+            navigate('/notice');
 
         }
 

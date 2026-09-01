@@ -10,7 +10,6 @@ export default function NoticeList() {
     const [noticeList, setNoticeList] = useState([]);
     const [loading, setLoading] = useState(true);
 
-
     // =========================================================
     // 현재 페이지
     // =========================================================
@@ -82,7 +81,7 @@ export default function NoticeList() {
             );
 
             setListCount(
-                data?.listCount ?? 0
+                Number(data?.listCount ?? 0)
             );
 
 
@@ -138,6 +137,17 @@ export default function NoticeList() {
 
         // 실제 검색어 적용
         setSearchKeyword(keyword);
+
+    };
+
+
+    // =========================================================
+    // 공지사항 등록
+    // =========================================================
+
+    const handleInsert = () => {
+
+        navigate('/notice/insert');
 
     };
 
@@ -259,7 +269,7 @@ export default function NoticeList() {
 
 
             {/* =================================================
-                제목
+                헤더
             ================================================= */}
 
             <div className="notice-header">
@@ -267,6 +277,22 @@ export default function NoticeList() {
                 <h2>
                     공지사항
                 </h2>
+
+
+                {/* 
+                 * 현재는 임시로 모두에게 표시
+                 *
+                 * 추후 관리자 권한 체크 후
+                 * 관리자에게만 표시하면 됨
+                 */}
+
+                <button
+                    type="button"
+                    className="notice-btn primary"
+                    onClick={handleInsert}
+                >
+                    공지사항 등록
+                </button>
 
             </div>
 
@@ -377,7 +403,6 @@ export default function NoticeList() {
 
 
                     {
-
                         noticeList.length === 0
 
                         ?

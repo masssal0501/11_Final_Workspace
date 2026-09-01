@@ -265,7 +265,7 @@ export default function NoticeInsert() {
             // =================================================
 
             navigate(
-                '/admin/notice'
+                '/notice'
             );
 
 
@@ -333,7 +333,7 @@ export default function NoticeInsert() {
 
 
         navigate(
-            '/admin/notice'
+            '/notice'
         );
 
     };
