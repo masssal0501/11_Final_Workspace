@@ -182,10 +182,10 @@ function ApprovalDetail() {
                     승인
                 </button>
             </div>
-            {/* 반려 버튼 */}
+            {/* 상태 변경 버튼 */}
             <div className="btn-group" style={{ textAlign: "center", marginTop: "20px" }}>
                 <button type="button" className="reject-btn" onClick={() => navigate(/approval/reject/{workcationNo})}>
-                    반려
+                    상태 변경
                 </button>
             </div>
 

@@ -1,0 +1,12 @@
+.rejectPage{
+        width: 700px;
+    margin: 50px auto;
+    padding: 35px 45px;
+
+    background-color: #ffffff;
+    border-radius: 12px;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    box-sizing: border-box;
+}
