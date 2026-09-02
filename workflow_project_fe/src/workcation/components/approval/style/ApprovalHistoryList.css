@@ -1,0 +1,68 @@
+.historyList{
+    width: 1500px;
+    margin: 50px auto;
+    padding: 35px 45px;
+
+    background-color: #ffffff;
+    border-radius: 13px;
+    
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    box-sizing: border-box;
+
+}
+
+.date-filter{
+    margin: 10px;
+    margin-left: 940px;
+}
+.date-filter input{
+    border-radius: 5px;
+    padding-left: 5px;
+}
+.date-filter span{
+    padding: 5px;
+}
+.date-filter button{
+    margin-left: 5px;
+    border-radius: 5px;
+    background-color: #f4fffe;
+}
+.thead th{
+    background-color: rgba(193, 245, 250, 0.44);
+}
+.historyList th:nth-child(1),
+.historyList td:nth-child(1) {
+    width: 8%;
+}
+
+.historyList th:nth-child(2),
+.historyList td:nth-child(2) {
+    width: 25%;
+}
+
+.historyList th:nth-child(3),
+.historyList td:nth-child(3) {
+    width: 12%;
+}
+
+.historyList th:nth-child(4),
+.historyList td:nth-child(4) {
+    width: 25%;
+}
+
+.historyList th:nth-child(5),
+.historyList td:nth-child(5) {
+    width: 12%;
+}
+
+.historyList th:nth-child(6),
+.historyList td:nth-child(6) {
+    width: 18%;
+}
+.historyList th,
+.historyList td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 15px 20px;
+}

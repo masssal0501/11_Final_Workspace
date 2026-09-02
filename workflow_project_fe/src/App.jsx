@@ -48,7 +48,10 @@ import EmployeeList from "./employee/components/EmployeeList";
 import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
-import LocationCheckModal from "./common/components/LocationCheckModal";
+import ApprovalReject from "./workcation/components/approval/components/ApprovalReject";
+import ApprovalHistoryList from "./workcation/components/approval/components/ApprovalHistoryList";
+import ApprovalHistoryDetail from "./workcation/components/approval/components/ApprovalHistoryDetail";
+
 import ErrorPage from "./common/components/ErrorPage";
 
 import {
@@ -289,6 +292,11 @@ function App() {
 
                         {/* 📌 통계 페이지 라우트 추가 */}
                         <Route path="/admin/statistics" element={<StatisticsPage />} />
+
+                        {/* 승인 페이지 */}
+                        <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />}/>
+                        <Route path="/approval/history" element={<ApprovalHistoryList />}/>
+                        <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
                     </>
                 )}
 

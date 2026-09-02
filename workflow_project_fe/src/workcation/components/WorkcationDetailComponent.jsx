@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import "../styles/WorkcationDetail.css";
 
 function WorkcationDetailComponent() {
-    // URL 쿼리스트링이나 경로에서 상세 조회를 위한 ID 파라미터 추출 (예: ?no=1)
-    const [searchParams] = useSearchParams();
-    const workcationNo = searchParams.get("no");
+
+    const { workcationNo } = useParams();
     const navigate = useNavigate();
 
     // 상세 데이터 저장을 위한 state
@@ -178,6 +177,13 @@ function WorkcationDetailComponent() {
 
             {/* 하단 목록으로 돌아가기 버튼 */}
             <div className="btn-group" style={{ textAlign: "center", marginTop: "20px" }}>
+            {/* 상태 변경 버튼 */}
+                <button
+                    type="button"
+                    className="reject-btn"
+                    onClick={() => navigate(`/approval/reject/${workcationNo}`)}>
+                    승인 및 반려
+                </button>
                 <button type="button" className="back-btn" onClick={() => navigate(-1)}>
                     목록으로
                 </button>
