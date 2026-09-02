@@ -49,6 +49,7 @@ import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
 import ApprovalReject from "./workcation/components/approval/components/ApprovalReject";
+import ApprovalHistoryList from "./workcation/components/approval/components/ApprovalHistoryList";
 
 import ErrorPage from "./common/components/ErrorPage";
 
@@ -293,6 +294,7 @@ function App() {
 
                         {/* 승인 페이지 */}
                         <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />}/>
+                        <Route path="/approval/history" element={<ApprovalHistoryList />}/>
                     </>
                 )}
 

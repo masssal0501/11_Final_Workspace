@@ -439,15 +439,13 @@ function PlaceList() {
 
                 </div>
 
-
                 {/* AI 추천 */}
-{/* AI 추천 */}
-<button
-    onClick={() => navigate("/placeInfo/ai")}
-    className="ai-button"
->
-    AI에게 장소 및 일정 추천 받기
-</button>
+                <button
+                    onClick={() => navigate("/placeInfo/ai")}
+                    className="ai-button"
+                >
+                    AI에게 장소 및 일정 추천 받기
+                </button>
 
             </div>
 
