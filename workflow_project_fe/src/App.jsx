@@ -52,6 +52,7 @@ import {
 } from "react-router-dom";
 
 import { useKakaoLoader } from "react-kakao-maps-sdk";
+import ManagerComponent from "./dashboard/components/ManagerComponent";
 
 function App() {
 
@@ -275,11 +276,13 @@ function App() {
 
                 <Route
                     path="/dashboard"
-                    element={ loginUser.authCode === "ADMIN" ? (
-                        <AdminComponent />
-                    ) : (
-                        <></> // 매니저나 일반 유저일 때 보여줄 빈 화면 
-                    )}
+                    element={
+                        loginUser.authCode === "ADMIN"
+                            ? <AdminComponent />
+                            : loginUser.authCode === "MANAGER"
+                                ? <ManagerComponent loginUser={ loginUser } />
+                                : <div>사원 페이지</div>
+                    }
                 />
 
                 {/* 마이페이지 */}

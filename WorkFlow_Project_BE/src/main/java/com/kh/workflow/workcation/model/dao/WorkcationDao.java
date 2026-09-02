@@ -14,38 +14,46 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
 	// 관리자 대시보드
-	// 총 신청 건수
+	// (이번달)총 신청 건수
 	@Query("""
-			SELECT COUNT(w) FROM WorkcationInfo w
-			WHERE EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
+			SELECT COUNT(w) 
+			  FROM WorkcationInfo w
+			 WHERE EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
-	int countTotalApply();
+	int adminCountTotalApply();
 	
-	// 승인 대기
+	// (이번달)승인 대기
 	@Query("""
-			SELECT COUNT(w) FROM WorkcationInfo w WHERE w.approverState = 'W'
-			AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
+			SELECT COUNT(w) 
+			  FROM WorkcationInfo w 
+			 WHERE w.approverState = 'W'
+			   AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
-	int countWaiting();
+	int adminCountWaiting();
 	
-	// 현재 진행중
+	// (이번달)현재 진행중
 	@Query("""
-			SELECT COUNT(w) FROM WorkcationInfo w WHERE w.approverState = 'A'
-			AND w.startAt <= CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP <= w.endAt
-			AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
+			SELECT COUNT(w) 
+			  FROM WorkcationInfo w
+			 WHERE w.approverState = 'A'
+			   AND w.startAt <= CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP <= w.endAt
+			   AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
-	int countInProgress();
+	int adminCountInProgress();
 	
 	// 총 참여 인원
 	@Query("""
 			SELECT COUNT(DISTINCT w.employee)
-			FROM WorkcationInfo w
-			WHERE w.approverState = 'A'
+			  FROM WorkcationInfo w
+			 WHERE w.approverState = 'A'
 			""")
 	int countTotalParticipants();
 
 	// 평균 만족도
-	@Query("SELECT COALESCE(AVG(s.score), 0.0) FROM SurveyAnswer s")
+	@Query("""
+			SELECT COALESCE(AVG(s.score), 0.0)
+			  FROM SurveyAnswer s
+			""")
 	double selectAvgSatisfaction();
 	
 	// 평균 워케이션 기간
@@ -66,7 +74,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	        """)
 	int selectUsageRate();
 	
-	// 승인대기 목록
+	// (관리자)승인대기 목록
 	@Query("""
 		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState) 
 		      FROM WorkcationInfo w 
@@ -77,19 +85,94 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		       AND w.approverState = 'W' 
 		     ORDER BY w.workcationNo DESC
 		    """)
-	List<WaitingListDto> selectWaitingList();
+	List<WaitingListDto> adminSelectWaitingList();
+	
+	// (관리자)지역별 이용 통계
+	@Query("""
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
+				h.mainRegion,
+				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
+			)
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
+			 WHERE w.approverState = 'A'
+			 GROUP BY h.mainRegion
+			""")
+	List<ChartDataDto> adminSelectRegionData();
 
 	// 월별 참가 현황
+		@Query("""
+		        SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
+		            CAST(MONTH(w.startAt) AS string), 
+		            1.0 * COUNT(w)
+		        )
+		          FROM WorkcationInfo w
+		         WHERE w.approverState = 'A'
+		           AND w.startAt >= :startDate
+		         GROUP BY CAST(MONTH(w.startAt) AS string)
+		        """)
+		List<ChartDataDto> selectMonthlyData(@Param("startDate") LocalDateTime startDate);
+
+	
+	// 부서장 대시보드
+	// (부서)총 신청 건수
 	@Query("""
-	        SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
-	            CAST(MONTH(w.startAt) AS string), 
-	            1.0 * COUNT(w)
-	        )
-	          FROM WorkcationInfo w
-	         WHERE w.approverState = 'A'
-	           AND w.startAt >= :startDate
-	         GROUP BY CAST(MONTH(w.startAt) AS string)
-	        """)
-	List<ChartDataDto> selectMonthlyData(@Param("startDate") LocalDateTime startDate);
+			SELECT COUNT(w) FROM WorkcationInfo w
+			  JOIN w.employee e
+			 WHERE e.depId = :depId
+			""")
+	int managerCountTotalApply(@Param("depId")String depId);
+
+	// (부서)승인대기
+	@Query("""
+			SELECT COUNT(w) 
+			  FROM WorkcationInfo w
+			  JOIN w.employee e
+			 WHERE w.approverState = 'W'
+			   AND e.depId = :depId
+			""")
+	int managerCountWaiting(@Param("depId")String depId);
+
+	// (부서)예산 소진율
+	@Query("""
+			SELECT COUNT(w) 
+			  FROM WorkcationInfo w 
+			  JOIN w.employee e
+			 WHERE w.approverState = 'A'
+			   AND w.startAt <= CURRENT_TIMESTAMP
+			   AND CURRENT_TIMESTAMP <= w.endAt
+			   AND e.depId = :depId
+			""")
+	int managerCountInProgress(@Param("depId")String depId);
+
+	// (부서)승인대기 목록
+	@Query("""
+		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState) 
+		      FROM WorkcationInfo w 
+		      JOIN w.employee e, Reservation r 
+		      JOIN r.hub h 
+		     WHERE e.depId = :depId
+		       AND w = r.workcation 
+		       AND w.approverState = 'W'
+		     ORDER BY w.workcationNo DESC
+		    """)
+	List<WaitingListDto> managerSelectWaitingList(@Param("depId")String depId);
+
+	// (부서)지역별 이용 단계
+	@Query("""
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
+				h.mainRegion,
+				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
+			)
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
+			  JOIN w.employee e
+			 WHERE w.approverState = 'A'
+			   AND e.depId = :depId
+			 GROUP BY h.mainRegion
+			""")
+	List<ChartDataDto> managerSelectRegionData(@Param("depId")String depId);
 	
 }

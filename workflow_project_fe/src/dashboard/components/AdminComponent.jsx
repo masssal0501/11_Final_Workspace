@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Sector } from 'recharts';
 import { selectAdminDashboardApi } from "../api/dashboardApi";
 import "../css/dashboard.css"
 
 function AdminComponent() {
     
-    // 상단/중단 요약 통계 데이터
+    // 관리자 대시보드에 표현될 상단/중단 요약 통계, 차트, 리스트 데이터를 담는 객체 상태 정의
     const [data, setData] = useState({
         totalApply: 0,
         waiting: 0,
@@ -17,43 +18,28 @@ function AdminComponent() {
         avgDuration: 0,
         supportFund: 0,
         totalParticipants: 0,
+        totalCost: 0,
+        budgetData: 0,
         waitingList: [],
+        regionData: [],
+        noticeData: [],
         monthlyData: [],
-        shareData: []
+        shareData: [],
+        categoryData: [],
+        deptData: [],
     });
 
-    // 항목별 지출 비중 데이터
-    const [categoryData, setCategoryData] = useState([
-        { name: '숙박비', value: 55, color: '#45eed8' },
-        { name: '식비', value: 25, color: '#fa6666' },
-        { name: '기타', value: 15, color: '#ffd094' },
-        { name: '교통비', value: 5, color: '#70ff70' },
-    ]);
-
-    // 부서별 사용 예산 TOP 데이터
-    const [deptData, setDeptData] = useState([
-        { name: '영업팀', value: 30, color: '#9efb8b' },
-        { name: '운영팀', value: 22, color: '#fb8ce2' },
-        { name: '기획팀', value: 20, color: '#5680f9' },
-        { name: '기타', value: 18, color: '#6ad2ff' },
-        { name: '개발팀', value: 10, color: '#fdd885' },
-    ]);
-
-    // 예산 집행률용
-    const [budgetData, setBudgetData] = useState({ used: 0, total: 100 });
-    
-    // 백엔드 API 호출 (Spring Boot 등 컨트롤러의 @GetMapping("/api/dashBoardApi") 와 매핑)
+    // 컴포넌트가 처음 마운트될 때 백엔드 대시보드 API를 호출하여 데이터 상태를 갱
     useEffect(() => {
         const selectDashboardData = async () => {
             try {
+                // 관리자 대시보드 데이터 조회 API 호출
                 const response = await selectAdminDashboardApi();
-                
-                console.log(response);
 
-                // 백엔드에서 넘어온 데이터로 상태 업데이트
-  
+                // API 응답 데이터로 대시보드 상태 값 업데이트
                 setData(response.data);
             } catch (error) {
+                // API 호출 실패 시 에러 로그 출력
                 console.error(error);
             }
         };
@@ -61,26 +47,37 @@ function AdminComponent() {
         selectDashboardData();
     }, []);
 
-    // 거점 오피스별 데이터의 전체 합계 계산
-    const totalShareValue = data.shareData.reduce((sum, item) => sum + (item.value || 0), 0);
+    // 페이지 이동을 위한 useNavigate 훅 선언
+    const navigate = useNavigate();
 
+    // 거점 오피스, 항목, 부서 이름에 따라 고유한 색상 코드를 반환하는 함수
     const getOfficeColor = (name) => {
         if (name === '강원') return '#ff8042';
         if (name === '제주') return '#8884d8';
         if (name === '부산') return '#00C49F';
-        return '#8884d8';
+        if (name === '숙박') return '#45eed8';
+        if (name === '식비') return '#fa6666';
+        if (name === '기타') return '#ffd094';
+        if (name === '교통') return '#70ff70';
+        if (name === '체험') return '#9efb8b';
+        if (name === '차량') return '#fb8ce2';
+        if (name === '기획부') return '#ffb3b3';
+        if (name === '디자인부') return '#ffb3e6';
+        if (name === 'FE 개발부') return '#b3b3ff';
+        if (name === 'BE 개발부') return '#b3e6ff';
+        if (name === '데이터부') return '#b3ffb3';
+        if (name === 'QA부서') return '#ffffb3';
+        return '#1f1e33';
     };
 
-    // 라벨 렌더링 함수
+    // 파이/도넛 차트 내부 또는 외부 지시선에 라벨을 동적으로 렌더링하는 함수
     const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, value }) => {
         const RADIAN = Math.PI / 180;
         const sin = Math.sin(-midAngle * RADIAN);
         const cos = Math.cos(-midAngle * RADIAN);
 
-        const percent = totalShareValue > 0 ? Math.round((value / totalShareValue) * 100) : 0;
-
-        // 15% 이하일 때 바깥쪽 지시선 표시
-        if (percent <= 15) {
+        // 비중이 15% 이하일 경우, 차트 바깥쪽에 지시선과 함께 라벨 표시
+        if (value <= 15) {
             const sx = cx + (outerRadius + 5) * cos;
             const sy = cy + (outerRadius + 5) * sin;
             const mx = cx + (outerRadius + 15) * cos;
@@ -93,41 +90,58 @@ function AdminComponent() {
                 <g>
                     <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke="#888" fill="none" />
                     <text x={ex + (cos >= 0 ? 3 : -3)} y={ey} textAnchor={textAnchor} fill="#333" dominantBaseline="central" style={{ fontSize: '11px' }}>
-                        {`${name} ${percent}%`}
+                        {`${name} ${value}%`}
                     </text>
                 </g>
             );
         } else {
-            // 15% 초과일 때 안쪽 글씨 표시
+            // 비중이 15% 초과일 경우, 파이 조각 안쪽에 텍스트 직접 표시
             const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
             const x = cx + radius * cos;
             const y = cy + radius * sin;
 
             return (
                 <text x={x} y={y} fill="#333" textAnchor="middle" dominantBaseline="central" style={{ fontSize: '11px', fontWeight: 'bold' }}>
-                    {`${name} ${percent}%`}
+                    {`${name} ${value}%`}
                 </text>
             );
         }
     };
 
+    // 날짜 데이터를 한국어 지역 형식으로 안전하게 포맷팅하는 함수
+    const formatDate = (date) => {
+        if (!date) {
+            return '-';
+        }
+        const d = new Date(date);
+        if (isNaN(d.getTime())) {
+            return '-';
+        }
+        return d.toLocaleDateString('ko-KR');
+    };
+
     return(
         <div className="content">
-            <div className="admin-dashboard-1" align="center">이번달 워케이션 현황</div>
+            {/* 대시보드 상단 타이틀 */}
+            <div className="dashboard-1" align="center">이번달 워케이션 현황</div>
             <br />
-            <div className="d-flex justify-content-between admin-dashboard-3">
+            {/* 이번 달 요약 지표 영역 (총 신청, 승인대기, 진행중, 예산 소진율) */}
+            <div className="d-flex justify-content-between dashboard-3">
                 <p>총 신청 건수 : { data.totalApply }건</p>
                 <p>승인대기 : { data.waiting }건</p>
                 <p>현재 진행중 : { data.inProgress }건</p>
                 <p>예산 소진율 : { data.budgetExhaustionRate }%</p>
             </div>
             <br /><br />
-            <div className="d-flex text-center admin-dashboard-1">
+            {/* 승인대기 목록 및 지역별 통계 섹션 헤더 */}
+            <div className="d-flex text-center dashboard-1">
                 <p className="w-50 mb-0">승인대기 목록</p>
                 <p className="w-50 mb-0">지역별 이용 통계</p>
             </div>
             <br />
+            {/* 승인대기 테이블 및 지역별 이용률 텍스트 표시 영역 */}
             <div className="d-flex text-center">
+                {/* 좌측: 승인 대기 중인 워케이션 신청 리스트 테이블 */}
                 <div className="w-50">
                     <table className="table">
                         <thead>
@@ -158,39 +172,84 @@ function AdminComponent() {
                         </tbody>
                     </table>
                 </div>
-                <div className="d-flex w-50 admin-dashboard-3">
-                    <p>제주 : xx%</p>
-                    <p>강원 : xx%</p>
-                    <p>부산 : xx%</p>
+                {/* 우측: 주요 지역별(제주, 강원, 부산) 이용 통계 수치 표출 */}
+                <div className="d-flex w-50 dashboard-3">
+                    <p>제주 : {data.regionData?.find(item => item.name === '제주')?.value ?? 0}%</p>
+                    <p>강원 : {data.regionData?.find(item => item.name === '강원')?.value ?? 0}%</p>
+                    <p>부산 : {data.regionData?.find(item => item.name === '부산')?.value ?? 0}%</p>
                 </div>
             </div>
             <br /><br /><br /><br />
-            <div className="admin-dashboard-1" align="center">공지사항</div>
-            <div className="admin-dashboard-4">
-                <div>게시판 제목 ~~~~</div>
-                <div>게시판 제목 ~~~~</div>
-                <div>게시판 제목 ~~~~</div>
+            {/* 공지사항 섹션 타이틀 및 게시판 목록 테이블 */}
+            <div className="dashboard-1" align="center">공지사항</div>
+            <div className="dashboard-4">
+                <table className="table table-hover">
+                    <tbody>
+                        { data.noticeData.length === 0 ? (
+                                <tr style={ { cursor : "auto", backgroundColor: "white"} }>
+                                    <td colSpan="5" >
+                                        등록된 공지사항이 없습니다.
+                                    </td>
+                                </tr>
+                            ) : data.noticeData.map(
+                                (notice) => (
+                                    // 공지사항 행 클릭 시 상세 페이지로 이동
+                                    <tr key={ notice.noticeNo } className="notice-row" onClick={ () => navigate(`/notice/${notice.noticeNo}`) }>
+                                        <td>{ notice.noticeNo }</td>
+                                        <td className="notice-title-cell">
+                                            {/* 중요 공지사항일 경우 '중요' 뱃지 표시 */}
+                                            { notice.noticeStatus ==='IMPORTANT' && (
+                                                    <span className="notice-important">중요</span>
+                                            )}
+                                            { notice.noticeTitle }
+                                        </td>
+                                        <td>
+                                            { notice.empName || '-' }
+                                        </td>
+                                        <td>
+                                            { formatDate(notice.createdAt)}
+                                        </td>
+                                        <td>
+                                            { notice.viewCount ?? 0 }
+                                        </td>
+                                    </tr>
+                                )
+                            )
+                        }
+                    </tbody>
+                </table>
             </div>
             <br /><br />
-            <div className="admin-dashboard-1" align="center">워케이션 통계</div>
+            {/* 워케이션 통계 정보 섹션 */}
+            <div className="dashboard-1" align="center">워케이션 통계</div>
             <br />
-            <div className="d-flex justify-content-between admin-dashboard-3">
+            {/* 통계 지표 1열 */}
+            <div className="d-flex justify-content-between dashboard-3">
                 <p>총 참여 인원 : { data.totalParticipants } 명</p>
-                <p>총 집행 예산 : { data.totalBudget }원</p>
+                <p>회사 부담금 : { data.totalBudget?.toLocaleString('ko-KR') }원</p>
                 <p>평균 만족도 : { data.avgSatisfaction } / 5.0</p>                
             </div>
-            <div className="d-flex justify-content-between admin-dashboard-3">
+            {/* 통계 지표 2열 */}
+            <div className="d-flex justify-content-between dashboard-3">
                 <p>평균 워케이션 기간 : { data.avgDuration }일</p>
-                <p>보유 지원금 : { data.supportFund }원</p>
+                <p>보유 지원금 : { data.supportFund?.toLocaleString('ko-KR') }원</p>
                 <p>워케이션 이용률 : { data.usageRate }%</p>
             </div>
+            {/* 통계 지표 3열: '총 비용' 항목을 justify-content-center를 이용해 정중앙으로 배치 */}
+            <div className="d-flex justify-content-center dashboard-3">
+                <p>총 비용 : { data.totalCost?.toLocaleString('ko-KR') }원</p>
+            </div>
             <br /><hr />
-            <div className="d-flex text-center admin-dashboard-1">
+            {/* 월별 참가 현황 및 거점 오피스별 점유율 차트 영역 헤더 */}
+            <div className="d-flex text-center dashboard-1">
                 <p className="w-50 mb-0">월별 참가 현황</p>
                 <p className="w-50 mb-0">거점 오피스별 점유율</p>
             </div>
+            {/* 월별 바 차트 및 거점 오피스 파이 차트 컨테이너 */}
            <div className="d-flex text-center py-3" style={ { height: '300px' } }>
+                {/* 좌측: 월별 참가 인원 막대그래프 */}
                 <div className="w-50 h-100">
+                    {data.monthlyData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data.monthlyData.map(item => ({ ...item, name: `${item.name}월` }))}>
                             <XAxis dataKey="name" />
@@ -199,8 +258,15 @@ function AdminComponent() {
                             <Bar dataKey="value" fill="#333333" barSize={30} />
                         </BarChart>
                     </ResponsiveContainer>
+                    ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                            데이터가 존재하지 않습니다.
+                        </div>
+                    )}
                 </div>
+                {/* 우측: 거점 오피스별 점유율 파이 차트 */}
                 <div className="w-50 h-100">
+                    {data.shareData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie 
@@ -212,95 +278,88 @@ function AdminComponent() {
                                 outerRadius={100} 
                                 labelLine={false} 
                                 label={renderCustomLabel}
-                                shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name) || props.payload.color} />}
+                                shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name)} />}
                             />
                             <Tooltip />
                         </PieChart>
                     </ResponsiveContainer>
+                    ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                            데이터가 존재하지 않습니다.
+                        </div>
+                    )}
                 </div>
             </div>
             <br /><br />
-            <div className="admin-dashboard-1" align="center">예산</div>
+            {/* 예산 관련 시각화 분석 섹션 */}
+            <div className="dashboard-1" align="center">예산</div>
             <div className="d-flex text-center py-4" style={{ height: '300px' }}>
-                
-                {/* 총 예산 대비 집행률 */}
-                <div style={{ width: '33.3%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {/* 총 예산 대비 집행률을 시각적으로 나타내는 프로그레스 바 영역 */}
+                <div className="d-flex flex-column align-items-center" style={{ width: '33.3%', height: '100%' }}>
                     <p style={{ fontWeight: 'bold' }}>총 예산 대비 집행률</p>
-                    
-                    {/* 바깥쪽 회색 배경 */}
-                    <div style={{ 
-                        position: 'relative', 
-                        width: '100%', 
-                        height: '24px',
-                        backgroundColor: '#f0f0f0', 
-                        marginTop: '10px'
-                    }}>
-                        {/* 안쪽 붉은색 채우기*/}
-                        <div style={{ 
-                            width: `${budgetData.used}%`,
-                            height: '100%',
-                            backgroundColor: '#ea8685' 
-                        }}></div>
-
-                        {/* 텍스트 영역 */}
-                        <div style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'black',
-                            fontSize: '14px'
-                        }}>
-                            {budgetData.used}% / 100%
+                    {/* 부트스트랩 progress 클래스를 활용한 프로그레스 바 외곽 배경 컨테이너 */}
+                    <div className="progress dashboard-progress">
+                        {/* 부트스트랩 줄무늬 및 애니메이션 효과와 함께, 데이터에 따른 너비 및 커스텀 배경색이 적용되는 바 내부 영역 */}
+                        <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.budgetData}%`, backgroundColor: '#ea8685' }}></div>
+                        {/* 프로그레스 바 채움 정도와 상관없이 텍스트를 항상 정중앙에 고정하여 보여주기 위한 오버레이 레이어 */}
+                        <div className="d-flex dashboard-progress-text">
+                            {data.budgetData}% / 100%
                         </div>
                     </div>
                 </div>
-
-                {/* 2. 항목별 지출 비중 */}
+                {/* 항목별 지출 비중 파이 차트 영역 */}
                 <div style={{ width: '33.3%', height: '100%' }}>
                     <p style={{ fontWeight: 'bold', marginBottom: '0' }}>항목별 지출 비중</p>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie 
-                                data={categoryData} 
-                                dataKey="value" 
-                                nameKey="name" 
-                                cx="50%" 
-                                cy="50%" 
-                                outerRadius={75} 
-                                labelLine={false} 
-                                label={renderCustomLabel}
-                                shape={(props) => <Sector {...props} fill={props.payload.color} />}
+                    {data.categoryData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie 
+                                    data={data.categoryData} 
+                                    dataKey="value" 
+                                    nameKey="name" 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius={75} 
+                                    labelLine={false} 
+                                    label={renderCustomLabel}
+                                    shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name)} />}
                             />
                             <Tooltip />
                         </PieChart>
                     </ResponsiveContainer>
+                    ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                            데이터가 존재하지 않습니다.
+                        </div>
+                    )}
                 </div>
 
-                {/* 3. 부서별 사용 예산 TOP (도넛 차트: innerRadius 속성 추가) */}
+                {/* 부서별 사용 예산 도넛 차트 영역 */}
                 <div style={{ width: '33.3%', height: '100%' }}>
-                    <p style={{ fontWeight: 'bold', marginBottom: '0' }}>부서별 사용 예산 TOP</p>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie 
-                                data={deptData} 
-                                dataKey="value" 
-                                nameKey="name" 
-                                cx="50%" 
-                                cy="50%" 
-                                innerRadius={30}
-                                outerRadius={75} 
-                                labelLine={false} 
-                                label={renderCustomLabel}
-                                shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.color)} />}
-                            />
+                    <p style={{ fontWeight: 'bold', marginBottom: '0' }}>부서별 사용 예산</p>
+                    {data.deptData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie 
+                                    data={data.deptData} 
+                                    dataKey="value" 
+                                    nameKey="name" 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    innerRadius={30}
+                                    outerRadius={75} 
+                                    labelLine={false} 
+                                    label={renderCustomLabel}
+                                    shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name)} />}
+                                />
                             <Tooltip />
                         </PieChart>
                     </ResponsiveContainer>
+                    ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                            데이터가 존재하지 않습니다.
+                        </div>
+                    )}
                 </div>
 
             </div>

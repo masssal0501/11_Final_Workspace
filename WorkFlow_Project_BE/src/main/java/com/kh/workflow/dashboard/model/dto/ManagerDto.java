@@ -13,25 +13,14 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class AdminDto {
-	
+public class ManagerDto {
+
+	private String depTitle;
 	private int totalApply;
 	private int waiting;
 	private int inProgress;
 	private int budgetExhaustionRate;
-	private int usageRate;
-	private int totalBudget;
-	private double avgSatisfaction;
-	private int avgDuration;
-	private int supportFund;
-	private int totalParticipants;
-	private int totalCost;
-	private int budgetData;
 	private List<WaitingListDto> waitingList;
 	private List<ChartDataDto> regionData;
 	private List<Notice> noticeData;
-	private List<ChartDataDto> monthlyData;
-	private List<ChartDataDto> shareData;
-	private List<ChartDataDto> categoryData;
-	private List<ChartDataDto> deptData;
 }

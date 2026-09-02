@@ -71,26 +71,29 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     int deleteHub(@Param("hubNo") int hubNo);
 
     /**
-     * 특정 거점에 작성된 설문조사 평점의 평균 점수 조회 (네이티브 쿼리)
+     * 특정 거점에 작성된 설문조사 평점의 평균 점수 조회
      * 
      * @param hubNo 평균 평점을 조회할 거점 번호
      * @return 해당 거점의 평균 평점 (리뷰나 설문이 없는 경우 0.0 반환)
      */
-    @Query(value = """
-            SELECT IFNULL(ROUND(AVG(CAST(sa.answer_value AS DECIMAL(10,2))), 1), 0.0)
-            FROM reservation r
-            JOIN workcation_info w ON r.workcation_no = w.workcation_no
-            JOIN workcation_survey ws ON w.workcation_no = ws.workcation_no
-            JOIN survey_answer sa ON ws.survey_no = sa.survey_no
-            JOIN survey_question sq ON sa.question_no = sq.question_no
-            WHERE r.hub_no = :hubNo AND sq.question_type = 'SCORE'
-            """, nativeQuery = true)
-	Double selectAvgScore(@Param("hubNo") int hubNo);
+    @Query("""
+            SELECT COALESCE(ROUND(AVG(CAST(sa.answerValue AS double)), 1), 0.0)
+            FROM Reservation r
+            JOIN r.workcation w
+            JOIN WorkcationSurvey ws ON ws.workcationInfo = w
+            JOIN SurveyAnswer sa ON sa.workcationSurvey = ws
+            JOIN sa.surveyQuestion sq
+            WHERE r.hub.hubNo = :hubNo AND sq.questionType = 'SCORE'
+            """)
+	double selectAvgScore(@Param("hubNo") int hubNo);
     
     // 관리자 대시보드
     // 거점 오피스별 점유율
     @Query("""
-    		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(h.mainRegion, COUNT(h))
+    		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(
+    			h.mainRegion,
+    			(COUNT(h) * 100) / (SELECT COUNT(h2) FROM Hub h2 WHERE h2.hubType = 2)
+    		)
     		FROM Hub h
     		WHERE h.hubType = 2
     		GROUP BY h.mainRegion

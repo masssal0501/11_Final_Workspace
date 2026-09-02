@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.kh.workflow.amount.vo.Amount;
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 
 @Mapper
 public interface AmountDao {
@@ -65,12 +66,28 @@ public interface AmountDao {
     List<Map<String, Object>> getItemStatistics();
 
     // 관리자 대시보드
-    // 예산 소집율
-	int selectBudgetExhaustionRate();
+    // (이번달)예산 소진율
+	int adminSelectBudgetExhaustionRate();
 
-	// 총 집행 예산
+	// 회사 부담금
 	int selectTotalBudget();
 
 	// 보유 지원금
 	int selectSupportFund();
+
+	// 총 비용
+	int selectTotalCost();
+	
+	// 총 예산 대비 집행률
+	int selectBudgetData();
+
+	// 항목별 지출 비중
+	List<ChartDataDto> selectCategoryData();
+
+	// 부서별 사용 예산
+	List<ChartDataDto> selectDeptData();
+
+	// 부서장 대시보드
+	// (부서)예산 소진율
+	int managerSelectBudgetExhaustionRate(String depId);
 }

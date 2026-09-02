@@ -1,24 +1,36 @@
-.admin-dashboard-1 {
+.dashboard-1 {
     background-color: rgb(235, 235, 235);
     font-size: x-large;
     padding: 10px;
 }
 
-.admin-dashboard-2 p {
-    font-size: large;
-}
-
-.admin-dashboard-3 p {
+.dashboard-3 p {
     font-size: large;
     padding: 0px 38px;
 }
 
-.admin-dashboard-3 div {
+.dashboard-3 div {
     font-size: large;
 }
 
-.admin-dashboard-4 div {
+.dashboard-4 div {
     font-size: large;
     padding: 10px 40px;
     border-bottom: 1px solid black;
+}
+
+.dashboard-progress {
+    position: relative;
+    width: 100%;
+    height: 25px;
+    margin-top: 10px;
+}
+
+.dashboard-progress-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
 }

@@ -12,4 +12,14 @@ const selectAdminDashboardApi = () => {
     return response;
 };
 
-export { selectAdminDashboardApi };
+const selectManagerDashboardApi = depId => {
+
+    const response = axiosInstance({
+        url : `${ BASE_URL }/manager/${depId}`,
+        method : "get"
+    });
+
+    return response;
+};
+
+export { selectAdminDashboardApi, selectManagerDashboardApi };
