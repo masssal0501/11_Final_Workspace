@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+import { getMainRegionList, getSubRegionList, getSupportInfo, getHubList, enrollWorkcation } from "../api/WorkcationApi";
 
 import "../styles/WorkcationEnrollForm.css";
 
@@ -65,16 +66,13 @@ function WorkcationEnrollFormComponent() {
         return d.toISOString().split('T')[0];
     }
 
-    // BASE_URL 생성
-    const BASE_URL = 'http://localhost:8006/workflow';
-
     // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
     useEffect(() => {
-        axios.get(`${BASE_URL}/workcation/hub/mainRegion`)
+        getMainRegionList()
             .then(res => {
-                const listData = Array.isArray(res.data)
+                const listData = Array.isArray(res)
                     ? res.data
-                    : (Array.isArray(res.data?.list) ? res.data.list : []);
+                    : (Array.isArray(res) ? res : []);
                 setMainRegionDrop(listData);
             })
             .catch(err => {
@@ -89,11 +87,11 @@ function WorkcationEnrollFormComponent() {
             setSubRegionDrop([]);
             return;
         }
-        axios.get(`${BASE_URL}/workcation/hub/subRegion?mainRegion=${mainRegion}`)
+        getSubRegionList(mainRegion)
             .then(res => {
-                const listData = Array.isArray(res.data)
+                const listData = Array.isArray(res)
                     ? res.data
-                    : (Array.isArray(res.data?.list) ? res.data.list : []);
+                    : (Array.isArray(res) ? res : []);
                 setSubRegionDrop(listData);
             })
             .catch(err => {
@@ -103,9 +101,9 @@ function WorkcationEnrollFormComponent() {
     }, [mainRegion]);
 
     useEffect(() => {
-        axios.get(`${BASE_URL}/workcation/amount/supportInfo`)
+        getSupportInfo()
             .then(res => {
-                const amountSupport = res.data?.companySupport || res.data?.approvedAmount || 0;
+                const amountSupport = res?.companySupport || res?.approvedAmount || 0;
                 setCompanySupport(Number(amountSupport));
             })
             .catch(err => {
@@ -142,11 +140,11 @@ function WorkcationEnrollFormComponent() {
             return;
         }
         const typeCode = hubType === "office" ? 1 : 2;
-        axios.get(`${BASE_URL}/workcation/hub/list?mainRegion=${mainRegion}&subRegion=${subRegion}&hubType=${typeCode}`)
+        getHubList({ mainRegion, subRegion, hubType: typeCode })
             .then(res => {
                 const listData = Array.isArray(res.data)
                     ? res.data
-                    : (Array.isArray(res.data?.list) ? res.data.list : []);
+                    : (Array.isArray(res) ? res : []);
                 setHubDrop(listData);
                 setSelectHubNo("");
             })
@@ -164,18 +162,15 @@ function WorkcationEnrollFormComponent() {
             //메인, 서브, 
             if (!mainRegion || !subRegion || !placeConfig) return;
 
-            axios.get(`${BASE_URL}/workcation/hub/list`, {
-                params: {
-                    mainRegion: mainRegion,
-                    subRegion: subRegion,
-                    hubType: placeConfig.typeCode
-                }
+            getHubList({
+                mainRegion: mainRegion,
+                subRegion: subRegion,
+                hubType: placeConfig.typeCode
             })
-                .then(res => {
-                    const raw = res.data;
-                    const listData = Array.isArray(raw)
-                        ? raw
-                        : (Array.isArray(raw?.list) ? raw.list : (Array.isArray(raw?.data) ? raw.data : []));
+               .then(res => {
+                    const listData = Array.isArray(res)
+                        ? res
+                        : (Array.isArray(res?.list) ? res.list : (Array.isArray(res?.data) ? res.data : []));
 
                     console.log(`[${placeConfig.label}] 조회 성공:`, listData);
                     setOptionPlaceDrop(prev => ({ ...prev, [key]: listData }));
@@ -368,7 +363,7 @@ function WorkcationEnrollFormComponent() {
         };
 
         try {
-            const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, insertworkcationData);
+            const response = await enrollWorkcation(insertworkcationData);
             if (response.status === 200 || response.status === 201) {
                 alert("신청이 완료되었습니다.");
                 navigate("/workcation/list");
@@ -400,9 +395,9 @@ function WorkcationEnrollFormComponent() {
                         <th>워케이션 제목</th>
                         <td colSpan={3}>
                             <input type="text"
-                                    placeholder="제목을 입력해주세요."
-                                    value={workcationTitle}
-                                    onChange={(e) => setWorkcationTitle(e.target.value)} />
+                                placeholder="제목을 입력해주세요."
+                                value={workcationTitle}
+                                onChange={(e) => setWorkcationTitle(e.target.value)} />
                         </td>
                     </tr>
                     <tr>

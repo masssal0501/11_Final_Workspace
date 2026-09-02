@@ -39,7 +39,7 @@ public class AmountItem {
 	@Column(name="item_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime itemDate;
 	
-	@Column(name="item_decription", length=500)
+	@Column(name="item_description", length=500)
 	private String itemDescription;
 	
 	@JoinColumn(name="amount_no", nullable=false)

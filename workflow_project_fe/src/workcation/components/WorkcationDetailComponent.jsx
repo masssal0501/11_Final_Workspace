@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+
+import { getWorkcationDetail, deleteWorkcation } from "../api/WorkcationApi";
 
 import "../styles/WorkcationDetail.css";
 
 function WorkcationDetailComponent() {
-
-    //BASE_URL 생성
-    const BASE_URL = 'http://localhost:8006/workflow';
 
     // URL 쿼리스트링이나 경로에서 상세 조회를 위한 ID 파라미터 추출 (예: ?no=1)
     const { workcationNo } = useParams();
@@ -20,9 +18,9 @@ function WorkcationDetailComponent() {
     useEffect(() => {
         if (!workcationNo) return;
 
-        axios.get(`${BASE_URL}/workcation/detail/${workcationNo}`)
+        getWorkcationDetail(workcationNo)
             .then(res => {
-                setDetailData(res.data);
+                setDetailData(res);
             })
             .catch(err => {
                 console.error("워케이션 상세 조회 실패:", err);
@@ -64,19 +62,19 @@ function WorkcationDetailComponent() {
     const handleDelete = async () => {
         if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
-        try{
-            await axios.delete(`${BASE_URL}/workcation/delete/${workcationNo}`);
+        try {
+            await deleteWorkcation(workcationNo);
             alert("삭제가 완료되었습니다.");
             navigate("/workcation/list");
-        }catch(err){
+        } catch (err) {
             console.error("삭제 실패 :", err);
             alert("삭제 중 오류 발생");
         }
     }
-/*
-    const handleUpdate = async ()=>{
-        
-    }*/
+    
+        const handleUpdate = async ()=>{
+            navigate(`/workcation/update/${workcationNo}`);
+        }
 
     return (
         <div className="workcatrion-datail-container">
@@ -226,7 +224,7 @@ function WorkcationDetailComponent() {
                 </div>
             </div>
             <div>
-               <button type="button" >
+                <button type="button" onClick={handleUpdate}>
                     수정
                 </button>
                 <button type="button" onClick={handleDelete}>

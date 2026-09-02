@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+
+import { getMainRegionList, getSubRegionList, getWorkcationList } from "../api/WorkcationApi";
 
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
 
@@ -14,9 +15,6 @@ export const OPTION_CONFIG = {
 };
 
 function WorkcationListComponent() {
-
-    //BASE_URL 생성
-    const BASE_URL = 'http://localhost:8006/workflow';
 
     const navigate = useNavigate(); // 페이지 이동 함수
 
@@ -40,9 +38,9 @@ function WorkcationListComponent() {
 
     // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
     useEffect(() => {
-        axios.get(`${BASE_URL}/workcation/hub/mainRegion`)
+        getMainRegionList()
             .then(res => {
-                const data = Array.isArray(res.data) ? res.data : (res.data.list || []);
+                const data = Array.isArray(res) ? res : (res.list || []);
                 setMainRegionList(data);
             })
             .catch(err => console.error("메인 지역 로딩 실패: ", err));
@@ -54,8 +52,8 @@ function WorkcationListComponent() {
             setSubRegionList([]);
             return;
         }
-        axios.get(`${BASE_URL}/workcation/hub/subRegion?mainRegion=${mainRegion}`)
-            .then(res => setSubRegionList(res.data))
+        getSubRegionList(mainRegion)
+            .then(res => setSubRegionList(res))
             .catch(err => console.error("서브 지역 로딩 실패: ", err));
     }, [mainRegion]);
 
@@ -66,18 +64,16 @@ function WorkcationListComponent() {
 
     const selectWorkcationList = async () => {
         try {
-            const response = await axios.get(`${BASE_URL}/workcation/list`, {
-                params: {
-                    cpage: cpage,
-                    condition: searchCondition,
-                    keyword: searchKeyword,
-                    mainRegion: mainRegion,
-                    subRegion: subRegion,
-                    searchType: searchType
-                }
+            const responseData = await getWorkcationList({
+                cpage: cpage,
+                condition: searchCondition,
+                keyword: searchKeyword,
+                mainRegion: mainRegion,
+                subRegion: subRegion,
+                searchType: searchType
             });
 
-            handleResponse(response.data);
+            handleResponse(responseData);
         } catch (error) {
             console.error("조회 실패", error);
         }

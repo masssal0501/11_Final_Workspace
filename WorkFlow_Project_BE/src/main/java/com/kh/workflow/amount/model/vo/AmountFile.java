@@ -34,7 +34,7 @@ public class AmountFile {
 
 	@Schema(description="첨부파일 번호", accessMode=Schema.AccessMode.READ_ONLY)
 	@Id
-	@Column(name="amount_file_no")
+	@Column(name="amountfile_no")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Integer amountFileNo;
 	
