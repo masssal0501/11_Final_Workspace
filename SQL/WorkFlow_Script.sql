@@ -260,7 +260,7 @@ CREATE TABLE reservation (
     rsv_status VARCHAR(1) NOT NULL DEFAULT 'N'
         COMMENT 'N 예약, C 취소, Y 완료',
 
-    user_cnt INT NULL
+    user_capacity INT NULL
         COMMENT '이용 인원',
 
     workcation_no INT NOT NULL
