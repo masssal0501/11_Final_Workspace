@@ -86,28 +86,28 @@
          ※ amount_item에는 amount 컬럼 없음
          ========================================================= -->
 
-    <resultMap id="itemResultMap"
-               type="com.kh.workflow.amount.vo.Amount$Item">
+   <resultMap id="itemResultMap"
+           type="com.kh.workflow.amount.vo.Amount$Item">
 
-        <id property="itemNo"
-            column="item_no"/>
+    <id property="itemNo"
+        column="item_no"/>
 
-        <result property="itemType"
-                column="item_type"/>
+    <result property="itemType"
+            column="amountamountitem_type"/>
 
-        <result property="itemDate"
-                column="item_date"/>
+    <result property="itemDate"
+            column="item_date"/>
 
-        <result property="itemApproved"
-                column="item_approved"/>
+    <result property="itemApproved"
+            column="item_approved"/>
 
-        <result property="itemDescription"
-                column="item_description"/>
+    <result property="itemDescription"
+            column="item_description"/>
 
-        <result property="amountNo"
-                column="amount_no"/>
+    <result property="amountNo"
+            column="amount_no"/>
 
-    </resultMap>
+</resultMap>
 
 
 
