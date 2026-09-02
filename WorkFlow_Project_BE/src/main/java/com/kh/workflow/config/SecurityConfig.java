@@ -126,6 +126,11 @@ public class SecurityConfig {
                         
                         .requestMatchers(
                         	    HttpMethod.GET,
+                        	    "/api/v1/amounts/cost/detail/**"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
                         	    "/api/v1/amounts/*"
                         	).permitAll()
                      // 공지사항

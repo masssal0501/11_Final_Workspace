@@ -864,6 +864,87 @@ public class AmountController {
                     );
         }
     }
+    
+ // =========================================================
+ // 8-1. 항목별 회사 지원금 수정
+ //
+ // PATCH /api/v1/amounts/{amountNo}/items/{itemNo}/company-support
+ //
+ // amount_item.amount
+ // =========================================================
+ @PatchMapping("/{amountNo}/items/{itemNo}/company-support")
+ public ResponseEntity<?> updateItemCompanySupport(
+
+         @PathVariable("amountNo")
+         int amountNo,
+
+         @PathVariable("itemNo")
+         int itemNo,
+
+         @RequestParam("amount")
+         int amount) {
+
+     try {
+
+         // -------------------------------------------------
+         // 기본값 검증
+         // -------------------------------------------------
+         if (amountNo <= 0) {
+             return ResponseEntity
+                     .badRequest()
+                     .body("잘못된 비용 신청 번호입니다.");
+         }
+
+         if (itemNo <= 0) {
+             return ResponseEntity
+                     .badRequest()
+                     .body("잘못된 비용 항목 번호입니다.");
+         }
+
+         if (amount < 0) {
+             return ResponseEntity
+                     .badRequest()
+                     .body("회사 지원금은 0원 이상이어야 합니다.");
+         }
+
+         // -------------------------------------------------
+         // Service
+         // -------------------------------------------------
+         int result =
+                 amountService.updateItemCompanySupport(
+                         itemNo,
+                         amountNo,
+                         amount
+                 );
+
+         if (result <= 0) {
+             return ResponseEntity
+                     .badRequest()
+                     .body("회사 지원금 수정에 실패했습니다.");
+         }
+
+         return ResponseEntity.ok(
+                 "항목별 회사 지원금이 수정되었습니다."
+         );
+
+     } catch (IllegalArgumentException e) {
+
+         return ResponseEntity
+                 .badRequest()
+                 .body(e.getMessage());
+
+     } catch (Exception e) {
+
+         e.printStackTrace();
+
+         return ResponseEntity
+                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body(
+                         "회사 지원금 수정 중 오류가 발생했습니다: "
+                         + e.getMessage()
+                 );
+     }
+ }
 
 
     // =========================================================

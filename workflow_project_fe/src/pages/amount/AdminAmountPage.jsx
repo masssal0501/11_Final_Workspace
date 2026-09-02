@@ -10,16 +10,7 @@ export default function AdminAmountPage({ workcationNo }) {
     return (
         <div style={{ padding: '20px' }}>
 
-            <div
-                style={{
-                    padding: '10px',
-                    marginBottom: '10px',
-                    backgroundColor: '#eee'
-                }}
-            >
-                AdminAmountPage 정상 렌더링
-            </div>
-
+            
             <AdminAmount />
 
         </div>

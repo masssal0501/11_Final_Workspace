@@ -13,14 +13,12 @@ public interface AmountService {
     // =========================================================
     // 1. 전체 비용 신청 개수
     // =========================================================
-
     int getAmountListCount();
 
 
     // =========================================================
     // 2. 전체 비용 신청 목록
     // =========================================================
-
     List<Amount> selectAmountList(PageInfo pi);
 
 
@@ -32,11 +30,7 @@ public interface AmountService {
     // ├─ itemList      → amount_item
     // ├─ sponsorList   → amount_list
     // └─ fileList      → amount_file
-    //
-    // Controller에서 MultipartFile을 처리한 후
-    // Amount.File 형태로 fileList에 전달
     // =========================================================
-
     int insertAmount(Amount amount);
 
 
@@ -48,21 +42,18 @@ public interface AmountService {
     // ├─ sponsorList
     // └─ fileList
     // =========================================================
-
     Amount selectAmountById(int amountNo);
 
 
     // =========================================================
     // 5. 워케이션별 비용 신청 개수
     // =========================================================
-
     int getAmountCountByWorkcationNo(int workcationNo);
 
 
     // =========================================================
     // 6. 워케이션별 비용 신청 목록
     // =========================================================
-
     List<Amount> selectAmountListByWorkcationNo(
             int workcationNo,
             PageInfo pi
@@ -80,7 +71,6 @@ public interface AmountService {
     // approvedAmount → 최종 승인 금액
     // comment        → 결재 의견
     // =========================================================
-
     int updateApprovalStatus(
             int amountNo,
             String status,
@@ -103,7 +93,6 @@ public interface AmountService {
     // 기존 DB 파일은 삭제하지 않고
     // 새 파일만 amount_file에 추가
     // =========================================================
-
     void updateAmount(
             Amount amount,
             List<MultipartFile> files
@@ -111,42 +100,51 @@ public interface AmountService {
 
 
     // =========================================================
-    // 9. 첨부파일 삭제
+    // 9. 항목별 회사 지원금 수정
+    //
+    // amount_item.amount
+    // = 해당 항목의 회사 지원금
+    //
+    // amount_list.amount
+    // = 지자체 지원금이므로 여기서는 수정하지 않음
+    // =========================================================
+    int updateItemCompanySupport(
+            int itemNo,
+            int amountNo,
+            int amount
+    );
+
+
+    // =========================================================
+    // 10. 첨부파일 삭제
     //
     // amount_file.amountattachment_no 기준
-    //
-    // 실제 구현에서는 DB status = N 처리
     // =========================================================
-
     int deleteFile(int amountattachmentNo);
 
 
     // =========================================================
-    // 10. 비용 신청 취소
+    // 11. 비용 신청 취소
     //
     // amount.status = C
     // =========================================================
-
     int cancelAmount(int amountNo);
 
 
     // =========================================================
-    // 11. 결재 + 지원금 처리
+    // 12. 결재 + 지원금 처리
     //
-    // amount
-    // └─ sponsor → amount_list 1건
+    // 현재는 기존 구조 유지
     //
-    // status = A인 경우 지원금 등록
+    // sponsor
+    // → amount_list 1건 등록
     //
-    // Sponsor
-    // ├─ sponsorName
-    // ├─ amount
-    // ├─ paymentDate
-    // ├─ status
-    // ├─ remark
-    // └─ itemNo
+    // sponsor.itemNo
+    // → 해당 지자체 지원금이 적용될 amount_item
+    //
+    // 지자체 지원금 금액 자체는 외부 목록에서 가져온
+    // 원본 금액을 사용하고 직접 수정하지 않음
     // =========================================================
-
     void updateApprovalWithSponsor(
             int amountNo,
             String status,
@@ -157,7 +155,7 @@ public interface AmountService {
 
 
     // =========================================================
-    // 12. 전체 통계
+    // 13. 전체 통계
     //
     // 반환 Map
     // ├─ summary
@@ -165,7 +163,6 @@ public interface AmountService {
     // ├─ monthlyStatistics
     // └─ itemStatistics
     // =========================================================
-
     Map<String, Object> getFullStatistics();
 
 }
