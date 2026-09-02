@@ -1,7 +1,10 @@
 package com.kh.workflow.amount.controller;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +37,7 @@ import com.kh.workflow.common.model.vo.PageInfo;
 public class AmountController {
 
     private final AmountService amountService;
+
 
     // =========================================================
     // 파일 설정
@@ -218,6 +222,11 @@ public class AmountController {
                             destination.getAbsolutePath()
                     );
 
+
+                    // -------------------------------------------------
+                    // Amount.File VO
+                    // -------------------------------------------------
+
                     Amount.File fileVo =
                             new Amount.File();
 
@@ -248,9 +257,11 @@ public class AmountController {
 
             amountService.insertAmount(amount);
 
+
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(amount);
+
 
         } catch (IllegalArgumentException e) {
 
@@ -259,6 +270,7 @@ public class AmountController {
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
+
 
         } catch (Exception e) {
 
@@ -306,6 +318,7 @@ public class AmountController {
             }
 
             return ResponseEntity.ok(amount);
+
 
         } catch (Exception e) {
 
@@ -374,6 +387,7 @@ public class AmountController {
                     createPagingResult(list, pi)
             );
 
+
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -409,29 +423,68 @@ public class AmountController {
             )
             MultipartFile[] files) {
 
+        List<String> savedFiles =
+                new ArrayList<>();
+
         try {
 
             amount.setAmountNo(amountNo);
 
+
+            // -------------------------------------------------
+            // 기존 비용 상태 확인
+            // -------------------------------------------------
+
+            Amount existingAmount =
+                    amountService.selectAmountById(
+                            amountNo
+                    );
+
+            if (existingAmount == null) {
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(
+                                "수정할 비용 신청을 찾을 수 없습니다."
+                        );
+            }
+
+
+            // -------------------------------------------------
+            // 파일 검증
+            // -------------------------------------------------
+
             List<MultipartFile> uploadFiles =
                     validateFiles(files);
+
+
+            // -------------------------------------------------
+            // Service
+            // -------------------------------------------------
 
             amountService.updateAmount(
                     amount,
                     uploadFiles
             );
 
+
             return ResponseEntity.ok(
                     "비용 신청이 수정되었습니다."
             );
 
+
         } catch (IllegalArgumentException e) {
+
+            deleteSavedFiles(savedFiles);
 
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
 
+
         } catch (Exception e) {
+
+            deleteSavedFiles(savedFiles);
 
             e.printStackTrace();
 
@@ -478,11 +531,13 @@ public class AmountController {
                             "취소할 수 없는 비용 신청입니다."
                     );
 
+
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
+
 
         } catch (Exception e) {
 
@@ -505,7 +560,9 @@ public class AmountController {
     //
     // PATCH /api/v1/amounts/{amountNo}/approval
     //
-    // Service와 동일한 파라미터 구조
+    // status
+    // approvedAmount
+    // comment
     // =========================================================
 
     @PatchMapping("/{amountNo}/approval")
@@ -530,6 +587,10 @@ public class AmountController {
 
         try {
 
+            // -------------------------------------------------
+            // 결재 상태 검증
+            // -------------------------------------------------
+
             if (!isValidApprovalStatus(status)) {
 
                 return ResponseEntity
@@ -539,6 +600,11 @@ public class AmountController {
                         );
             }
 
+
+            // -------------------------------------------------
+            // 승인 금액 검증
+            // -------------------------------------------------
+
             if (approvedAmount < 0) {
 
                 return ResponseEntity
@@ -547,6 +613,11 @@ public class AmountController {
                                 "승인 금액은 0원 이상이어야 합니다."
                         );
             }
+
+
+            // -------------------------------------------------
+            // Service
+            // -------------------------------------------------
 
             int result =
                     amountService.updateApprovalStatus(
@@ -565,15 +636,18 @@ public class AmountController {
                         );
             }
 
+
             return ResponseEntity.ok(
                     "결재 상태가 변경되었습니다."
             );
+
 
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
+
 
         } catch (Exception e) {
 
@@ -596,9 +670,7 @@ public class AmountController {
     //
     // PATCH /api/v1/amounts/{amountNo}/approval/sponsor
     //
-    // VO
-    // Amount
-    // └─ sponsor : Sponsor
+    // amount_list
     // =========================================================
 
     @PatchMapping("/{amountNo}/approval/sponsor")
@@ -659,6 +731,10 @@ public class AmountController {
 
         try {
 
+            // -------------------------------------------------
+            // 결재 상태
+            // -------------------------------------------------
+
             if (!isValidApprovalStatus(status)) {
 
                 return ResponseEntity
@@ -667,6 +743,11 @@ public class AmountController {
                                 "잘못된 비용 결재 상태입니다."
                         );
             }
+
+
+            // -------------------------------------------------
+            // 승인 금액
+            // -------------------------------------------------
 
             if (approvedAmount < 0) {
 
@@ -677,6 +758,11 @@ public class AmountController {
                         );
             }
 
+
+            // -------------------------------------------------
+            // 지원금
+            // -------------------------------------------------
+
             if (sponsorAmount < 0) {
 
                 return ResponseEntity
@@ -686,28 +772,62 @@ public class AmountController {
                         );
             }
 
+
+            // -------------------------------------------------
+            // Sponsor VO
+            // -------------------------------------------------
+
             Amount.Sponsor sponsor =
                     new Amount.Sponsor();
 
             sponsor.setAmountNo(amountNo);
-            sponsor.setSponsorName(sponsorName);
-            sponsor.setAmount(sponsorAmount);
+
+            sponsor.setSponsorName(
+                    sponsorName
+            );
+
+            sponsor.setAmount(
+                    sponsorAmount
+            );
+
             sponsor.setStatus(
                     sponsorStatus == null
                             || sponsorStatus.isBlank()
                             ? "UNPAID"
                             : sponsorStatus
             );
-            sponsor.setRemark(remark);
-            sponsor.setItemNo(itemNo);
 
-            /*
-             * paymentDate가 필요하면
-             * 실제 날짜 형식에 맞춰 변환하여 설정
-             *
-             * 현재 Controller에서는 String으로 받았으므로
-             * 변환 로직을 추가하지 않고 null 처리
-             */
+            sponsor.setRemark(
+                    remark
+            );
+
+            sponsor.setItemNo(
+                    itemNo
+            );
+
+
+            // -------------------------------------------------
+            // paymentDate
+            //
+            // DB:
+            // amount_list.payment_date TIMESTAMP
+            //
+            // VO:
+            // Date paymentDate
+            // -------------------------------------------------
+
+            if (paymentDate != null
+                    && !paymentDate.isBlank()) {
+
+                sponsor.setPaymentDate(
+                        parsePaymentDate(paymentDate)
+                );
+            }
+
+
+            // -------------------------------------------------
+            // Service
+            // -------------------------------------------------
 
             amountService.updateApprovalWithSponsor(
                     amountNo,
@@ -717,15 +837,18 @@ public class AmountController {
                     sponsor
             );
 
+
             return ResponseEntity.ok(
                     "결재 및 지원금 처리가 완료되었습니다."
             );
+
 
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
+
 
         } catch (Exception e) {
 
@@ -761,6 +884,7 @@ public class AmountController {
                     statisticsData
             );
 
+
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -780,8 +904,7 @@ public class AmountController {
     // =========================================================
     // 10. 첨부파일 삭제
     //
-    // DELETE API가 아니라 기존 PATCH/POST 구조에 맞춰
-    // 별도 호출 가능
+    // PATCH /api/v1/amounts/file/{amountattachmentNo}/delete
     // =========================================================
 
     @PatchMapping("/file/{amountattachmentNo}/delete")
@@ -809,11 +932,13 @@ public class AmountController {
                     "파일이 삭제되었습니다."
             );
 
+
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
+
 
         } catch (Exception e) {
 
@@ -824,7 +949,7 @@ public class AmountController {
                             HttpStatus.INTERNAL_SERVER_ERROR
                     )
                     .body(
-                            "파일 삭제 중 오류 발생: "
+                            "파일 삭제 중 오류가 발생했습니다: "
                             + e.getMessage()
                     );
         }
@@ -838,12 +963,21 @@ public class AmountController {
     private void validateFile(
             MultipartFile file) {
 
+        // -----------------------------------------------------
+        // 크기
+        // -----------------------------------------------------
+
         if (file.getSize() > MAX_FILE_SIZE) {
 
             throw new IllegalArgumentException(
                     "파일 하나당 최대 10MB까지 업로드할 수 있습니다."
             );
         }
+
+
+        // -----------------------------------------------------
+        // Content-Type
+        // -----------------------------------------------------
 
         String contentType =
                 file.getContentType();
@@ -858,6 +992,11 @@ public class AmountController {
             );
         }
 
+
+        // -----------------------------------------------------
+        // 파일명
+        // -----------------------------------------------------
+
         String originalFilename =
                 file.getOriginalFilename();
 
@@ -868,6 +1007,11 @@ public class AmountController {
                     "파일명이 올바르지 않습니다."
             );
         }
+
+
+        // -----------------------------------------------------
+        // 확장자
+        // -----------------------------------------------------
 
         String extension =
                 getExtension(originalFilename);
@@ -926,22 +1070,67 @@ public class AmountController {
         Map<String, Object> result =
                 new HashMap<>();
 
-        result.put("list", list);
-        result.put("page", pi.getCurrentPage());
-        result.put("pageLimit", pi.getPageLimit());
-        result.put("boardLimit", pi.getBoardLimit());
-        result.put("limit", pi.getBoardLimit());
-        result.put("listCount", pi.getListCount());
-        result.put("maxPage", pi.getMaxPage());
-        result.put("startPage", pi.getStartPage());
-        result.put("endPage", pi.getEndPage());
+        result.put(
+                "list",
+                list
+        );
+
+        result.put(
+                "page",
+                pi.getCurrentPage()
+        );
+
+        result.put(
+                "pageLimit",
+                pi.getPageLimit()
+        );
+
+        result.put(
+                "boardLimit",
+                pi.getBoardLimit()
+        );
+
+        result.put(
+                "limit",
+                pi.getBoardLimit()
+        );
+
+        result.put(
+                "listCount",
+                pi.getListCount()
+        );
+
+        result.put(
+                "maxPage",
+                pi.getMaxPage()
+        );
+
+        result.put(
+                "startPage",
+                pi.getStartPage()
+        );
+
+        result.put(
+                "endPage",
+                pi.getEndPage()
+        );
 
         return result;
     }
 
 
     // =========================================================
-    // 14. 결재 상태
+    // 14. 결재 상태 검증
+    //
+    // DB amount.status
+    //
+    // A 승인
+    // H 보류
+    // J 반려
+    // R 검토
+    // C 취소
+    //
+    // 결재 API에서는 A/H/J만 허용
     // =========================================================
 
     private boolean isValidApprovalStatus(
@@ -954,7 +1143,50 @@ public class AmountController {
 
 
     // =========================================================
-    // 15. 확장자 추출
+    // 15. paymentDate 변환
+    //
+    // React에서 전달되는 날짜:
+    //
+    // yyyy-MM-dd
+    // yyyy-MM-dd HH:mm:ss
+    // yyyy-MM-dd'T'HH:mm
+    // yyyy-MM-dd'T'HH:mm:ss
+    // =========================================================
+
+    private Date parsePaymentDate(
+            String paymentDate) {
+
+        String[] patterns = {
+                "yyyy-MM-dd",
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm",
+                "yyyy-MM-dd'T'HH:mm:ss"
+        };
+
+        for (String pattern : patterns) {
+
+            try {
+
+                SimpleDateFormat sdf =
+                        new SimpleDateFormat(pattern);
+
+                sdf.setLenient(false);
+
+                return sdf.parse(paymentDate);
+
+            } catch (ParseException ignored) {
+                // 다음 형식 시도
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "지급일 형식이 올바르지 않습니다."
+        );
+    }
+
+
+    // =========================================================
+    // 16. 확장자 추출
     // =========================================================
 
     private String getExtension(
@@ -982,7 +1214,7 @@ public class AmountController {
 
 
     // =========================================================
-    // 16. 저장 실패 파일 삭제
+    // 17. 저장 실패 파일 삭제
     // =========================================================
 
     private void deleteSavedFiles(
@@ -1008,11 +1240,12 @@ public class AmountController {
                         new File(path);
 
                 if (file.exists()) {
+
                     file.delete();
                 }
 
             } catch (Exception ignored) {
-                // 정리 실패는 무시
+                // 파일 정리 실패는 무시
             }
         }
     }

@@ -51,14 +51,22 @@ export default function Statistics() {
 
     // =========================================================
     // 비용 항목명
+    // DB 기준
+    //
+    // S 숙박
+    // T 교통
+    // E 체험
+    // F 식비
+    // V 차량
+    // O 기타
     // =========================================================
 
     const itemTypeMap = {
         S: "숙박",
         T: "교통",
-        E: "식비",
-        F: "체험",
-        V: "공간대여",
+        E: "체험",
+        F: "식비",
+        V: "차량",
         O: "기타"
     };
 
@@ -106,9 +114,8 @@ export default function Statistics() {
 
             console.log("통계 응답:", response);
 
-
             /*
-             * 백엔드 응답 구조에 대응
+             * 백엔드 응답 구조
              *
              * {
              *   summary: {...},
@@ -116,11 +123,11 @@ export default function Statistics() {
              *   monthlyStatistics: [...],
              *   itemStatistics: [...]
              * }
-             *
-             * 혹시 data 안에 들어오는 경우도 대응
              */
 
             const data = response?.data ?? response;
+
+            console.log("통계 data:", data);
 
 
             // =====================================================
@@ -132,66 +139,108 @@ export default function Statistics() {
                 data?.statisticsSummary ??
                 {};
 
+            /*
+             * 현재 백엔드 Mapper의 getStatisticsSummary()
+             *
+             * totalApproved
+             * avgApproved
+             *
+             * 를 사용
+             *
+             * 전체 건수 / 신청금액 / 상태별 건수는
+             * 별도 SQL이 없으면 계산할 수 없으므로
+             * 기본값 0으로 처리
+             */
+
             setSummary({
 
                 totalCount:
-                    toNumber(summaryData.totalCount),
+                    toNumber(
+                        summaryData.totalCount ??
+                        summaryData.TOTALCOUNT
+                    ),
 
                 totalRequestedAmount:
-                    toNumber(summaryData.totalRequestedAmount),
+                    toNumber(
+                        summaryData.totalRequestedAmount ??
+                        summaryData.TOTALREQUESTEDAMOUNT
+                    ),
 
-                /*
-                 * 총 지급액은 승인(A) 금액만 사용
-                 *
-                 * 백엔드에서 이미 필터링하지만
-                 * 프론트에서도 방어
-                 */
                 totalApprovedAmount:
-                    toNumber(summaryData.totalApprovedAmount),
+                    toNumber(
+                        summaryData.totalApprovedAmount ??
+                        summaryData.totalApproved ??
+                        summaryData.TOTALAPPROVED
+                    ),
 
                 reviewCount:
-                    toNumber(summaryData.reviewCount),
+                    toNumber(
+                        summaryData.reviewCount ??
+                        summaryData.REVIEWCOUNT
+                    ),
 
                 approvedCount:
-                    toNumber(summaryData.approvedCount),
+                    toNumber(
+                        summaryData.approvedCount ??
+                        summaryData.APPROVEDCOUNT
+                    ),
 
                 holdCount:
-                    toNumber(summaryData.holdCount),
+                    toNumber(
+                        summaryData.holdCount ??
+                        summaryData.HOLDCOUNT
+                    ),
 
                 rejectedCount:
-                    toNumber(summaryData.rejectedCount),
+                    toNumber(
+                        summaryData.rejectedCount ??
+                        summaryData.REJECTEDCOUNT
+                    ),
 
                 cancelledCount:
-                    toNumber(summaryData.cancelledCount)
+                    toNumber(
+                        summaryData.cancelledCount ??
+                        summaryData.CANCELLEDCOUNT
+                    )
 
             });
 
 
             // =====================================================
-            // 부서별
+            // 부서별 통계
+            //
+            // 백엔드:
+            //
+            // dep_id
+            // dep_title
+            // amount
             // =====================================================
 
             const deptData =
                 data?.deptStatistics ??
                 data?.departmentStatistics ??
-                data?.departments ??
                 [];
 
             setDeptStatistics(
+
                 Array.isArray(deptData)
+
                     ? deptData.map((item) => ({
 
                         depId:
                             item.depId ??
-                            item.DEPID ??
+                            item.DEP_ID ??
                             item.dep_id,
 
                         depTitle:
                             item.depTitle ??
-                            item.DEPTITLE ??
+                            item.DEP_TITLE ??
                             item.dep_title ??
                             "미지정",
 
+                        /*
+                         * 현재 SQL에는 amountCount가 없음
+                         */
                         amountCount:
                             toNumber(
                                 item.amountCount ??
@@ -199,6 +248,9 @@ export default function Statistics() {
                                 item.amount_count
                             ),
 
+                        /*
+                         * 현재 SQL에는 requestedAmount가 없음
+                         */
                         requestedAmount:
                             toNumber(
                                 item.requestedAmount ??
@@ -207,22 +259,34 @@ export default function Statistics() {
                             ),
 
                         /*
-                         * 승인된 금액만 지급액
+                         * 현재 SQL의 amount
+                         * = 승인된 금액
                          */
                         approvedAmount:
                             toNumber(
                                 item.approvedAmount ??
                                 item.APPROVEDAMOUNT ??
-                                item.approved_amount
+                                item.approved_amount ??
+                                item.amount ??
+                                item.AMOUNT
                             )
 
                     }))
+
                     : []
+
             );
 
 
             // =====================================================
-            // 월별
+            // 월별 통계
+            //
+            // 백엔드:
+            //
+            // month
+            // amount
+            //
+            // amount = 승인된 금액
             // =====================================================
 
             const monthlyData =
@@ -231,38 +295,62 @@ export default function Statistics() {
                 [];
 
             setMonthlyStatistics(
+
                 Array.isArray(monthlyData)
+
                     ? monthlyData.map((item) => ({
 
                         month:
                             item.month ??
-                            item.MONTH,
+                            item.MONTH ??
+                            "",
 
+                        /*
+                         * 현재 SQL에는 amountCount 없음
+                         */
                         amountCount:
                             toNumber(
                                 item.amountCount ??
                                 item.AMOUNTCOUNT
                             ),
 
+                        /*
+                         * 현재 SQL에는 requestedAmount 없음
+                         */
                         requestedAmount:
                             toNumber(
                                 item.requestedAmount ??
                                 item.REQUESTEDAMOUNT
                             ),
 
+                        /*
+                         * 현재 SQL의 amount
+                         * = 승인된 금액
+                         */
                         approvedAmount:
                             toNumber(
                                 item.approvedAmount ??
-                                item.APPROVEDAMOUNT
+                                item.APPROVEDAMOUNT ??
+                                item.amount ??
+                                item.AMOUNT
                             )
 
                     }))
+
                     : []
+
             );
 
 
             // =====================================================
-            // 비용 항목별
+            // 비용 항목별 통계
+            //
+            // 백엔드:
+            //
+            // item_type
+            // amount
+            //
+            // amount = 승인된 비용 금액
             // =====================================================
 
             const itemData =
@@ -270,40 +358,60 @@ export default function Statistics() {
                 data?.items ??
                 [];
 
+            console.log("항목 통계 원본:", itemData);
+
             setItemStatistics(
+
                 Array.isArray(itemData)
+
                     ? itemData.map((item) => ({
 
                         itemType:
                             item.itemType ??
                             item.ITEMTYPE ??
-                            item.item_type,
+                            item.item_type ??
+                            item.ITEM_TYPE,
 
+                        /*
+                         * 현재 SQL에는 itemCount 없음
+                         */
                         itemCount:
                             toNumber(
                                 item.itemCount ??
-                                item.ITEMCOUNT
-                            ),
-
-                        totalAmount:
-                            toNumber(
-                                item.totalAmount ??
-                                item.TOTALAMOUNT
+                                item.ITEMCOUNT ??
+                                item.item_count
                             ),
 
                         /*
-                         * 승인된 비용만 지급액
+                         * 현재 SQL의 amount
+                         * = 승인된 비용
+                         */
+                        totalAmount:
+                            toNumber(
+                                item.totalAmount ??
+                                item.TOTALAMOUNT ??
+                                item.total_amount ??
+                                item.amount ??
+                                item.AMOUNT
+                            ),
+
+                        /*
+                         * Pie / 지급액 표시용
                          */
                         approvedAmount:
                             toNumber(
                                 item.approvedAmount ??
-                                item.APPROVEDAMOUNT
+                                item.APPROVEDAMOUNT ??
+                                item.approved_amount ??
+                                item.amount ??
+                                item.AMOUNT
                             )
 
                     }))
-                    : []
-            );
 
+                    : []
+
+            );
 
         } catch (err) {
 
@@ -340,10 +448,17 @@ export default function Statistics() {
 
     // =========================================================
     // 비용 항목 Pie 데이터
+    //
+    // 승인된 비용 금액 기준
     // =========================================================
 
     const pieData = itemStatistics
-        .filter((item) => item.totalAmount > 0)
+
+        .filter(
+            (item) =>
+                item.approvedAmount > 0
+        )
+
         .map((item) => ({
 
             name:
@@ -351,7 +466,8 @@ export default function Statistics() {
                 item.itemType ||
                 "기타",
 
-            value: item.totalAmount
+            value:
+                item.approvedAmount
 
         }));
 
@@ -361,8 +477,12 @@ export default function Statistics() {
     // =========================================================
 
     const pieTotal = pieData.reduce(
-        (sum, item) => sum + item.value,
+
+        (sum, item) =>
+            sum + item.value,
+
         0
+
     );
 
 
@@ -384,7 +504,7 @@ export default function Statistics() {
 
 
     // =========================================================
-    // 차트 색상
+    // Pie 색상
     // =========================================================
 
     const pieColors = [
@@ -404,6 +524,7 @@ export default function Statistics() {
     if (loading) {
 
         return (
+
             <div className="statistics-container">
 
                 <div className="statistics-loading">
@@ -411,6 +532,7 @@ export default function Statistics() {
                 </div>
 
             </div>
+
         );
     }
 
@@ -422,13 +544,18 @@ export default function Statistics() {
     if (error) {
 
         return (
+
             <div className="statistics-container">
 
                 <div className="statistics-error">
 
-                    <h3>통계 조회 실패</h3>
+                    <h3>
+                        통계 조회 실패
+                    </h3>
 
-                    <p>{error}</p>
+                    <p>
+                        {error}
+                    </p>
 
                     <button
                         onClick={fetchStatistics}
@@ -439,6 +566,7 @@ export default function Statistics() {
                 </div>
 
             </div>
+
         );
     }
 
@@ -451,13 +579,16 @@ export default function Statistics() {
 
         <div className="statistics-container">
 
+
             {/* =================================================
                 제목
                 ================================================= */}
 
             <div className="statistics-header">
 
-                <h2>비용 통계</h2>
+                <h2>
+                    비용 통계
+                </h2>
 
                 <button
                     className="refresh-button"
@@ -508,12 +639,7 @@ export default function Statistics() {
                 </div>
 
 
-                {/* =================================================
-                    총 지급액
-
-                    ★ 승인(A)만 포함
-                    ★ 반려(J) 제외
-                    ================================================= */}
+                {/* 총 지급액 */}
 
                 <div className="summary-card">
 
@@ -619,7 +745,7 @@ export default function Statistics() {
 
 
                 {/* =================================================
-                    비용 항목별
+                    비용 항목별 비율
                     ================================================= */}
 
                 <div className="statistics-card">
@@ -661,8 +787,8 @@ export default function Statistics() {
                                         dataKey="value"
                                         nameKey="name"
                                         cx="50%"
-                                        cy="50%"
-                                        outerRadius={120}
+                                        cy="45%"
+                                        outerRadius={115}
                                         label={renderPieLabel}
                                         labelLine={true}
                                     >
@@ -671,9 +797,7 @@ export default function Statistics() {
                                             (entry, index) => (
 
                                                 <Cell
-                                                    key={
-                                                        `cell-${index}`
-                                                    }
+                                                    key={`cell-${index}`}
                                                     fill={
                                                         pieColors[
                                                             index %
@@ -691,7 +815,7 @@ export default function Statistics() {
                                     <Tooltip
                                         formatter={(value) => [
                                             formatAmount(value),
-                                            "금액"
+                                            "승인 금액"
                                         ]}
                                     />
 
@@ -710,7 +834,7 @@ export default function Statistics() {
 
 
                 {/* =================================================
-                    월별 신청/지급
+                    월별 비용 현황
                     ================================================= */}
 
                 <div className="statistics-card">
@@ -758,15 +882,18 @@ export default function Statistics() {
                                         strokeDasharray="3 3"
                                     />
 
+
                                     <XAxis
                                         dataKey="month"
                                     />
 
+
                                     <YAxis
                                         tickFormatter={(value) =>
-                                            value.toLocaleString()
+                                            Number(value).toLocaleString()
                                         }
                                     />
+
 
                                     <Tooltip
                                         formatter={(value) =>
@@ -774,12 +901,9 @@ export default function Statistics() {
                                         }
                                     />
 
+
                                     <Legend />
 
-                                    <Bar
-                                        dataKey="requestedAmount"
-                                        name="신청 금액"
-                                    />
 
                                     <Bar
                                         dataKey="approvedAmount"
@@ -835,14 +959,6 @@ export default function Statistics() {
                                     </th>
 
                                     <th>
-                                        신청 건수
-                                    </th>
-
-                                    <th>
-                                        신청 금액
-                                    </th>
-
-                                    <th>
                                         지급액
                                     </th>
 
@@ -865,17 +981,6 @@ export default function Statistics() {
 
                                             <td>
                                                 {item.depTitle}
-                                            </td>
-
-                                            <td>
-                                                {item.amountCount.toLocaleString()}
-                                                건
-                                            </td>
-
-                                            <td>
-                                                {formatAmount(
-                                                    item.requestedAmount
-                                                )}
                                             </td>
 
                                             <td>
@@ -936,14 +1041,6 @@ export default function Statistics() {
                                     </th>
 
                                     <th>
-                                        건수
-                                    </th>
-
-                                    <th>
-                                        전체 금액
-                                    </th>
-
-                                    <th>
                                         지급액
                                     </th>
 
@@ -975,17 +1072,6 @@ export default function Statistics() {
                                             </td>
 
                                             <td>
-                                                {item.itemCount.toLocaleString()}
-                                                건
-                                            </td>
-
-                                            <td>
-                                                {formatAmount(
-                                                    item.totalAmount
-                                                )}
-                                            </td>
-
-                                            <td>
                                                 {formatAmount(
                                                     item.approvedAmount
                                                 )}
@@ -1006,6 +1092,9 @@ export default function Statistics() {
 
             </div>
 
+
         </div>
+
     );
 }
+

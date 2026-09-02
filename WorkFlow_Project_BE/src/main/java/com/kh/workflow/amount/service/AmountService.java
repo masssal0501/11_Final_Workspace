@@ -28,9 +28,13 @@ public interface AmountService {
     // 3. 비용 신청 등록
     //
     // Amount
-    // ├─ itemList
-    // ├─ sponsor
-    // └─ fileList
+    // ├─ amount
+    // ├─ itemList      → amount_item
+    // ├─ sponsorList   → amount_list
+    // └─ fileList      → amount_file
+    //
+    // Controller에서 MultipartFile을 처리한 후
+    // Amount.File 형태로 fileList에 전달
     // =========================================================
 
     int insertAmount(Amount amount);
@@ -38,6 +42,11 @@ public interface AmountService {
 
     // =========================================================
     // 4. 비용 상세 조회
+    //
+    // amount
+    // ├─ itemList
+    // ├─ sponsorList
+    // └─ fileList
     // =========================================================
 
     Amount selectAmountById(int amountNo);
@@ -63,7 +72,13 @@ public interface AmountService {
     // =========================================================
     // 7. 비용 결재 상태 변경
     //
-    // Controller에서 전달한 값을 그대로 받음
+    // status
+    // ├─ A : 승인
+    // ├─ H : 보류
+    // └─ J : 반려
+    //
+    // approvedAmount → 최종 승인 금액
+    // comment        → 결재 의견
     // =========================================================
 
     int updateApprovalStatus(
@@ -76,6 +91,17 @@ public interface AmountService {
 
     // =========================================================
     // 8. 비용 신청 수정
+    //
+    // amount
+    // ├─ amount
+    // ├─ itemList
+    // └─ sponsorList
+    //
+    // files
+    // └─ 새로 추가되는 MultipartFile
+    //
+    // 기존 DB 파일은 삭제하지 않고
+    // 새 파일만 amount_file에 추가
     // =========================================================
 
     void updateAmount(
@@ -86,6 +112,10 @@ public interface AmountService {
 
     // =========================================================
     // 9. 첨부파일 삭제
+    //
+    // amount_file.amountattachment_no 기준
+    //
+    // 실제 구현에서는 DB status = N 처리
     // =========================================================
 
     int deleteFile(int amountattachmentNo);
@@ -93,6 +123,8 @@ public interface AmountService {
 
     // =========================================================
     // 10. 비용 신청 취소
+    //
+    // amount.status = C
     // =========================================================
 
     int cancelAmount(int amountNo);
@@ -101,8 +133,18 @@ public interface AmountService {
     // =========================================================
     // 11. 결재 + 지원금 처리
     //
-    // Amount
-    // └─ sponsor : Sponsor
+    // amount
+    // └─ sponsor → amount_list 1건
+    //
+    // status = A인 경우 지원금 등록
+    //
+    // Sponsor
+    // ├─ sponsorName
+    // ├─ amount
+    // ├─ paymentDate
+    // ├─ status
+    // ├─ remark
+    // └─ itemNo
     // =========================================================
 
     void updateApprovalWithSponsor(
@@ -116,8 +158,15 @@ public interface AmountService {
 
     // =========================================================
     // 12. 전체 통계
+    //
+    // 반환 Map
+    // ├─ summary
+    // ├─ deptStatistics
+    // ├─ monthlyStatistics
+    // └─ itemStatistics
     // =========================================================
 
     Map<String, Object> getFullStatistics();
+
 }
 
