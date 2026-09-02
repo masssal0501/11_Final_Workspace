@@ -303,7 +303,7 @@ function UpdateMyPageForm() {
 
     };
 
-        // 직책
+    // 직책
     const getAuthName = (authCode) => {
 
         switch (authCode) {
