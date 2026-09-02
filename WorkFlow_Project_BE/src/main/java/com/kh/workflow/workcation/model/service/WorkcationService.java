@@ -15,5 +15,11 @@ public interface WorkcationService {
 	
 	void insertWorkcation(WorkcationInfo workcartion);
 	
+	Map<String, Object> getAmountSupportInfo();
+
+	Map<String, Object> getWorkcationDetail(Integer workcationNo);
+
+	void deleteWorkcation(Integer workcationNo);
+
 	
 }

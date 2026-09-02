@@ -88,17 +88,26 @@ function WorkcationListComponent() {
         const items = Array.isArray(responseData) ? responseData
             : (responseData?.list || responseData?.content || []);
 
-        const trArr = items.map((item) => (
-            <tr key={item.workcationNo}
-                onClick={() => navigate(`${BASE_URL}/workcation/detail/${item.workcationNo}`)}>
-                <td>{item.workcationNo}</td>
-                <td>{item.workcationTitle}</td>
-                <td>{item.regionName || "-"}</td>
-                <td>{item.employee?.empName || "-"}</td>
-                <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
-                <td>{item.approverState || item.workcationStatus || "대기"}</td>
-            </tr>
-        ));
+        const trArr = items.map((item) => {
+            let regionText = "-";
+            if (item.workcationTitle && item.workcationTitle.startsWith("[")) {
+                const closeIdx = item.workcationTitle.indexOf("]");
+                if (closeIdx > 1) {
+                    regionText = item.workcationTitle.substring(1, closeIdx);
+                }
+            }
+            return (
+                <tr key={item.workcationNo}
+                    onClick={() => navigate(`/workcation/detail/${item.workcationNo}`)}>
+                    <td>{item.workcationNo}</td>
+                    <td style={{ whiteSpace: "pre-line" }}>{item.workcationTitle}</td>
+                    <td>{regionText}</td>
+                    <td>{item.employee?.empName || "-"}</td>
+                    <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
+                    <td>{item.approverState || item.workcationStatus || "대기"}</td>
+                </tr>
+            )
+        });
 
         setDataList(trArr);
 
@@ -156,13 +165,48 @@ function WorkcationListComponent() {
 
     // 지역 드롭다운 변경 이벤트 핸들러
     const handleMainRegionChange = (e) => {
-        setMainRegion(e.target.value);
+        const newMain = e.target.value;
+        setMainRegion(newMain);
         setSubRegion(""); // 메인이 바뀌면 상세 지역 초기화
+
+        setSearchParams({
+            cpage: 1,
+            condition: searchCondition,
+            keyword: searchKeyword,
+            mainRegion: newMain,
+            subRegion: "",
+            searchType: searchType
+        })
     };
 
     const handleSubRegionChange = (e) => {
-        setSubRegion(e.target.value);
+        const newSub = e.target.value;
+        setSubRegion(newSub);
+
+        setSearchParams({
+            cpage: 1,
+            condition: searchCondition,
+            keyword: searchKeyword,
+            mainRegion: mainRegion,
+            subRegion: newSub,
+            searchType: searchType
+        })
     };
+
+    //승인/취소 등 상태 변경 핸들러
+    const handleSearchTypeChange = (e) => {
+        const newSearchType = e.target.value;
+        setSearchType(newSearchType);
+
+        setSearchParams({
+            cpage: 1,
+            condition: searchCondition,
+            keyword: searchKeyword,
+            mainRegion: mainRegion,
+            subRegion: subRegion,
+            searchType: newSearchType
+        })
+    }
 
     return (
         <div align="center" className="content-area">
@@ -210,7 +254,7 @@ function WorkcationListComponent() {
                 {/* 상태 드롭다운 */}
                 <select className="status-drop"
                     value={searchType}
-                    onChange={(e) => setSearchType(e.target.value)}>
+                    onChange={handleSearchTypeChange}>
                     <option value="all">전체</option>
                     <option value="approved">승인</option>
                     <option value="canceled">취소</option>

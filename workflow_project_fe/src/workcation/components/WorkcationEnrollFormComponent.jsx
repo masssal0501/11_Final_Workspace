@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import "../styles/WorkcationEnrollForm.css";
 
 // 기존 WorkcationItemComponent에 있던 옵션 설정 상수
-export const OPTION_CONFIG = {
+const OPTION_CONFIG = {
     program: { label: "체험 프로그램", key: "program", priceKey: "programPrice", dateName: "programDate", typeCode: 3 },
     restaurant: { label: "맛집", key: "restaurant", priceKey: "restaurantPrice", dateName: "restaurantDate", typeCode: 4 },
     tour: { label: "관광지", key: "tour", priceKey: "tourPrice", dateName: "tourDate", typeCode: 5 }
 };
 
 function WorkcationEnrollFormComponent() {
+    const navigate = useNavigate();
+
     // 지역 데이터 state (WorkcationItemComponent 기능 포함)
     const [mainRegion, setMainRegion] = useState("");
     const [subRegion, setSubRegion] = useState("");
     const [mainRegionDrop, setMainRegionDrop] = useState([]);
     const [subRegionDrop, setSubRegionDrop] = useState([]);
 
+    const [workcationTitle, setWorkcationTitle] = useState("");
     const [startDate, setStartDate] = useState(getToday());
     const [endDate, setEndDate] = useState(getToday());
     const [programVisitDate, setProgramVisitDate] = useState(getTomorrow());
@@ -45,12 +49,8 @@ function WorkcationEnrollFormComponent() {
     const [transportText, setTransportText] = useState("");
     const [etcText, setEtcText] = useState("");
 
-
-    //교통
-    const handleTextChange = (e, setter) => {
-        const val = e.target.value;
-        setter(val === "" ? "" : Number(val));
-    }
+    const [companySupport, setCompanySupport] = useState(0);
+    const [localGovSupport, setLocalGovSupport] = useState(0);
 
     //오늘날짜 구하기
     function getToday() {
@@ -102,6 +102,18 @@ function WorkcationEnrollFormComponent() {
             });
     }, [mainRegion]);
 
+    useEffect(() => {
+        axios.get(`${BASE_URL}/workcation/amount/supportInfo`)
+            .then(res => {
+                const amountSupport = res.data?.companySupport || res.data?.approvedAmount || 0;
+                setCompanySupport(Number(amountSupport));
+            })
+            .catch(err => {
+                console.error("회사 지원금 조회 실패", err)
+                setCompanySupport(0);
+            })
+    }, [])
+
     /** 메인지역 변경시 서브지역 및 버튼상태 초기화 */
     const handleRegionChange = (newMain, newSub) => {
         setMainRegion(newMain);
@@ -110,7 +122,6 @@ function WorkcationEnrollFormComponent() {
 
         //옵션 상태 초기화
         setSelectedBtns([]);
-        setOptionPlaceData({});
         setOptionPlaceData({});
     };
 
@@ -121,7 +132,6 @@ function WorkcationEnrollFormComponent() {
 
         //옵션 상태 초기화
         setSelectedBtns([]);
-        setOptionPlaceData({});
         setOptionPlaceData({});
     };
 
@@ -176,6 +186,13 @@ function WorkcationEnrollFormComponent() {
                 });
         });
     }, [mainRegion, subRegion, selectedBtns]);
+
+    useEffect(() => {
+        if (!selectHubNo) {
+            setSelectedBtns([]);
+            setOptionPlaceData({});
+        }
+    }, [selectHubNo]);
 
     const currentHub = (hubDrop || []).find(h => String(h?.hubNo) === String(selectHubNo));
 
@@ -310,14 +327,8 @@ function WorkcationEnrollFormComponent() {
     }, 0);
 
     // 총액 계산
-    const totalCost = hubPrice + optionsPrice + Number(transportText) + Number(etcText);
-
-    // 지자체 지원금
-    const hubSupport = hubType === "office" ? hubPrice : Math.min(hubPrice, 200000);
-    const programSupport = Math.min(optionsPrice, 300000);
-    const totalSupport = hubSupport + programSupport;
-
-    // 회사/개인 부담금
+    const totalCost = hubPrice + optionsPrice + Number(transportText || 0) + Number(etcText || 0);
+    const totalSupport = localGovSupport + companySupport;
     const personalCost = Math.max(0, totalCost - totalSupport);
 
     // 제출 핸들러
@@ -327,6 +338,7 @@ function WorkcationEnrollFormComponent() {
         if (!selectHubNo) return alert("오피스 또는 숙소 선택");
 
         const insertworkcationData = {
+            workcationTitle,
             startDate,
             endDate,
             peopleCount: Number(userCapacity),
@@ -338,6 +350,9 @@ function WorkcationEnrollFormComponent() {
             transportText: Number(transportText),
             etcText: Number(etcText),
             totalCost,
+            companySupport,
+            localGovSupport,
+            totalSupport,
             personalCost,
 
             planList: planList.map(item => ({
@@ -356,6 +371,7 @@ function WorkcationEnrollFormComponent() {
             const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, insertworkcationData);
             if (response.status === 200 || response.status === 201) {
                 alert("신청이 완료되었습니다.");
+                navigate("/workcation/list");
             }
         } catch (err) {
             console.error("실패", err);
@@ -367,11 +383,28 @@ function WorkcationEnrollFormComponent() {
         <div className="workcatrion-enroll-container">
             <h2 align="center">워케이션 신청</h2>
 
-            <button className="insert-btn" type="button" onClick={handleSubmit}>
-                제출하기
-            </button>
+            <div className="common-btn-group">
+                <button className="insert-btn" type="button" onClick={handleSubmit}>
+                    제출하기
+                </button>
+                <button
+                    type="button"
+                    className="back-space"
+                    onClick={() => navigate('/workcation/list')}>
+                    뒤로가기
+                </button>
+            </div>
             <table className="workcation-form-table">
                 <tbody>
+                    <tr>
+                        <th>워케이션 제목</th>
+                        <td colSpan={3}>
+                            <input type="text"
+                                    placeholder="제목을 입력해주세요."
+                                    value={workcationTitle}
+                                    onChange={(e) => setWorkcationTitle(e.target.value)} />
+                        </td>
+                    </tr>
                     <tr>
                         <th>신청기간</th>
                         <td style={{ width: "300px" }}>
@@ -464,7 +497,7 @@ function WorkcationEnrollFormComponent() {
                         {/**숙소/오피스 주소 */}
                         <th>위치 주소</th>
                         <td>
-                            {currentHub ? currentHub.hubAddress : "선택 된 거점 없음"}
+                            {currentHub ? currentHub.hubAddress : "선택 된 장소 없음"}
                         </td>
                     </tr>
 
@@ -500,6 +533,7 @@ function WorkcationEnrollFormComponent() {
                             </tr>
                         );
                     })()}
+
                     {/**오피스/숙소까지 최종선택 되엇을시  */}
                     {renderBtnRow("program")}
                     {renderBtnRow("restaurant")}
@@ -546,6 +580,7 @@ function WorkcationEnrollFormComponent() {
             </div>
 
             <div className="all-price-container">
+                {/**지출 내역(왼쪽) 전체 지출 내역 확인용 */}
                 <div className="left-price-box">
                     <h3>지출 내역</h3>
                     <div className="left-price-row">
@@ -559,9 +594,9 @@ function WorkcationEnrollFormComponent() {
                     <div className="left-price-row">
                         <span>교통비</span>
                         <div className="left-price-input">
-                            <input type="text"
+                            <input type="number"
                                 value={transportText}
-                                onChange={(e) => setTransportText(Number(e.target.value))} />원
+                                onChange={(e) => setTransportText(e.target.value === "" ? "" : Number(e.target.value))} />원
                         </div>
                     </div>
                     <div className="left-price-row">
@@ -569,33 +604,38 @@ function WorkcationEnrollFormComponent() {
                         <div className="left-price-input">
                             <input type="number"
                                 value={etcText}
-                                onChange={(e) => setEtcText(Number(e.target.value))} />원
+                                onChange={(e) => setEtcText(e.target.value === "" ? "" : Number(e.target.value))} />원
+                        </div>
+                        <div>
+                            <span>예상 지출액</span>
+                            <strong>{personalCost.toLocaleString()}원</strong>
                         </div>
                     </div>
                     <hr />
-                    <div className="left-price-input total">
-                        <span>예상 총액</span>
+                    <div className="left-price-total">
+                        <span>최종 지출액</span>
                         <strong>{totalCost.toLocaleString()}원</strong>
                     </div>
                 </div>
 
+                {/** 지원금 및 정산 내역(오른쪽) */}
                 <div className="left-price-box">
-                    <h3>지원금 혜택</h3>
+                    <h3>지원금 및 정산 내역</h3>
                     <div className="right-price-row">
-                        <span>{hubType === "office" ? "오피스 지원" : "숙박비 지원"}</span>
-                        <span>{hubType === "office" ? `${hubSupport.toLocaleString()}원` : `최대 ${hubSupport.toLocaleString()}원`}</span>
+                        <span>회사 지원금</span>
+                        <span>{companySupport.toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row">
-                        <span>체험비 지원</span>
-                        <span>최대 {programSupport.toLocaleString()}원</span>
+                        <span>지자체 지원금</span>
+                        <span>{localGovSupport.toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row total">
-                        <span>지원금</span>
-                        <span>{totalSupport.toLocaleString()}원</span>
+                        <span>총 지원금 합계</span>
+                        <span>최대 {totalSupport.toLocaleString()}원</span>
                     </div>
                     <hr />
-                    <div>
-                        <span>개인부담금</span>
+                    <div className="right-price-pay">
+                        <span>최종 개인 부담금</span>
                         <strong>{personalCost.toLocaleString()}원</strong>
                     </div>
                 </div>

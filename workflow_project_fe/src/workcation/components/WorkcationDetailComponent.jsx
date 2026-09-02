@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
 import "../styles/WorkcationDetail.css";
 
@@ -10,8 +10,7 @@ function WorkcationDetailComponent() {
     const BASE_URL = 'http://localhost:8006/workflow';
 
     // URL 쿼리스트링이나 경로에서 상세 조회를 위한 ID 파라미터 추출 (예: ?no=1)
-    const [searchParams] = useSearchParams();
-    const workcationNo = searchParams.get("no");
+    const { workcationNo } = useParams();
     const navigate = useNavigate();
 
     // 상세 데이터 저장을 위한 state
@@ -21,7 +20,7 @@ function WorkcationDetailComponent() {
     useEffect(() => {
         if (!workcationNo) return;
 
-        axios.get(`${BASE_URL}/workcation/detail?no=${workcationNo}`)
+        axios.get(`${BASE_URL}/workcation/detail/${workcationNo}`)
             .then(res => {
                 setDetailData(res.data);
             })
@@ -32,7 +31,9 @@ function WorkcationDetailComponent() {
 
     // 데이터가 로딩 중일 때 처리
     if (!detailData) {
-        return <div className="workcatrion-enroll-container"><h2 align="center">로딩 중...</h2></div>;
+        return <div className="workcatrion-detatil-container">
+            <h2 align="center">신청 내역</h2>
+        </div>;
     }
 
     // 렌더링에 필요한 값 추출 (API 응답 구조에 맞게 커스텀 가능)
@@ -41,27 +42,55 @@ function WorkcationDetailComponent() {
         endDate = "",
         peopleCount = 1,
         purpose = "",
-        region = "",
+        mainRegion = "",
+        subRegion = "",
         placeType = "office", // "office" 또는 "accommodation"
-        placeName = "",
-        address = "",
-        planList = [],
-        trafficFee = 0,
-        etcFee = 0,
-        optionsPrice = 0,
+        hubName = "",
+        hubAddress = "",
         hubPrice = 0,
+        optionPrice = 0,
+        transportText = 0,
+        etcText = 0,
+        totalCost = 0,
+        companySupport = 0,
+        localGovSupport = 0,
+        totalSupport = 0,
+        personalCost = 0,
+        planList = [],
+        option = []
     } = detailData;
+    console.log("현재 workcationNo:", workcationNo);
 
-    // 비용 및 지원금 계산
-    const totalCost = hubPrice + optionsPrice + Number(trafficFee) + Number(etcFee);
-    const hubSupport = placeType === "office" ? hubPrice : Math.min(hubPrice, 200000);
-    const programSupport = Math.min(optionsPrice, 300000);
-    const totalSupport = hubSupport + programSupport;
-    const personalCost = Math.max(0, totalCost - totalSupport);
+    const handleDelete = async () => {
+        if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+        try{
+            await axios.delete(`${BASE_URL}/workcation/delete/${workcationNo}`);
+            alert("삭제가 완료되었습니다.");
+            navigate("/workcation/list");
+        }catch(err){
+            console.error("삭제 실패 :", err);
+            alert("삭제 중 오류 발생");
+        }
+    }
+/*
+    const handleUpdate = async ()=>{
+        
+    }*/
 
     return (
-        <div className="workcatrion-enroll-container">
+        <div className="workcatrion-datail-container">
             <h2 align="center">워케이션 상세 조회</h2>
+
+            <div className="common-btn-group">
+                <button
+                    type="button"
+                    className="back-space"
+                    onClick={() => navigate('/workcation/list')}>
+                    뒤로가기
+                </button>
+            </div>
+
             <table className="workcation-form-table">
                 <tbody>
                     <tr>
@@ -77,11 +106,13 @@ function WorkcationDetailComponent() {
                     <tr>
                         <th>근무 목적</th>
                         <td>
-                            <p className="read-only-box">{purpose}</p>
+                            <div className="read-only">
+                                {purpose || "등록 된 목적이 없습니다."}
+                            </div>
                         </td>
                         <th>지역</th>
                         <td>
-                            {region || "선택한 지역 없음"}
+                            <span>{mainRegion} {subRegion} </span>
                         </td>
                     </tr>
 
@@ -90,29 +121,44 @@ function WorkcationDetailComponent() {
                         <th>거점 유형</th>
                         <td>
                             <label className="radio-btn">
-                                <input type="radio" checked={placeType === "office"} disabled />
+                                <input type="radio"
+                                    checked={placeType === "office"}
+                                    disabled />
                                 공유오피스
                             </label>
                             <label className="radio-btn">
-                                <input type="radio" checked={placeType === "accommodation"} disabled />
+                                <input type="radio"
+                                    checked={placeType === "accommodation"} disabled />
                                 숙소
                             </label>
                         </td>
                         <th>위치 주소</th>
                         <td>
-                            {address || "현 위치 정보 없음"}
+                            {hubAddress || "주소 위치 정보 없음"}
                         </td>
                     </tr>
 
                     {/* 선택된 유형 드롭다운 (상세보기에선 읽기 전용 텍스트 또는 고정 표시) */}
                     <tr>
                         <th>{placeType === "office" ? "오피스 선택" : "숙소 선택"}</th>
-                        <td>
-                            <div className="read-only-select-box">
-                                {placeName || "선택된 거점 없음"}
-                            </div>
+                        <td colSpan={3}>
+                            <span>{hubName || "선택된 장소 없음"}</span>
                         </td>
                     </tr>
+
+                    {option && option.map((opt, index) => (
+                        <tr key={index} >
+                            <th>{opt.type === `program`
+                                ? '체험 프로그램' : opt.type === 'restaurant' ? '맛집' : '관광지'}</th>
+                            <td>
+                                <span>{opt.hubName || "장소 명 없음"}</span>
+                            </td>
+                            <th>방문일</th>
+                            <td>
+                                <span>{opt.visitDate || "-"}</span>
+                            </td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
 
@@ -140,20 +186,20 @@ function WorkcationDetailComponent() {
                     </div>
                     <div className="left-price-row">
                         <span>프로그램 활동비</span>
-                        <span>{Number(optionsPrice).toLocaleString()}원</span>
+                        <span>{Number(optionPrice).toLocaleString()}원</span>
                     </div>
                     <div className="left-price-row">
                         <span>교통비</span>
-                        <span>{Number(trafficFee).toLocaleString()}원</span>
+                        <span>{Number(transportText).toLocaleString()}원</span>
                     </div>
                     <div className="left-price-row">
                         <span>기타</span>
-                        <span>{Number(etcFee).toLocaleString()}원</span>
+                        <span>{Number(etcText).toLocaleString()}원</span>
                     </div>
                     <hr />
                     <div className="left-price-input total">
                         <span>예상 총액</span>
-                        <strong>{totalCost.toLocaleString()}원</strong>
+                        <strong>{Number(totalCost).toLocaleString()}원</strong>
                     </div>
                 </div>
 
@@ -161,29 +207,30 @@ function WorkcationDetailComponent() {
                 <div className="left-price-box">
                     <h3>지원금 혜택</h3>
                     <div className="right-price-row">
-                        <span>{placeType === "office" ? "오피스 지원" : "숙박비 지원"}</span>
-                        <span>{hubSupport.toLocaleString()}원</span>
+                        <span>회사지원금</span>
+                        <span>{Number(companySupport).toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row">
-                        <span>체험비 지원</span>
-                        <span>최대 {programSupport.toLocaleString()}원</span>
+                        <span>지자체 지원금</span>
+                        <span>{Number(localGovSupport).toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row total">
-                        <span>지원금 합계</span>
-                        <span>{totalSupport.toLocaleString()}원</span>
+                        <span>총 지원금 합계</span>
+                        <span>{Number(totalSupport).toLocaleString()}원</span>
                     </div>
                     <hr />
                     <div>
-                        <span>회사/개인부담금</span>
-                        <strong>{personalCost.toLocaleString()}원</strong>
+                        <span>최종 개인 부담금</span>
+                        <strong>{Number(personalCost).toLocaleString()}원</strong>
                     </div>
                 </div>
             </div>
-
-            {/* 하단 목록으로 돌아가기 버튼 */}
-            <div className="btn-group" style={{ textAlign: "center", marginTop: "20px" }}>
-                <button type="button" className="back-btn" onClick={() => navigate(-1)}>
-                    목록으로
+            <div>
+               <button type="button" >
+                    수정
+                </button>
+                <button type="button" onClick={handleDelete}>
+                    삭제
                 </button>
             </div>
         </div>
