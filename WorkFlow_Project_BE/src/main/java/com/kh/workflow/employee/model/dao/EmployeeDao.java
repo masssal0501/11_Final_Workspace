@@ -14,4 +14,9 @@ public interface EmployeeDao
     boolean existsByEmail(String email);
     
     Optional<Employee> findByEmpId(String empId);
+    
+    Optional<Employee> findByEmpNameAndEmail(
+            String empName,
+            String email
+    );
 }

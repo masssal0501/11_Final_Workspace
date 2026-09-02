@@ -107,6 +107,12 @@ public class SecurityConfig {
                             "/employees/password"
                         ).authenticated()
                         
+                        // 계정 ID 찾기
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/findId"
+                    	).permitAll()
+                        
                         // 장소 관련 API
                         .requestMatchers(
                                 "/place/**"
