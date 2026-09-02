@@ -119,7 +119,6 @@ public class SecurityConfig {
                         ).permitAll()
                         
                         .requestMatchers(
-                        		HttpMethod.POST, 
                         		"/hubs/**"
                 		).permitAll()
 
