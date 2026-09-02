@@ -68,4 +68,16 @@ public class HubServiceImpl implements HubService {
 		
 		return hubDao.selectAvgScore(hubNo);
 	}
+
+	@Override
+	public List<String> selectMainRegion() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> selectSubRegion(String mainRegion) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

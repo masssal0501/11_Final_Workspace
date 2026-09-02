@@ -21,5 +21,9 @@ public interface HubService {
 	int deleteHub(int hubNo);
 
 	Double selectAvgScore(int hubNo);
+
+	List<String> selectMainRegion();
+
+	List<String> selectSubRegion(String mainRegion);
 	
 }

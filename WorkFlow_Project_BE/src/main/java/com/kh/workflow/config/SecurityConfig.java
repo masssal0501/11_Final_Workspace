@@ -117,6 +117,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/place/**"
                         ).permitAll()
+                        
+                        .requestMatchers(
+                        		HttpMethod.POST, 
+                        		"/hubs/**"
+                		).permitAll()
 
 	                     // 관리자 - 계정 상태 변경
 	                    .requestMatchers(

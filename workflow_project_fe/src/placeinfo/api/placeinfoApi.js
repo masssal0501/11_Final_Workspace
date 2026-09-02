@@ -1,97 +1,114 @@
-import axios from "axios";
+import axiosInstance from "../../common/api/axiosInstance";
 
-const BASE_URL = 'http://localhost:8001/workflow/hubs';
+const BASE_URL = "/hubs";
 
-const selectHubListApi = cpage => {
 
-    const response = axios({
-        url : `${ BASE_URL }`,
-        method : "get",
-        params : {
-            cpage : cpage
+// =========================================================
+// 거점 목록 조회
+// =========================================================
+const selectHubListApi = (cpage) => {
+
+    return axiosInstance({
+        url: BASE_URL,
+        method: "get",
+        params: {
+            cpage: cpage
         }
     });
-
-    return response;
 };
 
+
+// =========================================================
+// 거점 검색
+// =========================================================
 const searchHubListApi = (cpage, inputData) => {
 
-    const response = axios({
-        url : `${ BASE_URL }/search`,
-        method : "get",
-        params : {
-            cpage : cpage,
-            mainRegion : inputData.mainRegion,
-            subRegion : inputData.subRegion,
-            hubType : inputData.hubType,
-            keyword : inputData.keyword
+    return axiosInstance({
+        url: `${BASE_URL}/search`,
+        method: "get",
+        params: {
+            cpage: cpage,
+            mainRegion: inputData.mainRegion,
+            subRegion: inputData.subRegion,
+            hubType: inputData.hubType,
+            keyword: inputData.keyword
         }
     });
+};
 
-    return response;
-}
 
-const insertHubApi = formData => {
+// =========================================================
+// 거점 등록
+// =========================================================
+const insertHubApi = (formData) => {
 
-    const response = axios({
-       url : `${ BASE_URL }`,
-       method : "post",
-       data : formData,
-       headers : {
-            "Content-Type" : "multipart/form-data"
-       } 
+    return axiosInstance({
+        url: BASE_URL,
+        method: "post",
+        data: formData
     });
+};
 
-    return response;
-}
 
-const selectHubApi = hubNo => {
+// =========================================================
+// 거점 상세 조회
+// =========================================================
+const selectHubApi = (hubNo) => {
 
-    const response = axios({
-        url : `${ BASE_URL }/${ hubNo }`,
-        method : "get"
+    return axiosInstance({
+        url: `${BASE_URL}/${hubNo}`,
+        method: "get"
     });
+};
 
-    return response;
-}
 
-const deleteHubApi = hubNo => {
+// =========================================================
+// 거점 삭제
+// =========================================================
+const deleteHubApi = (hubNo) => {
 
-    const response = axios({
-        url : `${ BASE_URL }/${ hubNo }`,
-        method : "delete"
+    return axiosInstance({
+        url: `${BASE_URL}/${hubNo}`,
+        method: "delete"
     });
+};
 
-    return response;
-}
 
+// =========================================================
+// 거점 수정
+// =========================================================
 const updateHubApi = (hubNo, formData) => {
 
-    const response = axios({
-        url : `${ BASE_URL }/${ hubNo }`,
-        method : "put",
-        data : formData,
-        headers : {
-            "Content-Type" : "multipart/form-data"
+    return axiosInstance({
+        url: `${BASE_URL}/${hubNo}`,
+        method: "put",
+        data: formData
+    });
+};
+
+
+// =========================================================
+// 메시지 전송
+// =========================================================
+const sendMessageApi = (message) => {
+
+    return axiosInstance({
+        url: `${BASE_URL}/send`,
+        method: "post",
+        data: {
+            message: message
         }
     });
+};
 
-    return response;
-}
 
-const sendMessageApi = message => {
-    
-    const response = axios({
-        url : `${ BASE_URL }/send`,
-        method : "post",
-        data : {
-            message : message
-        }
-    });
-
-    return response;
-}
-
-export { selectHubListApi, searchHubListApi, insertHubApi, sendMessageApi, selectHubApi, deleteHubApi, updateHubApi };
-export { BASE_URL }
+export {
+    selectHubListApi,
+    searchHubListApi,
+    insertHubApi,
+    sendMessageApi,
+    selectHubApi,
+    deleteHubApi,
+    updateHubApi,
+    BASE_URL
+};
