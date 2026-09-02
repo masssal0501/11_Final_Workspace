@@ -1,5 +1,5 @@
 .rejectPage{
-        width: 700px;
+    width: 1000px;
     margin: 50px auto;
     padding: 35px 45px;
 
@@ -12,25 +12,28 @@
 }
 
 .planBox{
-    width: 600px;
-    height: 200px;
+    width: 900px;
+    height: 250px;
     padding: 15px 20px;
     background-color: #ffffff;
 
     border-radius: 13px;
 
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.375);
+
+    font-size: 19px;
 }
 
 .rejectBox{
-    width: 600px;
-    height: 200px;
+    width: 900px;
+    height: 250px;
     padding: 15px 20px;
     background-color: #ffffff;
 
     border-radius: 13px;
 
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.375);
+    font-size: 29px;
 }
 
 .button {
@@ -87,4 +90,41 @@
     color: #333;
 
     transform: translateY(-2px);
+}
+.info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.rejectPage h6 {
+    flex-shrink: 0;
+    width: 100px;
+    margin: 0 15px 0 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #323232;
+
+}
+
+.rejectPage h7 {
+    display: inline-block;
+
+    font-size: 14px;
+    color: #333;
+}
+
+/* 신청자 / 워케이션 정보 영역 */
+.rejectPage > div[align="right"] {
+    margin-bottom: 10px;
+}
+
+/* 워케이션 장소 */
+.rejectPage > div[align="right"] h7 {
+    margin-right: 5px;
+}
+
+/* 장소 주소가 길어질 경우 */
+.rejectPage > div[align="right"]:has(h6:first-child) {
+    line-height: 1.5;
 }
