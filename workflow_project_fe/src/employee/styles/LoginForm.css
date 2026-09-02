@@ -262,3 +262,24 @@ a {
         font-size: 25px;
     }
 }
+
+.findResult {
+    margin: 20px 0;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.findResult p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.findResult strong {
+    display: block;
+    margin: 10px 0;
+    font-size: 20px;
+    letter-spacing: 1px;
+}

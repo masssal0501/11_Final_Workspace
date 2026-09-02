@@ -15,6 +15,8 @@ import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeRoleUpdateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.FindIdRequest;
+import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.vo.Employee;
@@ -487,6 +489,97 @@ public class EmployeeServiceImpl implements EmployeeService{
                 .stream()
                 .map(this::convertToResponse)
                 .toList();
+    }
+
+    // =========================================================
+    // USR-009
+    // 계정 ID 찾기
+    // =========================================================
+    @Override
+    public FindIdResponse findEmployeeId(
+            FindIdRequest request
+    ) {
+
+        /*
+         * 이름 + 이메일로 직원 조회
+         */
+        Employee employee =
+                employeeDao
+                        .findByEmpNameAndEmail(
+                                request.getEmpName(),
+                                request.getEmail()
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "입력하신 정보와 일치하는 계정을 찾을 수 없습니다."
+                                )
+                        );
+
+
+        /*
+         * 아이디 마스킹
+         */
+        String maskedEmpId =
+                maskEmpId(employee.getEmpId());
+
+
+        /*
+         * 응답
+         */
+        return new FindIdResponse(
+                maskedEmpId
+        );
+    }
+    
+    // 아이디 마스킹 처리
+    private String maskEmpId(String empId) {
+
+        if (empId == null || empId.isEmpty()) {
+            return "";
+        }
+
+        int length = empId.length();
+
+
+        /*
+         * 1~2자리
+         */
+        if (length <= 2) {
+
+            return empId.charAt(0) + "*";
+        }
+
+
+        /*
+         * 3자리
+         */
+        if (length == 3) {
+
+            return empId.charAt(0)
+                    + "*"
+                    + empId.charAt(2);
+        }
+
+
+        /*
+         * 4자리 이상
+         *
+         * 앞 2자리 + * + 뒤 2자리
+         */
+        int visibleFront = 2;
+        int visibleBack = 2;
+
+        int maskLength =
+                length - visibleFront - visibleBack;
+
+        return empId.substring(
+                    0,
+                    visibleFront
+                )
+                + "*".repeat(maskLength)
+                + empId.substring(
+                    length - visibleBack
+                );
     }
 
 

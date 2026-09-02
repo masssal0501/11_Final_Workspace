@@ -22,6 +22,8 @@ import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
 import com.kh.workflow.employee.model.dto.EmployeeRoleUpdateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.FindIdRequest;
+import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.service.EmployeeService;
@@ -152,6 +154,18 @@ public class EmployeeController {
         return ResponseEntity.ok(
                 employeeService.getEmployeeList()
         );
+    }
+    
+    // USR-009
+    @PostMapping("/findId")
+    public ResponseEntity<FindIdResponse> findEmployeeId(
+            @RequestBody FindIdRequest request
+    ) {
+
+        FindIdResponse response =
+                employeeService.findEmployeeId(request);
+
+        return ResponseEntity.ok(response);
     }
 
 
