@@ -136,7 +136,8 @@ public class SecurityConfig {
 
 	                    // swagger
 	                    .requestMatchers(
-                        		"/swagger-ui/**"
+                        		"/swagger-ui/**",
+	                    		"/v3/api-docs/**"
                 		).permitAll()
 	                    
                         // 나머지는 JWT 필요
