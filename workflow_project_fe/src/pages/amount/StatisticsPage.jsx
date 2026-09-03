@@ -21,6 +21,78 @@ import {
 import "../../Amount/styles/Statistics.css";
 
 
+// =========================================================
+// 비용 항목 코드
+// =========================================================
+const itemTypeMap = {
+    S: "숙박",
+    T: "교통",
+    E: "체험",
+    F: "식비",
+    V: "차량",
+    O: "기타"
+};
+
+
+// =========================================================
+// 차트 색상
+// =========================================================
+const COLORS = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff8042",
+    "#0088FE",
+    "#00C49F"
+];
+
+
+// =========================================================
+// 숫자 변환
+// =========================================================
+const toNumber = (value) => {
+    if (value === null || value === undefined || value === "") {
+        return 0;
+    }
+
+    const number = Number(value);
+
+    return Number.isNaN(number) ? 0 : number;
+};
+
+
+// =========================================================
+// 금액 포맷
+// =========================================================
+const formatAmount = (value) => {
+    return `${toNumber(value).toLocaleString("ko-KR")}원`;
+};
+
+
+// =========================================================
+// 날짜 포맷
+// =========================================================
+const formatMonth = (value) => {
+    if (!value) {
+        return "";
+    }
+
+    const text = String(value);
+
+    // YYYY-MM 형태
+    if (/^\d{4}-\d{2}$/.test(text)) {
+        return text;
+    }
+
+    // YYYY-MM-DD 형태
+    if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+        return text.substring(0, 7);
+    }
+
+    return text;
+};
+
+
 export default function Statistics() {
 
     // =========================================================
@@ -29,8 +101,13 @@ export default function Statistics() {
 
     const [summary, setSummary] = useState({
         totalCount: 0,
+
+        // 전체 신청금액
         totalRequestedAmount: 0,
+
+        // 전체 회사 지원금
         totalApprovedAmount: 0,
+
         reviewCount: 0,
         approvedCount: 0,
         holdCount: 0,
@@ -50,56 +127,6 @@ export default function Statistics() {
 
 
     // =========================================================
-    // 비용 항목명
-    // DB 기준
-    //
-    // S 숙박
-    // T 교통
-    // E 체험
-    // F 식비
-    // V 차량
-    // O 기타
-    // =========================================================
-
-    const itemTypeMap = {
-        S: "숙박",
-        T: "교통",
-        E: "체험",
-        F: "식비",
-        V: "차량",
-        O: "기타"
-    };
-
-
-    // =========================================================
-    // 금액 포맷
-    // =========================================================
-
-    const formatAmount = (value) => {
-
-        const number = Number(value);
-
-        if (isNaN(number)) {
-            return "0원";
-        }
-
-        return number.toLocaleString("ko-KR") + "원";
-    };
-
-
-    // =========================================================
-    // 숫자 변환
-    // =========================================================
-
-    const toNumber = (value) => {
-
-        const number = Number(value);
-
-        return isNaN(number) ? 0 : number;
-    };
-
-
-    // =========================================================
     // 통계 조회
     // =========================================================
 
@@ -110,320 +137,315 @@ export default function Statistics() {
             setLoading(true);
             setError("");
 
+            console.log("통계 조회 시작");
+
+
             const response = await amountApi.getStatistics();
 
-            console.log("통계 응답:", response);
+            console.log("통계 API 응답:", response);
 
-            /*
-             * 백엔드 응답 구조
-             *
-             * {
-             *   summary: {...},
-             *   deptStatistics: [...],
-             *   monthlyStatistics: [...],
-             *   itemStatistics: [...]
-             * }
-             */
 
             const data = response?.data ?? response;
 
-            console.log("통계 data:", data);
+            console.log("통계 데이터:", data);
 
 
             // =====================================================
-            // Summary
+            // 1. 요약 통계
             // =====================================================
 
             const summaryData =
                 data?.summary ??
                 data?.statisticsSummary ??
+                data?.SUMMARY ??
+                data?.STATISTICS_SUMMARY ??
                 {};
 
-            /*
-             * 현재 백엔드 Mapper의 getStatisticsSummary()
-             *
-             * totalApproved
-             * avgApproved
-             *
-             * 를 사용
-             *
-             * 전체 건수 / 신청금액 / 상태별 건수는
-             * 별도 SQL이 없으면 계산할 수 없으므로
-             * 기본값 0으로 처리
-             */
+
+            console.log("요약 통계:", summaryData);
+
 
             setSummary({
 
-                totalCount:
-                    toNumber(
-                        summaryData.totalCount ??
-                        summaryData.TOTALCOUNT
-                    ),
+                // 전체 신청 건수
+                totalCount: toNumber(
+                    summaryData.totalCount ??
+                    summaryData.TOTALCOUNT ??
+                    summaryData.total_count ??
+                    summaryData.count ??
+                    summaryData.COUNT
+                ),
 
-                totalRequestedAmount:
-                    toNumber(
-                        summaryData.totalRequestedAmount ??
-                        summaryData.TOTALREQUESTEDAMOUNT
-                    ),
 
-                totalApprovedAmount:
-                    toNumber(
-                        summaryData.totalApprovedAmount ??
-                        summaryData.totalApproved ??
-                        summaryData.TOTALAPPROVED
-                    ),
+                // =================================================
+                // 전체 신청금액
+                //
+                // 새로운 구조:
+                // amount_item.amount
+                // =================================================
+                totalRequestedAmount: toNumber(
+                    summaryData.totalRequestedAmount ??
+                    summaryData.TOTALREQUESTEDAMOUNT ??
+                    summaryData.total_requested_amount ??
+                    summaryData.totalRequested ??
+                    summaryData.TOTALREQUESTED
+                ),
 
-                reviewCount:
-                    toNumber(
-                        summaryData.reviewCount ??
-                        summaryData.REVIEWCOUNT
-                    ),
 
-                approvedCount:
-                    toNumber(
-                        summaryData.approvedCount ??
-                        summaryData.APPROVEDCOUNT
-                    ),
+                // =================================================
+                // 전체 회사 지원금
+                //
+                // 새로운 구조:
+                // amount_item.item_approved_amount
+                // =================================================
+                totalApprovedAmount: toNumber(
+                    summaryData.totalApprovedAmount ??
+                    summaryData.TOTALAPPROVEDAMOUNT ??
+                    summaryData.total_approved_amount ??
+                    summaryData.totalApproved ??
+                    summaryData.TOTALAPPROVED
+                ),
 
-                holdCount:
-                    toNumber(
-                        summaryData.holdCount ??
-                        summaryData.HOLDCOUNT
-                    ),
 
-                rejectedCount:
-                    toNumber(
-                        summaryData.rejectedCount ??
-                        summaryData.REJECTEDCOUNT
-                    ),
+                // 검토
+                reviewCount: toNumber(
+                    summaryData.reviewCount ??
+                    summaryData.REVIEWCOUNT ??
+                    summaryData.review_count ??
+                    summaryData.review ??
+                    summaryData.REVIEW
+                ),
 
-                cancelledCount:
-                    toNumber(
-                        summaryData.cancelledCount ??
-                        summaryData.CANCELLEDCOUNT
-                    )
 
+                // 승인
+                approvedCount: toNumber(
+                    summaryData.approvedCount ??
+                    summaryData.APPROVEDCOUNT ??
+                    summaryData.approved_count ??
+                    summaryData.approved ??
+                    summaryData.APPROVED
+                ),
+
+
+                // 보류
+                holdCount: toNumber(
+                    summaryData.holdCount ??
+                    summaryData.HOLDCOUNT ??
+                    summaryData.hold_count ??
+                    summaryData.hold ??
+                    summaryData.HOLD
+                ),
+
+
+                // 반려
+                rejectedCount: toNumber(
+                    summaryData.rejectedCount ??
+                    summaryData.REJECTEDCOUNT ??
+                    summaryData.rejected_count ??
+                    summaryData.rejected ??
+                    summaryData.REJECTED
+                ),
+
+
+                // 취소
+                cancelledCount: toNumber(
+                    summaryData.cancelledCount ??
+                    summaryData.CANCELLEDCOUNT ??
+                    summaryData.cancelled_count ??
+                    summaryData.cancelled ??
+                    summaryData.CANCELLED
+                )
             });
 
 
             // =====================================================
-            // 부서별 통계
-            //
-            // 백엔드:
-            //
-            // dep_id
-            // dep_title
-            // amount
+            // 2. 부서별 통계
             // =====================================================
 
             const deptData =
                 data?.deptStatistics ??
                 data?.departmentStatistics ??
+                data?.departments ??
+                data?.DEPTSTATISTICS ??
+                data?.DEPARTMENTSTATISTICS ??
                 [];
 
+
+            console.log("부서별 통계:", deptData);
+
+
             setDeptStatistics(
-
                 Array.isArray(deptData)
+                    ? deptData.map((dept) => ({
 
-                    ? deptData.map((item) => ({
+                        departmentName:
+                            dept.departmentName ??
+                            dept.DEPARTMENTNAME ??
+                            dept.department_name ??
+                            dept.depTitle ??
+                            dept.DEP_TITLE ??
+                            "",
 
-                        depId:
-                            item.depId ??
-                            item.DEP_ID ??
-                            item.dep_id,
-
-                        depTitle:
-                            item.depTitle ??
-                            item.DEP_TITLE ??
-                            item.dep_title ??
-                            "미지정",
-
-                        /*
-                         * 현재 SQL에는 amountCount가 없음
-                         */
-                        amountCount:
-                            toNumber(
-                                item.amountCount ??
-                                item.AMOUNTCOUNT ??
-                                item.amount_count
-                            ),
-
-                        /*
-                         * 현재 SQL에는 requestedAmount가 없음
-                         */
-                        requestedAmount:
-                            toNumber(
-                                item.requestedAmount ??
-                                item.REQUESTEDAMOUNT ??
-                                item.requested_amount
-                            ),
-
-                        /*
-                         * 현재 SQL의 amount
-                         * = 승인된 금액
-                         */
-                        approvedAmount:
-                            toNumber(
-                                item.approvedAmount ??
-                                item.APPROVEDAMOUNT ??
-                                item.approved_amount ??
-                                item.amount ??
-                                item.AMOUNT
-                            )
+                        approvedAmount: toNumber(
+                            dept.approvedAmount ??
+                            dept.APPROVEDAMOUNT ??
+                            dept.approved_amount ??
+                            dept.totalAmount ??
+                            dept.TOTALAMOUNT ??
+                            dept.amount ??
+                            dept.AMOUNT
+                        )
 
                     }))
-
                     : []
-
             );
 
 
             // =====================================================
-            // 월별 통계
-            //
-            // 백엔드:
-            //
-            // month
-            // amount
-            //
-            // amount = 승인된 금액
+            // 3. 월별 통계
             // =====================================================
 
             const monthlyData =
                 data?.monthlyStatistics ??
                 data?.monthly ??
+                data?.monthlyData ??
+                data?.MONTHLYSTATISTICS ??
+                data?.MONTHLY ??
+                data?.MONTHLYDATA ??
                 [];
 
+
+            console.log("월별 통계:", monthlyData);
+
+
             setMonthlyStatistics(
-
                 Array.isArray(monthlyData)
-
                     ? monthlyData.map((item) => ({
 
-                        month:
+                        month: formatMonth(
                             item.month ??
                             item.MONTH ??
-                            "",
+                            item.monthValue ??
+                            item.MONTHVALUE ??
+                            item.approvedMonth ??
+                            item.APPROVEDMONTH
+                        ),
 
-                        /*
-                         * 현재 SQL에는 amountCount 없음
-                         */
-                        amountCount:
-                            toNumber(
-                                item.amountCount ??
-                                item.AMOUNTCOUNT
-                            ),
-
-                        /*
-                         * 현재 SQL에는 requestedAmount 없음
-                         */
-                        requestedAmount:
-                            toNumber(
-                                item.requestedAmount ??
-                                item.REQUESTEDAMOUNT
-                            ),
-
-                        /*
-                         * 현재 SQL의 amount
-                         * = 승인된 금액
-                         */
-                        approvedAmount:
-                            toNumber(
-                                item.approvedAmount ??
-                                item.APPROVEDAMOUNT ??
-                                item.amount ??
-                                item.AMOUNT
-                            )
+                        approvedAmount: toNumber(
+                            item.approvedAmount ??
+                            item.APPROVEDAMOUNT ??
+                            item.approved_amount ??
+                            item.totalAmount ??
+                            item.TOTALAMOUNT ??
+                            item.amount ??
+                            item.AMOUNT
+                        )
 
                     }))
-
                     : []
-
             );
 
 
             // =====================================================
-            // 비용 항목별 통계
+            // 4. 항목별 통계
             //
-            // 백엔드:
+            // 새로운 구조
             //
-            // item_type
-            // amount
+            // amount_item.amount
+            //      ↓
+            // 신청금액
             //
-            // amount = 승인된 비용 금액
+            // amount_item.item_approved_amount
+            //      ↓
+            // 회사 지원금
             // =====================================================
 
             const itemData =
                 data?.itemStatistics ??
                 data?.items ??
+                data?.itemData ??
+                data?.ITEMSTATISTICS ??
+                data?.ITEMS ??
+                data?.ITEMDATA ??
                 [];
 
-            console.log("항목 통계 원본:", itemData);
+
+            console.log("항목별 통계 원본:", itemData);
+
 
             setItemStatistics(
-
                 Array.isArray(itemData)
-
                     ? itemData.map((item) => ({
 
+                        // -----------------------------------------
+                        // 항목 코드
+                        // -----------------------------------------
                         itemType:
+                            item.amountamountitemType ??
+                            item.AMOUNTAMOUNTITEMTYPE ??
+                            item.amountamountitem_type ??
+                            item.AMOUNTAMOUNTITEM_TYPE ??
                             item.itemType ??
                             item.ITEMTYPE ??
                             item.item_type ??
-                            item.ITEM_TYPE,
+                            item.ITEM_TYPE ??
+                            "",
 
-                        /*
-                         * 현재 SQL에는 itemCount 없음
-                         */
-                        itemCount:
-                            toNumber(
-                                item.itemCount ??
-                                item.ITEMCOUNT ??
-                                item.item_count
-                            ),
 
-                        /*
-                         * 현재 SQL의 amount
-                         * = 승인된 비용
-                         */
-                        totalAmount:
-                            toNumber(
-                                item.totalAmount ??
-                                item.TOTALAMOUNT ??
-                                item.total_amount ??
-                                item.amount ??
-                                item.AMOUNT
-                            ),
+                        // -----------------------------------------
+                        // 항목 개수
+                        // -----------------------------------------
+                        itemCount: toNumber(
+                            item.itemCount ??
+                            item.ITEMCOUNT ??
+                            item.item_count ??
+                            item.count ??
+                            item.COUNT
+                        ),
 
-                        /*
-                         * Pie / 지급액 표시용
-                         */
-                        approvedAmount:
-                            toNumber(
-                                item.approvedAmount ??
-                                item.APPROVEDAMOUNT ??
-                                item.approved_amount ??
-                                item.amount ??
-                                item.AMOUNT
-                            )
+
+                        // -----------------------------------------
+                        // 신청금액
+                        //
+                        // DB:
+                        // amount_item.amount
+                        // -----------------------------------------
+                        requestedAmount: toNumber(
+                            item.requestedAmount ??
+                            item.REQUESTEDAMOUNT ??
+                            item.requested_amount ??
+                            item.amount ??
+                            item.AMOUNT
+                        ),
+
+
+                        // -----------------------------------------
+                        // 회사 지원금
+                        //
+                        // DB:
+                        // amount_item.item_approved_amount
+                        // -----------------------------------------
+                        approvedAmount: toNumber(
+                            item.approvedAmount ??
+                            item.APPROVEDAMOUNT ??
+                            item.approved_amount ??
+                            item.itemApprovedAmount ??
+                            item.ITEMAPPROVEDAMOUNT ??
+                            item.item_approved_amount ??
+                            item.ITEM_APPROVED_AMOUNT
+                        )
 
                     }))
-
                     : []
-
             );
 
         } catch (err) {
 
             console.error("통계 조회 실패:", err);
 
-            console.error(
-                "서버 응답:",
-                err?.response?.data
-            );
-
             setError(
-                err?.response?.data?.message ||
+                err?.response?.data?.message ??
+                err?.message ??
                 "통계 데이터를 불러오지 못했습니다."
             );
 
@@ -447,84 +469,12 @@ export default function Statistics() {
 
 
     // =========================================================
-    // 비용 항목 Pie 데이터
-    //
-    // 승인된 비용 금액 기준
-    // =========================================================
-
-    const pieData = itemStatistics
-
-        .filter(
-            (item) =>
-                item.approvedAmount > 0
-        )
-
-        .map((item) => ({
-
-            name:
-                itemTypeMap[item.itemType] ||
-                item.itemType ||
-                "기타",
-
-            value:
-                item.approvedAmount
-
-        }));
-
-
-    // =========================================================
-    // Pie 전체 금액
-    // =========================================================
-
-    const pieTotal = pieData.reduce(
-
-        (sum, item) =>
-            sum + item.value,
-
-        0
-
-    );
-
-
-    // =========================================================
-    // Pie 퍼센트
-    // =========================================================
-
-    const renderPieLabel = ({
-        name,
-        percent
-    }) => {
-
-        if (!percent) {
-            return "";
-        }
-
-        return `${name} ${(percent * 100).toFixed(1)}%`;
-    };
-
-
-    // =========================================================
-    // Pie 색상
-    // =========================================================
-
-    const pieColors = [
-        "#8884d8",
-        "#82ca9d",
-        "#ffc658",
-        "#ff8042",
-        "#0088FE",
-        "#00C49F"
-    ];
-
-
-    // =========================================================
     // 로딩
     // =========================================================
 
     if (loading) {
 
         return (
-
             <div className="statistics-container">
 
                 <div className="statistics-loading">
@@ -532,7 +482,6 @@ export default function Statistics() {
                 </div>
 
             </div>
-
         );
     }
 
@@ -544,53 +493,83 @@ export default function Statistics() {
     if (error) {
 
         return (
-
             <div className="statistics-container">
 
                 <div className="statistics-error">
 
-                    <h3>
-                        통계 조회 실패
-                    </h3>
-
-                    <p>
-                        {error}
-                    </p>
+                    <p>{error}</p>
 
                     <button
+                        type="button"
                         onClick={fetchStatistics}
                     >
-                        다시 조회
+                        다시 시도
                     </button>
 
                 </div>
 
             </div>
-
         );
     }
 
 
     // =========================================================
-    // 화면
+    // PieChart 데이터
+    //
+    // 회사 지원금 기준
+    // =========================================================
+
+    const pieData = itemStatistics
+        .filter((item) => item.approvedAmount > 0)
+        .map((item) => ({
+
+            name:
+                itemTypeMap[item.itemType] ??
+                item.itemType ??
+                "기타",
+
+            value: item.approvedAmount
+
+        }));
+
+
+    // =========================================================
+    // 전체 Pie 합계
+    // =========================================================
+
+    const totalPieAmount = pieData.reduce(
+        (sum, item) => sum + item.value,
+        0
+    );
+
+
+    // =========================================================
+    // 렌더링
     // =========================================================
 
     return (
 
         <div className="statistics-container">
 
-
-            {/* =================================================
-                제목
-                ================================================= */}
+            {/* =====================================================
+                헤더
+            ===================================================== */}
 
             <div className="statistics-header">
 
-                <h2>
-                    비용 통계
-                </h2>
+                <div>
+
+                    <h2>비용 통계</h2>
+
+                    <p>
+                        전체 직원의 비용 신청 및 회사 지원금 통계입니다.
+                    </p>
+
+                </div>
+
 
                 <button
+                    type="button"
                     className="refresh-button"
                     onClick={fetchStatistics}
                 >
@@ -600,12 +579,11 @@ export default function Statistics() {
             </div>
 
 
-            {/* =================================================
+            {/* =====================================================
                 요약 카드
-                ================================================= */}
+            ===================================================== */}
 
-            <div className="summary-grid">
-
+            <div className="statistics-summary">
 
                 {/* 전체 신청 */}
 
@@ -616,7 +594,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {summary.totalCount.toLocaleString()}건
+                        {summary.totalCount.toLocaleString("ko-KR")}건
                     </div>
 
                 </div>
@@ -631,15 +609,13 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {formatAmount(
-                            summary.totalRequestedAmount
-                        )}
+                        {formatAmount(summary.totalRequestedAmount)}
                     </div>
 
                 </div>
 
 
-                {/* 총 지급액 */}
+                {/* 총 회사 지원금 */}
 
                 <div className="summary-card">
 
@@ -648,13 +624,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {formatAmount(
-                            summary.totalApprovedAmount
-                        )}
-                    </div>
-
-                    <div className="summary-description">
-                        승인된 비용만 포함
+                        {formatAmount(summary.totalApprovedAmount)}
                     </div>
 
                 </div>
@@ -669,7 +639,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {summary.approvedCount.toLocaleString()}건
+                        {summary.approvedCount.toLocaleString("ko-KR")}건
                     </div>
 
                 </div>
@@ -684,7 +654,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {summary.reviewCount.toLocaleString()}건
+                        {summary.reviewCount.toLocaleString("ko-KR")}건
                     </div>
 
                 </div>
@@ -699,7 +669,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {summary.holdCount.toLocaleString()}건
+                        {summary.holdCount.toLocaleString("ko-KR")}건
                     </div>
 
                 </div>
@@ -714,7 +684,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {summary.rejectedCount.toLocaleString()}건
+                        {summary.rejectedCount.toLocaleString("ko-KR")}건
                     </div>
 
                 </div>
@@ -729,7 +699,7 @@ export default function Statistics() {
                     </div>
 
                     <div className="summary-value">
-                        {summary.cancelledCount.toLocaleString()}건
+                        {summary.cancelledCount.toLocaleString("ko-KR")}건
                     </div>
 
                 </div>
@@ -737,95 +707,83 @@ export default function Statistics() {
             </div>
 
 
-            {/* =================================================
+            {/* =====================================================
                 차트 영역
-                ================================================= */}
+            ===================================================== */}
 
             <div className="statistics-chart-grid">
 
 
                 {/* =================================================
                     비용 항목별 비율
-                    ================================================= */}
+                ================================================= */}
 
-                <div className="statistics-card">
+                <div className="statistics-chart-card">
 
-                    <div className="statistics-card-header">
+                    <h3>
+                        비용 항목별 비율
+                    </h3>
 
-                        <h3>
-                            비용 항목별 비율
-                        </h3>
-
-                    </div>
+                    <p className="chart-description">
+                        회사 지원금을 기준으로 표시합니다.
+                    </p>
 
 
-                    {pieData.length === 0 ? (
+                    {pieData.length > 0 ? (
 
-                        <div className="empty-chart">
-                            데이터가 없습니다.
-                        </div>
+                        <ResponsiveContainer
+                            width="100%"
+                            height={350}
+                        >
+
+                            <PieChart>
+
+                                <Pie
+                                    data={pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={110}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) =>
+                                        `${name} ${(percent * 100).toFixed(1)}%`
+                                    }
+                                    labelLine={true}
+                                >
+
+                                    {pieData.map((entry, index) => (
+
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={
+                                                COLORS[
+                                                    index % COLORS.length
+                                                ]
+                                            }
+                                        />
+
+                                    ))}
+
+                                </Pie>
+
+
+                                <Tooltip
+                                    formatter={(value) =>
+                                        formatAmount(value)
+                                    }
+                                />
+
+
+                                <Legend />
+
+                            </PieChart>
+
+                        </ResponsiveContainer>
 
                     ) : (
 
-                        <div
-                            className="pie-chart-wrapper"
-                            style={{
-                                width: "100%",
-                                height: 380
-                            }}
-                        >
-
-                            <ResponsiveContainer
-                                width="100%"
-                                height="100%"
-                            >
-
-                                <PieChart>
-
-                                    <Pie
-                                        data={pieData}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="45%"
-                                        outerRadius={115}
-                                        label={renderPieLabel}
-                                        labelLine={true}
-                                    >
-
-                                        {pieData.map(
-                                            (entry, index) => (
-
-                                                <Cell
-                                                    key={`cell-${index}`}
-                                                    fill={
-                                                        pieColors[
-                                                            index %
-                                                            pieColors.length
-                                                        ]
-                                                    }
-                                                />
-
-                                            )
-                                        )}
-
-                                    </Pie>
-
-
-                                    <Tooltip
-                                        formatter={(value) => [
-                                            formatAmount(value),
-                                            "승인 금액"
-                                        ]}
-                                    />
-
-
-                                    <Legend />
-
-                                </PieChart>
-
-                            </ResponsiveContainer>
-
+                        <div className="statistics-empty">
+                            항목별 지원금 데이터가 없습니다.
                         </div>
 
                     )}
@@ -835,85 +793,75 @@ export default function Statistics() {
 
                 {/* =================================================
                     월별 비용 현황
-                    ================================================= */}
+                ================================================= */}
 
-                <div className="statistics-card">
+                <div className="statistics-chart-card">
 
-                    <div className="statistics-card-header">
+                    <h3>
+                        월별 비용 현황
+                    </h3>
 
-                        <h3>
-                            월별 비용 현황
-                        </h3>
-
-                    </div>
+                    <p className="chart-description">
+                        월별 회사 지원금 현황입니다.
+                    </p>
 
 
-                    {monthlyStatistics.length === 0 ? (
+                    {monthlyStatistics.length > 0 ? (
 
-                        <div className="empty-chart">
-                            데이터가 없습니다.
-                        </div>
+                        <ResponsiveContainer
+                            width="100%"
+                            height={350}
+                        >
+
+                            <BarChart
+                                data={monthlyStatistics}
+                                margin={{
+                                    top: 20,
+                                    right: 20,
+                                    left: 20,
+                                    bottom: 20
+                                }}
+                            >
+
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                />
+
+
+                                <XAxis
+                                    dataKey="month"
+                                />
+
+
+                                <YAxis
+                                    tickFormatter={(value) =>
+                                        `${(
+                                            value / 10000
+                                        ).toLocaleString("ko-KR")}만`
+                                    }
+                                />
+
+
+                                <Tooltip
+                                    formatter={(value) =>
+                                        formatAmount(value)
+                                    }
+                                />
+
+
+                                <Bar
+                                    dataKey="approvedAmount"
+                                    name="지급액"
+                                />
+
+                            </BarChart>
+
+                        </ResponsiveContainer>
 
                     ) : (
 
-                        <div
-                            style={{
-                                width: "100%",
-                                height: 380
-                            }}
-                        >
-
-                            <ResponsiveContainer
-                                width="100%"
-                                height="100%"
-                            >
-
-                                <BarChart
-                                    data={monthlyStatistics}
-                                    margin={{
-                                        top: 20,
-                                        right: 20,
-                                        left: 20,
-                                        bottom: 20
-                                    }}
-                                >
-
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                    />
-
-
-                                    <XAxis
-                                        dataKey="month"
-                                    />
-
-
-                                    <YAxis
-                                        tickFormatter={(value) =>
-                                            Number(value).toLocaleString()
-                                        }
-                                    />
-
-
-                                    <Tooltip
-                                        formatter={(value) =>
-                                            formatAmount(value)
-                                        }
-                                    />
-
-
-                                    <Legend />
-
-
-                                    <Bar
-                                        dataKey="approvedAmount"
-                                        name="지급액"
-                                    />
-
-                                </BarChart>
-
-                            </ResponsiveContainer>
-
+                        <div className="statistics-empty">
+                            월별 데이터가 없습니다.
                         </div>
 
                     )}
@@ -923,81 +871,68 @@ export default function Statistics() {
             </div>
 
 
-            {/* =================================================
+            {/* =====================================================
                 부서별 통계
-                ================================================= */}
+            ===================================================== */}
 
-            <div className="statistics-card department-statistics">
+            <div className="statistics-table-card">
 
-                <div className="statistics-card-header">
-
-                    <h3>
-                        부서별 비용 현황
-                    </h3>
-
-                </div>
+                <h3>
+                    부서별 비용 현황
+                </h3>
 
 
-                {deptStatistics.length === 0 ? (
+                {deptStatistics.length > 0 ? (
 
-                    <div className="empty-data">
-                        데이터가 없습니다.
-                    </div>
+                    <table className="statistics-table">
 
-                ) : (
+                        <thead>
 
-                    <div className="statistics-table-wrapper">
+                            <tr>
 
-                        <table className="statistics-table">
+                                <th>
+                                    부서
+                                </th>
 
-                            <thead>
+                                <th>
+                                    지급액
+                                </th>
 
-                                <tr>
+                            </tr>
 
-                                    <th>
-                                        부서
-                                    </th>
+                        </thead>
 
-                                    <th>
-                                        지급액
-                                    </th>
+
+                        <tbody>
+
+                            {deptStatistics.map((dept, index) => (
+
+                                <tr
+                                    key={`${dept.departmentName}-${index}`}
+                                >
+
+                                    <td>
+                                        {dept.departmentName || "-"}
+                                    </td>
+
+                                    <td>
+                                        {formatAmount(
+                                            dept.approvedAmount
+                                        )}
+                                    </td>
 
                                 </tr>
 
-                            </thead>
+                            ))}
 
+                        </tbody>
 
-                            <tbody>
+                    </table>
 
-                                {deptStatistics.map(
-                                    (item, index) => (
+                ) : (
 
-                                        <tr
-                                            key={
-                                                item.depId ??
-                                                index
-                                            }
-                                        >
-
-                                            <td>
-                                                {item.depTitle}
-                                            </td>
-
-                                            <td>
-                                                {formatAmount(
-                                                    item.approvedAmount
-                                                )}
-                                            </td>
-
-                                        </tr>
-
-                                    )
-                                )}
-
-                            </tbody>
-
-                        </table>
-
+                    <div className="statistics-empty">
+                        부서별 데이터가 없습니다.
                     </div>
 
                 )}
@@ -1005,96 +940,100 @@ export default function Statistics() {
             </div>
 
 
-            {/* =================================================
-                비용 항목 상세
-                ================================================= */}
+            {/* =====================================================
+                비용 항목별 상세 통계
+            ===================================================== */}
 
-            <div className="statistics-card item-statistics">
+            <div className="statistics-table-card">
 
-                <div className="statistics-card-header">
-
-                    <h3>
-                        비용 항목별 현황
-                    </h3>
-
-                </div>
+                <h3>
+                    비용 항목별 상세 현황
+                </h3>
 
 
-                {itemStatistics.length === 0 ? (
+                {itemStatistics.length > 0 ? (
 
-                    <div className="empty-data">
-                        데이터가 없습니다.
-                    </div>
+                    <table className="statistics-table">
 
-                ) : (
+                        <thead>
 
-                    <div className="statistics-table-wrapper">
+                            <tr>
 
-                        <table className="statistics-table">
+                                <th>
+                                    항목
+                                </th>
 
-                            <thead>
+                                <th>
+                                    신청금액
+                                </th>
 
-                                <tr>
+                                <th>
+                                    회사 지원금
+                                </th>
 
-                                    <th>
-                                        항목
-                                    </th>
+                            </tr>
 
-                                    <th>
-                                        지급액
-                                    </th>
+                        </thead>
+
+
+                        <tbody>
+
+                            {itemStatistics.map((item, index) => (
+
+                                <tr
+                                    key={`${item.itemType}-${index}`}
+                                >
+
+                                    {/* 항목 */}
+
+                                    <td>
+
+                                        {itemTypeMap[item.itemType] ??
+                                            item.itemType ??
+                                            "-"}
+
+                                    </td>
+
+
+                                    {/* 신청금액 */}
+
+                                    <td>
+
+                                        {formatAmount(
+                                            item.requestedAmount
+                                        )}
+
+                                    </td>
+
+
+                                    {/* 회사 지원금 */}
+
+                                    <td>
+
+                                        {formatAmount(
+                                            item.approvedAmount
+                                        )}
+
+                                    </td>
 
                                 </tr>
 
-                            </thead>
+                            ))}
 
+                        </tbody>
 
-                            <tbody>
+                    </table>
 
-                                {itemStatistics.map(
-                                    (item, index) => (
+                ) : (
 
-                                        <tr
-                                            key={
-                                                item.itemType ??
-                                                index
-                                            }
-                                        >
-
-                                            <td>
-                                                {
-                                                    itemTypeMap[
-                                                        item.itemType
-                                                    ] ||
-                                                    item.itemType ||
-                                                    "기타"
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {formatAmount(
-                                                    item.approvedAmount
-                                                )}
-                                            </td>
-
-                                        </tr>
-
-                                    )
-                                )}
-
-                            </tbody>
-
-                        </table>
-
+                    <div className="statistics-empty">
+                        비용 항목 데이터가 없습니다.
                     </div>
 
                 )}
 
             </div>
-
 
         </div>
-
     );
 }
-

@@ -15,30 +15,18 @@ import '../styles/AmountStyle.css';
 // 사용자 비용 정산 신청 목록
 // =========================================================
 //
-// Amount VO 기준
+// Amount 구조
 //
-// amountNo
-// requestedAmount
-// approvedAmount
-// requestedAt
-// approvedAt
-// status
-// amountComment
-// workcationNo
-// empName
-// itemList
-// sponsorList
-// fileList
-//
-// 목록에서는 아래 필드만 사용
-//
-// amountNo
-// requestedAmount
-// approvedAmount
-// requestedAt
-// status
+// amount
+//   └── amountNo
+//   └── requestedAt
+//   └── status
+//   └── itemList
+//          ├── amount                  → 신청 금액
+//          └── itemApprovedAmount      → 회사 지원금
 //
 // =========================================================
+
 
 export default function UserAmountList({
   workcationNo
@@ -59,23 +47,11 @@ export default function UserAmountList({
   // =========================================================
   // 비용 정산 신청 목록 조회
   // =========================================================
-  //
-  // workcationNo
-  //      ↓
-  // AmountController
-  //      ↓
-  // AmountService
-  //      ↓
-  // AmountDao
-  //      ↓
-  // selectAmountListByWorkcationNo
-  //
-  // =========================================================
 
   const fetchAmountList = useCallback(async () => {
 
     // -------------------------------------------------------
-    // workcationNo가 없는 경우
+    // workcationNo 확인
     // -------------------------------------------------------
 
     if (
@@ -100,13 +76,16 @@ export default function UserAmountList({
 
 
       // -----------------------------------------------------
-      // 숫자로 변환
+      // 숫자 변환
       // -----------------------------------------------------
 
       const no = Number(workcationNo);
 
 
-      if (!Number.isFinite(no) || no <= 0) {
+      if (
+        !Number.isFinite(no) ||
+        no <= 0
+      ) {
 
         console.error(
           '❌ 잘못된 workcationNo:',
@@ -152,22 +131,7 @@ export default function UserAmountList({
 
 
       // -----------------------------------------------------
-      // Controller 응답 구조
-      // -----------------------------------------------------
-      //
-      // {
-      //   list: [...],
-      //   page: 1,
-      //   pageLimit: 5,
-      //   boardLimit: 10,
-      //   limit: 10,
-      //   listCount: 10,
-      //   maxPage: 1,
-      //   startPage: 1,
-      //   endPage: 1
-      // }
-      //
-      // 배열을 직접 반환하는 경우도 대응
+      // 응답 구조 대응
       // -----------------------------------------------------
 
       let list = [];
@@ -237,27 +201,15 @@ export default function UserAmountList({
 
 
   // =========================================================
-  // Amount.status
-  // =========================================================
-  //
-  // R : 검토
-  // A : 승인
-  // H : 보류
-  // J : 반려
-  // C : 취소
-  //
+  // 상태
   // =========================================================
 
   const statusMap = {
 
     R: '검토중',
-
     A: '승인됨',
-
     H: '보류됨',
-
     J: '반려됨',
-
     C: '취소됨'
 
   };
@@ -310,12 +262,6 @@ export default function UserAmountList({
   // =========================================================
   // 날짜 포맷
   // =========================================================
-  //
-  // Amount.requestedAt
-  //
-  // yyyy-MM-dd
-  //
-  // =========================================================
 
   const formatDate = (date) => {
 
@@ -343,12 +289,10 @@ export default function UserAmountList({
     const year =
       d.getFullYear();
 
-
     const month =
       String(
         d.getMonth() + 1
       ).padStart(2, '0');
-
 
     const day =
       String(
@@ -363,15 +307,6 @@ export default function UserAmountList({
 
   // =========================================================
   // 금액 포맷
-  // =========================================================
-  //
-  // Amount VO
-  //
-  // requestedAmount
-  // approvedAmount
-  //
-  // BigDecimal → Number 변환 후 표시
-  //
   // =========================================================
 
   const formatMoney = (amount) => {
@@ -403,6 +338,127 @@ export default function UserAmountList({
     return (
       `${number.toLocaleString('ko-KR')} 원`
     );
+
+  };
+
+
+  // =========================================================
+  // 신청 금액 합계
+  // =========================================================
+  //
+  // amount_item.amount
+  //     ↓
+  // 신청 금액
+  //
+  // =========================================================
+
+  const getRequestedAmount = (item) => {
+
+    // -------------------------------------------------------
+    // itemList가 있는 경우
+    // -------------------------------------------------------
+
+    if (
+      Array.isArray(item?.itemList)
+    ) {
+
+      return item.itemList.reduce(
+        (total, detailItem) => {
+
+          return (
+            total +
+            (Number(detailItem?.amount) || 0)
+          );
+
+        },
+        0
+      );
+
+    }
+
+
+    // -------------------------------------------------------
+    // 기존 API 호환
+    // -------------------------------------------------------
+
+    if (
+      item?.requestedAmount !== null &&
+      item?.requestedAmount !== undefined
+    ) {
+
+      return Number(
+        item.requestedAmount
+      ) || 0;
+
+    }
+
+
+    return 0;
+
+  };
+
+
+  // =========================================================
+  // 회사 지원금 합계
+  // =========================================================
+  //
+  // amount_item.item_approved_amount
+  //     ↓
+  // 회사 지원금
+  //
+  // =========================================================
+
+  const getCompanySupportAmount = (item) => {
+
+    // -------------------------------------------------------
+    // itemList가 있는 경우
+    // -------------------------------------------------------
+
+    if (
+      Array.isArray(item?.itemList)
+    ) {
+
+      return item.itemList.reduce(
+        (total, detailItem) => {
+
+          // -------------------------------------------------
+          // MyBatis
+          // itemApprovedAmount
+          // -------------------------------------------------
+
+          const support =
+            detailItem?.itemApprovedAmount;
+
+
+          return (
+            total +
+            (Number(support) || 0)
+          );
+
+        },
+        0
+      );
+
+    }
+
+
+    // -------------------------------------------------------
+    // 기존 API 호환
+    // -------------------------------------------------------
+
+    if (
+      item?.approvedAmount !== null &&
+      item?.approvedAmount !== undefined
+    ) {
+
+      return Number(
+        item.approvedAmount
+      ) || 0;
+
+    }
+
+
+    return 0;
 
   };
 
@@ -475,10 +531,6 @@ export default function UserAmountList({
 
     }
 
-
-    // -------------------------------------------------------
-    // 수정 페이지
-    // -------------------------------------------------------
 
     navigate(
       `/cost/apply/${item.amountNo}`
@@ -666,10 +718,6 @@ export default function UserAmountList({
     }
 
 
-    // -------------------------------------------------------
-    // 신규 신청
-    // -------------------------------------------------------
-
     navigate(
       `/cost/apply?workcationNo=${workcationNo}`
     );
@@ -782,7 +830,7 @@ export default function UserAmountList({
             </th>
 
             <th className="text-right">
-              승인 금액
+              회사 지원금
             </th>
 
             <th className="text-center">
@@ -826,141 +874,156 @@ export default function UserAmountList({
 
           ) : (
 
-            amounts.map((item) => (
+            amounts.map((item) => {
 
-              <tr
-                key={item.amountNo}
-              >
+              // ------------------------------------------------
+              // 신청 금액
+              // ------------------------------------------------
 
-
-                {/* ===========================================
-                    신청번호
-                ============================================ */}
-
-                <td className="text-center">
-
-                  {item.amountNo}
-
-                </td>
+              const requestedAmount =
+                getRequestedAmount(item);
 
 
-                {/* ===========================================
-                    신청 금액
-                ============================================ */}
+              // ------------------------------------------------
+              // 회사 지원금
+              // ------------------------------------------------
 
-                <td className="text-right">
-
-                  {formatMoney(
-                    item.requestedAmount
-                  )}
-
-                </td>
+              const companySupportAmount =
+                getCompanySupportAmount(item);
 
 
-                {/* ===========================================
-                    승인 금액
-                ============================================ */}
+              return (
 
-                <td className="text-right">
-
-                  {formatMoney(
-                    item.approvedAmount
-                  )}
-
-                </td>
+                <tr
+                  key={item.amountNo}
+                >
 
 
-                {/* ===========================================
-                    상태
-                ============================================ */}
+                  {/* =========================================
+                      신청번호
+                  ========================================== */}
 
-                <td className="text-center">
+                  <td className="text-center">
 
-                  {getStatusBadge(
-                    item.status
-                  )}
+                    {item.amountNo}
 
-                </td>
+                  </td>
 
 
-                {/* ===========================================
-                    신청일
-                ============================================ */}
+                  {/* =========================================
+                      신청 금액
+                  ========================================== */}
 
-                <td className="text-center">
+                  <td className="text-right">
 
-                  {formatDate(
-                    item.requestedAt
-                  )}
+                    {formatMoney(
+                      requestedAmount
+                    )}
 
-                </td>
-
-
-                {/* ===========================================
-                    신청 관리
-                ============================================ */}
-
-                <td className="text-center">
+                  </td>
 
 
-                  {/* -----------------------------------------
-                      R / H
-                      수정 + 취소
-                  ------------------------------------------ */}
+                  {/* =========================================
+                      회사 지원금
+                  ========================================== */}
 
-                  {['R', 'H'].includes(
-                    item.status
-                  ) ? (
+                  <td className="text-right">
 
-                    <>
+                    {formatMoney(
+                      companySupportAmount
+                    )}
 
-                      <button
-                        type="button"
-                        className="btn btn-edit"
-                        onClick={() =>
-                          handleEdit(item)
-                        }
-                      >
-
-                        수정
-
-                      </button>
+                  </td>
 
 
-                      <button
-                        type="button"
-                        className="btn btn-cancel"
-                        onClick={() =>
-                          handleCancel(item)
-                        }
-                      >
+                  {/* =========================================
+                      상태
+                  ========================================== */}
 
-                        취소
+                  <td className="text-center">
 
-                      </button>
+                    {getStatusBadge(
+                      item.status
+                    )}
 
-                    </>
+                  </td>
 
-                  ) : (
 
-                    /* ---------------------------------------
-                       A / J / C
-                       변경 불가
-                    ---------------------------------------- */
+                  {/* =========================================
+                      신청일
+                  ========================================== */}
 
-                    <span className="text-disabled">
+                  <td className="text-center">
 
-                      변경 불가
+                    {formatDate(
+                      item.requestedAt
+                    )}
 
-                    </span>
+                  </td>
 
-                  )}
 
-                </td>
+                  {/* =========================================
+                      신청 관리
+                  ========================================== */}
 
-              </tr>
+                  <td className="text-center">
 
-            ))
+
+                    {/* ---------------------------------------
+                        R / H
+                        수정 + 취소
+                    ---------------------------------------- */}
+
+                    {['R', 'H'].includes(
+                      item.status
+                    ) ? (
+
+                      <>
+
+                        <button
+                          type="button"
+                          className="btn btn-edit"
+                          onClick={() =>
+                            handleEdit(item)
+                          }
+                        >
+
+                          수정
+
+                        </button>
+
+
+                        <button
+                          type="button"
+                          className="btn btn-cancel"
+                          onClick={() =>
+                            handleCancel(item)
+                          }
+                        >
+
+                          취소
+
+                        </button>
+
+                      </>
+
+                    ) : (
+
+                      <span className="text-disabled">
+
+                        변경 불가
+
+                      </span>
+
+                    )}
+
+                  </td>
+
+                </tr>
+
+              );
+
+            })
 
           )}
 

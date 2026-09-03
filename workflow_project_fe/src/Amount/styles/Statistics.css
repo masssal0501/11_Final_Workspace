@@ -67,19 +67,31 @@
    요약 카드
    ========================================================= */
 
-.summary-grid {
+.statistics-summary {
     display: grid;
+
+    /* 한 줄에 4개 */
     grid-template-columns: repeat(4, 1fr);
+
     gap: 16px;
+
     margin-bottom: 25px;
 }
 
+
+/* =========================================================
+   요약 카드
+   ========================================================= */
+
 .summary-card {
     min-height: 120px;
+
     padding: 22px;
+
     box-sizing: border-box;
 
     background-color: #fff;
+
     border: 1px solid #e5e7eb;
     border-radius: 10px;
 
@@ -96,27 +108,48 @@
 
 .summary-card:hover {
     transform: translateY(-2px);
+
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
 }
+
+
+/* =========================================================
+   요약 카드 제목
+   ========================================================= */
 
 .summary-title {
     margin-bottom: 10px;
 
     color: #666;
+
     font-size: 14px;
     font-weight: 500;
 }
 
+
+/* =========================================================
+   요약 카드 값
+   ========================================================= */
+
 .summary-value {
     color: #222;
+
     font-size: 23px;
     font-weight: 700;
+
     line-height: 1.4;
 }
 
+
+/* =========================================================
+   요약 카드 설명
+   ========================================================= */
+
 .summary-description {
     margin-top: 7px;
+
     color: #999;
+
     font-size: 12px;
 }
 
@@ -127,8 +160,11 @@
 
 .statistics-chart-grid {
     display: grid;
+
     grid-template-columns: 1fr 1fr;
+
     gap: 20px;
+
     margin-bottom: 20px;
 }
 
@@ -139,10 +175,12 @@
 
 .statistics-card {
     background-color: #fff;
+
     border: 1px solid #e5e7eb;
     border-radius: 10px;
 
     padding: 24px;
+
     box-sizing: border-box;
 
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -155,6 +193,7 @@
 
 .statistics-card-header {
     display: flex;
+
     align-items: center;
     justify-content: space-between;
 
@@ -165,6 +204,7 @@
     margin: 0;
 
     color: #222;
+
     font-size: 18px;
     font-weight: 700;
 }
@@ -176,6 +216,7 @@
 
 .pie-chart-wrapper {
     position: relative;
+
     width: 100%;
     height: 380px;
 }
@@ -204,10 +245,12 @@
     height: 380px;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
     color: #999;
+
     font-size: 14px;
 }
 
@@ -237,6 +280,7 @@
 
 .statistics-table-wrapper {
     width: 100%;
+
     overflow-x: auto;
 }
 
@@ -247,7 +291,9 @@
 
 .statistics-table {
     width: 100%;
+
     border-collapse: collapse;
+
     table-layout: fixed;
 }
 
@@ -257,29 +303,35 @@
 
 .statistics-table th {
     height: 48px;
+
     padding: 12px 15px;
 
     border-top: 1px solid #e5e7eb;
     border-bottom: 1px solid #e5e7eb;
 
     color: #555;
+
     font-size: 14px;
     font-weight: 600;
 
     text-align: center;
+
     white-space: nowrap;
 }
 
 .statistics-table td {
     height: 52px;
+
     padding: 12px 15px;
 
     border-bottom: 1px solid #eee;
 
     color: #444;
+
     font-size: 14px;
 
     text-align: center;
+
     vertical-align: middle;
 }
 
@@ -324,10 +376,12 @@
     min-height: 120px;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
     color: #999;
+
     font-size: 14px;
 }
 
@@ -340,10 +394,12 @@
     min-height: 400px;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
     color: #666;
+
     font-size: 15px;
 }
 
@@ -357,11 +413,13 @@
     max-width: 500px;
 
     margin: 100px auto;
+
     padding: 35px;
 
     box-sizing: border-box;
 
     background-color: #fff;
+
     border: 1px solid #e5e7eb;
     border-radius: 10px;
 
@@ -374,6 +432,7 @@
     margin: 0 0 12px;
 
     color: #d64545;
+
     font-size: 20px;
 }
 
@@ -381,7 +440,9 @@
     margin: 0 0 20px;
 
     color: #666;
+
     font-size: 14px;
+
     line-height: 1.6;
 }
 
@@ -392,9 +453,11 @@
     border-radius: 6px;
 
     background-color: #333;
+
     color: #fff;
 
     font-size: 14px;
+
     cursor: pointer;
 
     transition: background-color 0.2s ease;
@@ -435,7 +498,8 @@
         padding: 25px 25px 40px;
     }
 
-    .summary-grid {
+    /* 4개 → 2개 */
+    .statistics-summary {
         grid-template-columns: repeat(2, 1fr);
     }
 
@@ -459,13 +523,16 @@
         font-size: 23px;
     }
 
-    .summary-grid {
+    /* 2개 → 1개 */
+    .statistics-summary {
         grid-template-columns: 1fr;
+
         gap: 12px;
     }
 
     .summary-card {
         min-height: 100px;
+
         padding: 18px;
     }
 
@@ -503,7 +570,9 @@
 
     .statistics-header {
         align-items: flex-start;
+
         gap: 10px;
+
         flex-direction: column;
     }
 

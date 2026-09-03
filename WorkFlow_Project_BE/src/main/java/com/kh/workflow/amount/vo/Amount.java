@@ -57,7 +57,7 @@ public class Amount {
 
 
     // =========================================================
-    // 조회용
+    // 조회용 JOIN
     // =========================================================
 
     /**
@@ -70,40 +70,33 @@ public class Amount {
 
     // =========================================================
     // amount_item
+    // amount 1 : N amount_item
     // =========================================================
 
-    /**
-     * amount 1 : N amount_item
-     */
     private List<Item> itemList = new ArrayList<>();
 
 
     // =========================================================
     // amount_list
+    // amount 1 : 1 amount_list
+    //
+    // 현재 DB에서는 amount_list.amount_no가 PK이므로
+    // 하나의 amount에 지원금 목록은 1건만 저장 가능
     // =========================================================
 
-    /**
-     * amount 1 : N amount_list
-     *
-     * 주의:
-     * amount_list의 PK는 amount_list_no
-     * amount_no는 amount를 참조하는 FK
-     */
-    private List<Sponsor> sponsorList = new ArrayList<>();
+    private Sponsor sponsor;
 
 
     // =========================================================
     // amount_file
+    // amount 1 : N amount_file
     // =========================================================
 
-    /**
-     * amount 1 : N amount_file
-     */
     private List<File> fileList = new ArrayList<>();
 
 
     // =========================================================
-    // amount_item
+    // 2. amount_item
     // =========================================================
 
     @Data
@@ -111,15 +104,14 @@ public class Amount {
     @AllArgsConstructor
     public static class Item {
 
-        /** amount_item.item_no */
+        /** amount_item.item_no PK */
         private Integer itemNo;
 
         /** amount_item.amount */
         private Integer amount;
 
         /**
-         * 실제 DB 컬럼명:
-         * amountamountitem_type
+         * amount_item.amountamountitem_type
          *
          * S : 숙박
          * T : 교통
@@ -128,8 +120,10 @@ public class Amount {
          * V : 차량
          * O : 기타
          */
-        private String itemType;
+        private String amountamountitemType;
 
+        
+        private Integer itemApprovedAmount;
         /** amount_item.item_date */
         private Date itemDate;
 
@@ -147,13 +141,13 @@ public class Amount {
         /** amount_item.item_description */
         private String itemDescription;
 
-        /** amount_item.amount_no */
+        /** amount_item.amount_no FK */
         private Integer amountNo;
     }
 
 
     // =========================================================
-    // amount_list
+    // 3. amount_list
     // =========================================================
 
     @Data
@@ -162,16 +156,9 @@ public class Amount {
     public static class Sponsor {
 
         /**
-         * amount_list.amount_list_no
-         *
-         * PK
-         */
-        private Integer amountListNo;
-
-        /**
          * amount_list.amount_no
          *
-         * FK -> amount.amount_no
+         * PK + FK
          */
         private Integer amountNo;
 
@@ -201,14 +188,14 @@ public class Amount {
          *
          * FK -> amount_item.item_no
          *
-         * NULL 가능
+         * 현재 DB에서는 NOT NULL
          */
         private Integer itemNo;
     }
 
 
     // =========================================================
-    // amount_file
+    // 4. amount_file
     // =========================================================
 
     @Data
@@ -216,11 +203,7 @@ public class Amount {
     @AllArgsConstructor
     public static class File {
 
-        /**
-         * amount_file.amountattachment_no
-         *
-         * PK
-         */
+        /** amount_file.amountattachment_no PK */
         private Integer amountattachmentNo;
 
         /** amount_file.file_path */
@@ -234,7 +217,10 @@ public class Amount {
 
         /** amount_file.updated_at */
         private Date updatedAt;
+        
 
+
+        private Integer itemNo;
         /**
          * amount_file.status
          *
@@ -243,8 +229,7 @@ public class Amount {
          */
         private String status;
 
-        /** amount_file.amount_no */
+        /** amount_file.amount_no FK */
         private Integer amountNo;
     }
 }
-

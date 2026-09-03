@@ -27,9 +27,12 @@ public interface AmountService {
     //
     // Amount
     // ├─ amount
-    // ├─ itemList      → amount_item
-    // ├─ sponsorList   → amount_list
-    // └─ fileList      → amount_file
+    // ├─ itemList  → amount_item (1:N)
+    // ├─ sponsor   → amount_list (1:1)
+    // └─ fileList  → amount_file (1:N)
+    //
+    // 현재 DB의 amount_list.amount_no가 PK이므로
+    // 하나의 amount에는 Sponsor 1건만 등록 가능
     // =========================================================
     int insertAmount(Amount amount);
 
@@ -38,9 +41,9 @@ public interface AmountService {
     // 4. 비용 상세 조회
     //
     // amount
-    // ├─ itemList
-    // ├─ sponsorList
-    // └─ fileList
+    // ├─ itemList → amount_item (1:N)
+    // ├─ sponsor  → amount_list (1:1)
+    // └─ fileList → amount_file (1:N)
     // =========================================================
     Amount selectAmountById(int amountNo);
 
@@ -68,8 +71,11 @@ public interface AmountService {
     // ├─ H : 보류
     // └─ J : 반려
     //
-    // approvedAmount → 최종 승인 금액
-    // comment        → 결재 의견
+    // approvedAmount
+    // → 최종 승인 금액
+    //
+    // comment
+    // → 결재 의견
     // =========================================================
     int updateApprovalStatus(
             int amountNo,
@@ -85,13 +91,18 @@ public interface AmountService {
     // amount
     // ├─ amount
     // ├─ itemList
-    // └─ sponsorList
+    // └─ sponsor
     //
     // files
     // └─ 새로 추가되는 MultipartFile
     //
     // 기존 DB 파일은 삭제하지 않고
     // 새 파일만 amount_file에 추가
+    //
+    // 주의:
+    // amount_list.item_no가 amount_item을 참조하므로
+    // item을 재등록하는 경우 sponsor.itemNo도
+    // 새 itemNo에 맞춰 처리해야 함
     // =========================================================
     void updateAmount(
             Amount amount,
@@ -106,7 +117,9 @@ public interface AmountService {
     // = 해당 항목의 회사 지원금
     //
     // amount_list.amount
-    // = 지자체 지원금이므로 여기서는 수정하지 않음
+    // = 지자체 지원금
+    //
+    // 여기서는 amount_list.amount를 수정하지 않음
     // =========================================================
     int updateItemCompanySupport(
             int itemNo,
@@ -134,16 +147,22 @@ public interface AmountService {
     // =========================================================
     // 12. 결재 + 지원금 처리
     //
-    // 현재는 기존 구조 유지
+    // status
+    // ├─ A : 승인
+    // ├─ H : 보류
+    // └─ J : 반려
+    //
+    // 승인(A) 처리 시
+    // sponsor가 전달되면 amount_list에 등록
     //
     // sponsor
-    // → amount_list 1건 등록
+    // → amount_list 1건
     //
     // sponsor.itemNo
     // → 해당 지자체 지원금이 적용될 amount_item
     //
-    // 지자체 지원금 금액 자체는 외부 목록에서 가져온
-    // 원본 금액을 사용하고 직접 수정하지 않음
+    // 현재 DB 구조상 amount_list.amount_no가 PK이므로
+    // 하나의 amount에는 Sponsor 1건만 존재
     // =========================================================
     void updateApprovalWithSponsor(
             int amountNo,

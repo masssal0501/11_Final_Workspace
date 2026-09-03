@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { amountApi } from '../api/amountApi';
 
@@ -13,28 +13,33 @@ export default function AmountList({ workcationNo }) {
   // =========================================================
   // 해당 워케이션의 비용 정산 신청 목록 조회
   //
-  // Amount VO
+  // Amount
+  // ---------------------------------------------------------
   // amountNo
-  // requestedAmount
-  // approvedAmount
   // requestedAt
   // status
   // workcationNo
+  // itemList
+  //
+  // amount_item
+  // ---------------------------------------------------------
+  // amount                 → 신청 금액
+  // itemApprovedAmount     → 회사 지원금
   // =========================================================
-  const fetchAmountList = async () => {
 
-    // ---------------------------------------------------------
+  const fetchAmountList = useCallback(async () => {
+
+    // -------------------------------------------------------
     // workcationNo가 없는 경우
-    // ---------------------------------------------------------
+    // -------------------------------------------------------
+
     if (
       workcationNo === null ||
       workcationNo === undefined ||
       workcationNo === ''
     ) {
 
-      console.log(
-        '⚠️ workcationNo가 없습니다.'
-      );
+      console.log('⚠️ workcationNo가 없습니다.');
 
       setAmounts([]);
       setLoading(false);
@@ -47,23 +52,16 @@ export default function AmountList({ workcationNo }) {
 
       setLoading(true);
 
-      console.log(
-        '================================='
-      );
 
-      console.log(
-        '📌 워케이션 비용 목록 조회'
-      );
+      console.log('=================================');
+      console.log('📌 워케이션 비용 목록 조회');
+      console.log('📌 workcationNo:', workcationNo);
+      console.log('=================================');
 
-      console.log(
-        '📌 workcationNo:',
-        workcationNo
-      );
 
-      console.log(
-        '================================='
-      );
-
+      // =======================================================
+      // 서버 조회
+      // =======================================================
 
       const data =
         await amountApi.getAmountListByWorkcation(
@@ -78,46 +76,68 @@ export default function AmountList({ workcationNo }) {
 
 
       // =======================================================
-      // 서버 응답 형태 대응
+      // 서버 응답 형태
       //
-      // 1. 배열
+      // ① List<Amount>
+      //
       // [
       //   {
       //     amountNo: 1,
-      //     requestedAmount: 100000,
-      //     approvedAmount: 90000,
       //     requestedAt: "...",
       //     status: "R",
-      //     workcationNo: 1
+      //     workcationNo: 1,
+      //     itemList: [
+      //       {
+      //         amount: 400000,
+      //         itemApprovedAmount: 300000
+      //       }
+      //     ]
       //   }
       // ]
       //
-      // 2. PageInfo 형태
+      // ② PageInfo
       //
       // {
       //   list: [...]
-      //   listCount: 5,
-      //   page: 1,
-      //   maxPage: 1,
-      //   ...
       // }
       // =======================================================
 
-      const list =
-        Array.isArray(data)
-          ? data
-          : Array.isArray(data?.list)
-            ? data.list
-            : [];
+      let list = [];
+
+
+      if (Array.isArray(data)) {
+
+        list = data;
+
+      } else if (
+        Array.isArray(data?.list)
+      ) {
+
+        list = data.list;
+
+      }
+
+
+      // =======================================================
+      // amountNo가 존재하는 정상 데이터만 저장
+      // =======================================================
+
+      const validList =
+        list.filter(
+          (item) =>
+            item &&
+            item.amountNo !== null &&
+            item.amountNo !== undefined
+        );
 
 
       console.log(
         '📋 현재 워케이션 비용 목록:',
-        list
+        validList
       );
 
 
-      setAmounts(list);
+      setAmounts(validList);
 
 
     } catch (error) {
@@ -137,6 +157,7 @@ export default function AmountList({ workcationNo }) {
         error.response?.data
       );
 
+
       setAmounts([]);
 
     } finally {
@@ -145,17 +166,18 @@ export default function AmountList({ workcationNo }) {
 
     }
 
-  };
+  }, [workcationNo]);
 
 
   // =========================================================
   // workcationNo 변경 시 다시 조회
   // =========================================================
+
   useEffect(() => {
 
     fetchAmountList();
 
-  }, [workcationNo]);
+  }, [fetchAmountList]);
 
 
   // =========================================================
@@ -167,6 +189,7 @@ export default function AmountList({ workcationNo }) {
   // J : 반려
   // R : 검토
   // =========================================================
+
   const getStatusText = (status) => {
 
     const statusMap = {
@@ -179,6 +202,7 @@ export default function AmountList({ workcationNo }) {
 
     };
 
+
     return (
       statusMap[status] ||
       status ||
@@ -189,22 +213,42 @@ export default function AmountList({ workcationNo }) {
 
 
   // =========================================================
-  // 날짜 포맷
-  //
-  // Amount.requestedAt
+  // 상태 CSS
   // =========================================================
+
+  const getStatusClass = (status) => {
+
+    return status
+      ? `status-${status}`
+      : 'status-UNKNOWN';
+
+  };
+
+
+  // =========================================================
+  // 날짜 포맷
+  // =========================================================
+
   const formatDate = (date) => {
 
     if (!date) {
+
       return '-';
+
     }
 
 
     const d = new Date(date);
 
 
-    if (Number.isNaN(d.getTime())) {
+    if (
+      Number.isNaN(
+        d.getTime()
+      )
+    ) {
+
       return '-';
+
     }
 
 
@@ -212,12 +256,14 @@ export default function AmountList({ workcationNo }) {
       d.getFullYear();
 
     const month =
-      String(d.getMonth() + 1)
-        .padStart(2, '0');
+      String(
+        d.getMonth() + 1
+      ).padStart(2, '0');
 
     const day =
-      String(d.getDate())
-        .padStart(2, '0');
+      String(
+        d.getDate()
+      ).padStart(2, '0');
 
 
     return `${year}-${month}-${day}`;
@@ -227,10 +273,8 @@ export default function AmountList({ workcationNo }) {
 
   // =========================================================
   // 금액 포맷
-  //
-  // Amount.requestedAmount
-  // Amount.approvedAmount
   // =========================================================
+
   const formatMoney = (value) => {
 
     if (
@@ -248,26 +292,121 @@ export default function AmountList({ workcationNo }) {
       Number(value);
 
 
-    if (Number.isNaN(number)) {
+    if (
+      Number.isNaN(number)
+    ) {
+
       return '-';
+
     }
 
 
-    return `${number.toLocaleString('ko-KR')} 원`;
+    return (
+      `${number.toLocaleString('ko-KR')} 원`
+    );
+
+  };
+
+
+  // =========================================================
+  // 신청 금액 합계
+  //
+  // amount_item.amount
+  //      ↓
+  // 신청 금액
+  //
+  // 예:
+  //
+  // 숙박 400,000
+  // 교통 150,000
+  // 식비 100,000
+  //
+  // = 650,000
+  // =========================================================
+
+  const getRequestedAmount = (item) => {
+
+    // -------------------------------------------------------
+    // itemList가 있는 경우
+    // -------------------------------------------------------
+
+    if (
+      Array.isArray(item?.itemList)
+    ) {
+
+      return item.itemList.reduce(
+        (total, detailItem) => {
+
+          return (
+            total +
+            (Number(detailItem?.amount) || 0)
+          );
+
+        },
+        0
+      );
+
+    }
+
+
+    return 0;
+
+  };
+
+
+  // =========================================================
+  // 회사 지원금 합계
+  //
+  // amount_item.item_approved_amount
+  //      ↓
+  // 회사 지원금
+  //
+  // =========================================================
+
+  const getCompanySupportAmount = (item) => {
+
+    // -------------------------------------------------------
+    // itemList가 있는 경우
+    // -------------------------------------------------------
+
+    if (
+      Array.isArray(item?.itemList)
+    ) {
+
+      return item.itemList.reduce(
+        (total, detailItem) => {
+
+          return (
+            total +
+            (
+              Number(
+                detailItem?.itemApprovedAmount
+              ) || 0
+            )
+          );
+
+        },
+        0
+      );
+
+    }
+
+
+    return 0;
 
   };
 
 
   // =========================================================
   // 상세 페이지 이동
-  //
-  // Amount.amountNo 사용
   // =========================================================
+
   const handleDetail = (amountNo) => {
 
     if (
       amountNo === null ||
-      amountNo === undefined
+      amountNo === undefined ||
+      amountNo === ''
     ) {
 
       alert(
@@ -275,7 +414,14 @@ export default function AmountList({ workcationNo }) {
       );
 
       return;
+
     }
+
+
+    console.log(
+      '📌 비용 상세 이동:',
+      amountNo
+    );
 
 
     navigate(
@@ -288,6 +434,7 @@ export default function AmountList({ workcationNo }) {
   // =========================================================
   // 로딩
   // =========================================================
+
   if (loading) {
 
     return (
@@ -316,6 +463,7 @@ export default function AmountList({ workcationNo }) {
   // =========================================================
   // 화면
   // =========================================================
+
   return (
 
     <div className="amount-container">
@@ -346,8 +494,14 @@ export default function AmountList({ workcationNo }) {
 
         워케이션 번호 :
 
-        <strong>
+        <strong
+          style={{
+            marginLeft: '5px'
+          }}
+        >
+
           {workcationNo || '-'}
+
         </strong>
 
       </div>
@@ -372,7 +526,7 @@ export default function AmountList({ workcationNo }) {
             </th>
 
             <th className="text-right">
-              승인 금액
+              회사 지원금
             </th>
 
             <th className="text-center">
@@ -416,132 +570,143 @@ export default function AmountList({ workcationNo }) {
 
           ) : (
 
+            amounts.map((item) => {
 
-            amounts.map((item) => (
+              // ------------------------------------------------
+              // 신청 금액
+              // ------------------------------------------------
 
-              <tr
-                key={item.amountNo}
-
-                onClick={() =>
-                  handleDetail(
-                    item.amountNo
-                  )
-                }
-
-                style={{
-                  cursor: 'pointer'
-                }}
-              >
+              const requestedAmount =
+                getRequestedAmount(item);
 
 
-                {/* =========================================
-                    신청번호
-                ========================================== */}
+              // ------------------------------------------------
+              // 회사 지원금
+              // ------------------------------------------------
 
-                <td className="text-center">
-
-                  {item.amountNo}
-
-                </td>
+              const companySupportAmount =
+                getCompanySupportAmount(item);
 
 
-                {/* =========================================
-                    신청 금액
-                ========================================== */}
+              return (
 
-                <td className="text-right">
-
-                  {formatMoney(
-                    item.requestedAmount
-                  )}
-
-                </td>
-
-
-                {/* =========================================
-                    승인 금액
-                ========================================== */}
-
-                <td className="text-right">
-
-                  {item.approvedAmount !== null &&
-                   item.approvedAmount !== undefined
-
-                    ? formatMoney(
-                        item.approvedAmount
-                      )
-
-                    : '-'
+                <tr
+                  key={item.amountNo}
+                  onClick={() =>
+                    handleDetail(item.amountNo)
                   }
+                  style={{
+                    cursor: 'pointer'
+                  }}
+                >
 
-                </td>
+
+                  {/* =========================================
+                      신청번호
+                  ========================================== */}
+
+                  <td className="text-center">
+
+                    {item.amountNo}
+
+                  </td>
 
 
-                {/* =========================================
-                    상태
-                ========================================== */}
+                  {/* =========================================
+                      신청 금액
+                  ========================================== */}
 
-                <td className="text-center">
+                  <td className="text-right">
 
-                  <span
-                    className={
-                      `status-badge status-${item.status || 'UNKNOWN'}`
-                    }
-                  >
-
-                    {getStatusText(
-                      item.status
+                    {formatMoney(
+                      requestedAmount
                     )}
 
-                  </span>
-
-                </td>
+                  </td>
 
 
-                {/* =========================================
-                    신청일
-                ========================================== */}
+                  {/* =========================================
+                      회사 지원금
+                  ========================================== */}
 
-                <td className="text-center">
+                  <td className="text-right">
 
-                  {formatDate(
-                    item.requestedAt
-                  )}
+                    {formatMoney(
+                      companySupportAmount
+                    )}
 
-                </td>
-
-
-                {/* =========================================
-                    상세
-                ========================================== */}
-
-                <td className="text-center">
-
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-
-                    onClick={(e) => {
-
-                      e.stopPropagation();
-
-                      handleDetail(
-                        item.amountNo
-                      );
-
-                    }}
-                  >
-
-                    상세보기
-
-                  </button>
-
-                </td>
+                  </td>
 
 
-              </tr>
+                  {/* =========================================
+                      상태
+                  ========================================== */}
 
-            ))
+                  <td className="text-center">
+
+                    <span
+                      className={
+                        `status-badge ${
+                          getStatusClass(item.status)
+                        }`
+                      }
+                    >
+
+                      {getStatusText(
+                        item.status
+                      )}
+
+                    </span>
+
+                  </td>
+
+
+                  {/* =========================================
+                      신청일
+                  ========================================== */}
+
+                  <td className="text-center">
+
+                    {formatDate(
+                      item.requestedAt
+                    )}
+
+                  </td>
+
+
+                  {/* =========================================
+                      상세
+                  ========================================== */}
+
+                  <td className="text-center">
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+
+                      onClick={(e) => {
+
+                        e.stopPropagation();
+
+                        handleDetail(
+                          item.amountNo
+                        );
+
+                      }}
+                    >
+
+                      상세보기
+
+                    </button>
+
+                  </td>
+
+
+                </tr>
+
+              );
+
+            })
 
           )}
 
