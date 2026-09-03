@@ -52,6 +52,12 @@ import ApprovalReject from "./workcation/components/approval/components/Approval
 import ApprovalHistoryList from "./workcation/components/approval/components/ApprovalHistoryList";
 import ApprovalHistoryDetail from "./workcation/components/approval/components/ApprovalHistoryDetail";
 
+import ReservationListComponent from "./reservation/components/ReservationListComponent"; 
+import ReservationEnrollComponent from "./reservation/components/ReservationEnrollComponent"; 
+import ReservationDetailComponent from "./reservation/components/ReservationDetailComponent"; 
+import ReservationUpdateComponent from "./reservation/components/ReservationUpdateComponent";
+
+import LocationCheckModal from "./common/components/LocationCheckModal";
 import ErrorPage from "./common/components/ErrorPage";
 
 import {
@@ -59,8 +65,7 @@ import {
     Route,
     Navigate
 } from "react-router-dom";
-
-
+import ReservationScheduleComponent from "./reservation/components/ReservationScheduleComponent";
 
 function App() {
 
@@ -272,6 +277,13 @@ function App() {
 
                 {/* 비밀번호 변경 */}
                 <Route path="/changePW" element={<ChangePWForm />} />
+
+                {/* 예약 */}
+                <Route path="/reservations" element={<ReservationListComponent />}/>
+                <Route path="/reservations/enroll" element={<ReservationEnrollComponent />}/>
+                <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />}/>
+                <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />}/>
+                <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
 
                 {/* 관리자 */}
                 {loginUser.authCode === "ADMIN" && (

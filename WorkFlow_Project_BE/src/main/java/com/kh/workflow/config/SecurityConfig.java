@@ -134,6 +134,11 @@ public class SecurityConfig {
 	                            "/employees/*/role"
 	                    ).hasRole("ADMIN")
 
+	                    // swagger
+	                    .requestMatchers(
+                        		"/swagger-ui/**"
+                		).permitAll()
+	                    
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
                 )
