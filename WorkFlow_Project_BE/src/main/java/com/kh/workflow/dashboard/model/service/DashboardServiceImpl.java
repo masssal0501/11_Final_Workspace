@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 import com.kh.workflow.amount.dao.AmountDao;
 import com.kh.workflow.dashboard.model.dto.AdminDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
+import com.kh.workflow.dashboard.model.dto.StaffDto;
+import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.hub.model.dao.HubDao;
 import com.kh.workflow.notice.dao.NoticeDao;
+import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 
 @Service
@@ -33,6 +36,9 @@ public class DashboardServiceImpl implements DashboardService {
 	
 	@Autowired
 	private EmployeeDao employeeDao;
+
+	@Autowired
+	private TaskDao taskDao;
 	
 	@Autowired
 	private SqlSessionTemplate sqlSession;
@@ -123,6 +129,9 @@ public class DashboardServiceImpl implements DashboardService {
 		// (부서)예산 소진율
 		managerDto.setBudgetExhaustionRate(amountDao.managerSelectBudgetExhaustionRate(depId));
 		
+		// 부서 평균업무 진행률
+		managerDto.setAvgProgressRate(taskDao.AvgProgressRate(depId));
+		
 		// (부서)승인대기 목록
 		managerDto.setWaitingList(workcationDao.managerSelectWaitingList(depId));
 		
@@ -131,11 +140,54 @@ public class DashboardServiceImpl implements DashboardService {
 				
 		// 공지사항
 		Map<String, Object> map = new HashMap<>();
-		map.put("offset", 0); // 시작 행 (0부터)
+		map.put("offset", 0);
 		map.put("limit", 3);
 		managerDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
 		
+		// 정산대기 목록
+		managerDto.setBalanceList(amountDao.selectBalanceList(depId));
+		
+		// 부서 워케이션 목록
+		managerDto.setWorkcationList(workcationDao.managerSelectWorkcationList(depId));
+		
 		return managerDto;
+	}
+
+	@Override
+	public WorkcationListDto selectManagerWorkcationList(String depId, String keyword, LocalDateTime startDate, LocalDateTime endDate) {
+		
+		return workcationDao.managerSearchWorkcationList(depId, keyword, startDate, endDate);
+	}
+
+	@Override
+	public StaffDto selectStaffDashboard(int empNo) {
+		StaffDto staffDto = new StaffDto();
+		
+		// 워케이션 간 횟수
+		staffDto.setWorkcationCount(workcationDao.selectWorkcationCount(empNo));
+		
+		// 남은 지원금
+		staffDto.setAmountSupport(amountDao.selectAmountSupport(empNo));
+		
+		// 사용 비용
+		staffDto.setUseAmount(amountDao.selectUseAmount(empNo));
+		
+		// 워케이션 진행 여부
+		staffDto.setWorkcation(workcationDao.existsWorkcation(empNo));
+		
+		// 나의 워케이션 업무계획
+		staffDto.setWorkcationPlan(workcationDao.selectWorkcationPlan(empNo));
+		
+		// 업무 진행률
+		staffDto.setProgressRate(taskDao.selectProgressRate(empNo));
+		
+		// 공지사항
+		Map<String, Object> map = new HashMap<>();
+		map.put("offset", 0);
+		map.put("limit", 3);
+		staffDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+				
+		return staffDto;
 	}
 
 }

@@ -33,6 +33,9 @@ function HubDetailComponent(props) {
 
     // 로그인한 사용자 정보 불러오기
     const loginUser = props.loginUser;
+
+    // 주소-좌표 변환 객체 생성
+    const geocoder = new kakao.maps.services.Geocoder();
     // 컴포넌트 마운트 시 또는 hubNo가 변경될 때 해당 거점의 기존 정보를 서버에서 조회
     useEffect(() =>{
         // 비동기 API 호출: 거점 상세 정보 조회
@@ -59,8 +62,6 @@ function HubDetailComponent(props) {
     useEffect(() => {
         // 백엔드에서 주소 데이터를 아직 못 가져왔다면 지도를 그리지 않고 대기
         if (kakao && kakao.maps && kakao.maps.services && hub.hubAddress) {
-            // 주소로 좌표를 검색하여 지도 및 마커 세팅
-            const geocoder = new kakao.maps.services.Geocoder();
             geocoder.addressSearch(hub.hubAddress, (result, status) => {
                 if (status === kakao.maps.services.Status.OK) {
                     // 표시할 위치 좌표
@@ -105,6 +106,21 @@ function HubDetailComponent(props) {
 
     }
 
+    const goToKakaoMap = () => {
+        if (!position) return;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (data) => {
+                    geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
+                        window.open(`https://map.kakao.com/link/from/${result[0].address.address_name},${data.coords.latitude},${data.coords.longitude}/to/${hub.hubName},${position.lat},${position.lng}`);
+                    });
+                }
+            );
+        } else {
+            window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`);
+        }
+    }
+
     // return 구문
     return (
         <div className={ `content ${hub.hubStatus === 'CLOSED' && 'content-off'}` }>
@@ -133,7 +149,7 @@ function HubDetailComponent(props) {
                 {/* 일반 지도가 렌더링되는 영역 */}
                 <div className="span-area big-font">
                     <span style={ { fontSize: "19px" } }>주소 : { hub.hubAddress }<br/><p onClick={ handleCopyClipBoard }>※복사하기</p></span>
-                    <span><button className="btn btn-outline-warning kakao-map-go" onClick={ () => { if (!position) return; window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`); } }>Kakao 지도 바로 가기</button></span>
+                    <span><button className="btn btn-outline-warning kakao-map-go" onClick={ goToKakaoMap}>카카오맵으로 길찾기</button></span>
                     <span style={ { fontSize: "26px" } }>평균 별점 : { (avgScore === 5) ? "★★★★★" : (
                                                                        (avgScore >= 4) ? "★★★★☆" : (
                                                                        (avgScore >= 3) ? "★★★☆☆" : (

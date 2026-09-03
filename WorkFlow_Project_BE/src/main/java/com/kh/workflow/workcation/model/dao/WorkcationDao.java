@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 import com.kh.workflow.dashboard.model.dto.WaitingListDto;
+import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
@@ -97,6 +98,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN Reservation r ON r.workcation = w
 			  JOIN r.hub h
 			 WHERE w.approverState = 'A'
+			   AND w.startAt <= CURRENT_TIMESTAMP
 			 GROUP BY h.mainRegion
 			""")
 	List<ChartDataDto> adminSelectRegionData();
@@ -134,7 +136,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			""")
 	int managerCountWaiting(@Param("depId")String depId);
 
-	// (부서)예산 소진율
+	// (부서)현재 진행중
 	@Query("""
 			SELECT COUNT(w) 
 			  FROM WorkcationInfo w 
@@ -174,5 +176,89 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			 GROUP BY h.mainRegion
 			""")
 	List<ChartDataDto> managerSelectRegionData(@Param("depId")String depId);
+
+	// 부서 워케이션 목록
+	@Query("""
+			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
+				e.empNo,
+				w.workcationTitle,
+				h.mainRegion,
+				h.subRegion,
+				w.startAt,
+				w.endAt,
+				e.empName,
+				e.status
+			)
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
+			  JOIN w.employee e
+			 WHERE e.depId = :depId
+			""")
+	List<WorkcationListDto> managerSelectWorkcationList(@Param("depId")String depId);
+
+	// (검색)부서 워케이션 목록
+	@Query("""
+			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
+				e.empNo,
+				w.workcationTitle,
+				h.mainRegion,
+				h.subRegion,
+				w.startAt,
+				w.endAt,
+				e.empName,
+				e.status
+			)
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
+			  JOIN w.employee e
+			 WHERE e.depId = :depId
+			   AND e.empName LIKE '%'||:keyword||'%'
+			   AND w.workcationTitle LIKE '%'||:keyword||'%'
+			   AND w.startAt >= :startDate
+			   AND w.endAt <= :endDate
+			""")
+	WorkcationListDto managerSearchWorkcationList(@Param("depId") String depId,
+												  @Param("keyword") String keyword,
+												  @Param("startDate") LocalDateTime startDate,
+												  @Param("endDate") LocalDateTime endDate);
+
+	// 사원 대시보드
+	// 워케이션 간 횟수
+	@Query("""
+			SELECT COUNT(w)
+			  FROM WorkcationInfo w
+			  JOIN w.employee e
+			 WHERE e.empNo = :empNo
+			   AND w.approverState = 'A'
+			   AND CURRENT_TIMESTAMP >= w.startAt
+			""")
+	int selectWorkcationCount(@Param("empNo") int empNo);
+
+	// 워케이션 진행 여부
+	@Query("""
+			SELECT COUNT(w) > 0
+			  FROM WorkcationInfo w
+			  JOIN w.employee e
+			 WHERE e.empNo = :empNo
+			   AND w.approverState = 'A'
+			   AND CURRENT_TIMESTAMP >= w.startAt
+			   AND w.endAt >= CURRENT_TIMESTAMP
+			""")
+	boolean existsWorkcation(@Param("empNo") int empNo);
+
+	
+	// 나의 워케이션 업무계획
+	@Query("""
+			SELECT w.workPlan
+			  FROM WorkcationInfo w
+			  JOIN w.employee e
+			 WHERE e.empNo = :empNo
+			   AND w.approverState = 'A'
+			   AND CURRENT_TIMESTAMP >= w.startAt
+			   AND w.endAt >= CURRENT_TIMESTAMP
+			""")
+	String selectWorkcationPlan(int empNo);
 	
 }

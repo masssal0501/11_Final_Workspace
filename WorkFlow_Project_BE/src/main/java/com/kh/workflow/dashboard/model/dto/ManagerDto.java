@@ -3,6 +3,7 @@ package com.kh.workflow.dashboard.model.dto;
 import java.util.List;
 
 import com.kh.workflow.notice.vo.Notice;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,10 @@ public class ManagerDto {
 	private int waiting;
 	private int inProgress;
 	private int budgetExhaustionRate;
+	private double avgProgressRate;
 	private List<WaitingListDto> waitingList;
 	private List<ChartDataDto> regionData;
 	private List<Notice> noticeData;
+	private List<BalanceListDto> balanceList;
+	private List<WorkcationListDto> workcationList;
 }

@@ -945,4 +945,38 @@
            AND a.status = 'A'
     </select>
     
+    <!-- =========================================================
+         35. 부서장 대시보드 - 정산대기 목록
+         ========================================================= -->
+    <select id="selectBalanceList" parameterType="string" resultType="com.kh.workflow.dashboard.model.dto.BalanceListDto">
+        SELECT e.emp_name, e.emp_no, a.approved_amount, a.status
+          FROM amount_support a
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.dep_id = #{depId}
+    </select>
+    
+    <!-- =========================================================
+         36. 사원 대시보드 - 남은 지원금
+         ========================================================= -->
+    <select id="selectAmountSupport" parameterType="int" resultType="int">
+        SELECT COALESCE(SUM(s.approved_amount), 0)
+          FROM amount_support a
+          JOIN support_list s ON a.amount_no = s.amount_no
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.emp_no = #{empNo}
+    </select>
+    
+    <!-- =========================================================
+	     37. 사원 대시보드 - 사용 비용
+	     ========================================================= -->
+    <select id="selectUseAmount" parameterType="int" resultType="int">
+        SELECT COALESCE(SUM(a.approved_amount), 0)
+          FROM amount_support a
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.emp_no = #{empNo}
+    </select>
+    
 </mapper>

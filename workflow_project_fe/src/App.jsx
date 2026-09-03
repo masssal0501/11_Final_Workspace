@@ -44,6 +44,8 @@ import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
 import AdminComponent from "./dashboard/components/AdminComponent";
+import ManagerComponent from "./dashboard/components/ManagerComponent";
+import StaffComponent from "./dashboard/components/StaffComponent";
 
 import {
     Routes,
@@ -52,7 +54,6 @@ import {
 } from "react-router-dom";
 
 import { useKakaoLoader } from "react-kakao-maps-sdk";
-import ManagerComponent from "./dashboard/components/ManagerComponent";
 
 function App() {
 
@@ -67,11 +68,14 @@ function App() {
     });
 
     // 카카오 SDK 로더
-    useKakaoLoader({
+    const [loading, error] = useKakaoLoader({
         appkey: 'a00510cb26a4e33be1647f26b12df5c9',
         libraries: ['services'] // 주소 변환을 위해 필수
     });
     
+    if (loading) return;
+    if (error) return;
+
     /*
      * 로그인 성공
      */
@@ -281,7 +285,7 @@ function App() {
                             ? <AdminComponent />
                             : loginUser.authCode === "MANAGER"
                                 ? <ManagerComponent loginUser={ loginUser } />
-                                : <div>사원 페이지</div>
+                                : <StaffComponent loginUser={ loginUser } />
                     }
                 />
 

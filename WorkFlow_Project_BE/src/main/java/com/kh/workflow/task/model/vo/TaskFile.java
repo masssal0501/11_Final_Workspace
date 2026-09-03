@@ -18,7 +18,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="amount_file")
+@Table(name="task_file")
 
 @DynamicInsert
 @DynamicUpdate

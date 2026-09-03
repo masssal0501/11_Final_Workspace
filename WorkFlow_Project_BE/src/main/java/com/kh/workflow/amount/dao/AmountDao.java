@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.kh.workflow.amount.vo.Amount;
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.dashboard.model.dto.BalanceListDto;
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 
 @Mapper
@@ -90,4 +91,14 @@ public interface AmountDao {
 	// 부서장 대시보드
 	// (부서)예산 소진율
 	int managerSelectBudgetExhaustionRate(String depId);
+
+	// 정산 대기 목록
+	List<BalanceListDto> selectBalanceList(String depId);
+
+	// 사원 대시보드
+	// 남은 지원금
+	int selectAmountSupport(int empNo);
+
+	// 사용 비용
+	int selectUseAmount(int empNo);
 }

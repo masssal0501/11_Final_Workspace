@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { selectManagerDashboardApi } from "../api/dashboardApi";
+import { selectManagerDashboardApi, selectManagerWorkcationListApi } from "../api/dashboardApi";
 import "../css/dashboard.css"
 
 function ManagerComponent(props) {
@@ -14,12 +14,18 @@ function ManagerComponent(props) {
         waiting: 0,
         inProgress: 0,
         budgetExhaustionRate: 0,
-        avgProgressRate: 45.6,
+        avgProgressRate: 100,
         waitingList: [],
         regionData: [],
         noticeData: [],
         balanceList: [],
         workcationList: []
+    });
+
+    const [inputData, setInputData] = useState({
+        keyword: "",
+        startAt: "",
+        endAt: ""
     });
 
     // 컴포넌트가 처음 마운트될 때 백엔드 대시보드 API를 호출하여 데이터 상태를 갱
@@ -28,8 +34,6 @@ function ManagerComponent(props) {
             try {
                 // 관리자 대시보드 데이터 조회 API 호출
                 const response = await selectManagerDashboardApi(loginUser.depId);
-
-                console.log(response.data);
 
                 // API 응답 데이터로 대시보드 상태 값 업데이트
                 setData(response.data);
@@ -44,6 +48,30 @@ function ManagerComponent(props) {
 
     // 페이지 이동을 위한 useNavigate 훅 선언
     const navigate = useNavigate();
+
+    // 사용자가 검색 폼의 값을 변경할 때 호출되는 핸들러입니다.
+    const handleChange = e => {
+        
+        // 기존 inputData를 복사한 뒤, 이벤트를 발생시킨 태그의 name 속성을 Key로 하여 값을 업데이트합니다.
+        setInputData({...inputData, [e.target.name]: e.target.value});
+
+    };
+
+    const handleSearch = async e => {
+
+        e.preventDefault();
+
+        try {
+            const response = await selectManagerWorkcationListApi(loginUser.depId, inputData);
+
+            setData(prevData => ({
+                ...prevData,
+                workcationList: response.data
+            }));
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     // 날짜 데이터를 한국어 지역 형식으로 안전하게 포맷팅하는 함수
     const formatDate = (date) => {
@@ -191,7 +219,7 @@ function ManagerComponent(props) {
                                 ))
                             ) : (
                                 <tr style={ { cursor : "auto" } }>
-                                    <td colSpan="5">승인 대기 건이 없습니다.</td>
+                                    <td colSpan="5">정산 대기 건이 없습니다.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -200,7 +228,19 @@ function ManagerComponent(props) {
             </div>
             <br /><br />
             <div className="dashboard-1" align="center">부서 워케이션 목록</div>
-            <br /><br />
+            <br />
+            <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex align-items-center gap-2 w-40">
+                    <input type="date" className="form-control" name="startAt" onChange={ handleChange } value={ inputData.startAt } />
+                    <span className="text-nowpx">&nbsp;~~~&nbsp;</span>
+                    <input type="date" className="form-control" name="endAt" onChange={ handleChange } value={ inputData.endAt } />
+                </div>
+                <div className="input-group w-50">
+                    <input type="search" className="form-control" placeholder="제목 및 이름 입력해주세요." name="keyword" onChange={ handleChange } value={ inputData.keyword } />
+                    <button type="submit" className="btn btn-outline-secondary search-button" onClick={ handleSearch }>🔍</button>
+                </div>
+            </div>
+            <br />
             <div>
                 <table className="table table-hover">
                     <thead>
@@ -214,36 +254,12 @@ function ManagerComponent(props) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>3</td>
-                            <td>업무 집중 및 생산성 향상</td>
-                            <td>강원도 철원군</td>
-                            <td>09-01~03-31</td>
-                            <td>김입대</td>
-                            <td>승인</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>업무 집중 및 생산성 향상</td>
-                            <td>강원도 강릉시</td>
-                            <td>09-04~09-09</td>
-                            <td>지민석</td>
-                            <td>대기</td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>업무 집중 및 생산성 향상</td>
-                            <td>강원도 춘천시</td>
-                            <td>09-01~09-05</td>
-                            <td>탁사원</td>
-                            <td>반려</td>
-                        </tr>
                         {data.workcationList?.length > 0 ? (
                             data.workcationList.map((item, index) => (
                                 <tr key={index} style={ { cursor : "auto" } }>
                                     <td>{item.workcationNo}</td>
                                     <td>{item.mainRegion} {item.subRegion}</td>
-                                    <td>{item.startDate.substring(5, 10)}~{item.endDate.substring(5, 10)}</td>
+                                    <td>{item.startAt.substring(5, 10)}~{item.endAt.substring(5, 10)}</td>
                                     <td>{item.empName}</td>
                                     <td>{ (item.approverState === "W") ? "대기" : 
                                           (item.approverState === "A") ? "승인" :

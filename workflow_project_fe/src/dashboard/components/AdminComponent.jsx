@@ -19,7 +19,7 @@ function AdminComponent() {
         supportFund: 0,
         totalParticipants: 0,
         totalCost: 0,
-        budgetData: 0,
+        budgetData: 100,
         waitingList: [],
         regionData: [],
         noticeData: [],
