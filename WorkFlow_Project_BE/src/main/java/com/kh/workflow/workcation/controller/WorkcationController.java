@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,7 +37,7 @@ public class WorkcationController {
 
 	// 워케이션 목록 조회
 	@GetMapping("/list")
-	public ResponseEntity<Map<String, Object>> selectWorkcationList(
+	public ResponseEntity<?> selectWorkcationList(
 			@RequestParam(value = "cpage", defaultValue = "1") int currentPage,
 			@RequestParam(value = "condition", defaultValue = "all") String condition,
 			@RequestParam(value = "keyword", defaultValue = "") String keyword,
@@ -45,8 +46,14 @@ public class WorkcationController {
 			@RequestParam(value = "searchType", defaultValue = "all") String searchType) {
 
 		Pageable pageable = PageRequest.of(currentPage - 1, 10);
+		Map<String, Object> paramMap = new HashMap<>();
+		paramMap.put("mainRegion", mainRegion);
+		paramMap.put("subRegion", subRegion);
+		paramMap.put("condition", condition);
+		paramMap.put("keyword", keyword);
+		paramMap.put("searchType", searchType);		
 
-		Page<WorkcationInfo> pageResult = workcationService.selectWorkcationList(pageable);
+		Page<Map<String, Object>> pageResult = workcationService.selectWorkcationList(paramMap, pageable);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("list", pageResult.getContent());
@@ -107,6 +114,14 @@ public class WorkcationController {
 
 		Map<String, Object> detail = workcationService.getWorkcationDetail(workcationNo);
 		return ResponseEntity.ok(detail);
+	}
+	
+	@PutMapping("update/{workcationNo}")
+	public ResponseEntity<String> update(
+			@PathVariable Integer workcationNo,
+			@RequestBody Map<String, Object> updateData){
+		workcationService.updateWorkcation(workcationNo, updateData);
+		return ResponseEntity.ok("수정완료");
 	}
 
 	@DeleteMapping("/delete/{workcationNo}")

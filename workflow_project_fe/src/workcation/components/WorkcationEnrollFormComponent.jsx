@@ -24,9 +24,6 @@ function WorkcationEnrollFormComponent() {
     const [workcationTitle, setWorkcationTitle] = useState("");
     const [startDate, setStartDate] = useState(getToday());
     const [endDate, setEndDate] = useState(getToday());
-    const [programVisitDate, setProgramVisitDate] = useState(getTomorrow());
-    const [restaurantVisitDate, setRestaurantVisitDate] = useState(getTomorrow());
-    const [tourVisitDate, setTourVisitDate] = useState(getTomorrow());
 
     const [userCapacity, setUserCapacity] = useState(1);
     const [taskPurpose, setTaskPurpose] = useState("");
@@ -71,7 +68,7 @@ function WorkcationEnrollFormComponent() {
         getMainRegionList()
             .then(res => {
                 const listData = Array.isArray(res)
-                    ? res.data
+                    ? res
                     : (Array.isArray(res) ? res : []);
                 setMainRegionDrop(listData);
             })
@@ -90,7 +87,7 @@ function WorkcationEnrollFormComponent() {
         getSubRegionList(mainRegion)
             .then(res => {
                 const listData = Array.isArray(res)
-                    ? res.data
+                    ? res
                     : (Array.isArray(res) ? res : []);
                 setSubRegionDrop(listData);
             })
@@ -167,7 +164,7 @@ function WorkcationEnrollFormComponent() {
                 subRegion: subRegion,
                 hubType: placeConfig.typeCode
             })
-               .then(res => {
+                .then(res => {
                     const listData = Array.isArray(res)
                         ? res
                         : (Array.isArray(res?.list) ? res.list : (Array.isArray(res?.data) ? res.data : []));
@@ -548,7 +545,13 @@ function WorkcationEnrollFormComponent() {
                         <input type="text"
                             placeholder="업무명"
                             value={taskName}
-                            onChange={(e) => setTaskName(e.target.value)} />
+                            onChange={(e) => setTaskName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddPlan();
+                                }
+                            }} />
                         <input type="number"
                             placeholder="예상기간"
                             value={days}

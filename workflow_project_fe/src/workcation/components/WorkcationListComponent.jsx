@@ -59,6 +59,9 @@ function WorkcationListComponent() {
 
     // 3. 조건 변경 시 워케이션 목록 조회
     useEffect(() => {
+        if(mainRegion && !subRegion){
+            return;
+        }
         selectWorkcationList();
     }, [cpage, searchCondition, searchKeyword, mainRegion, subRegion, searchType]);
 
@@ -84,14 +87,10 @@ function WorkcationListComponent() {
         const items = Array.isArray(responseData) ? responseData
             : (responseData?.list || responseData?.content || []);
 
-        const trArr = items.map((item) => {
-            let regionText = "-";
-            if (item.workcationTitle && item.workcationTitle.startsWith("[")) {
-                const closeIdx = item.workcationTitle.indexOf("]");
-                if (closeIdx > 1) {
-                    regionText = item.workcationTitle.substring(1, closeIdx);
-                }
-            }
+        const trArr = items.map((item) => {            
+            const main = item.mainRegion || "";
+            const sub = item.subRegion || "";
+            const regionText = (main || sub) ? `${main} ${sub}`.trim() : "-";
             return (
                 <tr key={item.workcationNo}
                     onClick={() => navigate(`/workcation/detail/${item.workcationNo}`)}>

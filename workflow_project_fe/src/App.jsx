@@ -30,13 +30,16 @@ import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
+import WorkcationUpdateFormComponent from "./workcation/components/WorkcationUpdateFormComponent";
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
 import FindPWForm from "./employee/components/FindPWForm";
 import ChangePWForm from "./employee/components/ChangePWForm";
 import EmployeeEnrollFormComponent
+
   from "./employee/components/EmployeeEnrollFormComponent";
+
 import MyPageForm from "./employee/components/MyPageForm";
 import UpdateMyPageForm from "./employee/components/UpdateMyPageForm";
 import EmployeeList from "./employee/components/EmployeeList";
@@ -55,13 +58,13 @@ function App() {
 
   const [loginUser, setLoginUser] = useState(() => {
 
-    const savedUser =
-      localStorage.getItem("user");
+        const savedUser =
+            localStorage.getItem("user");
 
-    return savedUser
-      ? JSON.parse(savedUser)
-      : null;
-  });
+        return savedUser
+            ? JSON.parse(savedUser)
+            : null;
+    });
 
 
   /*
@@ -148,6 +151,7 @@ function App() {
           <Route path="/workcation/list" element={<WorkcationListComponent />} />
           <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
           <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+          <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
 
           <Route
             path="*"
@@ -272,8 +276,7 @@ function App() {
         <Route path="/workcation/list" element={<WorkcationListComponent />} />
         <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
         <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
-
-
+        <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
 
         <Route
           path="/"

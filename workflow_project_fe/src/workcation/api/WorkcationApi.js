@@ -1,6 +1,6 @@
 import axios from "axios";
-
-const BASE_URL = 'http://localhost:8006/workflow';
+axios.defaults.withCredentials = true;
+const BASE_URL = '/workflow';
 
 //1.메인지역
 export const getMainRegionList = async () =>{
@@ -26,12 +26,19 @@ export const getWorkcationList = async (params) => {
 
 //상세조회
 export const getWorkcationDetail = async(workcationNo)=>{
+    console.log("전달받은 workcationNo:", workcationNo);
     const response = await axios.get(`${BASE_URL}/workcation/detail/${workcationNo}`)
     return response.data;
 }
 //워케이션 등록
 export const enrollWorkcation = async (insertworkcationData)=>{
     const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, insertworkcationData)
+    return response;
+}
+
+//수정
+export const updateWorkcation = async(workcationNo, updateData) => {
+    const response = await axios.put(`${BASE_URL}/workcation/update/${workcationNo}`, updateData);
     return response;
 }
 

@@ -9,7 +9,7 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface WorkcationService {
 
-	Page<WorkcationInfo> selectWorkcationList(Pageable pageable);
+	Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paraMap, Pageable pageable);
 
 	void insertWorkcationEnrollForm(Map<String, Object> paramMap);
 	
@@ -20,6 +20,8 @@ public interface WorkcationService {
 	Map<String, Object> getWorkcationDetail(Integer workcationNo);
 
 	void deleteWorkcation(Integer workcationNo);
+
+	void updateWorkcation(Integer workcationNo, Map<String, Object> updateData);
 
 	
 }
