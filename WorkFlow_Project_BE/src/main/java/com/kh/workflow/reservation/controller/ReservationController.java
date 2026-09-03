@@ -126,4 +126,16 @@ public class ReservationController {
 
         return ResponseEntity.noContent().build();
     }
+    
+    //
+    @GetMapping("/workcation/{workcationNo}")
+    public ResponseEntity<List<Reservation>>
+    getReservationsByWorkcation(
+            @PathVariable Integer workcationNo) {
+
+        return ResponseEntity.ok(
+            reservationService
+                .getReservationsByWorkcation(workcationNo)
+        );
+    }
 }

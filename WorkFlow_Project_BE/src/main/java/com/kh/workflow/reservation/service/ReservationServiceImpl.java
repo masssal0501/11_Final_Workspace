@@ -245,4 +245,15 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
     }
+    
+    //
+    @Override
+    public List<Reservation> getReservationsByWorkcation(
+            Integer workcationNo) {
+
+        return reservationDao
+                .findByWorkcationNoOrderByRsvStartDesc(
+                        workcationNo
+                );
+    }
 }

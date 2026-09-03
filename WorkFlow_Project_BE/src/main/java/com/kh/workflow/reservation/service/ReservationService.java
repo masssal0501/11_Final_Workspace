@@ -73,4 +73,9 @@ public interface ReservationService {
     void cancelReservation(
             Integer rsvNo
     );
+    
+    //
+    List<Reservation> getReservationsByWorkcation(
+            Integer workcationNo
+    );
 }

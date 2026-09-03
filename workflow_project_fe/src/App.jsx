@@ -48,6 +48,11 @@ import EmployeeList from "./employee/components/EmployeeList";
 import EmployeeDetail from "./employee/components/EmployeeDetail";
 import EmployeeEdit from "./employee/components/EmployeeEdit";
 
+import ReservationListComponent from "./reservation/components/ReservationListComponent"; 
+import ReservationEnrollComponent from "./reservation/components/ReservationEnrollComponent"; 
+import ReservationDetailComponent from "./reservation/components/ReservationDetailComponent"; 
+import ReservationUpdateComponent from "./reservation/components/ReservationUpdateComponent";
+
 import LocationCheckModal from "./common/components/LocationCheckModal";
 import ErrorPage from "./common/components/ErrorPage";
 
@@ -56,8 +61,6 @@ import {
     Route,
     Navigate
 } from "react-router-dom";
-
-
 
 function App() {
 
@@ -269,6 +272,12 @@ function App() {
 
                 {/* 비밀번호 변경 */}
                 <Route path="/changePW" element={<ChangePWForm />} />
+
+                {/* 예약 */}
+                <Route path="/reservations" element={<ReservationListComponent />}/>
+                <Route path="/reservations/enroll" element={<ReservationEnrollComponent />}/>
+                <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />}/>
+                <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />}/>
 
                 {/* 관리자 */}
                 {loginUser.authCode === "ADMIN" && (
