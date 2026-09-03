@@ -9,4 +9,6 @@ public interface ApprovalDao {
 
 	Page<WorkcationInfo> findAll(Pageable pageable);
 
+	WorkcationInfo findByWorkcationNo(int workcationNo);
+
 }

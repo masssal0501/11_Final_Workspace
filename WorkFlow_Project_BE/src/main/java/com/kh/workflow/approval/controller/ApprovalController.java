@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,8 +27,8 @@ public class ApprovalController {
 	@Autowired
 	private ApprovalService approvalService;
 	
-	// 워케이션 신청 목록 조
-	@GetMapping
+	// 승인이력 목록 조회
+	@GetMapping("/list")
 	public ResponseEntity<Map<String, Object>> selectApprovalList(
 			@RequestParam(value = "cpage", defaultValue = "1") int currentPage){
 		
@@ -41,6 +43,19 @@ public class ApprovalController {
 		map.put("totalElements", pageResult.getTotalElements());
 
 		return ResponseEntity.ok(map);
+		
+	}
+	
+	// 승인이력 상세 조회
+	@GetMapping("/{workcationNo}")
+	public ResponseEntity<WorkcationInfo> selectApproval(
+			@PathVariable int workcationNo) {
+		
+		WorkcationInfo w = approvalService.selectApproval(workcationNo);
+		
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.body(w);
 		
 	}
 	

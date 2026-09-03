@@ -18,4 +18,9 @@ public class ApprovalServiceImpl implements ApprovalService {
 		return approvalDao.findAll(pageable);
 	}
 
+	@Override
+	public WorkcationInfo selectApproval(int workcationNo) {
+		return approvalDao.findByWorkcationNo(workcationNo);
+	}
+
 }

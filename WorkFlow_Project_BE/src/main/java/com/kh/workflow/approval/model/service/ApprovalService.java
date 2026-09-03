@@ -9,4 +9,6 @@ public interface ApprovalService {
 	
 	Page<WorkcationInfo> selectApprovalList(Pageable pageable);
 
+	WorkcationInfo selectApproval(int workcationNo);
+
 }
