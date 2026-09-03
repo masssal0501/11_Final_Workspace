@@ -61,6 +61,7 @@ import {
     Route,
     Navigate
 } from "react-router-dom";
+import ReservationScheduleComponent from "./reservation/components/ReservationScheduleComponent";
 
 function App() {
 
@@ -278,6 +279,7 @@ function App() {
                 <Route path="/reservations/enroll" element={<ReservationEnrollComponent />}/>
                 <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />}/>
                 <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />}/>
+                <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
 
                 {/* 관리자 */}
                 {loginUser.authCode === "ADMIN" && (

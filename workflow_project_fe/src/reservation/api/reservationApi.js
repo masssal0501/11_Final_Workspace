@@ -62,9 +62,7 @@ export const getAvailableSchedules = async ({
 // 예약 신청
 // =========================================================
 
-export const createReservation = async (
-    reservationData
-) => {
+export const createReservation = async (reservationData) => {
 
     const response = await axiosInstance.post(
         "/reservations",
@@ -80,9 +78,7 @@ export const createReservation = async (
 // 예약 상세 조회
 // =========================================================
 
-export const getReservationDetail = async (
-    rsvNo
-) => {
+export const getReservationDetail = async (rsvNo) => {
 
     const response = await axiosInstance.get(
         `/reservations/${rsvNo}`
@@ -116,9 +112,7 @@ export const updateReservation = async (
 // 예약 취소
 // =========================================================
 
-export const cancelReservation = async (
-    rsvNo
-) => {
+export const cancelReservation = async (rsvNo) => {
 
     const response = await axiosInstance.patch(
         `/reservations/${rsvNo}/cancel`
@@ -133,12 +127,24 @@ export const cancelReservation = async (
 // 워케이션별 예약 목록
 // =========================================================
 
-export const getReservationsByWorkcation = async (
-    workcationNo
-) => {
+export const getReservationsByWorkcation = async (workcationNo) => {
 
     const response = await axiosInstance.get(
         `/reservations/workcation/${workcationNo}`
+    );
+
+    return response.data;
+};
+
+
+// =========================================================
+// 시설 상세 조회
+// =========================================================
+
+export const getHub = async (hubNo) => {
+
+    const response = await axiosInstance.get(
+        `/hubs/${hubNo}`
     );
 
     return response.data;

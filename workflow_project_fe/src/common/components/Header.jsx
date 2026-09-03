@@ -48,7 +48,7 @@ function Header({ loginUser, onLogout }) {
         } ,
         { 
           label: "시설 예약 관리", 
-          path: "/reservations",
+          path: "/reservations/schedules",
           roles: ["ADMIN"]
         }         
       ]

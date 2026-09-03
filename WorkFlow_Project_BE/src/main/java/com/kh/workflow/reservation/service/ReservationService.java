@@ -74,7 +74,9 @@ public interface ReservationService {
             Integer rsvNo
     );
     
-    //
+    /*
+     * 워케이션별 예약 조회
+     */
     List<Reservation> getReservationsByWorkcation(
             Integer workcationNo
     );
