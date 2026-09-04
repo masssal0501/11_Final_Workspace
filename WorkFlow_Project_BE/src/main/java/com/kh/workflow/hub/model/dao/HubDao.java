@@ -87,8 +87,12 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
             """)
 	double selectAvgScore(@Param("hubNo") int hubNo);
     
-    // 관리자 대시보드
-    // 거점 오피스별 점유율
+    /**
+	 * [관리자] 거점 오피스별 점유율 통계 데이터 조회 (차트용)
+	 * 허브 타입이 2인 거점 오피스들을 대상으로 지역(mainRegion)별 점유율 백분율을 계산하여 반환합니다.
+	 * 
+	 * @return List<ChartDataDto> 거점 오피스 지역별 점유율 데이터 목록
+	 */
     @Query("""
     		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(
     			h.mainRegion,

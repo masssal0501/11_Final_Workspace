@@ -17,7 +17,12 @@ public interface EmployeeDao
     
     Optional<Employee> findByEmpId(String empId);
 
-    // 부서명 조회
+    /**
+	 * [부서장] 부서 아이디(depId)를 기반으로 해당 부서의 부서명(depTitle) 조회
+	 * 
+	 * @param depId 조회할 부서의 아이디
+	 * @return String 부서명
+	 */
     @Query("""
     		SELECT d.depTitle
     		  FROM Department d

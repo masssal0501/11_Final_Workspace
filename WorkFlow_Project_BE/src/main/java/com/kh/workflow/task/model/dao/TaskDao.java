@@ -8,8 +8,14 @@ import com.kh.workflow.task.model.vo.Task;
 
 public interface TaskDao extends JpaRepository<Task, Integer> {
 
-	// 부서 대시보드
-	// 부서 평균 업무 진행률
+	/**
+	 * [부서장] 특정 부서의 현재 진행 중인 워케이션 업무 평균 진행률(%) 조회
+	 * 승인('A') 상태이며 현재 날짜 기준 진행 중인 워케이션에 소속된 업무들을 대상으로, 
+	 * 완료('Y')된 업무의 비율을 계산하여 백분율로 반환합니다.
+	 * 
+	 * @param depId 부서 아이디
+	 * @return double 부서 평균 업무 진행률 백분율 (대상 업무가 없으면 0.0 반환)
+	 */
 	@Query("""
 			SELECT COALESCE((SUM(CASE WHEN t.status = 'Y' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(t), 0)) * 100, 0.0)
 			  FROM Task t
@@ -23,8 +29,14 @@ public interface TaskDao extends JpaRepository<Task, Integer> {
 			""")
 	double AvgProgressRate(@Param("depId") String depId);
 
-	// 사원 대시보드
-	// 업무 진행률
+	/**
+	 * [사원] 특정 사원의 현재 진행 중인 워케이션 업무 진행률(%) 조회
+	 * 승인('A') 상태이며 현재 날짜 기준 진행 중인 워케이션에 소속된 본인의 업무들을 대상으로, 
+	 * 완료('Y')된 업무의 비율을 계산하여 백분율로 반환합니다.
+	 * 
+	 * @param empNo 사원 번호
+	 * @return double 개인 업무 진행률 백분율 (대상 업무가 없으면 0.0 반환)
+	 */
 	@Query("""
 			SELECT COALESCE((SUM(CASE WHEN t.status = 'Y' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(t), 0)) * 100, 0.0)
 			  FROM Task t

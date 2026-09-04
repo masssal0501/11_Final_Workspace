@@ -4,6 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { selectAdminDashboardApi } from "../api/dashboardApi";
 import "../css/dashboard.css"
 
+/**
+ * 관리자(Admin) 전용 대시보드 컴포넌트
+ * 전사 워케이션 신청 현황, 승인 대기 목록, 지역별/월별/부서별 통계 차트 및 예산 집행률을 시각화하여 제공합니다.
+ */
 function AdminComponent() {
     
     // 관리자 대시보드에 표현될 상단/중단 요약 통계, 차트, 리스트 데이터를 담는 객체 상태 정의
@@ -29,7 +33,7 @@ function AdminComponent() {
         deptData: [],
     });
 
-    // 컴포넌트가 처음 마운트될 때 백엔드 대시보드 API를 호출하여 데이터 상태를 갱
+    // 컴포넌트가 처음 마운트될 때 백엔드 대시보드 API를 호출하여 데이터 상태를 갱신
     useEffect(() => {
         const selectDashboardData = async () => {
             try {
@@ -50,7 +54,11 @@ function AdminComponent() {
     // 페이지 이동을 위한 useNavigate 훅 선언
     const navigate = useNavigate();
 
-    // 거점 오피스, 항목, 부서 이름에 따라 고유한 색상 코드를 반환하는 함수
+    /**
+     * 거점 오피스, 지출 항목, 부서 이름에 따라 고유한 색상 코드를 반환하는 함수
+     * @param {string} name - 차트 항목 이름 (지역, 항목, 부서명 등)
+     * @returns {string} HEX 색상 코드
+     */
     const getOfficeColor = (name) => {
         if (name === '강원') return '#ff8042';
         if (name === '제주') return '#8884d8';
@@ -70,13 +78,15 @@ function AdminComponent() {
         return '#1f1e33';
     };
 
-    // 파이/도넛 차트 내부 또는 외부 지시선에 라벨을 동적으로 렌더링하는 함수
+    /**
+     * 파이/도넛 차트 내부 또는 외부 지시선에 라벨을 동적으로 렌더링하는 함수
+     * 비중이 15% 이하일 경우 바깥쪽 지시선에 표시하고, 초과일 경우 파이 조각 내부에 표시합니다.
+     */
     const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, value }) => {
         const RADIAN = Math.PI / 180;
         const sin = Math.sin(-midAngle * RADIAN);
         const cos = Math.cos(-midAngle * RADIAN);
 
-        // 비중이 15% 이하일 경우, 차트 바깥쪽에 지시선과 함께 라벨 표시
         if (value <= 15) {
             const sx = cx + (outerRadius + 5) * cos;
             const sy = cy + (outerRadius + 5) * sin;
@@ -108,7 +118,11 @@ function AdminComponent() {
         }
     };
 
-    // 날짜 데이터를 한국어 지역 형식으로 안전하게 포맷팅하는 함수
+    /**
+     * 날짜 데이터를 한국어 지역 형식(YYYY. MM. DD.)으로 안전하게 포맷팅하는 함수
+     * @param {string|Date} date - 포맷팅할 날짜 객체 또는 문자열
+     * @returns {string} 포맷팅된 날짜 문자열 또는 '-'
+     */
     const formatDate = (date) => {
         if (!date) {
             return '-';
@@ -121,7 +135,7 @@ function AdminComponent() {
     };
 
     return(
-        <div className="content">
+        <div className="dashboard-content">
             {/* 대시보드 상단 타이틀 */}
             <div className="dashboard-1" align="center">이번달 워케이션 현황</div>
             <br />
@@ -160,7 +174,7 @@ function AdminComponent() {
                                         <td>{item.empName}</td>
                                         <td>{item.depTitle}</td>
                                         <td>{item.mainRegion}</td>
-                                        <td>{item.startAt.substring(5, 10)}~{item.endAt.substring(5, 10)}</td>
+                                        <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
                                         <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
                                     </tr>
                                 ))

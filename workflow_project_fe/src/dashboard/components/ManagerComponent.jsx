@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { selectManagerDashboardApi, selectManagerWorkcationListApi } from "../api/dashboardApi";
 import "../css/dashboard.css"
 
+/**
+ * 부서장(Manager) 전용 대시보드 컴포넌트
+ * 로그인한 사용자의 부서 ID를 기반으로 부서 워케이션 현황, 승인 대기 목록, 정산 대기 목록,
+ * 부서 평균 업무 진행률 및 필터링 가능한 부서 워케이션 신청 목록을 시각화하여 제공합니다.
+ * @param {Object} props - 부모 컴포넌트로부터 전달받은 속성
+ * @param {Object} props.loginUser - 현재 로그인한 사용자 정보 객체 (부서 ID 포함)
+ */
 function ManagerComponent(props) {
 
     const loginUser = props.loginUser;
@@ -22,17 +29,18 @@ function ManagerComponent(props) {
         workcationList: []
     });
 
+    // 부서 워케이션 목록 검색 및 필터링(기간, 키워드)을 위한 입력 상태 관리
     const [inputData, setInputData] = useState({
         keyword: "",
         startAt: "",
         endAt: ""
     });
 
-    // 컴포넌트가 처음 마운트될 때 백엔드 대시보드 API를 호출하여 데이터 상태를 갱
+    // 컴포넌트가 처음 마운트될 때 백엔드 대시보드 API를 호출하여 데이터 상태를 갱신
     useEffect(() => {
         const selectDashboardData = async () => {
             try {
-                // 관리자 대시보드 데이터 조회 API 호출
+                // 부서장 대시보드 데이터 조회 API 호출 (부서 ID 전달)
                 const response = await selectManagerDashboardApi(loginUser.depId);
 
                 // API 응답 데이터로 대시보드 상태 값 업데이트
@@ -49,21 +57,28 @@ function ManagerComponent(props) {
     // 페이지 이동을 위한 useNavigate 훅 선언
     const navigate = useNavigate();
 
-    // 사용자가 검색 폼의 값을 변경할 때 호출되는 핸들러입니다.
+    /**
+     * 사용자가 검색 폼의 입력값(날짜, 검색어 등)을 변경할 때 호출되는 핸들러 함수
+     * @param {Object} e - 이벤트 객체
+     */
     const handleChange = e => {
-        
         // 기존 inputData를 복사한 뒤, 이벤트를 발생시킨 태그의 name 속성을 Key로 하여 값을 업데이트합니다.
         setInputData({...inputData, [e.target.name]: e.target.value});
-
     };
 
+    /**
+     * 부서 워케이션 목록 검색 버튼 클릭 시 호출되는 핸들러 함수
+     * 지정된 기간과 검색어(키워드) 조건으로 백엔드 API를 호출하여 워케이션 목록을 갱신합니다.
+     * @param {Object} e - 이벤트 객체
+     */
     const handleSearch = async e => {
-
         e.preventDefault();
 
         try {
+            // 부서 워케이션 검색/조회 API 호출
             const response = await selectManagerWorkcationListApi(loginUser.depId, inputData);
 
+            // 응답받은 워케이션 목록 데이터로 상태 갱신
             setData(prevData => ({
                 ...prevData,
                 workcationList: response.data
@@ -73,7 +88,11 @@ function ManagerComponent(props) {
         }
     }
 
-    // 날짜 데이터를 한국어 지역 형식으로 안전하게 포맷팅하는 함수
+    /**
+     * 날짜 데이터를 한국어 지역 형식(YYYY. MM. DD.)으로 안전하게 포맷팅하는 함수
+     * @param {string|Date} date - 포맷팅할 날짜 객체 또는 문자열
+     * @returns {string} 포맷팅된 날짜 문자열 또는 '-'
+     */
     const formatDate = (date) => {
         if (!date) {
             return '-';
@@ -86,8 +105,8 @@ function ManagerComponent(props) {
     };
 
     return (
-        <div className="content">
-            {/* 대시보드 상단 타이틀 */}
+        <div className="dashboard-content">
+            {/* 대시보드 상단 타이틀 (부서명 동적 표시) */}
             <div className="dashboard-1" align="center">{data.depTitle} 워케이션 현황</div>
             <br />
             {/* 이번 달 요약 지표 영역 (총 신청, 승인대기, 진행중, 예산 소진율) */}
@@ -123,7 +142,7 @@ function ManagerComponent(props) {
                                     <tr key={index} style={ { cursor : "auto" } }>
                                         <td>{item.empName}</td>
                                         <td>{item.mainRegion}</td>
-                                        <td>{item.startAt.substring(5, 10)}~{item.endAt.substring(5, 10)}</td>
+                                        <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
                                         <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
                                     </tr>
                                 ))
@@ -183,12 +202,15 @@ function ManagerComponent(props) {
                 </table>
             </div>
             <br /><br />
+            {/* 부서 평균 업무 진행률 및 정산대기 목록 섹션 헤더 */}
             <div className="d-flex text-center dashboard-1">
                 <p className="w-50 mb-0">부서 평균 업무 진행률</p>
                 <p className="w-50 mb-0">정산대기 목록</p>
             </div>
             <br />
+            {/* 부서 평균 업무 진행률 프로그레스 바 및 정산 대기 목록 테이블 영역 */}
             <div className="d-flex justify-content-between align-items-start">
+                {/* 좌측: 부서 업무 진행률 시각화 프로그레스 바 */}
                 <div style={{ width: '48%' }}>
                     <div className="progress dashboard-progress w-100">
                         <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.avgProgressRate}%` }}></div>
@@ -197,6 +219,7 @@ function ManagerComponent(props) {
                         </div>
                     </div>
                 </div>
+                {/* 우측: 정산 대기 목록 테이블 */}
                 <div style={{ width: '48%' }}>
                     <table className="table">
                         <thead>
@@ -213,7 +236,7 @@ function ManagerComponent(props) {
                                     <tr key={index} style={ { cursor : "auto" } }>
                                         <td>{item.empName}</td>
                                         <td>{item.empId}</td>
-                                        <td>{item.amount.toLocaleString('ko-KR')}원</td>
+                                        <td>{item.amount?.toLocaleString('ko-KR')}원</td>
                                         <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
                                     </tr>
                                 ))
@@ -227,8 +250,10 @@ function ManagerComponent(props) {
                 </div>
             </div>
             <br /><br />
+            {/* 부서 워케이션 목록 섹션 타이틀 및 검색 필터 영역 */}
             <div className="dashboard-1" align="center">부서 워케이션 목록</div>
             <br />
+            {/* 검색 필터 바 (시작일~종료일 기간 선택 및 키워드 검색창) */}
             <div className="d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2 w-40">
                     <input type="date" className="form-control" name="startAt" onChange={ handleChange } value={ inputData.startAt } />
@@ -241,6 +266,7 @@ function ManagerComponent(props) {
                 </div>
             </div>
             <br />
+            {/* 부서 워케이션 신청 목록 테이블 */}
             <div>
                 <table className="table table-hover">
                     <thead>
@@ -259,7 +285,7 @@ function ManagerComponent(props) {
                                 <tr key={index} style={ { cursor : "auto" } }>
                                     <td>{item.workcationNo}</td>
                                     <td>{item.mainRegion} {item.subRegion}</td>
-                                    <td>{item.startAt.substring(5, 10)}~{item.endAt.substring(5, 10)}</td>
+                                    <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
                                     <td>{item.empName}</td>
                                     <td>{ (item.approverState === "W") ? "대기" : 
                                           (item.approverState === "A") ? "승인" :
