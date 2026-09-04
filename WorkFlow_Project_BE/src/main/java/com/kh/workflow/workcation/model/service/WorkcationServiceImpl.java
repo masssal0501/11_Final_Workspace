@@ -27,4 +27,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 		return workcationDao.findAll(pageable);
 	}
 
+	@Override
+	public WorkcationInfo selectWorkcation(int workcationNo) {
+		return workcationDao.findByWorkcationNo(workcationNo);
+	}
+
 }

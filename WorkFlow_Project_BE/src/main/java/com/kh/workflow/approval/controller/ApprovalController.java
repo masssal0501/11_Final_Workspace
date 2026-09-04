@@ -12,12 +12,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.workflow.approval.model.service.ApprovalService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
+
+import jakarta.servlet.http.HttpSession;
 
 @CrossOrigin
 @RestController
@@ -58,6 +62,30 @@ public class ApprovalController {
 				.body(w);
 		
 	}
+	
+	
+	// 반려 기능
+	@PostMapping("/{workcationNo}")
+	public ResponseEntity<String> rejectApproval(
+			@PathVariable int workcationNo,
+			@RequestPart("workcation") WorkcationInfo w,
+			HttpSession session) {
+		
+		w.setWorkcationNo(workcationNo);
+		
+		WorkcationInfo rejectApproval = approvalService.rejectApproval(w);
+		
+		
+        String message =
+                (rejectApproval != null)
+                ? "success"
+                : "fail";
+		
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.body(message);
+	}
+	
 	
 
 }
