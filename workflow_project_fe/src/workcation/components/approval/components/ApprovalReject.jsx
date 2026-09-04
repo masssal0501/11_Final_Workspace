@@ -11,28 +11,28 @@ function ApprovalReject() {
 
     const navigate = useNavigate();
 
-    // const [workcationInfo, setWorkcationInfo ] = useState(null);
+    const [workcationInfo, setWorkcationInfo ] = useState(null);
 
-    const [workcationInfo, setWorkcationInfo] = useState({
-        workcationTitle: "제주 워케이션",
-        workPlan: "제주 지역에서 원격 근무를 진행하며 업무를 수행합니다.",
-        createdAt: "2026-09-01",
-        startAt: "2026-09-10",
-        endAt: "2026-09-15",
-        approverState: "W",
-        approverComment: "",
+    // const [workcationInfo, setWorkcationInfo] = useState({
+    //     workcationTitle: "제주 워케이션",
+    //     workPlan: "제주 지역에서 원격 근무를 진행하며 업무를 수행합니다.",
+    //     createdAt: "2026-09-01",
+    //     startAt: "2026-09-10",
+    //     endAt: "2026-09-15",
+    //     approverState: "W",
+    //     approverComment: "",
 
-        employee: {
-            empNo: 10,
-            empName: "김규민",
-            deptName: "개발부"
-        },
+    //     employee: {
+    //         empNo: 10,
+    //         empName: "김규민",
+    //         deptName: "개발부"
+    //     },
 
-        hub: {
-            hubName: "제주 워케이션 센터",
-            hubAddress: "제주특별자치도 제주시 제주대로 123"
-        }
-    });
+    //     hub: {
+    //         hubName: "제주 워케이션 센터",
+    //         hubAddress: "제주특별자치도 제주시 제주대로 123"
+    //     }
+    // });
 
     const [approverState, setApproverState] = useState("W");
     const [approverComment, setApproverComment] = useState("");
@@ -56,9 +56,9 @@ function ApprovalReject() {
             console.log("워케이션 신청 상세 내역 조회 실패", error);
         }
     };
-    // useEffect(() => {
-    // selectApprovalDetail();
-    // }, [workcationNo]);
+    useEffect(() => {
+    selectApprovalDetail();
+    }, [workcationNo]);
 
     if(!workcationInfo) {
 

@@ -66,3 +66,22 @@
     vertical-align: middle;
     padding: 15px 20px;
 }
+/* 승인 이력 목록 */
+.historyList tbody tr {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+/* 마우스 오버 */
+.historyList tbody tr:hover {
+    background-color: #f0f8ff;
+}
+.pagination button {
+    color: #0dcaf0 !important;
+    background-color: white !important;
+}
+
+.pagination button:hover:not(:disabled) {
+    color: white !important;
+    background-color: #0dcaf0 !important;
+}

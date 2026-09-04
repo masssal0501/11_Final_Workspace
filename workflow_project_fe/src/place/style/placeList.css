@@ -355,6 +355,77 @@
 
     cursor: pointer;
 }
+/* ================================
+   페이지네이션
+================================ */
+
+.pagination {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 5px;
+
+    margin-top: 30px;
+}
+
+.pagination button {
+    min-width: 34px;
+    height: 34px;
+
+    padding: 0 8px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    color: #0dcaf0;
+    background-color: white;
+
+    border: 1px solid #0dcaf0;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* 현재 페이지 */
+.pagination button.btn-info {
+    color: white;
+    background-color: #0dcaf0;
+
+    border-color: #0dcaf0;
+}
+
+
+/* 선택되지 않은 페이지 */
+.pagination button.btn-outline-info {
+    color: #0dcaf0;
+    background-color: white;
+
+    border-color: #0dcaf0;
+}
+
+
+/* 마우스 올렸을 때 */
+.pagination button:hover:not(:disabled) {
+    color: white;
+    background-color: #0dcaf0;
+
+    border-color: #0dcaf0;
+}
+
+
+/* 비활성화 버튼 */
+.pagination button:disabled {
+    color: #aaa;
+    background-color: #f5f5f5;
+
+    border-color: #ddd;
+
+    cursor: not-allowed;
+}
 
 
 /* ================================

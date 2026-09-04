@@ -11,6 +11,8 @@ public interface WorkcationService {
 
 	Page<WorkcationInfo> selectWorkcationList(Pageable pageable);
 
+	WorkcationInfo selectWorkcation(int workcationNo);
+
 	
 	
 }
