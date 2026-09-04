@@ -17,13 +17,19 @@ function PlaceList() {
     const searchType = searchParams.get("type") || "";
     const searchRegion = searchParams.get("region") || "";
     const searchSubRegion = searchParams.get("subRegion") || "";
-    const cpage = parseInt(searchParams.get("cpage")) || 1;
+
+    const cpage =
+        parseInt(searchParams.get("cpage")) || 1;
 
     const navigate = useNavigate();
 
-    const [pageList, setPageList] = useState([]);
+    // 페이지 정보
+    const [pageInfo, setPageInfo] = useState(null);
 
+
+    // 하위 지역 목록
     const subRegionList = {
+
         "강원도": [
             "강릉시",
             "속초시",
@@ -31,6 +37,7 @@ function PlaceList() {
             "춘천시",
             "평창군"
         ],
+
         "부산": [
             "해운대구",
             "영도구",
@@ -38,18 +45,26 @@ function PlaceList() {
             "부산진구",
             "중구"
         ],
+
         "제주도": [
             "서귀포시",
             "제주시"
         ]
+
     };
 
+
+    // 목록 조회
     useEffect(() => {
 
         if (searchKeyword === "") {
+
             selectPlaceList();
+
         } else {
+
             searchPlaceList();
+
         }
 
     }, [
@@ -66,18 +81,22 @@ function PlaceList() {
 
         try {
 
-            const response = await placeApi.getPlaceList(
-                cpage,
-                searchType,
-                searchRegion,
-                searchSubRegion
-            );
+            const response =
+                await placeApi.getPlaceList(
+                    cpage,
+                    searchType,
+                    searchRegion,
+                    searchSubRegion
+                );
 
             handleResponse(response);
 
         } catch (error) {
 
-            console.log("장소 정보 목록 조회용 ajax 통신 실패");
+            console.log(
+                "장소 정보 목록 조회용 ajax 통신 실패"
+            );
+
             console.log(error);
 
         }
@@ -93,65 +112,89 @@ function PlaceList() {
     };
 
 
-    // 장소 유형 필터 변경
+    // 장소 유형 변경
     const handleTypeChange = (e) => {
 
         const type = e.target.value;
 
         setSearchParams({
+
             cpage: 1,
+
             keyword: searchKeyword,
+
             type: type,
+
             region: searchRegion,
+
             subRegion: searchSubRegion
+
         });
 
     };
 
 
-    // 메인 지역 필터 변경
+    // 메인 지역 변경
     const handleRegionChange = (e) => {
 
         const region = e.target.value;
 
         setSearchParams({
+
             cpage: 1,
+
             keyword: searchKeyword,
+
             type: searchType,
+
             region: region,
+
             subRegion: ""
+
         });
 
     };
 
 
-    // 하위 지역 필터 변경
+    // 하위 지역 변경
     const handleSubRegionChange = (e) => {
 
         const subRegion = e.target.value;
 
         setSearchParams({
+
             cpage: 1,
+
             keyword: searchKeyword,
+
             type: searchType,
+
             region: searchRegion,
+
             subRegion: subRegion
+
         });
 
     };
 
 
-    // 검색 버튼 클릭
+    // 검색 버튼
     const handleClick = (e) => {
 
         e.preventDefault();
 
         setSearchParams({
+
             cpage: 1,
+
             keyword: keyword,
+
             type: searchType,
+
             region: searchRegion,
+
             subRegion: searchSubRegion
+
         });
 
     };
@@ -162,19 +205,23 @@ function PlaceList() {
 
         try {
 
-            const response = await placeApi.searchPlaceList(
-                cpage,
-                searchKeyword,
-                searchType,
-                searchRegion,
-                searchSubRegion
-            );
+            const response =
+                await placeApi.searchPlaceList(
+                    cpage,
+                    searchKeyword,
+                    searchType,
+                    searchRegion,
+                    searchSubRegion
+                );
 
             handleResponse(response);
 
         } catch (error) {
 
-            console.log("장소 정보 검색용 ajax 통신 실패");
+            console.log(
+                "장소 정보 검색용 ajax 통신 실패"
+            );
+
             console.log(error);
 
         }
@@ -185,149 +232,55 @@ function PlaceList() {
     // 조회 결과 처리
     const handleResponse = (response) => {
 
+        console.log("장소 목록 응답:", response);
+
+
         /*
-         * 백엔드가 List<Place>를 바로 반환하는 경우
+         * 백엔드 응답
+         *
+         * {
+         *     list: [...],
+         *     pageInfo: {...}
+         * }
          */
-        const item = Array.isArray(response)
-            ? response
-            : (response?.list || []);
+
+
+        // 장소 목록
+        const item =
+            Array.isArray(response)
+                ? response
+                : (response?.list || []);
+
 
         setPlaceList(item);
 
-        /*
-         * 현재 백엔드에서 페이징 정보를
-         * 반환하지 않는 경우에는 페이징 버튼을 만들지 않음
-         */
-        const pageInfo = response?.pi;
 
-        if (!pageInfo) {
-            setPageList([]);
-            return;
-        }
-
-        const btnArr = [];
-
-        // 이전 버튼
-        if (cpage === 1) {
-
-            btnArr.push(
-                <button
-                    key="prev"
-                    className="btn btn-info btn-sm"
-                    disabled
-                >
-                    &lt;
-                </button>
-            );
-
-        } else {
-
-            btnArr.push(
-                <button
-                    key="prev"
-                    className="btn btn-outline-info btn-sm"
-                    onClick={() => {
-
-                        setSearchParams({
-                            cpage: cpage - 1,
-                            keyword: searchKeyword,
-                            type: searchType,
-                            region: searchRegion,
-                            subRegion: searchSubRegion
-                        });
-
-                    }}
-                >
-                    &lt;
-                </button>
-            );
-
-        }
+        // 페이지 정보
+        const info =
+            response?.pageInfo || null;
 
 
-        // 페이지 번호
-        for (
-            let p = pageInfo.startPage;
-            p <= pageInfo.endPage;
-            p++
-        ) {
+        setPageInfo(info);
 
-            if (cpage === p) {
-
-                btnArr.push(
-                    <button
-                        key={p}
-                        className="btn btn-info btn-sm"
-                    >
-                        {p}
-                    </button>
-                );
-
-            } else {
-
-                btnArr.push(
-                    <button
-                        key={p}
-                        className="btn btn-outline-info btn-sm"
-                        onClick={() => {
-
-                            setSearchParams({
-                                cpage: p,
-                                keyword: searchKeyword,
-                                type: searchType,
-                                region: searchRegion,
-                                subRegion: searchSubRegion
-                            });
-
-                        }}
-                    >
-                        {p}
-                    </button>
-                );
-
-            }
-
-        }
+    };
 
 
-        // 다음 버튼
-        if (cpage === pageInfo.maxPage) {
+    // 페이지 이동
+    const handlePageChange = (page) => {
 
-            btnArr.push(
-                <button
-                    key="next"
-                    className="btn btn-info btn-sm"
-                    disabled
-                >
-                    &gt;
-                </button>
-            );
+        setSearchParams({
 
-        } else {
+            cpage: page,
 
-            btnArr.push(
-                <button
-                    key="next"
-                    className="btn btn-outline-info btn-sm"
-                    onClick={() => {
+            keyword: searchKeyword,
 
-                        setSearchParams({
-                            cpage: cpage + 1,
-                            keyword: searchKeyword,
-                            type: searchType,
-                            region: searchRegion,
-                            subRegion: searchSubRegion
-                        });
+            type: searchType,
 
-                    }}
-                >
-                    &gt;
-                </button>
-            );
+            region: searchRegion,
 
-        }
+            subRegion: searchSubRegion
 
-        setPageList(btnArr);
+        });
 
     };
 
@@ -343,7 +296,7 @@ function PlaceList() {
             <div className="place-search">
 
 
-                {/* 장소 유형 필터 */}
+                {/* 장소 유형 */}
                 <select
                     value={searchType}
                     onChange={handleTypeChange}
@@ -368,7 +321,7 @@ function PlaceList() {
                 </select>
 
 
-                {/* 메인 지역 필터 */}
+                {/* 메인 지역 */}
                 <select
                     value={searchRegion}
                     onChange={handleRegionChange}
@@ -393,7 +346,7 @@ function PlaceList() {
                 </select>
 
 
-                {/* 하위 지역 필터 */}
+                {/* 하위 지역 */}
                 <select
                     value={searchSubRegion}
                     onChange={handleSubRegionChange}
@@ -401,23 +354,28 @@ function PlaceList() {
                 >
 
                     <option value="">
+
                         {searchRegion
                             ? "상세 지역을 선택해주세요."
                             : "지역을 먼저 선택해주세요."
                         }
+
                     </option>
 
+
                     {searchRegion &&
-                        subRegionList[searchRegion]?.map((subRegion) => (
+                        subRegionList[searchRegion]?.map(
+                            (subRegion) => (
 
-                            <option
-                                key={subRegion}
-                                value={subRegion}
-                            >
-                                {subRegion}
-                            </option>
+                                <option
+                                    key={subRegion}
+                                    value={subRegion}
+                                >
+                                    {subRegion}
+                                </option>
 
-                        ))
+                            )
+                        )
                     }
 
                 </select>
@@ -439,9 +397,12 @@ function PlaceList() {
 
                 </div>
 
+
                 {/* AI 추천 */}
                 <button
-                    onClick={() => navigate("/placeInfo/ai")}
+                    onClick={() =>
+                        navigate("/placeInfo/ai")
+                    }
                     className="ai-button"
                 >
                     AI에게 장소 및 일정 추천 받기
@@ -485,11 +446,77 @@ function PlaceList() {
 
 
             {/* 페이징 */}
-            <div className="pagination">
+            {pageInfo && pageInfo.maxPage > 0 && (
 
-                {pageList}
+                <div className="pagination">
 
-            </div>
+
+                    {/* 이전 버튼 */}
+                    <button
+                        className={
+                            cpage === 1
+                                ? "btn btn-info btn-sm"
+                                : "btn btn-outline-info btn-sm"
+                        }
+                        disabled={cpage === 1}
+                        onClick={() =>
+                            handlePageChange(cpage - 1)
+                        }
+                    >
+                        &lt;
+                    </button>
+
+
+                    {/* 페이지 번호 */}
+                    {Array.from(
+                        {
+                            length:
+                                pageInfo.endPage -
+                                pageInfo.startPage +
+                                1
+                        },
+                        (_, index) =>
+                            pageInfo.startPage + index
+                    ).map((page) => (
+
+                        <button
+                            key={page}
+                            className={
+                                cpage === page
+                                    ? "btn btn-info btn-sm"
+                                    : "btn btn-outline-info btn-sm"
+                            }
+                            onClick={() =>
+                                handlePageChange(page)
+                            }
+                        >
+                            {page}
+                        </button>
+
+                    ))}
+
+
+                    {/* 다음 버튼 */}
+                    <button
+                        className={
+                            cpage === pageInfo.maxPage
+                                ? "btn btn-info btn-sm"
+                                : "btn btn-outline-info btn-sm"
+                        }
+                        disabled={
+                            cpage === pageInfo.maxPage
+                        }
+                        onClick={() =>
+                            handlePageChange(cpage + 1)
+                        }
+                    >
+                        &gt;
+                    </button>
+
+
+                </div>
+
+            )}
 
         </div>
 

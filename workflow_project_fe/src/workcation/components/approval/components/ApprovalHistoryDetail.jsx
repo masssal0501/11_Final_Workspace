@@ -68,7 +68,7 @@ function ApprovalHistoryDetail() {
 
                 <div className="period-content">
 
-                    <span align="center">
+                    <span>
                         {workcationInfo.startAt?.replace("T", " ") || "-"}
                     </span>
 

@@ -1,6 +1,8 @@
 package com.kh.workflow.place.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,14 +18,13 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.common.template.FileRenamePolicy;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
 import com.kh.workflow.place.model.service.PlaceService;
 
 import jakarta.servlet.http.HttpSession;
-
-
 
 @RestController
 @RequestMapping("/place")
@@ -33,39 +34,38 @@ public class PlaceController {
     private PlaceService placeService;
 
 
-    // =========================================================
-    // 지역 정보 등록
-    // POST /workflow/place
-    // =========================================================
+    // 장소 등록
     @PostMapping
     public ResponseEntity<String> insertPlace(
             @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpSession session) {
 
-        // 기본 상태 설정
         if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
             h.setHubStatus("OPEN");
         }
 
-        // 지역 정보 등록
         Hub insertPlace = placeService.insertPlace(h);
-        
-        if(insertPlace != null && file != null&& !file.isEmpty()) {
-        	
-        	String changeName = FileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
-        	
-        
-        
-        HubFile hubFile = new HubFile();
-        
-        hubFile.setHub(insertPlace);
-        hubFile.setFilePath("/resources/upload/hub");
-        hubFile.setOriginName(file.getOriginalFilename());
-        hubFile.setChangeName(changeName);
-        
-        placeService.insertPlaceFile(hubFile);
-        
+
+        if (insertPlace != null
+                && file != null
+                && !file.isEmpty()) {
+
+            String changeName =
+                    FileRenamePolicy.saveFile(
+                            file,
+                            session,
+                            "/resources/upload/hub/"
+                    );
+
+            HubFile hubFile = new HubFile();
+
+            hubFile.setHub(insertPlace);
+            hubFile.setFilePath("/resources/upload/hub");
+            hubFile.setOriginName(file.getOriginalFilename());
+            hubFile.setChangeName(changeName);
+
+            placeService.insertPlaceFile(hubFile);
         }
 
         String message =
@@ -79,13 +79,11 @@ public class PlaceController {
     }
 
 
-    // =========================================================
-    // 지역 정보 목록 조회
-    // GET /workflow/place
-    // =========================================================
+    // 장소 목록 조회 + 페이징
     @GetMapping
-    public ResponseEntity<ArrayList<Hub>> selectPlaceList(
+    public ResponseEntity<Map<String, Object>> selectPlaceList(
             @RequestParam(value = "cpage", defaultValue = "1") int cpage,
+            @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "region", required = false) String region,
             @RequestParam(value = "subRegion", required = false) String subRegion) {
@@ -94,22 +92,35 @@ public class PlaceController {
                 new ArrayList<>(
                         placeService.selectPlaceList(
                                 cpage,
+                                keyword,
                                 type,
                                 region,
                                 subRegion
                         )
                 );
 
+        PageInfo pageInfo =
+                placeService.getPlacePageInfo(
+                        cpage,
+                        keyword,
+                        type,
+                        region,
+                        subRegion
+                );
+
+        Map<String, Object> map =
+                new HashMap<>();
+
+        map.put("list", list);
+        map.put("pageInfo", pageInfo);
+
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(list);
+                .body(map);
     }
 
 
-    // =========================================================
-    // 지역 정보 상세 조회
-    // GET /workflow/place/{hubNo}
-    // =========================================================
+    // 장소 상세 조회
     @GetMapping("/{hubNo}")
     public ResponseEntity<Hub> selectPlace(
             @PathVariable int hubNo) {
@@ -122,10 +133,7 @@ public class PlaceController {
     }
 
 
-    // =========================================================
-    // 지역 정보 수정
-    // PUT /workflow/place/{hubNo}
-    // =========================================================
+    // 장소 수정
     @PutMapping("/{hubNo}")
     public ResponseEntity<String> updatePlace(
             @PathVariable int hubNo,
@@ -133,24 +141,32 @@ public class PlaceController {
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpSession session) {
 
-        // URL의 hubNo를 기준으로 수정
         h.setHubNo(hubNo);
 
-        Hub updatePlace = placeService.updatePlace(h);
+        Hub updatePlace =
+                placeService.updatePlace(h);
 
-        if(updatePlace != null && file != null && !file.isEmpty()) {
-        	String changeName = FileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
-        	
-        	HubFile hubFile = new HubFile();
-        	
-        	hubFile.setHub(updatePlace);
-        	hubFile.setFilePath("/resources/upload/hub");
-        	hubFile.setOriginName(file.getOriginalFilename());
-        	hubFile.setChangeName(changeName);
-        	
-        	placeService.updatePlaceFile(hubFile);
+        if (updatePlace != null
+                && file != null
+                && !file.isEmpty()) {
+
+            String changeName =
+                    FileRenamePolicy.saveFile(
+                            file,
+                            session,
+                            "/resources/upload/hub/"
+                    );
+
+            HubFile hubFile = new HubFile();
+
+            hubFile.setHub(updatePlace);
+            hubFile.setFilePath("/resources/upload/hub");
+            hubFile.setOriginName(file.getOriginalFilename());
+            hubFile.setChangeName(changeName);
+
+            placeService.updatePlaceFile(hubFile);
         }
-        
+
         String message =
                 (updatePlace != null)
                 ? "success"
@@ -162,15 +178,13 @@ public class PlaceController {
     }
 
 
-    // =========================================================
-    // 지역 정보 삭제
-    // DELETE /workflow/place/{hubNo}
-    // =========================================================
+    // 장소 종료
     @DeleteMapping("/{hubNo}")
     public ResponseEntity<String> deletePlace(
             @PathVariable int hubNo) {
 
-        int result = placeService.deletePlace(hubNo);
+        int result =
+                placeService.deletePlace(hubNo);
 
         String message =
                 (result > 0)
@@ -181,5 +195,4 @@ public class PlaceController {
                 .status(HttpStatus.OK)
                 .body(message);
     }
-
 }
