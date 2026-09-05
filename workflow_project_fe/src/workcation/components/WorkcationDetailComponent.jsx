@@ -205,22 +205,25 @@ function WorkcationDetailComponent() {
                 <div className="left-price-box">
                     <h3>지원금 혜택</h3>
                     <div className="right-price-row">
-                        <span>회사지원금</span>
+                        <span>예상 회사지원금</span>
                         <span>{Number(companySupport).toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row">
-                        <span>지자체 지원금</span>
+                        <span>예상 지자체 지원금</span>
                         <span>{Number(localGovSupport).toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row total">
-                        <span>총 지원금 합계</span>
+                        <span>예상 총 지원금</span>
                         <span>{Number(totalSupport).toLocaleString()}원</span>
                     </div>
                     <hr />
                     <div>
-                        <span>최종 개인 부담금</span>
+                        <span>예상  개인 부담금</span>
                         <strong>{Number(personalCost).toLocaleString()}원</strong>
                     </div>
+                    <p className="notice-text">
+        ※ 워케이션 완료 후 영수증 증빙 및 최종 승인 상태에 따라 실제 지급액이 달라질 수 있습니다.
+    </p>
                 </div>
             </div>
             <div>

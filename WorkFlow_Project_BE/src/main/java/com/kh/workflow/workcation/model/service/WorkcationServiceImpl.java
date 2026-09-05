@@ -15,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.workflow.amount.dao.AmountDao;
 import com.kh.workflow.amount.dao.AmountItemDao;
+import com.kh.workflow.amount.dao.SupportListDao;
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountItem;
+import com.kh.workflow.amount.model.vo.SupportList;
 // Employee 엔티티 패키지 경로에 맞게 확인 필요
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
@@ -40,9 +42,15 @@ public class WorkcationServiceImpl implements WorkcationService {
 	@Autowired
 	private AmountItemDao amountItemDao;
 
+	@Autowired
+	private SupportListDao supportListDao;
+
+	@Autowired
+	private com.kh.workflow.hub.model.dao.HubDao hubDao;
+
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
-		
+
 		// 1. 오라클 DB용 빈문자열 NULL 변환
 		String mainRegion = paramMap != null ? (String) paramMap.get("mainRegion") : null;
 		String subRegion = paramMap != null ? (String) paramMap.get("subRegion") : null;
@@ -53,10 +61,10 @@ public class WorkcationServiceImpl implements WorkcationService {
 		if (subRegion != null && subRegion.trim().isEmpty()) {
 			subRegion = null;
 		}
-		
+
 		// 2. 검색 조건 적용된 JPQL 쿼리 호출 (findAll 대신 적용)
 		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, pageable);
-		
+
 		return page.map(workcation -> {
 			Map<String, Object> map = new HashMap<>();
 			map.put("workcationNo", workcation.getWorkcationNo());
@@ -89,6 +97,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 			return map;
 		});
 	}
+
 	@Override
 	public Map<String, Object> getAmountSupportInfo() {
 
@@ -307,9 +316,28 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("hubAddress", mainHub != null ? mainHub.getHubAddress() : "");
 		result.put("hubPrice", mainHub != null ? mainHub.getPrice() : 0);
 
-		int totalSupport = amount != null && amount.getApprovedAmount() != null ? amount.getApprovedAmount() : 0;
-		result.put("companySupport", totalSupport);
-		result.put("localGovSupport", 0);
+		// 3. 지원금(Amount) 및 지자체 지원금(SupportList) 계산 (중복 선언 제거됨)
+		int companySupport = 0;
+		if (amount != null && amount.getApprovedAmount() != null) {
+			companySupport = amount.getApprovedAmount();
+		}
+
+		int localGovSupport = 0;
+		if (amount != null) {
+			List<SupportList> supportList = supportListDao.findByAmount_AmountNo(amount.getAmountNo());
+			if (supportList != null) {
+				for (SupportList s : supportList) {
+					if (s.getRequestAmount() != null) {
+						localGovSupport += s.getRequestAmount();
+					}
+				}
+			}
+		}
+
+		result.put("companySupport", companySupport);
+		result.put("localGovSupport", localGovSupport);
+		
+		int totalSupport = companySupport + localGovSupport;
 		result.put("totalSupport", totalSupport);
 
 		// 옵션 가격 합산 계산
@@ -367,7 +395,6 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("purpose", actualPurpose);
 		result.put("planList", planList);
 
-		// 조회된 옵션 예약 목록을 전달 (기존 new ArrayList<>() 대체)
 		result.put("option", optionList);
 		result.put("options", optionList);
 
@@ -404,13 +431,13 @@ public class WorkcationServiceImpl implements WorkcationService {
 				if (planBuilder.length() > 0) {
 					planBuilder.append(" / ");
 				}
-				planBuilder.append(taskName).append("(").append(days).append("일)");
+				planBuilder.append(taskName).append("(").append(days != null ? days : 1).append("일)");
 			}
 		}
 
 		// 날짜 변환
-		LocalDateTime startAt = LocalDate.parse((String) updateData.get("startDate")).atStartOfDay();
-		LocalDateTime endAt = LocalDate.parse((String) updateData.get("endDate")).atStartOfDay();
+		LocalDateTime startAt = parseDateSafely(updateData.get("startDate"), LocalDateTime.now());
+		LocalDateTime endAt = parseDateSafely(updateData.get("endDate"), startAt);
 
 		// 워케이션 기본 정보 수정 저장
 		workcation.setWorkcationTitle(workcationTitle);
@@ -426,89 +453,200 @@ public class WorkcationServiceImpl implements WorkcationService {
 		}
 
 		Object peopleCountObj = updateData.get("peopleCount");
-		Integer peopleCount = peopleCountObj != null ? Integer.parseInt(peopleCountObj.toString()) : 1;
+		Integer peopleCount = 1;
+		if (peopleCountObj != null && !peopleCountObj.toString().trim().isEmpty()) {
+			peopleCount = Integer.parseInt(peopleCountObj.toString());
+		}
 
 		// 2-1. 메인 거점(오피스/숙소) 예약 등록
 		Object hubNoObj = updateData.get("hubNo");
-		if (hubNoObj != null) {
+		String mainRegion = "";
+		String subRegion = "";
+		int mainHubPrice = 0;
+
+		if (hubNoObj != null && !hubNoObj.toString().trim().isEmpty()) {
 			Reservation mainRsv = new Reservation();
-			mainRsv.setWorkcation(workcation);
-			Hub mainHub = new Hub();
-			mainHub.setHubNo(Integer.parseInt(hubNoObj.toString()));
-			mainRsv.setHub(mainHub);
-			mainRsv.setUserCapacity(peopleCount);
-			mainRsv.setRsvStart(startAt);
-			mainRsv.setRsvEnd(endAt);
-			reservationDao.save(mainRsv);
-		}
 
-		// 2-2. 옵션 거점(체험, 맛집, 관광지) 예약 등록
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> options = (List<Map<String, Object>>) updateData.get("options");
-		if (options != null) {
-			for (Map<String, Object> optionMap : options) {
-				Object optionHubNoObj = optionMap.get("hubNo");
-				Object visitDateObj = optionMap.get("visitDate");
+			if (hubNoObj != null && !hubNoObj.toString().trim().isEmpty()) {
+				Integer mainHubNo = Integer.parseInt(hubNoObj.toString());
 
-				if (optionHubNoObj != null) {
-					Integer optionHubNo = Integer.parseInt(optionHubNoObj.toString());
-					LocalDateTime visitDate = (visitDateObj != null && !visitDateObj.toString().isEmpty())
-							? LocalDate.parse(visitDateObj.toString()).atStartOfDay()
-							: startAt;
+				mainRsv.setWorkcation(workcation);
+				Hub mainHub = new Hub();
+				mainHub.setHubNo(mainHubNo);
+				mainRsv.setHub(mainHub);
+				mainRsv.setUserCapacity(peopleCount);
+				mainRsv.setRsvStart(startAt);
+				mainRsv.setRsvEnd(endAt);
+				reservationDao.save(mainRsv);
 
-					Reservation optionRsv = new Reservation();
-					optionRsv.setWorkcation(workcation);
-					Hub optionHub = new Hub();
-					optionHub.setHubNo(optionHubNo);
-					optionRsv.setHub(optionHub);
-					optionRsv.setUserCapacity(peopleCount);
-					optionRsv.setRsvStart(visitDate);
-					optionRsv.setRsvEnd(visitDate);
-					reservationDao.save(optionRsv);
+				Hub foundHub = hubDao.findById(mainHubNo).orElse(null);
+				if (foundHub != null) {
+					mainRegion = foundHub.getMainRegion();
+					subRegion = foundHub.getSubRegion();
+					mainHubPrice = foundHub.getPrice();
+				}
+			}
+
+			// 2-2. 옵션 거점(체험, 맛집, 관광지) 예약 등록
+			@SuppressWarnings("unchecked")
+			List<Map<String, Object>> options = (List<Map<String, Object>>) updateData.get("options");
+			if (options == null) {
+
+				@SuppressWarnings("unchecked")
+				List<Map<String, Object>> altOptions = (List<Map<String, Object>>) updateData.get("option");
+				options = altOptions;
+			}
+
+			if (options != null) {
+				for (Map<String, Object> optionMap : options) {
+					Object optionHubNoObj = optionMap.get("hubNo");
+					Object visitDateObj = optionMap.get("visitDate");
+
+					// hubNo 및 visitDate 빈 문자열("") 체크
+					if (optionHubNoObj != null && !optionHubNoObj.toString().trim().isEmpty()) {
+						Integer optionHubNo = Integer.parseInt(optionHubNoObj.toString());
+						LocalDateTime visitDate = parseDateSafely(visitDateObj, startAt);
+
+						Reservation optionRsv = new Reservation();
+						optionRsv.setWorkcation(workcation);
+						Hub optionHub = new Hub();
+						optionHub.setHubNo(optionHubNo);
+						optionRsv.setHub(optionHub);
+						optionRsv.setUserCapacity(peopleCount);
+						optionRsv.setRsvStart(visitDate);
+						optionRsv.setRsvEnd(visitDate);
+						reservationDao.save(optionRsv);
+					}
+				}
+			}
+
+			// 3. 지원금(Amount) 정보 수정
+			List<Amount> amountList = amountDao.findByWorkcationNo(workcation.getWorkcationNo());
+			Amount amount = (amountList != null && !amountList.isEmpty()) ? amountList.get(0) : new Amount();
+
+			Object transportObj = updateData.get("transportText");
+			Integer transportText = (transportObj != null && !transportObj.toString().trim().isEmpty())
+					? Integer.parseInt(transportObj.toString())
+					: 0;
+
+			Object etcObj = updateData.get("etcText");
+			Integer etcText = (etcObj != null && !etcObj.toString().trim().isEmpty())
+					? Integer.parseInt(etcObj.toString())
+					: 0;
+
+			int totalCost = mainHubPrice + transportText + etcText;
+
+			processAmountAndSupportList(workcation, amount, mainRegion, subRegion, totalCost);
+
+			// 4. 비용 상세 항목(AmountItem: 교통, 기타) 수정
+			if (amount.getAmountNo() != null) {
+				amountItemDao.deleteByAmount_AmountNo(amount.getAmountNo());
+
+				if (transportText > 0) {
+					AmountItem transportItem = new AmountItem();
+					transportItem.setAmount(amount);
+					transportItem.setItemType("교통");
+					transportItem.setItemAmount(transportText);
+					transportItem.setItemDate(LocalDateTime.now());
+					amountItemDao.save(transportItem);
+				}
+
+				if (etcText > 0) {
+					AmountItem etcItem = new AmountItem();
+					etcItem.setAmount(amount);
+					etcItem.setItemType("기타");
+					etcItem.setItemAmount(etcText);
+					etcItem.setItemDate(LocalDateTime.now());
+					amountItemDao.save(etcItem);
 				}
 			}
 		}
+	}
 
-		// 3. 지원금(Amount) 정보 수정
-		List<Amount> amountList = amountDao.findByWorkcationNo(workcation.getWorkcationNo());
-		Amount amount = (amountList != null && !amountList.isEmpty()) ? amountList.get(0) : new Amount();
+	private void processAmountAndSupportList(WorkcationInfo workcation, Amount amount, String mainRegion,
+			String subRegion, int totalCost) {
+		int totalLocalGovSupport = 0;
+		List<SupportList> supportItems = new ArrayList<>();
+
+		if ("강원도".equals(mainRegion) || "강원특별자치도".equals(mainRegion)) {
+			SupportList province = new SupportList();
+			province.setSponsorName("강원도청");
+			province.setRequestAmount(100000); // 예상 지원금
+			province.setApprovedAmount(0);
+			province.setTransportSupported("Y");
+			province.setOtherSupported("N");
+			province.setStatus("W");
+			supportItems.add(province);
+			totalLocalGovSupport += 100000;
+
+			if ("강릉시".equals(subRegion)) {
+				SupportList city = new SupportList();
+				city.setSponsorName("강릉시청");
+				city.setRequestAmount(50000); // 예상 지원금
+				city.setApprovedAmount(0);
+				city.setTransportSupported("N");
+				city.setOtherSupported("Y");
+				city.setStatus("W");
+				supportItems.add(city);
+				totalLocalGovSupport += 50000;
+			}
+		} else if ("부산광역시".equals(mainRegion)) {
+			SupportList city = new SupportList();
+			city.setSponsorName("부산광역시청");
+			city.setRequestAmount(200000);
+			city.setApprovedAmount(0);
+			city.setTransportSupported("Y");
+			city.setOtherSupported("Y");
+			city.setStatus("W");
+			supportItems.add(city);
+			totalLocalGovSupport += 200000;
+		}
+
+		int companyLimit = 100000; // 사내 지원 한도
+		int remainCost = Math.max(0, totalCost - totalLocalGovSupport);
+		int expectedCompanySupport = Math.min(remainCost, companyLimit);
 
 		amount.setWorkcationNo(workcation.getWorkcationNo());
-
-		Integer approvedAmount = 0;
-		if (updateData.get("totalSupport") != null) {
-			approvedAmount = Integer.parseInt(updateData.get("totalSupport").toString());
-		}
-		amount.setApprovedAmount(approvedAmount);
+		amount.setApprovedAmount(expectedCompanySupport); // 예상 회사지원금 저장
 		amount.setStatus("W");
+		if (amount.getCreatedAt() == null) {
+			amount.setCreatedAt(LocalDateTime.now());
+		}
+		if (amount.getRequestedAt() == null) {
+			amount.setRequestedAt(LocalDateTime.now());
+		}
+
 		amountDao.save(amount);
 
-		// 4. 비용 상세 항목(AmountItem: 교통, 기타만 관리) 수정
 		if (amount.getAmountNo() != null) {
-			amountItemDao.deleteByAmount_AmountNo(amount.getAmountNo());
+			supportListDao.deleteByAmount_AmountNo(amount.getAmountNo());
+		}
 
-			Integer transportText = updateData.get("transportText") != null
-					? Integer.parseInt(updateData.get("transportText").toString())
-					: 0;
-			if (transportText > 0) {
-				AmountItem transportItem = new AmountItem();
-				transportItem.setAmount(amount);
-				transportItem.setItemType("교통");
-				transportItem.setItemAmount(transportText);
-				transportItem.setItemDate(LocalDateTime.now());
-				amountItemDao.save(transportItem);
-			}
+		for (SupportList item : supportItems) {
+			item.setAmount(amount);
+			supportListDao.save(item);
+		}
+	}
 
-			Integer etcText = updateData.get("etcText") != null ? Integer.parseInt(updateData.get("etcText").toString())
-					: 0;
-			if (etcText > 0) {
-				AmountItem etcItem = new AmountItem();
-				etcItem.setAmount(amount);
-				etcItem.setItemType("기타");
-				etcItem.setItemAmount(etcText);
-				etcItem.setItemDate(LocalDateTime.now());
-				amountItemDao.save(etcItem);
-			}
+	private LocalDateTime parseDateSafely(Object dateObj, LocalDateTime fallback) {
+		if (dateObj == null)
+			return fallback;
+		String str = dateObj.toString().trim();
+		if (str.isEmpty())
+			return fallback;
+
+		// "2026. 09. 04." 또는 "2026.09.04" -> "2026-09-04" 변환
+		str = str.replace(". ", "-").replace(".", "-").trim();
+		if (str.endsWith("-")) {
+			str = str.substring(0, str.length() - 1);
+		}
+		if (str.contains("T")) {
+			str = str.split("T")[0];
+		}
+		try {
+			return LocalDate.parse(str).atStartOfDay();
+		} catch (Exception e) {
+			return fallback;
 		}
 	}
 

@@ -12,10 +12,17 @@ const OPTION_CONFIG = {
     tour: { label: "관광지", key: "tour", priceKey: "tourPrice", dateName: "tourDate", typeCode: 5 }
 };
 
+// 지역별 예상 최소 지자체 지원금 정책 상수 (금액 하향 조정)
+const REGION_SUPPORT_POLICY = {
+    "강원도": { base: 30000, sub: { "강릉시": 20000, "속초시": 20000, "양양군": 15000, "춘천시": 20000, "평창군": 10000 } },
+    "부산광역시": { base: 50000, sub: { "해운대구": 20000, "영도구": 15000, "수영구": 20000, "부산진구": 20000, "중구": 10000 } },
+    "제주도": { base: 40000, sub: { "서귀포시": 20000, "제주시": 20000 } }
+};
+
 function WorkcationEnrollFormComponent() {
     const navigate = useNavigate();
 
-    // 지역 데이터 state (WorkcationItemComponent 기능 포함)
+    // 지역 데이터 state
     const [mainRegion, setMainRegion] = useState("");
     const [subRegion, setSubRegion] = useState("");
     const [mainRegionDrop, setMainRegionDrop] = useState([]);
@@ -28,12 +35,12 @@ function WorkcationEnrollFormComponent() {
     const [userCapacity, setUserCapacity] = useState(1);
     const [taskPurpose, setTaskPurpose] = useState("");
 
-    const [hubType, setHubType] = useState("office"); //거점유형 선택
-    const [hubDrop, setHubDrop] = useState([]); //선택한 거점과 유형에 오피스/숙소 데이터
-    const [selectHubNo, setSelectHubNo] = useState(""); //최종 선택한 메인 거점
+    const [hubType, setHubType] = useState("office"); // 거점유형 선택
+    const [hubDrop, setHubDrop] = useState([]); // 선택한 거점과 유형에 오피스/숙소 데이터
+    const [selectHubNo, setSelectHubNo] = useState(""); // 최종 선택한 메인 거점
 
-    const [optionPlaceData, setOptionPlaceData] = useState({}); //선택한 옵션 버튼
-    const [optionPlaceDrop, setOptionPlaceDrop] = useState({}); //각 옵션 유형(체험, 맛집, 관광) 목록
+    const [optionPlaceData, setOptionPlaceData] = useState({}); // 선택한 옵션 버튼
+    const [optionPlaceDrop, setOptionPlaceDrop] = useState({}); // 각 옵션 유형(체험, 맛집, 관광) 목록
 
     // 동적 옵션 버튼(tr 출력)
     const [selectedBtns, setSelectedBtns] = useState([]);
@@ -48,28 +55,26 @@ function WorkcationEnrollFormComponent() {
     const [etcText, setEtcText] = useState("");
 
     const [companySupport, setCompanySupport] = useState(0);
-    const [localGovSupport, setLocalGovSupport] = useState(0);
+    const [localGovSupport, setLocalGovSupport] = useState(0); // 예상 최소 지자체 지원금
 
-    //오늘날짜 구하기
+    // 오늘날짜 구하기
     function getToday() {
         const d = new Date();
         return d.toISOString().split('T')[0];
     }
 
-    //내일 날짜(방문일) 구하기
+    // 내일 날짜(방문일) 구하기
     function getTomorrow() {
         const d = new Date();
         d.setDate(d.getDate() + 1);
         return d.toISOString().split('T')[0];
     }
 
-    // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
+    // 1. 메인 지역 목록 조회
     useEffect(() => {
         getMainRegionList()
             .then(res => {
-                const listData = Array.isArray(res)
-                    ? res
-                    : (Array.isArray(res) ? res : []);
+                const listData = Array.isArray(res) ? res : [];
                 setMainRegionDrop(listData);
             })
             .catch(err => {
@@ -78,7 +83,7 @@ function WorkcationEnrollFormComponent() {
             });
     }, []);
 
-    // 2. 메인 지역이 바뀔 때마다 하위 상세 지역 조회 (안전 처리 추가)
+    // 2. 메인 지역이 바뀔 때마다 하위 상세 지역 조회
     useEffect(() => {
         if (!mainRegion) {
             setSubRegionDrop([]);
@@ -86,9 +91,7 @@ function WorkcationEnrollFormComponent() {
         }
         getSubRegionList(mainRegion)
             .then(res => {
-                const listData = Array.isArray(res)
-                    ? res
-                    : (Array.isArray(res) ? res : []);
+                const listData = Array.isArray(res) ? res : [];
                 setSubRegionDrop(listData);
             })
             .catch(err => {
@@ -97,6 +100,27 @@ function WorkcationEnrollFormComponent() {
             });
     }, [mainRegion]);
 
+    // 지역 변경 시 지자체 예상 최소 지원금 자동 계산 로직
+    useEffect(() => {
+        if (!mainRegion) {
+            setLocalGovSupport(0);
+            return;
+        }
+
+        const regionData = REGION_SUPPORT_POLICY[mainRegion];
+        if (!regionData) {
+            setLocalGovSupport(0);
+            return;
+        }
+
+        let support = regionData.base;
+        if (subRegion && regionData.sub && regionData.sub[subRegion]) {
+            support += regionData.sub[subRegion];
+        }
+
+        setLocalGovSupport(support);
+    }, [mainRegion, subRegion]);
+
     useEffect(() => {
         getSupportInfo()
             .then(res => {
@@ -104,18 +128,16 @@ function WorkcationEnrollFormComponent() {
                 setCompanySupport(Number(amountSupport));
             })
             .catch(err => {
-                console.error("회사 지원금 조회 실패", err)
+                console.error("회사 지원금 조회 실패", err);
                 setCompanySupport(0);
-            })
-    }, [])
+            });
+    }, []);
 
     /** 메인지역 변경시 서브지역 및 버튼상태 초기화 */
     const handleRegionChange = (newMain, newSub) => {
         setMainRegion(newMain);
         setSubRegion(newSub);
         setSelectHubNo("");
-
-        //옵션 상태 초기화
         setSelectedBtns([]);
         setOptionPlaceData({});
     };
@@ -124,13 +146,11 @@ function WorkcationEnrollFormComponent() {
     const handleHubChange = (e) => {
         setHubType(e.target.value);
         setSelectHubNo("");
-
-        //옵션 상태 초기화
         setSelectedBtns([]);
         setOptionPlaceData({});
     };
 
-    // 3. 거점 목록 조회 (안전 처리 추가)
+    // 3. 거점 목록 조회
     useEffect(() => {
         if (!mainRegion || !subRegion) {
             setHubDrop([]);
@@ -139,9 +159,7 @@ function WorkcationEnrollFormComponent() {
         const typeCode = hubType === "office" ? 1 : 2;
         getHubList({ mainRegion, subRegion, hubType: typeCode })
             .then(res => {
-                const listData = Array.isArray(res.data)
-                    ? res.data
-                    : (Array.isArray(res) ? res : []);
+                const listData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
                 setHubDrop(listData);
                 setSelectHubNo("");
             })
@@ -151,12 +169,10 @@ function WorkcationEnrollFormComponent() {
             });
     }, [mainRegion, subRegion, hubType]);
 
-    //4. 선택한 메인과 서브지역에 따라 해당 Place DB조회 
+    // 4. 선택한 메인과 서브지역에 따라 해당 Place DB조회 
     useEffect(() => {
         selectedBtns.forEach(key => {
             const placeConfig = OPTION_CONFIG[key];
-
-            //메인, 서브, 
             if (!mainRegion || !subRegion || !placeConfig) return;
 
             getHubList({
@@ -165,11 +181,7 @@ function WorkcationEnrollFormComponent() {
                 hubType: placeConfig.typeCode
             })
                 .then(res => {
-                    const listData = Array.isArray(res)
-                        ? res
-                        : (Array.isArray(res?.list) ? res.list : (Array.isArray(res?.data) ? res.data : []));
-
-                    console.log(`[${placeConfig.label}] 조회 성공:`, listData);
+                    const listData = Array.isArray(res) ? res : (Array.isArray(res?.list) ? res.list : (Array.isArray(res?.data) ? res.data : []));
                     setOptionPlaceDrop(prev => ({ ...prev, [key]: listData }));
                 })
                 .catch(err => {
@@ -188,7 +200,7 @@ function WorkcationEnrollFormComponent() {
 
     const currentHub = (hubDrop || []).find(h => String(h?.hubNo) === String(selectHubNo));
 
-    // 옵션 추가 (누르는 순대로 쌓임)
+    // 옵션 추가
     const handleAddBtns = (type) => {
         if (!mainRegion || !subRegion) return alert("지역을 먼저 선택해주세요.");
         if (!selectedBtns.includes(type)) setSelectedBtns([...selectedBtns, type]);
@@ -202,7 +214,6 @@ function WorkcationEnrollFormComponent() {
         setOptionPlaceData(copy);
     };
 
-    // 체험/프로그램/관광 장소와 방문일자 저장(스케줄)
     const handlePlaceDate = (key, field, value) => {
         setOptionPlaceData(prev => ({
             ...prev, [key]: {
@@ -211,14 +222,13 @@ function WorkcationEnrollFormComponent() {
         }));
     };
 
-    /** 누른 버튼에 따라 해당 tr을 보여주는 함수 */
     const renderBtnRow = (key) => {
         const placeConfig = OPTION_CONFIG[key];
         if (!placeConfig) return null;
 
         const isSelected = selectedBtns.includes(key);
         const itemList = optionPlaceDrop[key] || [];
-        const hubItemList = itemList.filter(item => (item.hubStatus) !== 'CLOSE'); // CLOSE 상태 제외
+        const hubItemList = itemList.filter(item => (item.hubStatus) !== 'CLOSE');
         const hasValiItem = hubItemList.length > 0;
 
         const selectedOptObj = optionPlaceData[key] || {};
@@ -226,12 +236,9 @@ function WorkcationEnrollFormComponent() {
         const selectedDate = selectedOptObj.date || "";
 
         return (
-            <tr key={key}
-                className={!isSelected ? "option-btn-empty" : ""} >
+            <tr key={key} className={!isSelected ? "option-btn-empty" : ""} >
                 <th>{placeConfig.label}</th>
-
                 {!isSelected ? (
-                    /** 1)아직 선택하지 않았을 시 고정자리에 + 표시 */
                     <td colSpan={3}>
                         <button
                             type="button"
@@ -242,29 +249,24 @@ function WorkcationEnrollFormComponent() {
                         </button>
                     </td>
                 ) : (
-                    /* 2) 클릭후 활성화 되엇을 시 셀렉박스 + 방문일 + X 표시*/
                     <>
                         <td>
                             <select name={`${key}No`}
                                 value={selectedHub ? selectedHub.hubNo : ""}
-                                disabled={!hasValiItem} // 데이터 없을시 박스 비활성화
+                                disabled={!hasValiItem}
                                 onChange={(e) => {
                                     const found = hubItemList.find(item => String(item?.hubNo) === e.target.value);
                                     handlePlaceDate(key, "item", found || null);
                                 }}>
                                 <option value="">
-                                    {hasValiItem
-                                        ? `${placeConfig.label} 선택`
-                                        : `해당하는 ${placeConfig.label}이(가) 없습니다.`}
+                                    {hasValiItem ? `${placeConfig.label} 선택` : `해당하는 ${placeConfig.label}이(가) 없습니다.`}
                                 </option>
                                 {hubItemList.map((item, index) => {
                                     const status = item.hubStatus;
                                     const isPaused = status === 'PAUSED';
                                     const isClosed = status === 'CLOSED';
                                     const isDisabled = isPaused || isClosed;
-                                    const statusLabel = isClosed
-                                        ? " 종료" : isPaused
-                                            ? "일시중단" : (item.price ? `${item.price.toLocaleString()}원` : "무료입장");
+                                    const statusLabel = isClosed ? " 종료" : isPaused ? "일시중단" : (item.price ? `${item.price.toLocaleString()}원` : "무료입장");
 
                                     return (
                                         <option
@@ -296,7 +298,6 @@ function WorkcationEnrollFormComponent() {
         );
     };
 
-    // 업무 항목 추가 핸들러
     const handleAddPlan = () => {
         if (!taskName || !days) return alert("업무와 기간을 입력해주세요.");
         setPlanList([...planList, { id: Date.now(), taskName, days }]);
@@ -304,24 +305,22 @@ function WorkcationEnrollFormComponent() {
         setDays("");
     };
 
-    // 업무 항목 삭제 핸들러
     const handleRemovePlan = (id) => {
         setPlanList(planList.filter(item => item.id !== id));
     };
 
-    // 숙박비 또는 오피스비
     const hubPrice = currentHub ? Number(currentHub.price || 0) : 0;
-
-    // 추가 선택한 옵션 총액
     const optionsPrice = Object.values(optionPlaceData).reduce((acc, hubObj) => {
         const itemPrice = hubObj?.item?.price || hubObj?.price || 0;
         return acc + Number(itemPrice);
     }, 0);
 
-    // 총액 계산
     const totalCost = hubPrice + optionsPrice + Number(transportText || 0) + Number(etcText || 0);
-    const totalSupport = localGovSupport + companySupport;
-    const personalCost = Math.max(0, totalCost - totalSupport);
+    
+    // 예상 최소 지자체 지원금과 회사 지원금을 반영한 총 지원금/개인부담금 계산
+    const appliedCompanySupport = Math.min(companySupport, Math.max(0, totalCost - localGovSupport));
+    const totalExpectedSupport = localGovSupport + appliedCompanySupport;
+    const personalCost = Math.max(0, totalCost - totalExpectedSupport);
 
     // 제출 핸들러
     const handleSubmit = async () => {
@@ -342,10 +341,10 @@ function WorkcationEnrollFormComponent() {
             transportText: Number(transportText),
             etcText: Number(etcText),
             totalCost,
-            companySupport,
-            localGovSupport,
-            totalSupport,
-            personalCost,
+            companySupport: appliedCompanySupport,
+            localGovSupport: 0, // DB 저장 시에는 승인 전이므로 0원으로 전송
+            totalSupport: appliedCompanySupport,
+            personalCost: totalCost - appliedCompanySupport,
 
             planList: planList.map(item => ({
                 taskName: item.taskName,
@@ -422,7 +421,6 @@ function WorkcationEnrollFormComponent() {
                             <textarea value={taskPurpose} onChange={(e) => setTaskPurpose(e.target.value)}></textarea>
                         </td>
 
-                        {/**지역선택 드롭 */}
                         <th>지역</th>
                         <td>
                             <form onSubmit={(e) => e.preventDefault()}>
@@ -464,7 +462,6 @@ function WorkcationEnrollFormComponent() {
                         </td>
                     </tr>
 
-                    {/**숙소/오피스 라디오버튼 */}
                     <tr>
                         <th>거점 유형</th>
                         <td>
@@ -486,16 +483,13 @@ function WorkcationEnrollFormComponent() {
                             </label>
                         </td>
 
-                        {/**숙소/오피스 주소 */}
                         <th>위치 주소</th>
                         <td>
                             {currentHub ? currentHub.hubAddress : "선택 된 장소 없음"}
                         </td>
                     </tr>
 
-                    {/**숙소/오피스 드롭 */}
                     {(() => {
-                        //close 상태 항목 제외
                         const valiHubList = (hubDrop || []).filter(h => (h.hubStatus) !== 'CLOSE');
                         const hasValiHub = valiHubList.length > 0;
                         return (
@@ -526,16 +520,11 @@ function WorkcationEnrollFormComponent() {
                         );
                     })()}
 
-                    {/**오피스/숙소까지 최종선택 되엇을시  */}
                     {renderBtnRow("program")}
                     {renderBtnRow("restaurant")}
                     {renderBtnRow("tour")}
                 </tbody>
             </table>
-
-
-
-
 
             <div className="task-plan-container">
                 <h3 align="center">업무 계획</h3>
@@ -578,7 +567,7 @@ function WorkcationEnrollFormComponent() {
             </div>
 
             <div className="all-price-container">
-                {/**지출 내역(왼쪽) 전체 지출 내역 확인용 */}
+                {/* 지출 내역(왼쪽) */}
                 <div className="left-price-box">
                     <h3>지출 내역</h3>
                     <div className="left-price-row">
@@ -604,10 +593,6 @@ function WorkcationEnrollFormComponent() {
                                 value={etcText}
                                 onChange={(e) => setEtcText(e.target.value === "" ? "" : Number(e.target.value))} />원
                         </div>
-                        <div>
-                            <span>예상 지출액</span>
-                            <strong>{personalCost.toLocaleString()}원</strong>
-                        </div>
                     </div>
                     <hr />
                     <div className="left-price-total">
@@ -616,7 +601,7 @@ function WorkcationEnrollFormComponent() {
                     </div>
                 </div>
 
-                {/** 지원금 및 정산 내역(오른쪽) */}
+                {/* 지원금 및 정산 내역(오른쪽) */}
                 <div className="left-price-box">
                     <h3>지원금 및 정산 내역</h3>
                     <div className="right-price-row">
@@ -624,16 +609,16 @@ function WorkcationEnrollFormComponent() {
                         <span>{companySupport.toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row">
-                        <span>지자체 지원금</span>
+                        <span>지자체 지원금 <small style={{ color: "#666" }}>(예상 최소)</small></span>
                         <span>{localGovSupport.toLocaleString()}원</span>
                     </div>
                     <div className="right-price-row total">
-                        <span>총 지원금 합계</span>
-                        <span>최대 {totalSupport.toLocaleString()}원</span>
+                        <span>총 지원금 합계 <small style={{ color: "#666" }}>(예상)</small></span>
+                        <span>최대 {totalExpectedSupport.toLocaleString()}원</span>
                     </div>
                     <hr />
                     <div className="right-price-pay">
-                        <span>최종 개인 부담금</span>
+                        <span>예상 개인 부담금</span>
                         <strong>{personalCost.toLocaleString()}원</strong>
                     </div>
                 </div>
