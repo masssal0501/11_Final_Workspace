@@ -115,13 +115,48 @@ export const deleteWorkcation = async(workcationNo)=>{
 
 //회사 지우너금 정보조회
 export const getSupportInfo = async () => {
-    const response = await axios.get(`${BASE_URL}/workcation/amount/supportInfo`);
+    const response = await axios.get(
+        `${BASE_URL}/workcation/amount/supportInfo`,
+        {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
     return response.data;
-}
+};
 
 //거점 및 옵션장소 조회
-export const getHubList =async(params)=>{
-    const response = await axios.get(`${BASE_URL}/workcation/hub/list`, {params:params})
+export const getHubList = async (params) => {
+    const response = await axios.get(
+        `${BASE_URL}/workcation/hub/list`,
+        {
+            params: params,
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
+
     return response.data;
-}
+};
+
+//진행률 저장
+export const saveTaskProgress = async (data) => {
+  const response = await axios.put(
+    `${BASE_URL}/workcation/task/${data.taskNo}`,
+    {
+      progress: data.progress,
+      title: data.title,
+      content: data.content
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+      }
+    }
+  );
+
+  return response.data;
+};
 

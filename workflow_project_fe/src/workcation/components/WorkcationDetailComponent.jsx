@@ -31,6 +31,7 @@ function WorkcationDetailComponent() {
     }
 
     const {
+        workcationTitle = "",
         startDate = "",
         endDate = "",
         peopleCount = 1,
@@ -85,6 +86,16 @@ function WorkcationDetailComponent() {
 
             <table className="workcation-form-table">
                 <tbody>
+                    <tr>
+                        <th>워케이션 제목</th>
+                        <td colSpan={3}>
+                            <input
+                                type="text"
+                                value={workcationTitle || ""}
+                                readOnly
+                            />
+                        </td>
+                    </tr>
                     <tr>
                         <th>신청기간</th>
                         <td colSpan={3}>
