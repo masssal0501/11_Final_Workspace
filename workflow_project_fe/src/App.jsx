@@ -31,7 +31,8 @@ import WorkcationListComponent from './workcation/components/WorkcationListCompo
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
 import WorkcationUpdateFormComponent from "./workcation/components/WorkcationUpdateFormComponent";
-import MyWorkcationFormComponent from "./workcation/components/MyWorkcationFormComponent";
+import MyWorkcationListComponent from "./workcation/components/MyWorkcationListComponent";
+import MyWorkcationDetailFormComponent from "./workcation/components/MyWorkcationDetailFormComponent";
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -175,7 +176,9 @@ function App() {
         <Route path="/myPage" element={<MyPageForm />} />
         <Route path="/myPage/update" element={<UpdateMyPageForm />} />
         <Route path="/changePW" element={<ChangePWForm />} />
-        <Route path="/workcation/MyWorkcation" element={<MyWorkcationFormComponent/>} />
+        <Route path="/workcation/mylist" element={<MyWorkcationListComponent/>} />
+        <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent/>} />
+
 
         {/* 📌 직원 관리 */}
         <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />} />

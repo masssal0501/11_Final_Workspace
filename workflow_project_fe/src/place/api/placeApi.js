@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8080/api/TRV-004/place';
+const BASE_URL = '/workflow/api/TRV-004/place';
+
 
 export const placeApi = {
 

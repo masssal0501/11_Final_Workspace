@@ -79,6 +79,16 @@ public class JwtUtil {
 
         } catch (Exception e) {
 
+            System.out.println(
+                    "JWT 검증 예외 : "
+                    + e.getClass().getName()
+            );
+
+            System.out.println(
+                    "JWT 검증 메시지 : "
+                    + e.getMessage()
+            );
+
             return false;
         }
     }

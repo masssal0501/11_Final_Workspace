@@ -3,16 +3,32 @@ axios.defaults.withCredentials = true;
 const BASE_URL = '/workflow';
 
 //1.메인지역
-export const getMainRegionList = async () =>{
-    const response = await axios.get(`${BASE_URL}/workcation/hub/mainRegion`);
+export const getMainRegionList = async () => {
+    const response = await axios.get(
+        `${BASE_URL}/workcation/hub/mainRegion`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
+
     return response.data;
 };
-
-//서브(상세) 지역 
+//서브
 export const getSubRegionList = async (mainRegion) => {
-    const response = await axios.get(`${BASE_URL}/workcation/hub/subRegion`, {
-        params: { mainRegion }
-    });
+    const response = await axios.get(
+        `${BASE_URL}/workcation/hub/subRegion`,
+        {
+            params: { mainRegion },
+            headers: {
+                Authorization:
+                    `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
+
     return response.data;
 };
 
@@ -29,13 +45,18 @@ export const getWorkcationList = async (params) => {
 
 //상세조회
 export const getWorkcationDetail = async (workcationNo) => {
-    const response = await axios.get(`${BASE_URL}/workcation/MyWorkcation/${workcationNo}`, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+    const response = await axios.get(
+        `${BASE_URL}/workcation/detail/${workcationNo}`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${localStorage.getItem("accessToken")}`
+            }
         }
-    });
+    );
+
     return response.data;
-}
+};
 //워케이션 등록
 export const enrollWorkcation = async (insertworkcationData)=>{
     const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, 
@@ -48,9 +69,26 @@ export const enrollWorkcation = async (insertworkcationData)=>{
     return response;
 }
 
-// 내 워케이션 조회
-export const getMyWorkcation = async () => {
-    const response = await axios.get(`${BASE_URL}/workcation/my`, {
+//내 워케이션 리스트
+export const getMyWorkcationList = async (params) => {
+
+    const response = await axios.get(
+        `${BASE_URL}/workcation/mylist`,
+        {
+            params,
+            headers: {
+                Authorization:
+                    `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
+
+    return response.data;
+};
+
+// 내 워케이션 상세조회
+export const getMyWorkcationDetail = async (workcationNo) => {
+    const response = await axios.get(`${BASE_URL}/workcation/mydetail/${workcationNo}`, {
         headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`
         }

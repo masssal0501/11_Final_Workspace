@@ -20,7 +20,7 @@ import com.kh.workflow.amount.dao.SupportListDao;
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
-// Employee 엔티티 패키지 경로에 맞게 확인 필요
+
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.workcation.model.dao.ReservationDao;
@@ -101,42 +101,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 			return map;
 		});
-	}
-
-	@Override
-	public Map<String, Object> getMyWorkcation(int empNo) {
-	    WorkcationInfo workcation = workcationDao.findTopByEmployeeEmpNoOrderByWorkcationNoDesc(empNo)
-	            .orElseThrow(() -> new RuntimeException("등록된 워케이션 정보가 없습니다."));
-	    
-	    List<Reservation> reservations = reservationDao.findByWorkcation(workcation);
-	    String mainRegion = "";
-	    String subRegion = "";
-
-	    if (reservations != null && !reservations.isEmpty()) {
-	        for (Reservation r : reservations) {
-	            if (r.getHub() != null) {
-	                int hubType = r.getHub().getHubType();
-	                if (hubType == 1 || hubType == 2) { // 오피스 또는 숙소
-	                    mainRegion = r.getHub().getMainRegion() != null ? r.getHub().getMainRegion() : "";
-	                    subRegion = r.getHub().getSubRegion() != null ? r.getHub().getSubRegion() : "";
-	                    break;
-	                }
-	            }
-	        }
-	    }
-
-	    Map<String, Object> map = new HashMap<>();
-	    map.put("workcationNo", workcation.getWorkcationNo());
-	    map.put("workcationTitle", workcation.getWorkcationTitle());
-	    
-	    map.put("startDate", workcation.getStartAt() != null ? workcation.getStartAt().toLocalDate().toString() : "");
-	    map.put("endDate", workcation.getEndAt() != null ? workcation.getEndAt().toLocalDate().toString() : "");
-	    
-	    map.put("mainRegion", mainRegion);
-	    map.put("subRegion", subRegion);
-	    map.put("planList", Collections.emptyList());
-	    return map;
-	}
+	}	
 	
 	@Override
 	public Map<String, Object> getAmountSupportInfo() {
@@ -710,4 +675,138 @@ public class WorkcationServiceImpl implements WorkcationService {
 		workcationDao.delete(workcation);
 	}
 
+	@Override
+	public Page<Map<String, Object>> selectMyWorkcationList(
+	        Map<String, Object> paramMap,
+	        Pageable pageable) {
+
+	    int empNo = (int) paramMap.get("empNo");
+
+	    String mainRegion =
+	            paramMap.get("mainRegion") != null
+	                    ? (String) paramMap.get("mainRegion")
+	                    : null;
+
+	    String subRegion =
+	            paramMap.get("subRegion") != null
+	                    ? (String) paramMap.get("subRegion")
+	                    : null;
+
+	    // 빈 문자열이면 JPA 검색조건에서 제외하기 위해 null 처리
+	    if (mainRegion != null && mainRegion.trim().isEmpty()) {
+	        mainRegion = null;
+	    }
+
+	    if (subRegion != null && subRegion.trim().isEmpty()) {
+	        subRegion = null;
+	    }
+
+	    Page<WorkcationInfo> page =
+	            workcationDao.searchMyWorkcationList(
+	                    empNo,
+	                    mainRegion,
+	                    subRegion,
+	                    pageable
+	            );
+
+	    return page.map(workcation -> {
+
+	        Map<String, Object> map = new HashMap<>();
+
+	        map.put(
+	                "workcationNo",
+	                workcation.getWorkcationNo()
+	        );
+
+	        map.put(
+	                "workcationTitle",
+	                workcation.getWorkcationTitle()
+	        );
+
+	        map.put(
+	                "createdAt",
+	                workcation.getCreatedAt()
+	        );
+
+	        map.put(
+	                "approverState",
+	                workcation.getApproverState()
+	        );
+	    
+	        // 지역 조회
+	        List<Reservation> reservations =
+	                reservationDao.findByWorkcation(workcation);
+
+	        String main = "";
+	        String sub = "";
+
+	        if (reservations != null &&
+	            !reservations.isEmpty()) {
+
+	            for (Reservation reservation : reservations) {
+
+	                if (reservation.getHub() == null) {
+	                    continue;
+	                }
+
+	                int hubType =
+	                        reservation
+	                                .getHub()
+	                                .getHubType();
+
+	                // 메인 거점 또는 숙소
+	                if (hubType == 1 || hubType == 2) {
+
+	                    main =
+	                            reservation
+	                                    .getHub()
+	                                    .getMainRegion() != null
+	                                    ? reservation
+	                                        .getHub()
+	                                        .getMainRegion()
+	                                    : "";
+
+	                    sub =
+	                            reservation
+	                                    .getHub()
+	                                    .getSubRegion() != null
+	                                    ? reservation
+	                                        .getHub()
+	                                        .getSubRegion()
+	                                    : "";
+
+	                    break;
+	                }
+	            }
+	        }
+
+	        map.put("mainRegion", main);
+	        map.put("subRegion", sub);
+
+	        return map;
+	    });
+	}
+
+	@Override
+	public Map<String, Object> getMyWorkcationDetail(
+	        Integer workcationNo,
+	        int empNo
+	) {
+
+	    WorkcationInfo workcation =
+	            workcationDao
+	                    .findByWorkcationNoAndEmployeeEmpNo(
+	                            workcationNo,
+	                            empNo
+	                    )
+	                    .orElseThrow(() ->
+	                            new RuntimeException(
+	                                    "조회할 수 없는 워케이션입니다."
+	                            )
+	                    );
+
+	    return getWorkcationDetail(
+	            workcation.getWorkcationNo()
+	    );
+	}
 }

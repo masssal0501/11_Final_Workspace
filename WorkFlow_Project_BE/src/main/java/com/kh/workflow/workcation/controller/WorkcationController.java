@@ -80,17 +80,116 @@ public class WorkcationController {
 		return ResponseEntity.ok(map);
 	}
 
-	@GetMapping("/myWorkcation")
-	public ResponseEntity<?> getMyWorkcation(Authentication authentication) {
-	    if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-	        return ResponseEntity.status(401).body("로그인이 필요합니다.");
+	@GetMapping("/mylist")
+	public ResponseEntity<?> selectMyWorkcationList(
+	        @RequestParam(value = "cpage", defaultValue = "1") int currentPage,
+	        @RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
+	        @RequestParam(value = "subRegion", defaultValue = "") String subRegion,
+	        @RequestParam(value = "searchType", defaultValue = "all") String searchType,
+	        Authentication authentication
+	) {
+
+	    // 로그인 확인
+	    if (authentication == null ||
+	        !authentication.isAuthenticated() ||
+	        "anonymousUser".equals(authentication.getPrincipal())) {
+
+	        return ResponseEntity
+	                .status(401)
+	                .body("로그인이 필요합니다.");
 	    }
 
-	    String empId = (String) authentication.getPrincipal();
-	    Employee employee = employeeDao.findByEmpId(empId)
-	            .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+	    // JWT에서 로그인한 empId
+	    String empId =
+	            (String) authentication.getPrincipal();
 
-	    Map<String, Object> result = workcationService.getMyWorkcation(employee.getEmpNo());
+	    // empId -> Employee
+	    Employee employee =
+	            employeeDao.findByEmpId(empId)
+	                    .orElseThrow(() ->
+	                            new RuntimeException(
+	                                    "회원 정보를 찾을 수 없습니다."
+	                            )
+	                    );
+
+	    // 현재 로그인한 사원 번호
+	    int empNo = employee.getEmpNo();
+
+	    Pageable pageable =
+	            PageRequest.of(currentPage - 1, 10);
+
+	    Map<String, Object> paramMap =
+	            new HashMap<>();
+
+	    paramMap.put("empNo", empNo);
+	    paramMap.put("mainRegion", mainRegion);
+	    paramMap.put("subRegion", subRegion);
+	    paramMap.put("searchType", searchType);
+
+	    Page<Map<String, Object>> pageResult =
+	            workcationService.selectMyWorkcationList(
+	                    paramMap,
+	                    pageable
+	            );
+
+	    Map<String, Object> result =
+	            new HashMap<>();
+
+	    result.put(
+	            "list",
+	            pageResult.getContent()
+	    );
+
+	    result.put(
+	            "currentPage",
+	            currentPage
+	    );
+
+	    result.put(
+	            "totalPages",
+	            pageResult.getTotalPages()
+	    );
+
+	    result.put(
+	            "totalElements",
+	            pageResult.getTotalElements()
+	    );
+
+	    return ResponseEntity.ok(result);
+	}	
+	
+	@GetMapping("/mydetail/{workcationNo}")
+	public ResponseEntity<?> getMyWorkcationDetail(
+	        @PathVariable Integer workcationNo,
+	        Authentication authentication
+	) {
+
+	    if (authentication == null ||
+	        !authentication.isAuthenticated() ||
+	        "anonymousUser".equals(authentication.getPrincipal())) {
+
+	        return ResponseEntity
+	                .status(401)
+	                .body("로그인이 필요합니다.");
+	    }
+
+	    String empId =
+	            (String) authentication.getPrincipal();
+
+	    Employee employee =
+	            employeeDao.findByEmpId(empId)
+	                    .orElseThrow(() ->
+	                            new RuntimeException(
+	                                    "회원 정보를 찾을 수 없습니다."
+	                            )
+	                    );
+
+	    Map<String, Object> result =
+	            workcationService.getMyWorkcationDetail(
+	                    workcationNo,
+	                    employee.getEmpNo()
+	            );
+
 	    return ResponseEntity.ok(result);
 	}
 	

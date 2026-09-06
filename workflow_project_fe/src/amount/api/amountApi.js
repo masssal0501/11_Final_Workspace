@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8080/api/v1/amounts';
+const BASE_URL = '/workflow/api/v1/amount';
+
 
 export const amountApi = {
   // 1. 비용 검토 신청 등록 (POST)

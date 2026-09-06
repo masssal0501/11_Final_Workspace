@@ -32,9 +32,13 @@ public class JwtAuthenticationFilter
         String authorization =
                 request.getHeader("Authorization");
 
-        // Authorization 헤더가 없으면 다음 필터로
+        System.out.println("요청 URI : " + request.getRequestURI());
+        System.out.println("Authorization : " + authorization);
+
         if (authorization == null ||
             !authorization.startsWith("Bearer ")) {
+
+            System.out.println("Bearer 토큰 없음");
 
             filterChain.doFilter(request, response);
             return;
@@ -43,14 +47,20 @@ public class JwtAuthenticationFilter
         String token =
                 authorization.substring(7);
 
-        // JWT 검증
+        System.out.println("토큰 검증 시작");
+
         if (jwtUtil.validateToken(token)) {
+
+            System.out.println("토큰 검증 성공");
 
             String empId =
                     jwtUtil.getEmpId(token);
 
             String authCode =
                     jwtUtil.getAuthCode(token);
+
+            System.out.println("empId : " + empId);
+            System.out.println("authCode : " + authCode);
 
             SimpleGrantedAuthority authority =
                     new SimpleGrantedAuthority(
@@ -67,6 +77,12 @@ public class JwtAuthenticationFilter
             SecurityContextHolder
                     .getContext()
                     .setAuthentication(authentication);
+
+            System.out.println("SecurityContext 인증 등록 완료");
+
+        } else {
+
+            System.out.println("토큰 검증 실패");
         }
 
         filterChain.doFilter(request, response);

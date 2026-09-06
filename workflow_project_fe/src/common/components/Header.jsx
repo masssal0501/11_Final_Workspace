@@ -44,10 +44,10 @@ function Header({ loginUser, onLogout }) {
     navigate("/myPage");
   };
 
-  //내 워케이션 내역 이동
+  //내 워케이션 리스트 이동
   const handleMyWorcation =() =>{
     setIsProfileOpen(false);
-    navigate("/workcation/MyWorkcation");
+    navigate("/workcation/mylist");
   }
 
   // 메뉴

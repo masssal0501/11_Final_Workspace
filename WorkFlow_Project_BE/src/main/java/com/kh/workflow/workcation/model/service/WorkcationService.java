@@ -9,21 +9,43 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface WorkcationService {
 
-	Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paraMap, Pageable pageable);
+    Page<Map<String, Object>> selectWorkcationList(
+            Map<String, Object> paraMap,
+            Pageable pageable
+    );
 
-	void insertWorkcationEnrollForm(Map<String, Object> paramMap);
-	
-	void insertWorkcation(WorkcationInfo workcartion);
-	
-	Map<String, Object> getAmountSupportInfo();
+    void insertWorkcationEnrollForm(
+            Map<String, Object> paramMap
+    );
 
-	Map<String, Object> getWorkcationDetail(Integer workcationNo);
+    void insertWorkcation(
+            WorkcationInfo workcartion
+    );
 
-	void deleteWorkcation(Integer workcationNo);
+    Map<String, Object> getAmountSupportInfo();
 
-	void updateWorkcation(Integer workcationNo, Map<String, Object> updateData);
+    Map<String, Object> getWorkcationDetail(
+            Integer workcationNo
+    );
 
-	Map<String, Object> getMyWorkcation(int empNo);
+    void deleteWorkcation(
+            Integer workcationNo
+    );
 
-	
+    void updateWorkcation(
+            Integer workcationNo,
+            Map<String, Object> updateData
+    );
+
+    // 내 워케이션 목록
+    Page<Map<String, Object>> selectMyWorkcationList(
+            Map<String, Object> paramMap,
+            Pageable pageable
+    );
+
+    // 내 워케이션 상세
+    Map<String, Object> getMyWorkcationDetail(
+            Integer workcationNo,
+            int empNo
+    );
 }
