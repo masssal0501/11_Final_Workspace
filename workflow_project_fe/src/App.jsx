@@ -31,13 +31,13 @@ import WorkcationListComponent from './workcation/components/WorkcationListCompo
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
 import WorkcationUpdateFormComponent from "./workcation/components/WorkcationUpdateFormComponent";
+import MyWorkcationFormComponent from "./workcation/components/MyWorkcationFormComponent";
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
 import FindPWForm from "./employee/components/FindPWForm";
 import ChangePWForm from "./employee/components/ChangePWForm";
 import EmployeeEnrollFormComponent
-
   from "./employee/components/EmployeeEnrollFormComponent";
 
 import MyPageForm from "./employee/components/MyPageForm";
@@ -49,122 +49,54 @@ import EmployeeEdit from "./employee/components/EmployeeEdit";
 import {
   Routes,
   Route,
-  Navigate
+  Navigate,
+  useNavigate
 } from "react-router-dom";
 
 
-
 function App() {
+  const navigate = useNavigate();
 
   const [loginUser, setLoginUser] = useState(() => {
-
-        const savedUser =
-            localStorage.getItem("user");
-
-        return savedUser
-            ? JSON.parse(savedUser)
-            : null;
-    });
-
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   /*
    * 로그인 성공
    */
   const handleLogin = (user) => {
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(user)
-    );
-
+    localStorage.setItem("user", JSON.stringify(user));
     setLoginUser(user);
+    navigate("/", { replace: true });
   };
-
 
   /*
    * 로그아웃
    */
   const handleLogout = () => {
-
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
-
     setLoginUser(null);
   };
 
 
   /*
    * ========================================
-   * 로그인하지 않은 상태
+   * 1. 로그인하지 않은 상태
    * ========================================
    */
   if (!loginUser) {
-
     return (
       <div className="content">
-        <Header
-          loginUser={loginUser}
-          onLogout={handleLogout}
-        />
+        <Header loginUser={loginUser} onLogout={handleLogout} />
         <Routes>
-
-          <Route
-            path="/"
-            element={
-              <Navigate
-                to="/login"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path="/login"
-            element={
-              <LoginForm
-                onLogin={handleLogin}
-              />
-            }
-          />
-
-          <Route
-            path="/login/findID"
-            element={<FindIDForm />}
-          />
-
-          <Route
-            path="/login/findPW"
-            element={<FindPWForm />}
-          />
-          <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
-          <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
-          <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />}></Route>
-          <Route path="/placeInfo/detail/:hubNo" element={<HubDetailComponent />}></Route>
-          <Route path="/placeInfo/updateForm/:hubNo" element={<HubUpdateFormComponent />}></Route>
-          <Route path="/placeInfo/ai" element={<AIComponent />}></Route>
-
-          {/* 업무 게시판 라우트 */}
-          <Route path="/task/list" element={<TaskListComponent />} />
-          <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
-
-          {/* 워케이션 라우트 */}
-          <Route path="/workcation/list" element={<WorkcationListComponent />} />
-          <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-          <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
-          <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
-
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to="/login"
-                replace
-              />
-            }
-          />
-
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
+          <Route path="/login/findID" element={<FindIDForm />} />
+          <Route path="/login/findPW" element={<FindPWForm />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-
       </div>
     );
   }
@@ -172,48 +104,19 @@ function App() {
 
   /*
    * ========================================
-   * 비밀번호 변경이 필요한 사용자
+   * 2. 비밀번호 변경이 필요한 사용자
    * ========================================
    */
-  if (
-    loginUser.pwChgRequired === true ||
-    loginUser.pwChgRequired === "true"
-  ) {
-
+  if (loginUser.pwChgRequired === true || loginUser.pwChgRequired === "true") {
     return (
       <div className="content">
-
-        <Header
-          loginUser={loginUser}
-          onLogout={handleLogout}
-        />
-
+        <Header loginUser={loginUser} onLogout={handleLogout} />
         <Routes>
-
-          <Route
-            path="/changePW"
-            element={
-              <ChangePWForm
-                loginUser={loginUser}
-                onLogin={handleLogin}
-              />
-            }
-          />
-
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to="/changePW"
-                replace
-              />
-            }
-          />
-
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/changePW" element={<ChangePWForm loginUser={loginUser} onLogin={handleLogin} />} />
+          <Route path="*" element={<Navigate to="/changePW" replace />} />
         </Routes>
-
         <Footer />
-
       </div>
     );
   }
@@ -221,182 +124,78 @@ function App() {
 
   /*
    * ========================================
-   * 정상 로그인 사용자
+   * 3. 정상 로그인 사용자
    * ========================================
    */
-
   return (
     <div>
-
-      <Header
-        loginUser={loginUser}
-        onLogout={handleLogout}
-      />
+      <Header loginUser={loginUser} onLogout={handleLogout} />
 
       <Routes>
+        {/* 📌 로그아웃 시 에러 방지용 라우트 (여기에 있어야 합니다!) */}
+        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
 
-        {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
+        {/* 📌 비용/정산 라우트 */}
         <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
-
-        {/* 📌 비용 신청 페이지 경로 추가 */}
         <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
-
         <Route path="/cost/apply" element={<AmountForm />} />
-
-        {/* 📌 비용 정산 상세 페이지 라우트 추가 */}
         <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
-
-        {/* 관리자용 정산 페이지 */}
         <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
-
-        {/* 📌 통계 페이지 라우트 추가 */}
         <Route path="/admin/statistics" element={<StatisticsPage />} />
 
+        {/* 📌 공지사항 라우트 */}
         <Route path="/notice" element={<NoticeListPage />} />
-
         <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
         <Route path="/admin/notice" element={<NoticeAdminListPage />} />
-
         <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
-
         <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
-        {/* placeInfo */}
-        <Route path="/placeInfo/list" element={<HubListComponent />}></Route>
-        <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />}></Route>
-        <Route path="/placeInfo/detail/:hubNo" element={<HubDetailComponent />}></Route>
-        <Route path="/placeInfo/updateForm/:hubNo" element={<HubUpdateFormComponent />}></Route>
-        <Route path="/placeInfo/ai" element={<AIComponent />}></Route>
+        {/* 📌 장소/거점 라우트 */}
+        <Route path="/placeInfo/list" element={<HubListComponent />} />
+        <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />} />
+        <Route path="/placeInfo/detail/:hubNo" element={<HubDetailComponent />} />
+        <Route path="/placeInfo/updateForm/:hubNo" element={<HubUpdateFormComponent />} />
+        <Route path="/placeInfo/ai" element={<AIComponent />} />
 
-        {/* 업무 게시판 라우트 */}
+        {/* 📌 업무 게시판 라우트 */}
         <Route path="/task/list" element={<TaskListComponent />} />
         <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
 
-        {/* 워케이션 라우트 */}
+        {/* 📌 워케이션 라우트 */}
         <Route path="/workcation/list" element={<WorkcationListComponent />} />
         <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
         <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
         <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
 
-        <Route
-          path="/"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
-            />
-          }
-        />
+        {/* 📌 대시보드 및 기본 라우트 */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<div>대시보드</div>} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <div>대시보드</div>
-          }
-        />
+        {/* 📌 마이페이지 */}
+        <Route path="/myPage" element={<MyPageForm />} />
+        <Route path="/myPage/update" element={<UpdateMyPageForm />} />
+        <Route path="/changePW" element={<ChangePWForm />} />
+        <Route path="/workcation/MyWorkcation" element={<MyWorkcationFormComponent/>} />
 
-        {/* 마이페이지 */}
+        {/* 📌 직원 관리 */}
+        <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />} />
+        <Route path="/employee/list" element={<EmployeeList />} />
+        <Route path="/employee/detail/:empNo" element={<EmployeeDetail />} />
+        <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
 
-        <Route
-          path="/myPage"
-          element={<MyPageForm />}
-        />
-
-        <Route
-          path="/myPage/update"
-          element={<UpdateMyPageForm />}
-        />
-
-        {/* 비밀번호 변경 */}
-
-        <Route
-          path="/changePW"
-          element={<ChangePWForm />}
-        />
-
-        {/* 직원 */}
-
-        <Route
-          path="/employee/enrollForm"
-          element={
-            <EmployeeEnrollFormComponent />
-          }
-        />
-
-        <Route
-          path="/employee/list"
-          element={<EmployeeList />}
-        />
-
-        <Route
-          path='/employee/detail/:empNo'
-          element={<EmployeeDetail />}
-        />
-
-        <Route
-          path="/employee/edit/:empNo"
-          element={<EmployeeEdit />}
-        />
-
-        {/* 관리자 */}
-
+        {/* 📌 권한별 라우트 */}
         {loginUser.authCode === "ADMIN" && (
-
-          <Route
-            path="/admin"
-            element={
-              <div>
-                관리자 페이지
-              </div>
-            }
-          />
-
+          <Route path="/admin" element={<div>관리자 페이지</div>} />
         )}
-
-        {/* 부서장 */}
-
         {loginUser.authCode === "MANAGER" && (
-
-          <Route
-            path="/manager"
-            element={
-              <div>
-                부서장 페이지
-              </div>
-            }
-          />
-
+          <Route path="/manager" element={<div>부서장 페이지</div>} />
         )}
-
-        {/* 사원 */}
-
         {loginUser.authCode === "STAFF" && (
-
-          <Route
-            path="/employee"
-            element={
-              <div>
-                사원 페이지
-              </div>
-            }
-          />
-
+          <Route path="/employee" element={<div>사원 페이지</div>} />
         )}
-
-        {/* <Route
-                    path="*"
-                    element={
-                        <Navigate
-                            to="/error"
-                            replace
-                        />
-                    }
-                /> */}
-
       </Routes>
 
       <Footer />
-
     </div>
   );
 }

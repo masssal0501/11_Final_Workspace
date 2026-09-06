@@ -23,5 +23,7 @@ public interface WorkcationService {
 
 	void updateWorkcation(Integer workcationNo, Map<String, Object> updateData);
 
+	Map<String, Object> getMyWorkcation(int empNo);
+
 	
 }

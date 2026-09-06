@@ -6,17 +6,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.kh.workflow.config.jwt.JwtAuthenticationFilter;
-
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -27,92 +27,130 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    //Spring Security 설정
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
-
-        http
-            // CORS 활성화
-            .cors(cors -> {})
-
-            // CSRF 비활성화
-            .csrf(csrf -> csrf.disable())
-
-            // 현재는 모든 요청 허용
-            .authorizeHttpRequests(auth ->
-                auth.anyRequest().permitAll()
-            );
-
-        return http.build();
-    }
-    
+    // Spring Security 설정
 //    @Bean
 //    public SecurityFilterChain securityFilterChain(
-//            HttpSecurity http,
-//            JwtAuthenticationFilter jwtAuthenticationFilter
+//            HttpSecurity http
 //    ) throws Exception {
 //
-//        return http
+//        http
+//            // CORS 활성화
+//            .cors(cors -> {})
 //
-//                .cors(cors -> {})
+//            // CSRF 비활성화
+//            .csrf(csrf -> csrf.disable())
 //
-//                .csrf(csrf -> csrf.disable())
+//            // 현재는 모든 요청 허용
+//            .authorizeHttpRequests(auth ->
+//                auth.anyRequest().permitAll()
+//            );
 //
-//                .sessionManagement(session ->
-//                        session.sessionCreationPolicy(
-//                                SessionCreationPolicy.STATELESS
-//                        )
-//                )
-//
-//                .authorizeHttpRequests(auth -> auth
-//
-//                        // CORS Preflight
-//                        .requestMatchers(
-//                                HttpMethod.OPTIONS,
-//                                "/**"
-//                        ).permitAll()
-//                        // 로그인
-//                        .requestMatchers(
-//                                HttpMethod.POST,
-//                                "/employees/login"
-//                        ).permitAll()
-//                        
-//                        // 로그아웃
-//                        .requestMatchers(
-//                    	    HttpMethod.POST,
-//                    	    "/employees/logout"
-//                    	).permitAll()
-//
-//                        // 아이디 중복 확인
-//                        .requestMatchers(
-//                                "/employees/checkId"
-//                        ).permitAll()
-//
-//                        // 직원 등록
-//                        .requestMatchers(
-//                                HttpMethod.POST,
-//                                "/employees"
-//                        ).permitAll()
-//                        
-//                        .requestMatchers(
-//                            "/employees/password"
-//                        ).authenticated()
-//
-//                        // 나머지는 JWT 필요
-//                        .anyRequest().authenticated()
-//                        
-//                )
-//                
-//
-//                .addFilterBefore(
-//                        jwtAuthenticationFilter,
-//                        UsernamePasswordAuthenticationFilter.class
-//                )
-//
-//                .build();
+//        return http.build();
 //    }
+    
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+    return (web) -> web.ignoring()
+    .requestMatchers("/resources/**");
+    }
+    
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) throws Exception {
+
+        return http
+
+                .cors(cors -> {})
+
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // CORS Preflight
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        // 로그인
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/employees/login"
+                        ).permitAll()
+                        
+                        // 로그아웃
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/logout"
+                    	).permitAll()
+
+                        // 아이디 중복 확인
+                        .requestMatchers(
+                                "/employees/checkId"
+                        ).permitAll()
+
+                        // 직원 등록
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/employees"
+                        ).permitAll()
+                        
+                        .requestMatchers(
+                            "/employees/password"
+                        ).authenticated()
+                        
+                        // 계정 ID 찾기
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/findId"
+                    	).permitAll()
+                        
+                        // 장소 관련 API
+                        .requestMatchers(
+                                "/place/**"
+                        ).permitAll()
+                        
+                        .requestMatchers(
+                        		"/hubs/**"
+                		).permitAll()
+
+	                     // 관리자 - 계정 상태 변경
+	                    .requestMatchers(
+	                            HttpMethod.PATCH,
+	                            "/employees/*/status"
+	                    ).hasRole("ADMIN")
+	
+	                    // 관리자 - 역할 / 부서 / 직위 변경
+	                    .requestMatchers(
+	                            HttpMethod.PATCH,
+	                            "/employees/*/role"
+	                    ).hasRole("ADMIN")
+	                    
+	                    .requestMatchers(
+	                    	    HttpMethod.GET,
+	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
+	                    	).permitAll()
+
+                        // 나머지는 JWT 필요
+                        .anyRequest().authenticated()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                
+
+                .build();
+    }
 
     // CORS 설정
     @Bean

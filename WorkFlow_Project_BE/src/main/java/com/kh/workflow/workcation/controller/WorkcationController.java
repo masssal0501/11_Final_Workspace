@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.workcation.model.service.WorkcationService;
-import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
 @RestController
@@ -34,6 +35,9 @@ public class WorkcationController {
 	// 직접 허브에 박아버리기
 	@Autowired
 	private com.kh.workflow.hub.model.dao.HubDao hubDao;
+	
+	@Autowired
+	private com.kh.workflow.employee.model.dao.EmployeeDao employeeDao;
 
 	// 워케이션 목록 조회
 	@GetMapping("/list")
@@ -43,15 +47,27 @@ public class WorkcationController {
 			@RequestParam(value = "keyword", defaultValue = "") String keyword,
 			@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
 			@RequestParam(value = "subRegion", defaultValue = "") String subRegion,
-			@RequestParam(value = "searchType", defaultValue = "all") String searchType) {
-
+			@RequestParam(value = "searchType", defaultValue = "all") String searchType,
+			Authentication authentication) {
+		
+		if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+			return ResponseEntity.status(401).body("로그인이 필요합니다.");
+		}		
+		
+		String empId = (String) authentication.getPrincipal();
+		Employee employee = employeeDao.findByEmpId(empId)
+				.orElseThrow(()-> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+		
+		int empNo = employee.getEmpNo();
+				
 		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 		Map<String, Object> paramMap = new HashMap<>();
 		paramMap.put("mainRegion", mainRegion);
 		paramMap.put("subRegion", subRegion);
 		paramMap.put("condition", condition);
 		paramMap.put("keyword", keyword);
-		paramMap.put("searchType", searchType);		
+		paramMap.put("searchType", searchType);	
+		paramMap.put("empNo", empNo);
 
 		Page<Map<String, Object>> pageResult = workcationService.selectWorkcationList(paramMap, pageable);
 
@@ -59,11 +75,25 @@ public class WorkcationController {
 		map.put("list", pageResult.getContent());
 		map.put("currentPage", currentPage);
 		map.put("totalPages", pageResult.getTotalPages());
-		map.put("totalElements", pageResult.getTotalElements());
+		map.put("totalElements", pageResult.getTotalElements());		
 
 		return ResponseEntity.ok(map);
 	}
 
+	@GetMapping("/myWorkcation")
+	public ResponseEntity<?> getMyWorkcation(Authentication authentication) {
+	    if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+	        return ResponseEntity.status(401).body("로그인이 필요합니다.");
+	    }
+
+	    String empId = (String) authentication.getPrincipal();
+	    Employee employee = employeeDao.findByEmpId(empId)
+	            .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+	    Map<String, Object> result = workcationService.getMyWorkcation(employee.getEmpNo());
+	    return ResponseEntity.ok(result);
+	}
+	
 	@GetMapping("/hub/list")
 	public ResponseEntity<List<com.kh.workflow.hub.model.vo.Hub>> selectHubList(
 			@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
@@ -93,9 +123,16 @@ public class WorkcationController {
 
 	// 워켕션 신청등록 폼
 	@PostMapping("/hub/enrollForm")
-	public ResponseEntity<String> insertWorkcationEnrollForm(@RequestBody Map<String, Object> paramMap) {
+	public ResponseEntity<String> insertWorkcationEnrollForm(
+				@RequestBody Map<String, Object> paramMap,
+				Authentication authentication) {
 
-		int empNo = 1;
+		String empId = (String) authentication.getPrincipal();	
+	
+		Employee employee = employeeDao.findByEmpId(empId)
+		    .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+	
+		int empNo = employee.getEmpNo(); 
 		paramMap.put("empNo", empNo);
 
 		workcationService.insertWorkcationEnrollForm(paramMap);

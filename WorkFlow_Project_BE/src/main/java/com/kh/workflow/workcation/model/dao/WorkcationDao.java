@@ -1,6 +1,6 @@
 package com.kh.workflow.workcation.model.dao;
 
-import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,5 +31,11 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		@Param("mainRegion") String mainRegion,
 		@Param("subRegion") String subRegion,
 		Pageable pageable);
+	
+	Page<WorkcationInfo> findByEmployeeEmpNo(int empNo, Pageable pageable);
+	
+	Optional<WorkcationInfo> findTopByEmployeeEmpNoOrderByWorkcationNoDesc(int empNo);
+	
+	}
 
-}
+

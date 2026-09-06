@@ -19,22 +19,44 @@ export const getSubRegionList = async (mainRegion) => {
 //워케이션 목록 조회 
 export const getWorkcationList = async (params) => {
     const response = await axios.get(`${BASE_URL}/workcation/list`, {
-        params: params
+        params: params,
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+        }
     });
     return response.data;
 };
 
 //상세조회
-export const getWorkcationDetail = async(workcationNo)=>{
-    console.log("전달받은 workcationNo:", workcationNo);
-    const response = await axios.get(`${BASE_URL}/workcation/detail/${workcationNo}`)
+export const getWorkcationDetail = async (workcationNo) => {
+    const response = await axios.get(`${BASE_URL}/workcation/MyWorkcation/${workcationNo}`, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+        }
+    });
     return response.data;
 }
 //워케이션 등록
 export const enrollWorkcation = async (insertworkcationData)=>{
-    const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, insertworkcationData)
+    const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, 
+        insertworkcationData, {
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
     return response;
 }
+
+// 내 워케이션 조회
+export const getMyWorkcation = async () => {
+    const response = await axios.get(`${BASE_URL}/workcation/my`, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+        }
+    });
+    return response.data;
+};
 
 //수정
 export const updateWorkcation = async(workcationNo, updateData) => {
@@ -44,7 +66,12 @@ export const updateWorkcation = async(workcationNo, updateData) => {
 
 //삭제
 export const deleteWorkcation = async(workcationNo)=>{
-    const response = await axios.delete(`${BASE_URL}/workcation/delete/${workcationNo}`)
+    const response = await axios.delete(`${BASE_URL}/workcation/delete/${workcationNo}`, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+        }
+    })
+    
     return response.data;
 }
 

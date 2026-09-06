@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,10 +52,14 @@ public class WorkcationServiceImpl implements WorkcationService {
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
+		int empNo = (int) paramMap.get("empNo");
+		
 		// 1. 오라클 DB용 빈문자열 NULL 변환
 		String mainRegion = paramMap != null ? (String) paramMap.get("mainRegion") : null;
 		String subRegion = paramMap != null ? (String) paramMap.get("subRegion") : null;
 
+		Page<WorkcationInfo> workcationPage = workcationDao.findByEmployeeEmpNo(empNo, pageable);
+		
 		if (mainRegion != null && mainRegion.trim().isEmpty()) {
 			mainRegion = null;
 		}
@@ -98,6 +103,41 @@ public class WorkcationServiceImpl implements WorkcationService {
 		});
 	}
 
+	@Override
+	public Map<String, Object> getMyWorkcation(int empNo) {
+	    WorkcationInfo workcation = workcationDao.findTopByEmployeeEmpNoOrderByWorkcationNoDesc(empNo)
+	            .orElseThrow(() -> new RuntimeException("등록된 워케이션 정보가 없습니다."));
+	    
+	    List<Reservation> reservations = reservationDao.findByWorkcation(workcation);
+	    String mainRegion = "";
+	    String subRegion = "";
+
+	    if (reservations != null && !reservations.isEmpty()) {
+	        for (Reservation r : reservations) {
+	            if (r.getHub() != null) {
+	                int hubType = r.getHub().getHubType();
+	                if (hubType == 1 || hubType == 2) { // 오피스 또는 숙소
+	                    mainRegion = r.getHub().getMainRegion() != null ? r.getHub().getMainRegion() : "";
+	                    subRegion = r.getHub().getSubRegion() != null ? r.getHub().getSubRegion() : "";
+	                    break;
+	                }
+	            }
+	        }
+	    }
+
+	    Map<String, Object> map = new HashMap<>();
+	    map.put("workcationNo", workcation.getWorkcationNo());
+	    map.put("workcationTitle", workcation.getWorkcationTitle());
+	    
+	    map.put("startDate", workcation.getStartAt() != null ? workcation.getStartAt().toLocalDate().toString() : "");
+	    map.put("endDate", workcation.getEndAt() != null ? workcation.getEndAt().toLocalDate().toString() : "");
+	    
+	    map.put("mainRegion", mainRegion);
+	    map.put("subRegion", subRegion);
+	    map.put("planList", Collections.emptyList());
+	    return map;
+	}
+	
 	@Override
 	public Map<String, Object> getAmountSupportInfo() {
 

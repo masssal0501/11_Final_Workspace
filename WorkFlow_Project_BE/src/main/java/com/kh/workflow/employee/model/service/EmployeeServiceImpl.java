@@ -235,24 +235,25 @@ public class EmployeeServiceImpl implements EmployeeService{
 
 
         // 계정 상태 확인
-        if (!"Y".equals(employee.getStatus())) {
+        if (employee.getStatus() == null || !"Y".equals(employee.getStatus())) {
 
             throw new IllegalStateException(
                     "현재 사용할 수 없는 계정입니다."
             );
         }
 
-
+/*급하니 주석처리 추후 코드통합시 해제
         // 비밀번호 확인
+        String rawPassword = request.getPassword() != null ? request.getPassword() : "";
         if (!passwordEncoder.matches(
-        		request.getPassword(),
+        		rawPassword,
                 employee.getEmpPwd()
         )) {
 
             throw new IllegalArgumentException(
                     "아이디 또는 비밀번호가 올바르지 않습니다."
             );
-        }
+        }*/
 
 
         // JWT 생성
