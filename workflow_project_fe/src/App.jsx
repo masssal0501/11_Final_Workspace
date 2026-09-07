@@ -10,7 +10,7 @@ import NoticeListPage from './pages/notice/NoticeListPage';
 import NoticeDetailPage from './pages/notice/NoticeDetailPage';
 import NoticeUpdatePage from './pages/notice/NoticeUpdatePage';
 import NoticeWritePage from './pages/notice/NoticeWritePage';
-import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
+// import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
 
 import AmountPage from './pages/amount/AmountPage';
 import AdminAmountPage from './pages/amount/AdminAmountPage';
