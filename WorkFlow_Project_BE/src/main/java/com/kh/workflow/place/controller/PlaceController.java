@@ -1,5 +1,7 @@
 package com.kh.workflow.place.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +26,8 @@ import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
 import com.kh.workflow.place.model.service.PlaceService;
 
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
@@ -34,40 +38,12 @@ public class PlaceController {
     private PlaceService placeService;
 
 
-    // 장소 등록
+ // 장소 등록
     @PostMapping
     public ResponseEntity<String> insertPlace(
             @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpSession session) {
-
-        // Authorization 헤더 가져오기
-        String authHeader = request.getHeader("Authorization");
-
-        // Bearer 토큰 확인
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .body("unauthorized");
-        }
-
-        String jwtTokenString = authHeader.substring(7);
-
-        // Secret Key 생성
-        Key key = Keys.hmacShaKeyFor(
-                secretKey.getBytes(StandardCharsets.UTF_8)
-        );
-
-        // JWT 파싱
-//        Claims claims = Jwts.parserBuilder()
-//                            .setSigningKey(key)
-//                            .build()
-//                            .parseClaimsJws(jwtTokenString)
-//                            .getBody();
-
-        // 로그인한 사용자 ID
-//        String userId = claims.getSubject();
-
-//        System.out.println("등록 요청 사용자 : " + userId);
 
         // 기본 상태 설정
         if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
