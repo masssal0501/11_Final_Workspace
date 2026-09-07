@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-import "../style/ApprovalHistoryList.css";
+import "../style/ApprovalQueueList.css";
 import { ApprovalApi } from "../api/ApprovalApi";
 
-function ApprovalQueueList () {
+function ApprovalQueueList() {
 
     const [dataList, setDataList] = useState([]);
 
@@ -14,24 +14,59 @@ function ApprovalQueueList () {
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
+
+    // 날짜
+    const [startDate, setStartDate] = useState(
+        searchParams.get("startDate") || ""
+    );
+
+    const [endDate, setEndDate] = useState(
+        searchParams.get("endDate") || ""
+    );
+
+
+    // 검색
+    const [searchType, setSearchType] = useState(
+        searchParams.get("searchType") || "workcationTitle"
+    );
+
+    const [keyword, setKeyword] = useState(
+        searchParams.get("keyword") || ""
+    );
+
+
+    // 상태
+    const [approverState, setApproverState] = useState(
+        searchParams.get("status") || ""
+    );
+
 
     const cpage =
         parseInt(searchParams.get("cpage")) || 1;
 
 
-    // 승인 이력 목록 조회
+    // 승인 대기 목록 조회
     useEffect(() => {
 
-        ApprovalApi.getApprovalQueueList(cpage)
+        ApprovalApi.getApprovalQueueList(
+            cpage,
+            startDate,
+            endDate,
+            searchType,
+            keyword,
+            approverState
+        )
             .then((data) => {
 
                 console.log(
                     "승인 대기 목록 조회 결과:",
                     data
                 );
-                console.log("페이지 정보:", data.pageInfo);
+
+                console.log(
+                    "페이지 정보:",
+                    data.pageInfo
+                );
 
                 setDataList(data.list || []);
 
@@ -51,13 +86,25 @@ function ApprovalQueueList () {
 
             });
 
-    }, [cpage]);
+    }, [
+        cpage,
+        startDate,
+        endDate,
+        searchType,
+        keyword,
+        approverState
+    ]);
 
 
     // 검색
     const handleSearch = () => {
 
-        if (startDate && endDate && startDate > endDate) {
+        // 날짜를 둘 다 입력했을 경우 날짜 확인
+        if (
+            startDate &&
+            endDate &&
+            startDate > endDate
+        ) {
 
             alert(
                 "시작일은 종료일보다 빠르거나 같아야 합니다."
@@ -66,13 +113,37 @@ function ApprovalQueueList () {
             return;
         }
 
-        // 날짜 검색 기능은 추후 백엔드 조건 추가 후 연결
-        console.log(
-            "검색 기간:",
-            startDate,
-            "~",
-            endDate
-        );
+
+        // 검색 결과는 1페이지부터
+        setSearchParams({
+            cpage: 1,
+            startDate: startDate,
+            endDate: endDate,
+            searchType: searchType,
+            keyword: keyword,
+            status: approverState
+        });
+
+    };
+
+
+    // 상태 변경
+    const handleStatusChange = (e) => {
+
+        const status = e.target.value;
+
+        setApproverState(status);
+
+        // 상태를 변경하면 1페이지부터 조회
+        setSearchParams({
+            cpage: 1,
+            startDate: startDate,
+            endDate: endDate,
+            searchType: searchType,
+            keyword: keyword,
+            status: status
+        });
+
     };
 
 
@@ -80,11 +151,18 @@ function ApprovalQueueList () {
     const handlePageChange = (page) => {
 
         setSearchParams({
-            cpage: page
+            cpage: page,
+            startDate: startDate,
+            endDate: endDate,
+            searchType: searchType,
+            keyword: keyword,
+            status: approverState
         });
 
     };
-return (
+
+
+    return (
 
         <div className="QueueList">
 
@@ -95,10 +173,73 @@ return (
             <hr />
 
 
-            {/* 날짜 검색 */}
-            <div className="date-filter">
+            {/* 검색 영역 */}
+            <div className="filter-area">
 
+
+                {/* 상태 필터 */}
+                <select
+                    name="approverState"
+                    value={approverState}
+                    onChange={handleStatusChange}
+                    className="status-filter"
+                    id="approverState"
+                >
+
+                    <option value="">
+                        전체
+                    </option>
+
+                    <option value="W">
+                        대기
+                    </option>
+
+                    <option value="H">
+                        보류
+                    </option>
+
+                    <option value="R">
+                        검토
+                    </option>
+
+                </select>
+
+
+                {/* 검색 조건 */}
+                <select
+                    className="search-type"
+                    value={searchType}
+                    onChange={(e) =>
+                        setSearchType(e.target.value)
+                    }
+                >
+
+                    <option value="workcationTitle">
+                        제목
+                    </option>
+
+                    <option value="workPlan">
+                        내용
+                    </option>
+
+                </select>
+
+
+                {/* 검색어 */}
                 <input
+                    className="search-input"
+                    type="text"
+                    value={keyword}
+                    onChange={(e) =>
+                        setKeyword(e.target.value)
+                    }
+                    placeholder="검색어를 입력하세요."
+                />
+
+
+                {/* 시작일 */}
+                <input
+                    className="date-input"
                     type="date"
                     value={startDate}
                     onChange={(e) =>
@@ -106,9 +247,15 @@ return (
                     }
                 />
 
-                <span>~</span>
 
+                <span className="date-separator">
+                    ~
+                </span>
+
+
+                {/* 종료일 */}
                 <input
+                    className="date-input"
                     type="date"
                     value={endDate}
                     onChange={(e) =>
@@ -116,14 +263,19 @@ return (
                     }
                 />
 
-                <button onClick={handleSearch}>
+
+                {/* 검색 버튼 */}
+                <button
+                    className="search-button"
+                    onClick={handleSearch}
+                >
                     검색
                 </button>
 
             </div>
 
 
-            {/* 승인 이력 목록 */}
+            {/* 승인 대기 목록 */}
             <div>
 
                 <table>
@@ -166,25 +318,31 @@ return (
                                         {item.workcationNo}
                                     </td>
 
+
                                     <td>
                                         {item.workcationTitle}
                                     </td>
 
+
                                     <td>
                                         {item.employee?.empName}
                                     </td>
+
 
                                     <td>
                                         {item.startAt?.replace(
                                             "T",
                                             " "
                                         )}
+
                                         {" ~ "}
+
                                         {item.endAt?.replace(
                                             "T",
                                             " "
                                         )}
                                     </td>
+
 
                                     <td>
                                         {item.createdAt?.replace(
@@ -192,6 +350,7 @@ return (
                                             " "
                                         ) || "-"}
                                     </td>
+
 
                                     <td>
                                         {item.approverState}
@@ -291,7 +450,6 @@ return (
                         &gt;
                     </button>
 
-
                 </div>
 
             )}
@@ -299,4 +457,5 @@ return (
         </div>
     );
 }
-export default ApprovalQueueList
+
+export default ApprovalQueueList;

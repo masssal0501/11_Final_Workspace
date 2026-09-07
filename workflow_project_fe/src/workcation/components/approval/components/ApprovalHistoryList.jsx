@@ -14,8 +14,23 @@ function ApprovalHistoryList() {
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
+    // 날짜
+    const [startDate, setStartDate] = useState(
+        searchParams.get("startDate") || ""
+    );
+
+    const [endDate, setEndDate] = useState(
+        searchParams.get("endDate") || ""
+    );
+
+    // 검색
+    const [searchType, setSearchType] = useState(
+        searchParams.get("searchType") || "workcationTitle"
+    );
+
+    const [keyword, setKeyword] = useState(
+        searchParams.get("keyword") || ""
+    );
 
     const cpage =
         parseInt(searchParams.get("cpage")) || 1;
@@ -24,14 +39,24 @@ function ApprovalHistoryList() {
     // 승인 이력 목록 조회
     useEffect(() => {
 
-        ApprovalApi.getApprovalList(cpage)
+        ApprovalApi.getApprovalList(
+            cpage,
+            startDate,
+            endDate,
+            searchType,
+            keyword
+        )
             .then((data) => {
 
                 console.log(
                     "승인 이력 조회 결과:",
                     data
                 );
-                console.log("페이지 정보:", data.pageInfo);
+
+                console.log(
+                    "페이지 정보:",
+                    data.pageInfo
+                );
 
                 setDataList(data.list || []);
 
@@ -51,13 +76,24 @@ function ApprovalHistoryList() {
 
             });
 
-    }, [cpage]);
+    }, [
+        cpage,
+        startDate,
+        endDate,
+        searchType,
+        keyword
+    ]);
 
 
     // 검색
     const handleSearch = () => {
 
-        if (startDate && endDate && startDate > endDate) {
+        // 날짜 둘 다 입력했을 때만 날짜 비교
+        if (
+            startDate &&
+            endDate &&
+            startDate > endDate
+        ) {
 
             alert(
                 "시작일은 종료일보다 빠르거나 같아야 합니다."
@@ -66,13 +102,14 @@ function ApprovalHistoryList() {
             return;
         }
 
-        // 날짜 검색 기능은 추후 백엔드 조건 추가 후 연결
-        console.log(
-            "검색 기간:",
-            startDate,
-            "~",
-            endDate
-        );
+        setSearchParams({
+            cpage: 1,
+            startDate: startDate,
+            endDate: endDate,
+            searchType: searchType,
+            keyword: keyword
+        });
+
     };
 
 
@@ -80,7 +117,11 @@ function ApprovalHistoryList() {
     const handlePageChange = (page) => {
 
         setSearchParams({
-            cpage: page
+            cpage: page,
+            startDate: startDate,
+            endDate: endDate,
+            searchType: searchType,
+            keyword: keyword
         });
 
     };
@@ -97,10 +138,42 @@ function ApprovalHistoryList() {
             <hr />
 
 
-            {/* 날짜 검색 */}
-            <div className="date-filter">
+            {/* 검색 영역 */}
+            <div className="filter-area">
 
+                {/* 검색 조건 */}
+                <select
+                    className="search-type"
+                    value={searchType}
+                    onChange={(e) =>
+                        setSearchType(e.target.value)
+                    }
+                >
+                    <option value="workcationTitle">
+                        제목
+                    </option>
+
+                    <option value="workPlan">
+                        내용
+                    </option>
+                </select>
+
+
+                {/* 검색어 */}
                 <input
+                    className="search-input"
+                    type="text"
+                    value={keyword}
+                    onChange={(e) =>
+                        setKeyword(e.target.value)
+                    }
+                    placeholder="검색어를 입력하세요."
+                />
+
+
+                {/* 시작일 */}
+                <input
+                    className="date-input"
                     type="date"
                     value={startDate}
                     onChange={(e) =>
@@ -108,9 +181,15 @@ function ApprovalHistoryList() {
                     }
                 />
 
-                <span>~</span>
 
+                <span className="date-separator">
+                    ~
+                </span>
+
+
+                {/* 종료일 */}
                 <input
+                    className="date-input"
                     type="date"
                     value={endDate}
                     onChange={(e) =>
@@ -118,7 +197,12 @@ function ApprovalHistoryList() {
                     }
                 />
 
-                <button onClick={handleSearch}>
+
+                {/* 검색 버튼 */}
+                <button
+                    className="search-button"
+                    onClick={handleSearch}
+                >
                     검색
                 </button>
 
@@ -168,29 +252,36 @@ function ApprovalHistoryList() {
                                         {item.workcationNo}
                                     </td>
 
+
                                     <td>
                                         {item.workcationTitle}
                                     </td>
 
+
                                     <td>
                                         {item.employee?.empName}
                                     </td>
+
 
                                     <td>
                                         {item.startAt?.replace(
                                             "T",
                                             " "
                                         )}
+
                                         {" ~ "}
+
                                         {item.endAt?.replace(
                                             "T",
                                             " "
                                         )}
                                     </td>
 
+
                                     <td>
                                         {item.approver?.empName || "-"}
                                     </td>
+
 
                                     <td>
                                         {item.approvetAt?.replace(
@@ -229,7 +320,6 @@ function ApprovalHistoryList() {
             {pageInfo && pageInfo.maxPage > 0 && (
 
                 <div className="pagination">
-
 
                     {/* 이전 */}
                     <button
@@ -292,7 +382,6 @@ function ApprovalHistoryList() {
                     >
                         &gt;
                     </button>
-
 
                 </div>
 
