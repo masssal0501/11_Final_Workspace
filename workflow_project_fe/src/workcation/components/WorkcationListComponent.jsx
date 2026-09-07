@@ -5,7 +5,7 @@ import axios from "axios";
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
 import WorkcationItemComponent from "./WorkcationItemComponent";
 
-import "../styles/WorkcationList.css";
+// import "../styles/WorkcationList.css";
 
 function WorkcationListComponent() {
 

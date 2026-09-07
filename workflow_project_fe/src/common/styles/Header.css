@@ -475,8 +475,7 @@
 
 /* ========================================
    Navigation
-======================================== */
-
+========================================= */
 .wf-nav {
     display: flex;
     align-items: stretch;
@@ -617,4 +616,5 @@
 .wf-submenu button:hover {
 
     background-color: #f5f7fa;
+
 }

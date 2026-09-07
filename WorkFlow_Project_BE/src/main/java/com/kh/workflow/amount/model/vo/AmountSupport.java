@@ -37,8 +37,8 @@ public class AmountSupport {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Integer amountNo;
 	
-	@Schema(description="사내 복지비용")
-	@Column(name="approved_amount")
+	@Schema(description="최종 승인비용")
+	@Column(name="approved_amout")
 	private Integer approvedAmount;
 	
 	@Schema(description="신청 일시", accessMode= Schema.AccessMode.READ_ONLY)

@@ -157,6 +157,57 @@ public class SecurityConfig {
 	                    		"/v3/api-docs/**"
                 		).permitAll()
 	                    
+                        .requestMatchers(
+                            "/employees/password"
+                        ).authenticated()
+
+                        
+                        // 통계페이지 추후 관리자로 수정
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/statistics"
+                        	).permitAll()
+                        
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/workcation/**"
+                        	).permitAll()
+                        
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts"
+                        	).permitAll()
+                        // 관리자 정산 추후 권한 수정
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/admin/cost/list"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/cost/detail/**"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/*"
+                        	).permitAll()
+                     // 공지사항
+                        .requestMatchers(
+                            "/api/v1/notice/**"
+                        ).permitAll()
+                        
+                        .requestMatchers(
+                                "/api/v1/notice/insert/"
+                            ).permitAll()
+                        .requestMatchers(
+                                "/api/v1/notice/update/**"
+                            ).permitAll()
+                        
+                       
+            
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
                 )

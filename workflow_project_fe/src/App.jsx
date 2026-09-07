@@ -14,8 +14,8 @@ import NoticeAdminListPage from './pages/notice/NoticeAdminListPage';
 
 import AmountPage from './pages/amount/AmountPage';
 import AdminAmountPage from './pages/amount/AdminAmountPage';
-import AmountForm from './amount/components/AmountForm';
-import AmountDetail from './amount/components/AmountDetail';
+import AmountForm from './Amount/components/AmountForm';
+import AmountDetail from './Amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
 
 import HubListComponent from './hub/components/HubListComponent';
@@ -332,8 +332,10 @@ function App() {
 
                         {/* 공지사항 */}
                         {/* <Route path="/admin/notice" element={<NoticeAdminListPage />} /> */}
+                        <Route path="/notice" element={<NoticeListPage />} />
                         <Route path="/notice/insert" element={<NoticeWritePage />} />
                         <Route path="/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
+                        <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
 
                         {/* 📌 통계 페이지 라우트 추가 */}
                         <Route path="/admin/statistics" element={<StatisticsPage />} />
