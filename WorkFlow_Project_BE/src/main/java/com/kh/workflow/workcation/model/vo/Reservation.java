@@ -51,7 +51,7 @@ public class Reservation {
 	private Integer userCapacity;
 	
 	@JoinColumn(name="workcation_no", nullable=false)
-	@ManyToOne()
+	@ManyToOne(fetch = FetchType.LAZY)
 	private WorkcationInfo workcation;
 	
 	@JoinColumn(name="hub_no", nullable=false)

@@ -1,126 +1,108 @@
-import axios from "axios";
+import axiosInstance from "../../common/api/axiosInstance";
 
-const API_BASE_URL =
-    "http://localhost:8006/workflow/api/v1/amounts";
-
+const API_BASE_URL = "/api/v1/amounts";
 
 const amountApi = {
 
     // =========================================================
     // 1. 전체 비용 신청 목록
+    // GET /api/v1/amounts?page=1
     // =========================================================
     getAmountList: async (page = 1) => {
 
-        const response = await axios.get(
+        const response = await axiosInstance.get(
             API_BASE_URL,
             {
                 params: {
                     page
-                },
-                withCredentials: true
+                }
             }
         );
 
         return response.data;
     },
 
-
     // =========================================================
     // 2. 워케이션별 비용 신청 목록
+    // GET /api/v1/amounts/workcation/{workcationNo}?page=1
     // =========================================================
     getAmountListByWorkcation: async (
         workcationNo,
         page = 1
     ) => {
 
-        const response = await axios.get(
+        const response = await axiosInstance.get(
             `${API_BASE_URL}/workcation/${workcationNo}`,
             {
                 params: {
                     page
-                },
-                withCredentials: true
+                }
             }
         );
 
         return response.data;
     },
-
 
     // =========================================================
     // 3. 비용 상세 조회
+    // GET /api/v1/amounts/{amountNo}
     // =========================================================
     getAmountById: async (amountNo) => {
 
-        const response = await axios.get(
-            `${API_BASE_URL}/${amountNo}`,
-            {
-                withCredentials: true
-            }
+        const response = await axiosInstance.get(
+            `${API_BASE_URL}/${amountNo}`
         );
 
         return response.data;
     },
 
-
     // =========================================================
     // 4. 비용 신청 등록
+    // POST /api/v1/amounts
     // =========================================================
     insertAmount: async (formData) => {
 
-        const response = await axios.post(
+        const response = await axiosInstance.post(
             API_BASE_URL,
             formData,
             {
                 headers: {
                     "Content-Type": "multipart/form-data"
-                },
-                withCredentials: true
+                }
             }
         );
 
         return response.data;
     },
 
-
     // =========================================================
     // 5. 비용 신청 수정
+    // PUT /api/v1/amounts/{amountNo}
     // =========================================================
     updateAmount: async (
         amountNo,
         formData
     ) => {
 
-        const response = await axios.put(
+        const response = await axiosInstance.put(
             `${API_BASE_URL}/${amountNo}`,
             formData,
             {
                 headers: {
                     "Content-Type": "multipart/form-data"
-                },
-                withCredentials: true
+                }
             }
         );
 
         return response.data;
     },
 
-
-   // =========================================================
-// 6. 결재 상태 변경 + 지원금 반영
-// =========================================================
-updateApproval: async (
-    amountNo,
-    status,
-    approvedAmount,
-    amountComment,
-    sponsorName,
-    sponsorAmount,
-    sponsorStatus,
-    remark
-) => {
-
-    const data = {
+    // =========================================================
+    // 6. 결재 상태 변경 + 지원금 반영
+    // PATCH /api/v1/amounts/{amountNo}/approval
+    // =========================================================
+    updateApproval: async (
+        amountNo,
         status,
         approvedAmount,
         amountComment,
@@ -128,86 +110,74 @@ updateApproval: async (
         sponsorAmount,
         sponsorStatus,
         remark
-    };
+    ) => {
 
-    console.log("📌 승인 요청:", {
-        amountNo,
-        data
-    });
+        const data = {
+            status,
+            approvedAmount,
+            amountComment,
+            sponsorName,
+            sponsorAmount,
+            sponsorStatus,
+            remark
+        };
 
-    const response = await axios.patch(
-        `${API_BASE_URL}/${amountNo}/approval`,
-        data,
-        {
-            withCredentials: true
-        }
-    );
+        console.log("📌 승인 요청:", {
+            amountNo,
+            data
+        });
 
-    return response.data;
-},
-
-    // =========================================================
-    // 7. 비용 신청 취소
-    // =========================================================
-    cancelAmount: async (amountNo) => {
-
-        const response = await axios.patch(
-            `${API_BASE_URL}/${amountNo}/cancel`,
-            {},
-            {
-                withCredentials: true
-            }
+        const response = await axiosInstance.patch(
+            `${API_BASE_URL}/${amountNo}/approval`,
+            data
         );
 
         return response.data;
     },
 
+    // =========================================================
+    // 7. 비용 신청 취소
+    // PATCH /api/v1/amounts/{amountNo}/cancel
+    // =========================================================
+    cancelAmount: async (amountNo) => {
+
+        const response = await axiosInstance.patch(
+            `${API_BASE_URL}/${amountNo}/cancel`,
+            {}
+        );
+
+        return response.data;
+    },
 
     // =========================================================
     // 8. 첨부파일 삭제
+    // DELETE /api/v1/amounts/{amountNo}/files/{amountattachmentNo}
     // =========================================================
     deleteFile: async (
         amountNo,
         amountattachmentNo
     ) => {
 
-        const response = await axios.delete(
-            `${API_BASE_URL}/${amountNo}/files/${amountattachmentNo}`,
-            {
-                withCredentials: true
-            }
+        const response = await axiosInstance.delete(
+            `${API_BASE_URL}/${amountNo}/files/${amountattachmentNo}`
         );
 
         return response.data;
     },
 
-
     // =========================================================
     // 9. 통계
+    // GET /api/v1/amounts/statistics
     // =========================================================
     getStatistics: async () => {
 
-        const response = await axios.get(
-            `${API_BASE_URL}/statistics`,
-            {
-                withCredentials: true
-            }
+        const response = await axiosInstance.get(
+            `${API_BASE_URL}/statistics`
         );
 
         return response.data;
     }
 };
-
-
-// =========================================================
-// Export
-//
-// named import 가능
-// import { amountApi } from "./api/amountApi";
-//
-// default import도 가능
-// import amountApi from "./api/amountApi";
-// =========================================================
 
 export { amountApi };
 

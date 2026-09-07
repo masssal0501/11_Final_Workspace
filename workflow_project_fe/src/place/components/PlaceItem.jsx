@@ -49,7 +49,7 @@ function PlaceItem(props) {
         <div
             className="place-item"
             onClick={() => {
-                navigate(`/workflow/place/detail/${item.hubNo}`);
+                navigate(`/place/detail/${item.hubNo}`);
             }}
         >
 

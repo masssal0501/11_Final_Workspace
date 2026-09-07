@@ -1,42 +1,107 @@
-.workcation-form-table, .task-plan-box, .all-price-container{
+.workcation-form-table,
+.task-plan-box,
+.all-price-container {
     margin: auto;
     justify-content: center;
     display: flex;
 }
 
-.workcation-form-table th{
+.workcation-form-table th {
     text-align: center;
     width: 90px;
 }
 
-.plus-btn-group{
+.plus-btn-group {
     justify-content: center;
     padding: 40px 10px;
     display: flex;
 }
 
-.insert-btn{
-    width: 100px;  
-    justify-content: center;
+.workcatrion-enroll-container {
+    width: 684px; 
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
 }
-.task-plan-box{
+
+/* 버튼 그룹: 부모(684px) 폭 안에서 우측 끝에 정확히 정렬 */
+.common-btn-group {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0 0 10px 0;
+}
+
+/* 제출/뒤로가기 버튼 */
+.insert-btn,
+.back-space {
+    margin: 0;
+    width: 120px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: block;
+    text-align: center;
+}
+
+/* 테이블: display: flex 절대 금지 (테이블 속성 유지) */
+.workcation-form-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.workcation-form-table th {
+    text-align: center;
+    width: 90px;
+}
+
+.task-plan-box {
     display: flex;
     justify-content: center;
 }
-.task-plan-list{
+
+.task-plan-list {
     padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.plan-item{
+.plan-item {
     border: 1px solid;
     width: 500px;
     list-style: none;
     padding: 10px;
 }
 
-.all-price-container{
+.all-price-container {
+    width: 600px;
+    margin: 20px auto 0 auto;
+    display: flex;
+    justify-content: center;
+}
+
+.task-plan-box {
+    display: flex;
+    justify-content: center;
+}
+
+.task-plan-list {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.plan-item {
+    border: 1px solid;
+    width: 500px;
+    list-style: none;
+    padding: 10px;
+}
+
+.all-price-container {
     width: 600px;
 }
