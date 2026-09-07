@@ -19,7 +19,6 @@ export const ApprovalApi = {
         return response.data;
     },
 
-
     // 승인 이력 상세 조회
     getApprovalDetail: async (workcationNo) => {
 
@@ -28,30 +27,5 @@ export const ApprovalApi = {
         );
 
         return response.data;
-    },
-
-
-    // 승인 / 반려 상태 등록
-    rejectApproval: async (workcationNo, workcation) => {
-
-        const formData = new FormData();
-
-        formData.append(
-            "workcation",
-            new Blob(
-                [JSON.stringify(workcation)],
-                {
-                    type: "application/json"
-                }
-            )
-        );
-
-        const response = await axiosInstance.post(
-            `${BASE_URL}/${workcationNo}`,
-            formData
-        );
-
-        return response.data;
     }
-
 };
