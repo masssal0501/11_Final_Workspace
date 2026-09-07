@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import "./common/styles/common.css";
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
@@ -24,23 +24,24 @@ import HubDetailComponent from './hub/components/HubDetailComponent';
 import HubUpdateFormComponent from './hub/components/HubUpdateFormComponent';
 import AIComponent from './hub/components/AIComponent';
 
+import PlaceList from './place/components/PlaceList';
+import PlaceForm from './place/components/PlaceForm';
+import PlaceDetail from './place/components/PlaceDetail';
+import PlaceEdit from './place/components/PlaceEdit';
+
 import TaskListComponent from './taskboard/components/TaskListComponent';
 import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
-import WorkcationUpdateFormComponent from "./workcation/components/WorkcationUpdateFormComponent";
-import MyWorkcationListComponent from "./workcation/components/MyWorkcationListComponent";
-import MyWorkcationDetailFormComponent from "./workcation/components/MyWorkcationDetailFormComponent";
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
 import FindPWForm from "./employee/components/FindPWForm";
 import ChangePWForm from "./employee/components/ChangePWForm";
 import EmployeeEnrollFormComponent
-  from "./employee/components/EmployeeEnrollFormComponent";
-
+    from "./employee/components/EmployeeEnrollFormComponent";
 import MyPageForm from "./employee/components/MyPageForm";
 import UpdateMyPageForm from "./employee/components/UpdateMyPageForm";
 import EmployeeList from "./employee/components/EmployeeList";
@@ -65,40 +66,25 @@ import ManagerComponent from "./dashboard/components/ManagerComponent";
 import StaffComponent from "./dashboard/components/StaffComponent";
 
 import {
-  Routes,
-  Route,
-  Navigate,
-  useNavigate
+    Routes,
+    Route,
+    Navigate
 } from "react-router-dom";
 
 
 import { useKakaoLoader } from "react-kakao-maps-sdk";
 
 function App() {
-  const navigate = useNavigate();
 
-  const [loginUser, setLoginUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+    const [loginUser, setLoginUser] = useState(() => {
 
-  /*
-   * 로그인 성공
-   */
-  const handleLogin = (user) => {
-    localStorage.setItem("user", JSON.stringify(user));
-    setLoginUser(user);
-    navigate("/", { replace: true });
-  };
+        const savedUser =
+            localStorage.getItem("user");
 
-  /*
-   * 로그아웃
-   */
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    setLoginUser(null);
-  };
+        return savedUser
+            ? JSON.parse(savedUser)
+            : null;
+    });
 
     // 카카오 SDK 로더
     const [loading, error] = useKakaoLoader({
@@ -389,107 +375,6 @@ function App() {
 
         </div>
     );
-  }
-
-
-  /*
-   * ========================================
-   * 2. 비밀번호 변경이 필요한 사용자
-   * ========================================
-   */
-  if (loginUser.pwChgRequired === true || loginUser.pwChgRequired === "true") {
-    return (
-      <div className="content">
-        <Header loginUser={loginUser} onLogout={handleLogout} />
-        <Routes>
-          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/changePW" element={<ChangePWForm loginUser={loginUser} onLogin={handleLogin} />} />
-          <Route path="*" element={<Navigate to="/changePW" replace />} />
-        </Routes>
-        <Footer />
-      </div>
-    );
-  }
-
-
-  /*
-   * ========================================
-   * 3. 정상 로그인 사용자
-   * ========================================
-   */
-  return (
-    <div>
-      <Header loginUser={loginUser} onLogout={handleLogout} />
-
-      <Routes>
-        {/* 📌 로그아웃 시 에러 방지용 라우트 (여기에 있어야 합니다!) */}
-        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-
-        {/* 📌 비용/정산 라우트 */}
-        <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
-        <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
-        <Route path="/cost/apply" element={<AmountForm />} />
-        <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
-        <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
-        <Route path="/admin/statistics" element={<StatisticsPage />} />
-
-        {/* 📌 공지사항 라우트 */}
-        <Route path="/notice" element={<NoticeListPage />} />
-        <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
-        <Route path="/admin/notice" element={<NoticeAdminListPage />} />
-        <Route path="/admin/notice/insert" element={<NoticeWritePage />} />
-        <Route path="/admin/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
-
-        {/* 📌 장소/거점 라우트 */}
-        <Route path="/placeInfo/list" element={<HubListComponent />} />
-        <Route path="/placeInfo/enrollForm" element={<HubEnrollFormComponent />} />
-        <Route path="/placeInfo/detail/:hubNo" element={<HubDetailComponent />} />
-        <Route path="/placeInfo/updateForm/:hubNo" element={<HubUpdateFormComponent />} />
-        <Route path="/placeInfo/ai" element={<AIComponent />} />
-
-        {/* 📌 업무 게시판 라우트 */}
-        <Route path="/task/list" element={<TaskListComponent />} />
-        <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
-
-        {/* 📌 워케이션 라우트 */}
-        <Route path="/workcation/list" element={<WorkcationListComponent />} />
-        <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-        <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
-        <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
-
-        {/* 📌 대시보드 및 기본 라우트 */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<div>대시보드</div>} />
-
-        {/* 📌 마이페이지 */}
-        <Route path="/myPage" element={<MyPageForm />} />
-        <Route path="/myPage/update" element={<UpdateMyPageForm />} />
-        <Route path="/changePW" element={<ChangePWForm />} />
-        <Route path="/workcation/mylist" element={<MyWorkcationListComponent/>} />
-        <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent/>} />
-
-
-        {/* 📌 직원 관리 */}
-        <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />} />
-        <Route path="/employee/list" element={<EmployeeList />} />
-        <Route path="/employee/detail/:empNo" element={<EmployeeDetail />} />
-        <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
-
-        {/* 📌 권한별 라우트 */}
-        {loginUser.authCode === "ADMIN" && (
-          <Route path="/admin" element={<div>관리자 페이지</div>} />
-        )}
-        {loginUser.authCode === "MANAGER" && (
-          <Route path="/manager" element={<div>부서장 페이지</div>} />
-        )}
-        {loginUser.authCode === "STAFF" && (
-          <Route path="/employee" element={<div>사원 페이지</div>} />
-        )}
-      </Routes>
-
-      <Footer />
-    </div>
-  );
 }
 
 export default App;
