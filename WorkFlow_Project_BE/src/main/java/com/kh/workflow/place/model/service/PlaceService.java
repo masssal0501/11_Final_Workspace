@@ -5,6 +5,7 @@ import java.util.List;
 import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PlaceService {
 

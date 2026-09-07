@@ -855,6 +855,128 @@
             totalAmount DESC
 
     </select>
-
-
+    
+    <!-- =========================================================
+         27. 관리자 대시보드 - (이번달)예산 소진율
+         ========================================================= -->
+    <select id="adminSelectBudgetExhaustionRate" resultType="int">
+        SELECT COALESCE((SUM(a.approved_amount)/SUM(s.approved_amount)) * 100, 0)
+        FROM support_list s
+        JOIN amount_support a ON a.amount_no = s.amount_no
+        WHERE EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM a.approved_at)
+          AND a.status = 'A'
+    </select>
+    
+    <!-- =========================================================
+         28. 관리자 대시보드 - 회사 부담금
+         ========================================================= -->
+    <select id="selectTotalBudget" resultType="int">
+        SELECT COALESCE(SUM(a.approved_amount), 0)
+          FROM amount_support a
+         WHERE a.status = 'A'
+    </select>
+    
+    <!-- =========================================================
+         29. 관리자 대시보드 - 보유 지원금
+         ========================================================= -->
+    <select id="selectSupportFund" resultType="int">
+        SELECT COALESCE(SUM(s.approved_amount), 0)
+          FROM support_list s
+    </select>
+    
+    <!-- =========================================================
+         30. 관리자 대시보드 - 총 예산 대비 집행률
+         ========================================================= -->
+    <select id="selectBudgetData" resultType="int">
+        SELECT COALESCE((SUM(a.approved_amount)/SUM(s.approved_amount)) * 100, 0)
+          FROM support_list s
+          JOIN amount_support a ON a.amount_no = s.amount_no
+         WHERE a.status = 'A'
+    </select>
+    
+    <!-- =========================================================
+         31. 관리자 대시보드 - 항목별 지출 비중
+         ========================================================= -->
+    <select id="selectCategoryData" resultType="com.kh.workflow.dashboard.model.dto.ChartDataDto">
+        SELECT CASE WHEN a.item_type = 'S' THEN '숙박'
+        			WHEN a.item_type = 'T' THEN '교통'
+        			WHEN a.item_type = 'E' THEN '체험'
+        			WHEN a.item_type = 'F' THEN '식비'
+        			WHEN a.item_type = 'V' THEN '차량'
+        			ELSE '기타'
+        		END AS name, COALESCE(SUM(a.item_amount), 0)
+          FROM amount_item a
+         GROUP BY a.item_type
+    </select>
+    
+    <!-- =========================================================
+         32. 관리자 대시보드 - 부서별 사용 예산
+         ========================================================= -->
+    <select id="selectDeptData" resultType="com.kh.workflow.dashboard.model.dto.ChartDataDto">
+        SELECT d.dep_title, COALESCE(SUM(a.approved_amount), 0)
+          FROM amount_support a
+          JOIN workcation_info w ON w.workcation_no = a.workcation_no
+          JOIN employee e ON e.emp_no = w.emp_no
+          JOIN department d ON d.dep_id = e.dep_id
+         WHERE a.status = 'A'
+         GROUP BY d.dep_title
+    </select>
+    
+    <!-- =========================================================
+         33. 관리자 대시보드 - 총 비용
+         ========================================================= -->
+    <select id="selectTotalCost" resultType="int">
+        SELECT COALESCE((SUM(s.approved_amount)-SUM(a.approved_amount)), 0)
+          FROM support_list s
+          JOIN amount_support a ON a.amount_no = s.amount_no
+         WHERE a.status = 'A'
+    </select>
+    
+    <!-- =========================================================
+         34. 부서장 대시보드 - (부서)예산 소진율
+         ========================================================= -->
+    <select id="managerSelectBudgetExhaustionRate" parameterType="string" resultType="int">
+        SELECT COALESCE((SUM(a.approved_amount)/SUM(s.approved_amount)) * 100, 0)
+          FROM support_list s
+          JOIN amount_support a ON a.amount_no = s.amount_no
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.dep_id = #{depId}
+           AND a.status = 'A'
+    </select>
+    
+    <!-- =========================================================
+         35. 부서장 대시보드 - 정산대기 목록
+         ========================================================= -->
+    <select id="selectBalanceList" parameterType="string" resultType="com.kh.workflow.dashboard.model.dto.BalanceListDto">
+        SELECT e.emp_name, e.emp_no, a.approved_amount, a.status
+          FROM amount_support a
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.dep_id = #{depId}
+    </select>
+    
+    <!-- =========================================================
+         36. 사원 대시보드 - 남은 지원금
+         ========================================================= -->
+    <select id="selectAmountSupport" parameterType="int" resultType="int">
+        SELECT COALESCE(SUM(s.approved_amount), 0)
+          FROM amount_support a
+          JOIN support_list s ON a.amount_no = s.amount_no
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.emp_no = #{empNo}
+    </select>
+    
+    <!-- =========================================================
+	     37. 사원 대시보드 - 사용 비용
+	     ========================================================= -->
+    <select id="selectUseAmount" parameterType="int" resultType="int">
+        SELECT COALESCE(SUM(a.approved_amount), 0)
+          FROM amount_support a
+          JOIN workcation_info w ON a.workcation_no = w.workcation_no
+          JOIN employee e ON w.emp_no = e.emp_no
+         WHERE e.emp_no = #{empNo}
+    </select>
+    
 </mapper>

@@ -1,21 +1,28 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
-import "../styles/HubDetailComponent.css";
-import { selectHubApi, deleteHubApi, BASE_URL } from "../api/placeinfoApi";
+import { useEffect, useState } from 'react';
+import { Map, MapMarker } from "react-kakao-maps-sdk"
+import "../styles/Hub.css";
+import { selectHubApi, deleteHubApi, BASE_URL } from "../api/hubApi";
 
-function HubDetailComponent() {
+/**
+ * 거점(Hub) 상세 정보 조회 컴포넌트
+ * 선택된 거점의 세부 정보, 지도 위치, 이미지, 평점 등을 렌더링하며 
+ * 관리자 권한 시 수정/삭제 기능을 제공합니다.
+ */
+function HubDetailComponent(props) {
     
-    // 카카오 API JavaScript 키
-    const KAKAO_API_KEY = 'a00510cb26a4e33be1647f26b12df5c9';
-    // 카카오 지도가 렌더링될 DOM 요소를 참조
-    const mapContainerRef = useRef(null);
-    // Kakao 우편번호 서비스 API 사용을 위한 window 객체 참조
-    const { kakao } = window;
-    // React Router의 useParams를 통해 URL 경로 파라미터에서 hubNo 추출
+    
+    // URL 경로 파라미터에서 거점 번호 추출
     const hubNo = useParams().hubNo;
-    // 페이지 이동을 제어하는 React Router 훅
     const navigate = useNavigate();
-    // 거점 상세 정보 폼 데이터를 관리하는 통합 객체 State
+
+    // Kakao 지도 API 전역 객체 참조
+    const { kakao } = window;
+
+    // 주소 → 좌표 변환을 완료한 위도/경도 저장 State
+    const [position, setPosition] = useState(null);
+
+    // 거점 상세 정보 State (초기값 세팅)
     const [hub, setHub] = useState({hubNo : hubNo,
                                     hubName : "",
                                     phone : "",
@@ -28,109 +35,69 @@ function HubDetailComponent() {
                                     subRegion : "",
                                     maxCapacity : 0,
                                     hubFileList : []});
-    // 해당 거점의 평균 별점 데이터를 관리
+    // 해당 거점의 평균 별점 State
     const [avgScore, setAvgScore] = useState(""); 
-    // 컴포넌트 마운트 시 또는 hubNo가 변경될 때 해당 거점의 기존 정보를 서버에서 조회
+
+    // 로그인한 사용자 정보 (권한 확인용)
+    const loginUser = props.loginUser;
+
+    // 카카오 주소-좌표 변환(지오코딩) 객체 생성
+    const geocoder = new kakao.maps.services.Geocoder();
+    
+    /**
+     * 1. 거점 상세 정보 서버 데이터 패칭 (마운트 및 hubNo 변경 시 동작)
+     */
     useEffect(() =>{
         // 비동기 API 호출: 거점 상세 정보 조회
         const selectBoard = async () => {
-
             try {
-
                 const response = await selectHubApi(hubNo);
-
                 // 조회 결과 데이터가 존재하는 경우
                 if(response.data != "") {
                     setHub(response.data.hub);
                     setAvgScore(response.data.avgScore);
                 } else {
-                    // 데이터가 없는 경우 경고창 띄우고 목록으로 리다이렉트
+                    // 데이터가 없거나 삭제된 경우 경고 후 목록으로 강제 이동
                     alert("이미 삭제되었거나 없는 거점입니다.");
                     navigate("/placeInfo/list")
                 }
-
             } catch(error) {
-                console.log("거점 상세조회용 ajax 오류");
+                console.error(error);
             }
         }
-
         selectBoard();
-
     }, [hubNo]);
 
-    // 거점 주소가 세팅된 후 카카오 지도 SDK 로드 및 마커 생성
+    /**
+     * 2. 주소 데이터를 기반으로 카카오맵 좌표(위경도) 변환 처리
+     */
     useEffect(() => {
-        // 백엔드에서 주소 데이터를 아직 못 가져왔다면 지도를 그리지 않고 대기
-        if (!hub.hubAddress) return;
-
-        // 일반 지도 생성 함수
-        const initMap = () => {
-            
-            // 주소로 좌표를 검색하여 지도 및 마커 세팅
-            const geocoder = new kakao.maps.services.Geocoder();
+        // 주소 데이터가 로드된 이후에만 좌표 변환 수행
+        if (kakao && kakao.maps && kakao.maps.services && hub.hubAddress) {
             geocoder.addressSearch(hub.hubAddress, (result, status) => {
-                // 표시할 위치 좌표 (제주 카카오 본사 좌표 예시)
-                const markerPosition = new kakao.maps.LatLng(result[0].y, result[0].x);
-
-                const mapOption = {
-                    center: markerPosition, // 지도 중심 좌표
-                    level: 3 // 지도 확대/축소 레벨
-                };
-
-                // 지도 객체 생성
-                const map = new kakao.maps.Map(mapContainerRef.current, mapOption);
-
-                // 마커 생성 및 지도 위에 표시
-                const marker = new kakao.maps.Marker({
-                    position: markerPosition
-                });
-                marker.setMap(map);
-
-                // 마커 위에 거점명을 표시하는 인포윈도우 생성
-                const infowindow = new kakao.maps.InfoWindow({
-                    content: `<div style="width:150px;font-size:12px;text-align:center;padding:6px 0;">${ hub.hubName }</div>`
-                });
-                infowindow.open(map, marker);
-            });
-        };
-
-        // SDK가 로드되어 있다면 지도 생성
-        if (kakao && kakao.maps && window.kakao.maps.services) {
-            kakao.maps.load(initMap);
-            return;
-        }
-
-        // 스크립트 동적 로드
-        let script = document.getElementById('kakao-map-script');
-        if (!script) {
-            script = document.createElement('script');
-            script.id = 'kakao-map-script';
-            script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&libraries=services&autoload=false`;
-            script.async = true;
-
-            script.onload = () => {
-                kakao.maps.load(initMap);
-            };
-
-            document.head.appendChild(script);
-        } else {
-            script.addEventListener('load', () => {
-                kakao.maps.load(initMap);
+                if (status === kakao.maps.services.Status.OK) {
+                    // 변환 성공 시 마커를 띄울 위치 좌표 지정
+                    setPosition({ lat: result[0].y, lng: result[0].x });
+                }
             });
         }
     }, [hub.hubAddress]);
 
-    // 거점 주소를 클립보드에 복사하는 기능
+    /**
+     * 거점 주소 클립보드 복사 핸들러
+     */
     const handleCopyClipBoard = async () => {
         try {
             await navigator.clipboard.writeText(hub.hubAddress);
             alert('클립보드에 링크가 복사되었습니다.');
         } catch (error) {
-            alert('복사에 실패하였습니다');
+            console.error(error);
         }
     };
 
-    // 거점 운영을 중단하는 기능
+    /**
+     * 거점 운영 중단(삭제) 핸들러
+     */
     const deleteHub = async e => {
 
         if(confirm("중단하면 더이상 수정이 불가능합니다.\n정말 해당 거점을 중단하시겠습니까?")) {
@@ -141,50 +108,75 @@ function HubDetailComponent() {
 
                 const response = await deleteHubApi(hubNo);
 
-                console.log(response);
-
                 if(response.data === "success") {
                     alert("거점 중단에 성공했습니다.");
-                    navigate("/placeInfo/list"); // 성공 시 리스트 페이지로 이동
+                    navigate("/hub/list"); // 성공 시 리스트 페이지로 이동
                 } else {
                     alert("거점 중단에 실패했습니다.");
                 }
 
             } catch(error) {
-                console.log("거점 중단용 ajax 통신 실패");
+                console.error(error);
             }
         }
 
     }
 
+    /**
+     * 카카오맵 길찾기 외부 링크 열기 핸들러
+     * 사용자의 현재 위치(GPS)를 출발지로, 거점 위치를 목적지로 설정하여 길찾기를 제공합니다.
+     */
+    const goToKakaoMap = () => {
+        if (!position) return;
+
+        // HTML5 Geolocation API로 사용자 현재 위치 확인
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (data) => {
+                    // 현재 좌표를 주소로 변환하여 길찾기 링크(from ~ to) 오픈
+                    geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
+                        window.open(`https://map.kakao.com/link/from/${result[0].address.address_name},${data.coords.latitude},${data.coords.longitude}/to/${hub.hubName},${position.lat},${position.lng}`);
+                    });
+                }
+            );
+        } else {
+            // 위치 정보 미제공 시 해당 목적지의 지도 뷰만 오픈
+            window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`);
+        }
+    }
+
     // return 구문
     return (
-        <div className={ `content ${(hub.hubStatus === 'CLOSED') ? "content-off" : ""}` }>
-            {/* 거점명 출력 */}
+        // 중단(CLOSED) 상태일 경우 CSS를 통해 비활성화 디자인(content-off) 적용
+        <div className={ `hub-content ${hub.hubStatus === 'CLOSED' && 'content-off'}` }>
+            
+            {/* 타이틀: 거점명 */}
             <h2 align="center"><b>{ hub.hubName }</b></h2>
             <br /><br />
+            
             {/* 썸네일 이미지와 기본 정보 */}
-            <div className="title-area area">
+            <div className="title-area d-flex">
+                {/* 첫 번째 첨부파일(썸네일) 렌더링 */}
                 {hub.hubFileList && hub.hubFileList.length > 0 && (
                     <img src={`${BASE_URL.replace('/hubs', '')}${hub.hubFileList[0].filePath}/${hub.hubFileList[0].changeName}`} alt="썸네일 이미지" />
                 )}
+
                 <div className="span-area">
                     <span>거점명 : { hub.hubName }</span>
                     <span>전화번호 : { hub.phone }</span>
-                    <span>1{ (hub.hubType === 1) ? "박" : "일" }박 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
+                    <span>1{ (hub.hubType === 1) ? "박" : "일" } 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
                     <span>운영 상태 : { (hub.hubStatus === "OPEN") ? (<b style={{color:'green'}}>운영중</b>) : ((hub.hubStatus === "PAUSED") ? (<b style={{color:'yellow'}}>일시중단</b>) : (<b style={{color:'red'}}>중단</b>)) }</span>
                     <span>최대 수용 인원 : { hub.maxCapacity }명</span>
                     <span>유형 : { (hub.hubType === 1) ? "숙소" : "공유 오피스" }</span>
                 </div>
             </div>
-            <br />
-            <hr />
-            <br />
-            {/* 클립보드 복사 버튼, 별점 렌더링, 카카오 맵 컨테이너 */}
-            <div className="content-area area">
-                {/* 일반 지도가 렌더링되는 영역 */}
+            <br /><hr /><br />
+            {/* 2. 상세 정보 및 카카오맵 지도 영역 */}
+            <div className="content-area d-flex">
+                {/* 주소, 평점, 길찾기 버튼 */}
                 <div className="span-area big-font">
                     <span style={ { fontSize: "19px" } }>주소 : { hub.hubAddress }<br/><p onClick={ handleCopyClipBoard }>※복사하기</p></span>
+                    <span><button className="btn btn-outline-warning kakao-map-go" onClick={ goToKakaoMap}>카카오맵으로 길찾기</button></span>
                     <span style={ { fontSize: "26px" } }>평균 별점 : { (avgScore === 5) ? "★★★★★" : (
                                                                        (avgScore >= 4) ? "★★★★☆" : (
                                                                        (avgScore >= 3) ? "★★★☆☆" : (
@@ -192,27 +184,37 @@ function HubDetailComponent() {
                                                                        (avgScore >= 1) ? "★☆☆☆☆" : 
                                                                                              "☆☆☆☆☆"))))} ({ avgScore })</span>
                 </div>
-                {/* 지도가 실제로 그려질 Ref 대상 */}
-                <div id="map" ref={mapContainerRef} />
+                {/* 카카오맵 렌더링 영역 */}
+                {position && (
+                    <Map
+                        center={position} 
+                        style={{ width: "50%", height: "300px", border: "1px solid gray" }}
+                        level={3}
+                    >
+                        <MapMarker position={position}>
+                            <div style={{ width:"150px", fontSize:"12px", textAlign:"center", padding:"6px 0" }}>
+                                {hub.hubName}
+                            </div>
+                        </MapMarker>
+                    </Map>
+                )}
             </div>
-            <br />
-            <hr />
-            <br />
-            {/* 거점에 대한 상세 텍스트 정보 */}
+            <br /><hr /><br />
+            {/* 거점 상세 텍스트 설명 */}
             <div>
                 <p align="center" style={ { fontSize : "20px" } }>
                     { hub.description }
                 </p>
             </div>
             
-            {/* 썸네일을 제외한 나머지 이미지들을 순회하여 렌더링 */}
+            {/* 추가 이미지 렌더링 영역 (썸네일 제외한 나머지 파일) */}
             { (hub.hubFileList.length > 1) ? (
                 <>
                     <br />
                     <hr />
                     <br />
-                    <div className="img-area area">
-                    {/* hubFileList가 존재할 때만 실행되며, 0번(썸네일)을 제외한 나머지 이미지들만 반복해서 그려줍니다. */}
+                    <div className="img-area d-flex">
+                        {/* 배열의 index 1번부터(두 번째 이미지부터) 끝까지 순회하며 출력 */}
                         {hub.hubFileList && hub.hubFileList.slice(1).map((file, index) => (
                             <img 
                                 key={index} 
@@ -224,14 +226,16 @@ function HubDetailComponent() {
                 </>
             ) : ""}
             <br /><br />
-            {/* 상태에 따른 수정/중단 버튼 및 공통 뒤로가기 버튼 */}
+            {/* 권한 및 상태에 따른 하단 버튼 영역 */}
             <div className='button-area'>
-                { (hub.hubStatus === "CLOSED") ? "" : (
+                {/* 거점이 중단(CLOSED) 상태가 아니고 관리자(ADMIN) 권한일 때만 수정/중단 버튼 노출 */}
+                { (hub.hubStatus === "CLOSED" || loginUser.authCode !== "ADMIN") ? "" : (
                     <>
-                        <button className='btn btn-warning' onClick={ () => { navigate(`/placeInfo/updateForm/${hubNo}`) } }>수정하기</button>&nbsp;
+                        <button className='btn btn-warning' onClick={ () => { navigate(`/hub/updateForm/${hubNo}`) } }>수정하기</button>&nbsp;
                         <button className='btn btn-danger' onClick={ deleteHub }>중단하기</button>
                     </>
                 )}
+                {/* 공통 뒤로가기 버튼 */}
                 <button className='btn btn-dark' onClick={ () => { navigate(-1) } }>뒤로가기</button>
             </div>
         </div>

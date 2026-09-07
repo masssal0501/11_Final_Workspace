@@ -1,0 +1,302 @@
+@charset "UTF-8";
+
+/* ==========================================
+   1. 워케이션 허브 공통 컨테이너 스타일
+   ========================================== */
+
+/** 허브 관련 화면의 메인 컨테이너 박스 디자인 (중앙 정렬, 둥근 테두리, 여백 설정) */
+.hub-content {
+  width : 1000px;
+  margin : auto;
+  margin-top : 50px;
+  margin-bottom : 50px;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 50px;
+  padding: 50px 25px;
+}
+
+/* ==========================================
+   2. 허브 테이블(Hub Table) 세부 스타일
+   ========================================== */
+
+/** 테이블 헤더(th) 배경색 지정 */
+.hub-table th {
+    width: 110px !important;
+    background-color: #EAEAEA;
+}
+
+/** 테이블 내부 모든 요소의 기본 정렬 및 패딩 설정 */
+.hub-table * {
+    text-align: center;
+    margin: auto;
+    padding: 2px 2px;
+}
+
+/** 테이블 내 입력 폼(input, textarea, select) 공통 테두리 스타일 */
+.hub-table input, textarea, select{
+    border: 1px solid rgb(167, 167, 167) !important;
+}
+
+/** 테이블 첫 번째 행(tr) 상단 테두리 지정 */
+.hub-table tr:first-child{
+    border-top: 1px solid black;
+}
+
+/** 첫 번째 행의 마지막 셀(td) 내부 플렉스박스 배치 설정 */
+.hub-table tr:first-child td:last-child{
+    display: flex;
+    margin-top: 10px;
+}
+
+/** 첫 번째 행 마지막 셀 내 라벨 요소 간격 정렬 */
+.hub-table tr:first-child td:last-child label{
+    display: flex;
+    gap: 5px; 
+}
+
+/** 두 번째 행의 두 번째 및 마지막 셀 내부 입력 필드 너비 및 확장 설정 */
+.hub-table tr:nth-child(2) td:last-child input {
+    width: 100px;
+    flex : 1;
+}
+
+
+.hub-table tr:nth-child(2) td:nth-child(2) input {
+    background-color: white;
+}
+
+/** 테이블 마지막 행 내부 입력 필드 상단 여백 */
+.hub-table tr:last-child input {
+    margin-top: 5px;
+}
+
+/** 테이블 행(tr) 하단 구분선 */
+.hub-table tr {
+    border-bottom: 1px solid #bcbcbc;
+}
+
+/** 숫자 타입 입력 필드의 스핀 버튼(Up/Down 화살표) 웹킷 브라우저 숨김 처리 */
+.hub-table input[type="number"]::-webkit-inner-spin-button,
+.hub-table input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/** 서브 지역 선택 셀렉트박스 너비 */
+.hub-table select[name="subRegion"] {
+    width: 130px;
+}
+
+/** 허브 유형 선택 셀렉트박스 너비 및 크기 고정 */
+.hub-table select[name="hubType"] {
+    width: 130px;
+    flex: 0 0 auto;
+}
+
+/** 검색 키워드 입력 필드 너비 고정 및 하단 여백 */
+.hub-table input[name="keyword"] {
+    width: 499px !important;
+    flex: 0 0 auto;
+    margin-bottom: 5px !important;
+}
+
+/* ==========================================
+   3. 폼 및 컴포넌트 요소 스타일 (Hub Form & AI)
+   ========================================== */
+
+/** 허브 등록/작성 폼 내 개별 아이템 박스 레이아웃 */
+.hub-form>div {
+    width: 180px;
+    height: 130px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    position: relative;
+    background-color: #fafafa
+}
+
+/** 일반 확인/모달 버튼 스타일 */
+.confirm {
+    padding: 8px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 999px;
+}
+
+/** 확인 버튼 호버 효과 */
+.confirm:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/** AI 연동 폼 레이아웃 (플렉스 중앙 정렬) */
+.ai-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 0 auto;
+}
+
+.ai-form .form-control {
+    flex : 1;
+}
+
+/** 비활성화 상태 배경 스타일 */
+.content-off {
+    background-color: lightgray !important;
+}
+
+/* ==========================================
+   4. 이미지 및 텍스트 영역 스타일 (Title, Span, Image)
+   ========================================== */
+
+/** 상세 타이틀 영역 내 이미지 크기 및 테두리 */
+.title-area img {
+    width: 50%;
+    height: 250px;
+    border: 1px solid gray;
+}
+
+/** 텍스트 정보 표시 영역 (그리드 레이아웃 및 글자 크기) */
+.span-area {
+    margin-left: 10px;
+    margin-top: 15px;
+    display: grid;
+    font-size: 19px !important;
+    row-gap: 10px !important;
+    row-gap: 1px;
+    width: 400px;
+    margin-right: 50px;
+}
+
+/** 상호작용 가능한 텍스트(예: 링크, 상세 주소) 스타일 */
+.span-area p { 
+    display: inline;
+    color: aqua;
+    cursor: pointer;
+    border-bottom: 1px solid aqua;
+}
+.span-area p:hover { 
+    color: rgb(0, 245, 245);
+    border-bottom: 1px solid rgb(0, 245, 245);
+}
+.span-area p:active { 
+    color: rgb(0, 216, 216);
+    border-bottom: 1px solid rgb(0, 216, 216);
+}
+
+/** 이미지 컨테이너 영역 */
+.img-area {
+    width: 100%;
+    height: 250px;
+    justify-content: center;
+}
+
+.img-area img {
+    width: 50%;
+    height: 100%;
+    border: 1px solid gray;
+}
+
+/* ==========================================
+   5. 버튼 및 AI 특수 버튼 스타일
+   ========================================== */
+
+/** 버튼 영역 내 하위 요소 둥근 테두리 일괄 적용 */
+.button-area * {
+    border-radius: 99px !important;
+}
+
+.button-area button:first-child {
+    color: white;
+}
+
+.button-area button:last-child {
+    float: right;
+}
+
+/** AI 추천/분석 메인 버튼 스타일 (그림자 및 포인트 컬러 적용) */
+#AI {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 40px;
+    padding: 13.5px 25.5px;
+    background-color: #0091FF;
+    color: white;
+    border: none;
+    font-size: 14.7px;
+}
+
+#AI:hover {
+    background-color: #0084e9;
+}
+
+/* ==========================================
+   6. 검색 필터 및 리스트 테이블 스타일
+   ========================================== */
+
+.search-filter-table {
+    width: auto;
+}
+
+.search-filter-table button {
+    padding: 0px;
+    margin-top : 4px; 
+    font-size : 24.5px; 
+    border: 1px solid currentColor;
+}
+
+/** 목록(List) 영역 내 셀(td) 배치 및 패딩 설정 */
+.list-area td {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-right: 80px;
+    padding-left: 0;
+    border-top: none;
+}
+
+.list-area td img {
+    width : 90%;
+    border: 1px solid rgb(187, 187, 187);
+}
+
+/** 리스트 테이블 상단 간격 설정 */
+.table.list-area {
+    margin-top: 50px !important; /* 원하는 픽셀(px) 만큼 값을 조절하세요 */
+}
+
+/** 일반 테이블 행 커서 포인터 설정 */
+.table tr {
+    cursor: pointer;
+}
+
+/** 검색 결과 없음 등 빈 상태(Not Found) 행 스타일 */
+.not-found {
+    background-color: transparent !important;
+    cursor: auto !important
+}
+
+.not-found td {
+    display: table-cell;
+}
+
+/** 허브 목록 헤더 내 버튼 정렬 */
+.hub-list-header button {
+    font-size: 20px;
+    border : 1px solid currentColor; 
+    position: absolute;
+    right: 0;
+}
+
+/** 카카오맵 연동 이동 버튼 스타일 */
+.kakao-map-go{
+    font-size: 20px;
+    border : 1px solid currentColor
+}
