@@ -58,13 +58,13 @@ export const getWorkcationDetail = async (workcationNo) => {
     return response.data;
 };
 //워케이션 등록
-export const enrollWorkcation = async (insertworkcationData)=>{
-    const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`, 
+export const enrollWorkcation = async (insertworkcationData) => {
+    const response = await axios.post(`${BASE_URL}/workcation/hub/enrollForm`,
         insertworkcationData, {
-            headers:{
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`
-            }
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
         }
+    }
     );
     return response;
 }
@@ -97,19 +97,19 @@ export const getMyWorkcationDetail = async (workcationNo) => {
 };
 
 //수정
-export const updateWorkcation = async(workcationNo, updateData) => {
+export const updateWorkcation = async (workcationNo, updateData) => {
     const response = await axios.put(`${BASE_URL}/workcation/update/${workcationNo}`, updateData);
     return response;
 }
 
 //삭제
-export const deleteWorkcation = async(workcationNo)=>{
+export const deleteWorkcation = async (workcationNo) => {
     const response = await axios.delete(`${BASE_URL}/workcation/delete/${workcationNo}`, {
         headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`
         }
     })
-    
+
     return response.data;
 }
 
@@ -142,21 +142,33 @@ export const getHubList = async (params) => {
 };
 
 //진행률 저장
-export const saveTaskProgress = async (data) => {
-  const response = await axios.put(
-    `${BASE_URL}/workcation/task/${data.taskNo}`,
-    {
-      progress: data.progress,
-      title: data.title,
-      content: data.content
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`
-      }
-    }
-  );
+export const saveTaskProgress = async (data, file) => {
 
-  return response.data;
+    const formData = new FormData();
+
+    formData.append("taskNo", data.taskNo);
+    formData.append("progress", data.progress);
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+
+    if (file) {
+        formData.append("file", file);
+    }
+
+    const response = await axios.put(
+        `${BASE_URL}/workcation/task/${data.taskNo}`,
+        {
+            progress: data.progress,
+            title: data.title,
+            content: data.content
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+            }
+        }
+    );
+
+    return response.data;
 };
 

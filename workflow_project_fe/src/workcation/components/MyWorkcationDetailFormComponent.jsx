@@ -133,7 +133,7 @@ function MyWorkcationDetailFormComponent() {
 
         try {
 
-            await saveTaskProgress(requestData);
+            await saveTaskProgress(requestData, taskFile);
 
             alert("업무 진행 상황이 저장되었습니다.");
 

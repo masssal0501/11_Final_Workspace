@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.workcation.model.service.WorkcationService;
@@ -265,6 +266,23 @@ public class WorkcationController {
 					@PathVariable("workcationNo") Integer workcationNo){
 		workcationService.deleteWorkcation(workcationNo);
 		return ResponseEntity.ok().build();
+	}
+	
+	@PutMapping("/task/{taskNo}")
+	public ResponseEntity<?> updateTask(
+			@PathVariable Integer taskNo,
+			@RequestParam Integer progress,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam(required = false) MultipartFile file){
+		
+		workcationService.updateTask(
+										taskNo,
+										progress,
+										title,
+										content,
+										file);
+		return ResponseEntity.ok("업무 진행 상황 저장 완료");
 	}
 
 }

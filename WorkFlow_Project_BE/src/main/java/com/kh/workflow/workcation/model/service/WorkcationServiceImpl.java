@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.amount.dao.AmountDao;
 import com.kh.workflow.amount.dao.AmountItemDao;
@@ -20,9 +20,12 @@ import com.kh.workflow.amount.dao.SupportListDao;
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
-
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
+import com.kh.workflow.task.model.dao.TaskDao;
+import com.kh.workflow.task.model.dao.TaskHistoryDao;
+import com.kh.workflow.task.model.vo.Task;
+import com.kh.workflow.task.model.vo.TaskHistory;
 import com.kh.workflow.workcation.model.dao.ReservationDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 import com.kh.workflow.workcation.model.vo.Reservation;
@@ -48,7 +51,12 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Autowired
 	private com.kh.workflow.hub.model.dao.HubDao hubDao;
-
+	
+	@Autowired
+	private TaskDao taskDao;
+	
+	private TaskHistoryDao taskHistoryDao;
+	
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
@@ -808,5 +816,33 @@ public class WorkcationServiceImpl implements WorkcationService {
 	    return getWorkcationDetail(
 	            workcation.getWorkcationNo()
 	    );
+	}
+
+	@Transactional
+	@Override
+	public void updateTask(Integer taskNo, Integer progress, String title, String content, MultipartFile file) {
+		
+		Task task = taskDao.findById(taskNo).orElseThrow(()-> 
+									new RuntimeException("업무를 찾을수 없습니다."));
+		
+		//진행률 검증
+		if(progress < 0 || progress > 100 || progress %5!=0) {
+			throw new IllegalArgumentException("진행률은 0~100 사이의 5단위 값");
+		}
+		
+		//task 업데이트 최신 상태
+		task.setProgress(progress);
+		task.setTaskTitle(title);
+		task.setTaskContent(content);
+		
+		//최근 업무 이력 INSERT
+		TaskHistory history = new TaskHistory();
+		
+		history.setTask(task);
+		history.setHistoryTitle(title);
+		history.setHistoryContent(content);
+		history.setProgress(progress);
+		
+		taskHistoryDao.save(history);
 	}
 }

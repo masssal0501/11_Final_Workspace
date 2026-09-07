@@ -1,5 +1,9 @@
 package com.kh.workflow.task.model.dao;
 
-public interface TaskDao {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.kh.workflow.task.model.vo.Task;
+
+public interface TaskDao extends JpaRepository<Task, Integer>{
 
 }

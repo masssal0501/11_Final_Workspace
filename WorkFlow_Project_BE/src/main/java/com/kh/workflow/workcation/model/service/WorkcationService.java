@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
@@ -48,4 +49,6 @@ public interface WorkcationService {
             Integer workcationNo,
             int empNo
     );
+
+	void updateTask(Integer taskNo, Integer progress, String title, String content, MultipartFile file);
 }
