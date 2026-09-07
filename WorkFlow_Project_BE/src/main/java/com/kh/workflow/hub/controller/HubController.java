@@ -245,7 +245,7 @@ public class HubController {
 	public ResponseEntity<String> sendMessage(@RequestBody String message) {
 		
 		Pageable pageable = Pageable.unpaged();
-        Page<Hub> hubPage = hubService.selectHubList(pageable, List.of(1, 2));
+        Page<Hub> hubPage = hubService.selectHubList(pageable, List.of(1, 2)); // 예시 타입 목록
         List<Hub> hubList = hubPage.getContent();
         
         StringBuilder dbHubInfo = new StringBuilder();

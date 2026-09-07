@@ -14,49 +14,93 @@ import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 @Mapper
 public interface AmountDao {
 
+    // =========================================================
+    // amount
+    // =========================================================
+
     int insertAmount(Amount amount);
 
-    int insertAmountItem(Amount.Item item);
+    Amount selectAmountById(@Param("amountNo") int amountNo);
 
-    int insertAmountSponsor(Amount.Sponsor sponsor);
-
-    int insertAmountFile(Amount.File file);
-
-    Amount selectAmountById(int amountNo);
-    
     int getAmountListCount();
 
- // 전체 목록 조회 (페이징)
-    List<Amount> selectAmountList(@Param("pi") PageInfo pi);
-
-    // 전체 개수
-    int getAmountCountByWorkcationNo(
-            @Param("workcationNo") int workcationNo
+    List<Amount> selectAmountList(
+        @Param("pi") PageInfo pi
     );
 
-    // 페이징 목록
+    int selectAmountCountByWorkcationNo(
+        @Param("workcationNo") int workcationNo
+    );
+
     List<Amount> selectAmountListByWorkcationNo(
-            @Param("workcationNo") int workcationNo,
-            @Param("pi") PageInfo pi
+        @Param("workcationNo") int workcationNo,
+        @Param("pi") PageInfo pi
     );
-
-    List<Amount.Item> selectAmountItemsByAmountNo(int amountNo);
-
-    List<Amount.Sponsor> selectSponsorsByAmountNo(int amountNo);
-
-    List<Amount.File> selectAmountFilesByAmountNo(int amountNo);
 
     int updateAmount(Amount amount);
 
     int updateApprovalStatus(Amount amount);
 
-    int deleteFile(int amountattachmentNo);
+    int cancelAmount(
+        @Param("amountNo") int amountNo
+    );
 
-    int cancelAmount(int amountNo);
 
-    int deleteAmountItemsByAmountNo(int amountNo);
+    // =========================================================
+    // amount_item
+    // =========================================================
 
-    int deleteAmountSponsorsByAmountNo(int amountNo);
+    int insertAmountItem(Amount.Item item);
+
+    List<Amount.Item> selectAmountItemsByAmountNo(
+        @Param("amountNo") int amountNo
+    );
+
+    int updateItemCompanySupport(
+        @Param("itemNo") int itemNo,
+        @Param("amountNo") int amountNo,
+        @Param("amount") int amount
+    );
+
+    int deleteAmountItemsByAmountNo(
+        @Param("amountNo") int amountNo
+    );
+
+
+    // =========================================================
+    // amount_list
+    // DB 기준 : amount_no가 PK이므로 Amount : Sponsor = 1 : 1
+    // =========================================================
+
+    int insertAmountSponsor(Amount.Sponsor sponsor);
+
+    Amount.Sponsor selectSponsorByAmountNo(
+        @Param("amountNo") int amountNo
+    );
+
+    int deleteAmountSponsorsByAmountNo(
+        @Param("amountNo") int amountNo
+    );
+
+
+    // =========================================================
+    // amount_file
+    // =========================================================
+
+    int insertAmountFile(Amount.File file);
+
+    List<Amount.File> selectAmountFilesByAmountNo(
+        @Param("amountNo") int amountNo
+    );
+
+    int deleteFile(
+        @Param("amountattachmentNo") int amountattachmentNo
+    );
+
+
+    // =========================================================
+    // Statistics
+    // =========================================================
 
     Map<String, Object> getStatisticsSummary();
 

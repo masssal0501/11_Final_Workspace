@@ -38,17 +38,17 @@ public class PlaceController {
     private PlaceService placeService;
 
 
-    // 장소 등록
+ // 장소 등록
     @PostMapping
     public ResponseEntity<String> insertPlace(
             @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpSession session) {
 
-    	// 기본 상태 설정
-    	if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
-    		h.setHubStatus("OPEN");
-    	}
+        // 기본 상태 설정
+        if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
+            h.setHubStatus("OPEN");
+        }
 
         Hub insertPlace = placeService.insertPlace(h);
 

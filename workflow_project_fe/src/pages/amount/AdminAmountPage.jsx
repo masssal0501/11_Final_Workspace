@@ -1,16 +1,18 @@
 import React from 'react';
-import AdminAmount from '../../amount/components/AdminAmount';
-import { useNavigate } from 'react-router-dom';
+import AdminAmount from '../../Amount/components/AdminAmount';
 
 export default function AdminAmountPage({ workcationNo }) {
-    const navigate = useNavigate();
 
-  return (
+    console.log('🔥 AdminAmountPage 실행');
+    console.log('🔥 workcationNo:', workcationNo);
+    console.log('🔥 AdminAmount import:', AdminAmount);
 
-    
-    <div style={{ padding: '20px' }}>
-      {/* 관리자 결재 목록 컴포넌트 */}
-      <AdminAmount workcationNo={workcationNo} />
-    </div>
-  );
+    return (
+        <div style={{ padding: '20px' }}>
+
+            
+            <AdminAmount />
+
+        </div>
+    );
 }
