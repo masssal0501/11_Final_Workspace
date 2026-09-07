@@ -18,11 +18,11 @@ import AmountForm from './amount/components/AmountForm';
 import AmountDetail from './amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
 
-import HubListComponent from './placeinfo/components/HubListComponent';
-import HubEnrollFormComponent from './placeinfo/components/HubEnrollFormComponent';
-import HubDetailComponent from './placeinfo/components/HubDetailComponent';
-import HubUpdateFormComponent from './placeinfo/components/HubUpdateFormComponent';
-import AIComponent from './placeinfo/components/AIComponent';
+import HubListComponent from './hub/components/HubListComponent';
+import HubEnrollFormComponent from './hub/components/HubEnrollFormComponent';
+import HubDetailComponent from './hub/components/HubDetailComponent';
+import HubUpdateFormComponent from './hub/components/HubUpdateFormComponent';
+import AIComponent from './hub/components/AIComponent';
 
 import PlaceList from './place/components/PlaceList';
 import PlaceForm from './place/components/PlaceForm';
@@ -56,16 +56,23 @@ import ReservationListComponent from "./reservation/components/ReservationListCo
 import ReservationEnrollComponent from "./reservation/components/ReservationEnrollComponent"; 
 import ReservationDetailComponent from "./reservation/components/ReservationDetailComponent"; 
 import ReservationUpdateComponent from "./reservation/components/ReservationUpdateComponent";
+import ReservationScheduleComponent from "./reservation/components/ReservationScheduleComponent";
 
 import LocationCheckModal from "./common/components/LocationCheckModal";
 import ErrorPage from "./common/components/ErrorPage";
+
+import AdminComponent from "./dashboard/components/AdminComponent";
+import ManagerComponent from "./dashboard/components/ManagerComponent";
+import StaffComponent from "./dashboard/components/StaffComponent";
 
 import {
     Routes,
     Route,
     Navigate
 } from "react-router-dom";
-import ReservationScheduleComponent from "./reservation/components/ReservationScheduleComponent";
+
+
+import { useKakaoLoader } from "react-kakao-maps-sdk";
 
 function App() {
 
@@ -79,6 +86,14 @@ function App() {
             : null;
     });
 
+    // 카카오 SDK 로더
+    const [loading, error] = useKakaoLoader({
+        appkey: 'a00510cb26a4e33be1647f26b12df5c9',
+        libraries: ['services'] // 주소 변환을 위해 필수
+    });
+    
+    if (loading) return;
+    if (error) return;
 
     /*
      * 로그인 성공
@@ -156,7 +171,6 @@ function App() {
                             />
                         }
                     />
-
                 </Routes>
 
             </div>
@@ -244,12 +258,12 @@ function App() {
                 <Route path="/notice" element={<NoticeListPage />} />
                 <Route path="/notice/:noticeNo" element={<NoticeDetailPage />} />
 
-                {/* placeInfo */}
-                <Route path="/placeInfo/list" element={ <HubListComponent /> }></Route>
-                <Route path="/placeInfo/enrollForm" element={ <HubEnrollFormComponent /> }></Route>
-                <Route path="/placeInfo/detail/:hubNo" element={ <HubDetailComponent /> }></Route>
-                <Route path="/placeInfo/updateForm/:hubNo" element={ <HubUpdateFormComponent />}></Route>
-                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
+                {/* 거점 페이지 라우트 */}
+                <Route path="/hub/list" element={ <HubListComponent loginUser={ loginUser } /> } />
+                <Route path="/hub/enrollForm" element={ <HubEnrollFormComponent loginUser={ loginUser } /> } />
+                <Route path="/hub/detail/:hubNo" element={ <HubDetailComponent loginUser={ loginUser } /> } />
+                <Route path="/hub/updateForm/:hubNo" element={ <HubUpdateFormComponent loginUser={ loginUser } />} />
+                <Route path="/hub/ai" element={ <AIComponent/> }></Route>
 
                 {/* place */}
                 <Route path="/workflow/place/list" element={ <PlaceList /> } />
@@ -267,9 +281,28 @@ function App() {
                 <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
                 <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
 
-                {/* 대시보드 */}
-                <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
-                <Route path="/dashboard" element={<div>대시보드</div>}/>
+
+
+                {/* <Route
+                    path="/"
+                    element={
+                        <Navigate
+                            to="/dashboard"
+                            replace
+                        />
+                    }
+                /> */}
+
+                <Route
+                    path="/dashboard"
+                    element={
+                        loginUser.authCode === "ADMIN"
+                            ? <AdminComponent />
+                            : loginUser.authCode === "MANAGER"
+                                ? <ManagerComponent loginUser={ loginUser } />
+                                : <StaffComponent loginUser={ loginUser } />
+                    }
+                />
 
                 {/* 마이페이지 */}
                 <Route path="/myPage" element={<MyPageForm />}/>

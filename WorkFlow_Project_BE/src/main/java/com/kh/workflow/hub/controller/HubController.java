@@ -13,12 +13,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -32,6 +34,13 @@ import com.kh.workflow.hub.model.service.HubService;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 
@@ -46,8 +55,71 @@ public class HubController {
 	@Autowired
 	private ChatClient chatClient;
 	
+	// AI 대화 이력을 메모리에 유지
 	private ArrayList<Message> chatHistory = new ArrayList<>();
 	
+	/**
+     * 거점 목록 조회 (페이징)
+     * @param currentPage 현재 페이지 번호 (기본값: 1)
+     * @return 거점 목록 및 페이징 정보가 담긴 Map
+     */
+	@Operation(summary="거점 목록 조회 (페이징)", description="페이지 번호 (cpage) 에 해당하는 거점 목록을 조회합니다.\n\n응답 : {list : 거점 목록, pi : 페이지정보}")
+	@ApiResponse(responseCode="200", description="조회 성공", content=@Content(mediaType="application/json",
+		 		  examples=@ExampleObject(value="""
+		 		  				{
+		 		  					"list" : [{
+		 		  						"description" : "wifi 가능",
+		 		  						"hubAddress" : "제주특별자치도 서귀포시 중문관광로72번길 35",
+		 		  						"hubFileList" : [{
+		 		  							"changeName" : "2026082718260636772.png",
+		 		  							"filePath" : "/resources/upload/hub",
+		 		  							"hubfileNo" : 32,
+		 		  							"originName" : "WorkFlow_Project.png",
+		 		  							"status" : "Y",
+		 		  							"updatedAt" : "2026-08-27T18:26:06"
+		 		  						}],
+		 		  						"hubName" : "디어먼데이 제주 롯데호텔점",
+		 		  						"hubNo" : 4,
+		 		  						"hubStatus" : "OPEN",
+		 		  						"hubType": 1,
+		 		  						"mainRegion" : "제주",
+		 		  						"maxCapacity" : 50,
+		 		  						"phone" : "1533-5213",
+		 		  						"price" : 100000,
+		 		  						"subRegion" : "서귀포시"
+		 		  					}, {
+		 		  						"description" : "전좌석 모니터",
+		 		  						"hubAddress" : "강원특별자치도 춘천시 남산면 방하리 198-1",
+		 		  						"hubFileList" : [{
+		 		  							"changeName" : "2026082718470241031.png",
+		 		  							"filePath" : "/resources/upload/hub",
+		 		  							"hubfileNo" : 34,
+		 		  							"originName" : "WorkFlow_Project.png",
+		 		  							"status" : "Y",
+		 		  							"updatedAt" : "2026-08-27T18:47:02"
+		 		  						}],
+		 		  						"hubName" : "디어먼데이 춘천남이섬 호텔정관루점",
+		 		  						"hubNo" : 3,
+		 		  						"hubStatus" : "OPEN",
+		 		  						"hubType": 2,
+		 		  						"mainRegion" : "강원",
+		 		  						"maxCapacity" : 12,
+		 		  						"phone" : "010-1234-5678",
+		 		  						"price" : 100000,
+		 		  						"subRegion" : "춘천시"
+		 		  					}],
+		 		  					"pi" : {
+		 		  						"listCount" : 42,
+		 		  						"currentPage" : 1,
+		 		  						"pageLimit" : 5,
+		 		  						"boardLimit" : 5,
+		 		  						"maxPage" : 9,
+		 		  						"startPage" : 1,
+		 		  						"endPage" : 5
+		 		  					}
+		 		  				}
+		 		  		""")))
+	@SecurityRequirement(name="JWT")
 	@GetMapping("/hubs")
 	public ResponseEntity<HashMap<String, Object>> selectHubList(
 			@RequestParam(value="cpage", defaultValue="1") int currentPage) {
@@ -60,23 +132,80 @@ public class HubController {
 		Page<Hub> page = hubService.selectHubList(pageable, List.of(1, 2));
 		
 		List<Hub> list = page.getContent();
-		
 		long listCount = page.getTotalElements();
 		
-		PageInfo pi = Pagination.getPageInfo((int)listCount, currentPage,
-													pageLimit, boardLimit);
+		PageInfo pi = Pagination.getPageInfo((int)listCount, currentPage, pageLimit, boardLimit);
 		
 		HashMap<String, Object> hm = new HashMap<>();
-		
 		hm.put("list", list);
 		hm.put("pi", pi);
 		
-		return ResponseEntity.status(HttpStatus.OK)
-							 .body(hm);
+		return ResponseEntity.status(HttpStatus.OK).body(hm);
 	}
 	
+	/**
+     * 거점 검색 조회 (페이징)
+     */
+	@Operation(summary="거점 검색 조회 (페이징)", description="지역(mainRegion), 상세지역(subRegion), 시설 유형(hubType), 키워드 (keyword), 페이지 번호 (cpage) 에 해당하는 거점 목록을 조회합니다.\n\n응답 : {list : 거점 목록, pi : 페이지 정보}")
+	@ApiResponse(responseCode="200", description="조회 성공",
+	content=@Content(mediaType="application/json",
+			examples=@ExampleObject(value="""
+				{
+					"list" : [{
+						"description" : "wifi 가능",
+						"hubAddress" : "제주특별자치도 서귀포시 중문관광로72번길 35",
+						"hubFileList" : [{
+							"changeName" : "2026082718260636772.png",
+							"filePath" : "/resources/upload/hub",
+							"hubfileNo" : 32,
+							"originName" : "WorkFlow_Project.png",
+							"status" : "Y",
+							"updatedAt" : "2026-08-27T18:26:06"
+						}],
+						"hubName" : "디어먼데이 제주 롯데호텔점",
+						"hubNo" : 4,
+						"hubStatus" : "OPEN",
+						"hubType": 1,
+						"mainRegion" : "제주",
+						"maxCapacity" : 50,
+						"phone" : "1533-5213",
+						"price" : 100000,
+						"subRegion" : "서귀포시"
+					}, {
+						"description" : "전좌석 모니터",
+						"hubAddress" : "강원특별자치도 춘천시 남산면 방하리 198-1",
+						"hubFileList" : [{
+							"changeName" : "2026082718470241031.png",
+							"filePath" : "/resources/upload/hub",
+							"hubfileNo" : 34,
+							"originName" : "WorkFlow_Project.png",
+							"status" : "Y",
+							"updatedAt" : "2026-08-27T18:47:02"
+						}],
+						"hubName" : "디어먼데이 춘천남이섬 호텔정관루점",
+						"hubNo" : 3,
+						"hubStatus" : "OPEN",
+						"hubType": 2,
+						"mainRegion" : "강원",
+						"maxCapacity" : 12,
+						"phone" : "010-1234-5678",
+						"price" : 100000,
+						"subRegion" : "춘천시"
+					}],
+					"pi" : {
+						"listCount" : 42,
+						"currentPage" : 1,
+						"pageLimit" : 5,
+						"boardLimit" : 5,
+						"maxPage" : 9,
+						"startPage" : 1,
+						"endPage" : 5
+					}
+				}
+		""")))
+	@SecurityRequirement(name="JWT")
 	@GetMapping("/hubs/search")
-	public ResponseEntity<HashMap<String, Object>> searchBoardList(
+	public ResponseEntity<HashMap<String, Object>> searchHubList(
 			@RequestParam(value="cpage", defaultValue="1") int currentPage,
 			String mainRegion, String subRegion, String hubType, String keyword) {
 		
@@ -91,29 +220,32 @@ public class HubController {
         } catch (NumberFormatException e) {
             hubTypes = List.of(1, 2); // 숫자 변환 실패 시 기본 전체 검색
         }
+		
 		Page<Hub> page = hubService.searchHubList(pageable, mainRegion, subRegion, hubTypes, keyword);
 		
 		List<Hub> list = page.getContent();
-		
 		long searchCount = page.getTotalElements();
 		
-		PageInfo pi = Pagination.getPageInfo((int)searchCount, currentPage,
-													pageLimit, boardLimit);
+		PageInfo pi = Pagination.getPageInfo((int)searchCount, currentPage, pageLimit, boardLimit);
 		
 		HashMap<String, Object> hm = new HashMap<>();
-		
 		hm.put("list", list);
 		hm.put("pi", pi);
 		
-		return ResponseEntity.status(HttpStatus.OK)
-							 .body(hm);
+		return ResponseEntity.status(HttpStatus.OK).body(hm);
 	}
 	
+	/**
+     * AI 챗봇 메시지 전송 및 응답 처리
+     */
+	@Operation(summary="AI 채팅 내역 조회", description="사용자가 작성한 내용에 해당하는 AI의 대답을 조회합니다.")
+	@ApiResponse(responseCode="200", description="body로 AI 채팅 내역 응답")
+	@SecurityRequirement(name="JWT")
 	@PostMapping("/hubs/send")
 	public ResponseEntity<String> sendMessage(@RequestBody String message) {
 		
 		Pageable pageable = Pageable.unpaged();
-        Page<Hub> hubPage = hubService.selectHubList(pageable, List.of(1, 2)); // 예시 타입 목록
+        Page<Hub> hubPage = hubService.selectHubList(pageable, List.of(1, 2));
         List<Hub> hubList = hubPage.getContent();
         
         StringBuilder dbHubInfo = new StringBuilder();
@@ -154,11 +286,16 @@ public class HubController {
 		
 		chatHistory.add(new AssistantMessage(reply));
 		
-		return ResponseEntity.status(HttpStatus.OK)
-							 .body(reply);
+		return ResponseEntity.status(HttpStatus.OK).body(reply);
 	}
 	
-	@PostMapping("/hubs")
+	/**
+     * 거점 등록 (첨부파일 가능)
+     * - @RequestPart를 제거하고 객체로 바로 받아 프론트엔드의 폼 데이터(FormData) 전송 방식과 호환되도록 수정함
+     */
+	@Operation(summary="거점 등록 (첨부파일 가능)", description="거점을 등록합니다.")
+	@SecurityRequirement(name="JWT")
+	@PostMapping(value="/hubs", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> insertHub(Hub hub, @RequestPart(value = "upfile", required = false) List<MultipartFile> upfiles, HttpSession session) {
 		
 		List<HubFile> fileList = new ArrayList<>();
@@ -182,26 +319,45 @@ public class HubController {
 		
 		String message = (insertHub != null) ? "success" : "fail";		 
 		 
-		return ResponseEntity.status(HttpStatus.OK)
-						     .body(message);
+		return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
 	
+	/**
+     * 거점 상세 조회
+     */
+	@Operation(summary="거점 상세 조회", description="hubNo 로 한 거점의 상세 정보를 조회합니다.")
+	@ApiResponses({
+		@ApiResponse(responseCode="200", description="조회 성공"),
+		@ApiResponse(responseCode="200 (null)", description="해당 번호의 거점이 없을 경우 body 가 null 로 응답됨")
+	})
+	@SecurityRequirement(name="JWT")
 	@GetMapping("/hubs/{hubNo}")
-	public ResponseEntity<HashMap<String, Object>> selectHub(@PathVariable int hubNo) {
+	public ResponseEntity<HashMap<String, Object>> selectHub(@Parameter(description="조회할 거점의 번호", example="1", required=true)
+															 @PathVariable int hubNo) {
 		
 		Hub h = hubService.selectHub(hubNo);
-		
 		Double avgScore = hubService.selectAvgScore(hubNo);
 		
 		HashMap<String, Object> hm = new HashMap<>();
-		
 		hm.put("hub", h);
 		hm.put("avgScore", avgScore);
 		
-		return ResponseEntity.status(HttpStatus.OK)
-							 .body(hm);
+		return ResponseEntity.status(HttpStatus.OK).body(hm);
 	}
 	
+	/**
+     * 거점 운영 중단 (상태 CLOSED 변경)
+     */
+	@Operation(summary="거점 운영 중단", description="거점 운영 상태를 중단(CLOSED) 로 변경 합니다.")
+	@ApiResponses({
+		@ApiResponse(responseCode="200", description="요청 처리 완료 (body 로 성공/실패 구분)", 
+					 content=@Content(mediaType="text/plain", 
+							 		  examples= {
+							 				  @ExampleObject(name="중단 성공", value="success"),
+							 				  @ExampleObject(name="중단 실패", value="fail")
+							 		  }))
+	})
+	@SecurityRequirement(name="JWT")
 	@DeleteMapping("/hubs/{hubNo}")
 	public ResponseEntity<String> deleteHub(@PathVariable int hubNo) {
 		
@@ -211,22 +367,48 @@ public class HubController {
 		
 		String message = (result > 0) ? "success" : "fail";
 		
-		return ResponseEntity.status(HttpStatus.OK)
-					  		 .body(message);
-
+		return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
 	
+	/**
+     * 거점 정보 수정 (첨부파일 수정 가능)
+     */
+	@Operation(summary="거점 정보 수정 (첨부파일 수정 가능)", description="거점을 수정합니다.")
+	@ApiResponses({
+		@ApiResponse(responseCode="200", description="요청 처리 완료 (body 로 성공/실패 구분)",
+					 content=@Content(mediaType="text/plain",
+							 		  examples= {
+							 				  @ExampleObject(name="수정 성공", value="success"),
+							 				  @ExampleObject(name="수정 실패", value="fail")
+							 		  }))
+	})
+	@SecurityRequirement(name="JWT")
+	@PutMapping(value="/hubs/{hubNo}", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<String> updateHub(
+			@Parameter(description="수정할 거점의 번호", example="1", required=true) @PathVariable int hubNo,
+	        Hub hub, // 거점 기본 정보 폼 데이터 매핑
+	        @RequestParam(required = false) List<Integer> fileNos,
+	        @RequestParam(required = false) List<MultipartFile> upfiles,
+	        @RequestParam(required = false) List<Integer> upfileIndexes,
+	        HttpSession session) {
+	    
+	        Hub updateHub = hubService.updateHub(hubNo, hub, fileNos, upfiles, upfileIndexes, session);
+	        
+	        String message = (updateHub != null) ? "success" : "fail";
+	        
+	        return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
 	// 메인지역 드롭에 따른 목록 조회
-		@GetMapping("/hub/mainRegion")
-		public ResponseEntity<List<String>> getMainRegions() {
-			List<String> mainRegion = hubService.selectMainRegion();
-			return ResponseEntity.ok(mainRegion);
-		}
-
-		// 상세지역 드롭에 따른 목록 조회
-		@GetMapping("/hub/subRegion")
-		public ResponseEntity<List<String>> getSubRegions(@RequestParam String mainRegion) {
-			List<String> subRegion = hubService.selectSubRegion(mainRegion);
-			return ResponseEntity.ok(subRegion);
-		}
+//		@GetMapping("/hub/mainRegion")
+//		public ResponseEntity<List<String>> getMainRegions() {
+//			List<String> mainRegion = hubService.selectMainRegion();
+//			return ResponseEntity.ok(mainRegion);
+//		}
+//
+//		// 상세지역 드롭에 따른 목록 조회
+//		@GetMapping("/hub/subRegion")
+//		public ResponseEntity<List<String>> getSubRegions(@RequestParam String mainRegion) {
+//			List<String> subRegion = hubService.selectSubRegion(mainRegion);
+//			return ResponseEntity.ok(subRegion);
+//		}
 }

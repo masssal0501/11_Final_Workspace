@@ -123,17 +123,17 @@ function Header({ loginUser, onLogout }) {
       ]
     },
     {
-      id: "placeInfo",
+      id: "hub",
       label: "장소/거점",
       icon: "⌖",
-      path: "/placeInfo/list",
+      path: "/hub/list",
 
       roles: ["ADMIN", "MANAGER", "STAFF"],
 
       children: [ 
         { 
           label: "장소 정보", 
-          path: "/placeInfo/list" 
+          path: "/hub/list" 
         }, 
         { 
           label: "AI 여행 일정 추천", 
@@ -164,6 +164,7 @@ function Header({ loginUser, onLogout }) {
         } 
       ]
     },
+
   ];
 
   // 현재 사용자의 권한
