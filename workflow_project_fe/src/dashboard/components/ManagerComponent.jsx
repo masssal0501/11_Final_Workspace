@@ -282,7 +282,7 @@ function ManagerComponent(props) {
                     <tbody>
                         {data.workcationList?.length > 0 ? (
                             data.workcationList.map((item, index) => (
-                                <tr key={index} style={ { cursor : "auto" } }>
+                                <tr key={index} style={ { cursor : "auto", backgroundColor : "white" } }>
                                     <td>{item.workcationNo}</td>
                                     <td>{item.mainRegion} {item.subRegion}</td>
                                     <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
@@ -295,7 +295,7 @@ function ManagerComponent(props) {
                                 </tr>
                             ))
                         ) : (
-                            <tr style={ { cursor : "auto" } }>
+                            <tr style={ { cursor : "auto", backgroundColor : "white" } }>
                                 <td colSpan="6">워케이션 신청 건이 없습니다.</td>
                             </tr>
                         )}

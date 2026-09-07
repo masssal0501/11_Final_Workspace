@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { selectStaffDashboardApi, selectStaffReservationListApi } from "../api/dashboardApi";
+import { selectStaffDashboardApi, selectStaffReservationListApi, selectStaffHubApi } from "../api/dashboardApi";
 
 /**
  * 일반 임직원(Staff) 전용 대시보드 컴포넌트
@@ -18,11 +18,14 @@ function StaffComponent(props) {
         useAmount: 0,
         isWorkcation: false,
         workcationPlan: "",
-        position: "",
         progressRate: 100,
         noticeData: [],
         reservationList: []
     });
+
+    const [address, setAddress] = useState("");
+
+    const [hub, setHub] = useState([]);
 
     // 개인 예약 리스트 검색 및 필터링(기간, 키워드)을 위한 입력 상태 관리
     const [inputData, setInputData] = useState({
@@ -71,10 +74,7 @@ function StaffComponent(props) {
                     navigator.geolocation.getCurrentPosition(
                         (data) => {
                             geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
-                                setData(prevData => ({
-                                    ...prevData,
-                                    position: result[0].address.address_name
-                                }));
+                                setAddress(result[0].address.address_name);
                             });
                         }
                     );
@@ -118,14 +118,26 @@ function StaffComponent(props) {
 
         e.preventDefault();
 
-        if(!data.isWorkcation) {            
-            try {
+        const now = new Date();
 
-                alert("출근 성공");
+        if(!data.isWorkcation && now.getHours() >= 8 && now.getHours() <= 12) {          
+            try {
+                
+                const response = await selectStaffHubApi(loginUser.empNo);
+
+                setHub(response.data);
+
+                if(now.getHours() <= 9 && now.getMinutes() <= 10) {
+                    alert("출근 성공");
+                } else {
+                    alert("출근 성공(지각)");
+                }
 
             } catch(error) {
                 console.error(error);
             }
+        } else if(!data.isWorkcation && now.getHours() < 8 && now.getHours() >= 12) {
+            alert("지금은 출근 시간이 아닙니다");
         } else {
             alert("등록된 워케이션이 없습니다.");
         }
@@ -177,7 +189,7 @@ function StaffComponent(props) {
                         <td>
                             <div>
                                 <span>워케이션 간 횟수 : {data.workcationCount}회</span>&nbsp;&nbsp;&nbsp;
-                                <span>남은 지원금 : {data.amountSupport}원</span>&nbsp;&nbsp;&nbsp;
+                                <span>사용한 지원금(지자체 지원금 제외) : {data.amountSupport}원</span>&nbsp;&nbsp;&nbsp;
                                 <span>사용 비용 : {data.useAmount}원</span>
                             </div> 
                         </td>
@@ -190,7 +202,7 @@ function StaffComponent(props) {
                                 <button className="btn btn-primary" disabled={!data.isWorkcation} onClick={ commuteClicker }>
                                     출근하기
                                 </button><br />
-                                <span>현재 위치 : { (isLoaded) ? data.position : ""}</span>
+                                <span>현재 위치 : { (isLoaded) ? address : ""}</span>
                             </div>
                         </td>
                     </tr>
@@ -293,7 +305,7 @@ function StaffComponent(props) {
                                 </tr>
                             ))
                         ) : (
-                            <tr style={ { cursor : "auto" } }>
+                            <tr style={ { cursor : "auto", backgroundColor : "white" } }>
                                 <td colSpan="6">예약 건이 없습니다.</td>
                             </tr>
                         )}
