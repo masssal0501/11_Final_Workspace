@@ -6,10 +6,7 @@ import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
-import com.kh.workflow.employee.model.dto.EmployeeRoleUpdateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
-import com.kh.workflow.employee.model.dto.FindIdRequest;
-import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
 
@@ -87,11 +84,6 @@ public interface EmployeeService {
      * 계정 목록 조회
      */
     List<EmployeeResponse> getEmployeeList();
-    
-    //
-    FindIdResponse findEmployeeId(
-            FindIdRequest request
-    );
 
 
     /*
@@ -109,7 +101,7 @@ public interface EmployeeService {
      */
     void updateEmployeeRole(
             Integer empNo,
-            EmployeeRoleUpdateRequest request
+            String authCode
     );
 	
 }

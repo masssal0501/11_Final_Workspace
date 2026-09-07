@@ -11,22 +11,20 @@
     box-sizing: border-box;
 
 }
+
 .place-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-height: 400px;
-    margin-bottom: 40px;
+    display: block;
+
+    width: 300px;
+    height: 100px;
+
+    margin: 50px auto 20px;
+
+    object-fit: cover;
+
+    border-radius: 15px;
 }
 
-.place-image img {
-    width: 600px;
-    height: 400px;
-    object-fit: cover;
-    border-radius: 10px;
-    display: block;
-}
 .Title-box h3{
     margin: 0 0 20px;
     font-size: 26px;

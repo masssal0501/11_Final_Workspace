@@ -17,94 +17,6 @@ function EmployeeDetail() {
 
     }, [empNo]);
 
-    // 직책
-    const getAuthName = (authCode) => {
-
-        switch (authCode) {
-
-            case "ADMIN":
-                return "관리자";
-
-            case "MANAGER":
-                return "부서장";
-
-            case "STAFF":
-                return "평사원";
-
-            default:
-                return "";
-        }
-    };
-
-    // 부서
-    const getDepName = (depId) => {
-
-        switch (depId) {
-
-            case "D1":
-                return "기획";
-
-            case "D2":
-                return "디자인";
-
-            case "D3":
-                return "FE 개발";
-            
-            case "D4":
-                return "BE 개발";
-            
-            case "D5":
-                return "데이터";
-
-            case "D6":
-                return "QA";
-
-            default:
-                return "";
-        }
-    };
-
-
-    // 직위
-    const getJobName = (jobCode) => {
-
-        switch (jobCode) {
-
-            case "J1":
-                return "사원";
-
-            case "J2":
-                return "대리";
-
-            case "J3":
-                return "과장";
-
-            case "J4":
-                return "차장";
-
-            case "J5":
-                return "부장";
-
-            default:
-                return "";
-        }
-    };
-
-    // 계정 상태
-    const getStatusName = (status) => {
-
-        switch (status) {
-
-            case "Y":
-                return "활성";
-
-            case "N":
-                return "비활성";
-
-            default:
-                return "";
-        }
-    };
 
     const loadEmployee = async () => {
 
@@ -161,7 +73,7 @@ function EmployeeDetail() {
                             </td>
                             <th>직책</th>
                             <td>
-                                {getAuthName(employee.authCode)}
+                                {employee.authCode}
                             </td>
                             
                         </tr>
@@ -172,7 +84,7 @@ function EmployeeDetail() {
                             </td>
                             <th>부서</th>
                             <td>
-                                {getDepName(employee.depId)}
+                                {employee.depId}
                             </td>
                             
                         </tr>
@@ -183,7 +95,7 @@ function EmployeeDetail() {
                             </td>
                             <th>직위</th>
                             <td>
-                                {getJobName(employee.jobCode)}
+                                {employee.jobCode}
                             </td>
                         </tr>
                         <tr>
@@ -195,7 +107,7 @@ function EmployeeDetail() {
                         <tr>
                             <th>상태</th>
                             <td>
-                                {getStatusName(employee.status)}
+                                {employee.status}
                             </td>
                         </tr>
                     </tbody>

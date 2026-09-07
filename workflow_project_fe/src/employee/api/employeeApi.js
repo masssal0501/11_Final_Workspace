@@ -165,20 +165,6 @@ export const getEmployeeList = async () => {
     return response.data;
 };
 
-/*
- * USR-009
- * 아이디 찾기
- */
-export const findEmployeeId = async (data) => {
-
-    const response = await axiosInstance.post(
-        "/employees/findId",
-        data
-    );
-
-    return response.data;
-};
-
 
 /*
  * USR-011
@@ -186,12 +172,17 @@ export const findEmployeeId = async (data) => {
  */
 export const updateEmployeeRole = async (
     empNo,
-    roleData
+    authCode
 ) => {
 
     const response = await axiosInstance.patch(
         `/employees/${empNo}/role`,
-        roleData
+        null,
+        {
+            params: {
+                authCode,
+            },
+        }
     );
 
     return response.data;

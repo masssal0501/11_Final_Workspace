@@ -26,27 +26,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    // Spring Security 설정
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(
-//            HttpSecurity http
-//    ) throws Exception {
-//
-//        http
-//            // CORS 활성화
-//            .cors(cors -> {})
-//
-//            // CSRF 비활성화
-//            .csrf(csrf -> csrf.disable())
-//
-//            // 현재는 모든 요청 허용
-//            .authorizeHttpRequests(auth ->
-//                auth.anyRequest().permitAll()
-//            );
-//
-//        return http.build();
-//    }
+   
     
     /**
      * 정적 리소스(Static Resources) 경로에 대해 Spring Security 인증 예외 처리 설정
@@ -73,7 +53,8 @@ public class SecurityConfig {
 
         return http
 
-                .cors(cors -> {})
+        		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
 
                 .csrf(csrf -> csrf.disable())
 
@@ -150,6 +131,10 @@ public class SecurityConfig {
 	                            HttpMethod.PATCH,
 	                            "/employees/*/role"
 	                    ).hasRole("ADMIN")
+	                    
+	                    .requestMatchers(	                    	    
+	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
+	                    	).authenticated()
 
 	                    // swagger
 	                    .requestMatchers(
@@ -216,6 +201,7 @@ public class SecurityConfig {
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 )
+                
 
                 .build();
     }

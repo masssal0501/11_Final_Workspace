@@ -34,8 +34,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public class WorkcationInfo {
-	
-	@Schema(description = "게시글 번호 (자동생성)", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
+		
 	@Id
 	@Column(name = "workcation_no")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

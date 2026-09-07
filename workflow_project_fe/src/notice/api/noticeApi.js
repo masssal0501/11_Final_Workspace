@@ -46,18 +46,18 @@ export const noticeApi = {
     // =========================================================
     insertNotice: async (formData) => {
 
-    const response = await axiosInstance.post(
-        "/api/v1/notice",
-        formData,
-        {
-            headers: {
-                "Content-Type": "multipart/form-data"
+        const response = await axiosInstance.post(
+            API_URL,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
             }
-        }
-    );
+        );
 
-    return response.data;
-},
+        return response.data;
+    },
 
     // =========================================================
     // 공지사항 수정

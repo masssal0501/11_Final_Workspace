@@ -10,6 +10,7 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,7 +38,7 @@ public class Work {
 	@Id
 	@Column(name="work_no")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int workNo;
+	private int workNo; // 근무 번호
 	
 	@Schema(description="근무 제출 시간", example="2026-08-24T10:00:00", accessMode=Schema.AccessMode.READ_ONLY)
 	@Column(name="submitted_at", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

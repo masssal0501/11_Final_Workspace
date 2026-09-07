@@ -127,3 +127,57 @@ CREATE TABLE support_list (
     amount_no INT NOT NULL,
     CONSTRAINT fk_support_list_support FOREIGN KEY (amount_no) REFERENCES amount_support(amount_no)
 );
+
+CREATE TABLE work (
+    work_no INT AUTO_INCREMENT PRIMARY KEY,
+    submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL,
+    workcation_no INT NOT NULL,
+
+    CONSTRAINT fk_work_workcation
+        FOREIGN KEY (workcation_no)
+        REFERENCES workcation_info(workcation_no)
+);
+
+CREATE TABLE task (
+    task_no INT AUTO_INCREMENT PRIMARY KEY,
+    task_title VARCHAR(200) NOT NULL,
+    task_content VARCHAR(300) NOT NULL,
+    tasktime_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    taskend_at TIMESTAMP NULL,
+    progress INT NOT NULL DEFAULT 0,
+    status VARCHAR(1) DEFAULT 'N',
+    work_no INT NOT NULL,
+
+    CONSTRAINT fk_task_work
+        FOREIGN KEY (work_no)
+        REFERENCES work(work_no)
+);
+
+CREATE TABLE task_history (
+    history_no INT AUTO_INCREMENT PRIMARY KEY,
+    history_title VARCHAR(200) NOT NULL,
+    history_content VARCHAR(1000) NOT NULL,
+    progress INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    task_no INT NOT NULL,
+
+    CONSTRAINT fk_task_history_task
+        FOREIGN KEY (task_no)
+        REFERENCES task(task_no)
+);
+
+CREATE TABLE work_file (
+    taskfile_no INT AUTO_INCREMENT PRIMARY KEY,
+    file_path VARCHAR(500) NULL,
+    origin_name VARCHAR(255) NOT NULL,
+    change_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    file_size BIGINT NOT NULL,
+    status VARCHAR(1) DEFAULT 'Y',
+    work_no INT NOT NULL,
+
+    CONSTRAINT fk_work_file_work
+        FOREIGN KEY (work_no)
+        REFERENCES work(work_no)
+);
