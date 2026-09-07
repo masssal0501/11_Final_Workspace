@@ -1,0 +1,791 @@
+/* =========================================================
+   AdminAmount.css
+   관리자 비용 정산 목록 전용
+   ========================================================= */
+
+
+/* =========================================================
+   1. 전체 영역
+   ========================================================= */
+
+.amount-container {
+    width: 100%;
+    max-width: 1400px;
+
+    margin: 0 auto;
+
+    padding: 70px 40px 100px;
+
+    box-sizing: border-box;
+
+    min-height: calc(100vh - 160px);
+}
+
+
+/* =========================================================
+   2. 상단 제목 영역
+   ========================================================= */
+
+.amount-container > div:first-child {
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 22px;
+}
+
+
+/* =========================================================
+   제목
+   ========================================================= */
+
+.amount-title {
+    margin: 0;
+
+    padding: 0;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    color: #172b4d;
+
+    letter-spacing: -1px;
+
+    line-height: 1.3;
+}
+
+
+/* =========================================================
+   3. 통계 버튼
+   ========================================================= */
+
+.amount-container .btn-secondary {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    min-width: 150px;
+    height: 44px;
+
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 6px;
+
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.amount-container .btn-secondary:hover {
+    background-color: #5a6268 !important;
+
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+
+.amount-container .btn-secondary:active {
+    transform: translateY(1px);
+
+    box-shadow: none;
+}
+
+
+.amount-container .btn-secondary:focus {
+    outline: none;
+}
+
+
+.amount-container .btn-secondary:focus-visible {
+    outline: 2px solid #17365d;
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   4. 테이블
+   ========================================================= */
+
+.amount-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    table-layout: fixed;
+
+    background: transparent;
+
+    color: #17365d;
+}
+
+
+/* =========================================================
+   5. 테이블 헤더
+   ========================================================= */
+
+.amount-table thead th {
+    height: 48px;
+
+    padding: 0 10px;
+
+    box-sizing: border-box;
+
+    background: #eeeeee;
+
+    border-top: 2px solid #555555;
+    border-bottom: 1px solid #d5d5d5;
+
+    color: #17365d;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+    vertical-align: middle;
+}
+
+
+/* =========================================================
+   6. 테이블 본문
+   ========================================================= */
+
+.amount-table tbody td {
+    height: 64px;
+
+    padding: 0 10px;
+
+    box-sizing: border-box;
+
+    border-bottom: 1px solid #d0d0d0;
+
+    color: #17365d;
+
+    font-size: 15px;
+    font-weight: 400;
+
+    vertical-align: middle;
+
+    white-space: nowrap;
+
+    background: transparent;
+}
+
+
+/* =========================================================
+   행
+   ========================================================= */
+
+.amount-table tbody tr {
+    transition:
+        background-color 0.15s ease;
+}
+
+
+/* =========================================================
+   행 hover
+   ========================================================= */
+
+.amount-table tbody tr:hover {
+    background: rgba(23, 54, 93, 0.035);
+}
+
+
+/* =========================================================
+   클릭 가능한 행
+   ========================================================= */
+
+.amount-table tbody tr[style*="cursor"] {
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   7. 정렬
+   ========================================================= */
+
+.amount-table .text-center {
+    text-align: center;
+}
+
+
+.amount-table .text-right {
+    text-align: right;
+}
+
+
+.amount-table .text-left {
+    text-align: left;
+}
+
+
+/* =========================================================
+   8. 금액
+   ========================================================= */
+
+.amount-table .text-right {
+    padding-right: 18px;
+}
+
+
+/* =========================================================
+   9. 상태 배지
+   ========================================================= */
+
+.amount-table .status-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 68px;
+    height: 28px;
+
+    padding: 0 11px;
+
+    box-sizing: border-box;
+
+    border-radius: 14px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   검토중
+   ========================================================= */
+
+.amount-table .status-R {
+    background-color: #fff3cd;
+
+    color: #856404;
+}
+
+
+/* =========================================================
+   승인됨
+   ========================================================= */
+
+.amount-table .status-A {
+    background-color: #d1e7dd;
+
+    color: #0f5132;
+}
+
+
+/* =========================================================
+   반려됨
+   ========================================================= */
+
+.amount-table .status-J {
+    background-color: #f8d7da;
+
+    color: #842029;
+}
+
+
+/* =========================================================
+   보류됨
+   ========================================================= */
+
+.amount-table .status-H {
+    background-color: #cff4fc;
+
+    color: #055160;
+}
+
+
+/* =========================================================
+   취소됨
+   ========================================================= */
+
+.amount-table .status-C {
+    background-color: #e2e3e5;
+
+    color: #41464b;
+}
+
+
+/* =========================================================
+   10. 결재 처리 영역
+   ========================================================= */
+
+.amount-table .text-disabled {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 72px;
+    height: 30px;
+
+    color: #777777;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   11. 로딩
+   ========================================================= */
+
+.amount-container .amount-loading {
+    width: 100%;
+
+    min-height: 300px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: #6c757d;
+
+    font-size: 16px;
+}
+
+
+/* =========================================================
+   12. 데이터 없음
+   ========================================================= */
+
+.amount-container .amount-empty {
+    width: 100%;
+
+    padding: 60px 20px;
+
+    box-sizing: border-box;
+
+    text-align: center;
+
+    color: #777777;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   13. 페이징
+   ========================================================= */
+
+.pagination {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    margin-top: 32px;
+
+    padding: 0;
+}
+
+
+/* =========================================================
+   페이징 버튼 공통
+   ========================================================= */
+
+.pagination button {
+    min-width: 38px;
+    height: 38px;
+
+    padding: 0 10px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d5d9df;
+
+    border-radius: 5px;
+
+    background-color: #ffffff;
+
+    color: #495057;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.1s ease;
+}
+
+
+/* =========================================================
+   페이징 hover
+   ========================================================= */
+
+.pagination button:hover:not(:disabled) {
+    background-color: #f1f3f5;
+
+    border-color: #adb5bd;
+
+    color: #17365d;
+}
+
+
+/* =========================================================
+   페이징 active
+   ========================================================= */
+
+.pagination button.active {
+    background-color: #17365d;
+
+    border-color: #17365d;
+
+    color: #ffffff;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   active hover
+   ========================================================= */
+
+.pagination button.active:hover:not(:disabled) {
+    background-color: #17365d;
+
+    border-color: #17365d;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   클릭
+   ========================================================= */
+
+.pagination button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   이전 / 다음
+   ========================================================= */
+
+.pagination button:first-child,
+.pagination button:last-child {
+    min-width: 62px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   이전 / 다음 hover
+   ========================================================= */
+
+.pagination button:first-child:hover:not(:disabled),
+.pagination button:last-child:hover:not(:disabled) {
+    background-color: #f1f3f5;
+
+    border-color: #adb5bd;
+}
+
+
+/* =========================================================
+   페이징 비활성
+   ========================================================= */
+
+.pagination button:disabled {
+    background-color: #f5f5f5;
+
+    border-color: #e0e0e0;
+
+    color: #b5b5b5;
+
+    cursor: default;
+
+    transform: none;
+}
+
+
+/* =========================================================
+   페이징 focus
+   ========================================================= */
+
+.pagination button:focus {
+    outline: none;
+}
+
+
+.pagination button:focus-visible {
+    outline: 2px solid #17365d;
+
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   14. 테이블 컬럼 너비
+   ========================================================= */
+
+/*
+   7개 컬럼
+
+   신청번호 : 10%
+   사원명   : 12%
+   신청금액 : 16%
+   승인금액 : 16%
+   상태     : 13%
+   신청일   : 15%
+   결재처리 : 18%
+*/
+
+.amount-table th:nth-child(1),
+.amount-table td:nth-child(1) {
+    width: 10%;
+}
+
+
+.amount-table th:nth-child(2),
+.amount-table td:nth-child(2) {
+    width: 12%;
+}
+
+
+.amount-table th:nth-child(3),
+.amount-table td:nth-child(3) {
+    width: 16%;
+}
+
+
+.amount-table th:nth-child(4),
+.amount-table td:nth-child(4) {
+    width: 16%;
+}
+
+
+.amount-table th:nth-child(5),
+.amount-table td:nth-child(5) {
+    width: 13%;
+}
+
+
+.amount-table th:nth-child(6),
+.amount-table td:nth-child(6) {
+    width: 15%;
+}
+
+
+.amount-table th:nth-child(7),
+.amount-table td:nth-child(7) {
+    width: 18%;
+}
+
+
+/* =========================================================
+   15. 반응형 - 1100px
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .amount-container {
+        padding-left: 25px;
+        padding-right: 25px;
+    }
+
+
+    .amount-title {
+        font-size: 28px;
+    }
+
+
+    .amount-table thead th {
+        font-size: 14px;
+
+        padding: 0 8px;
+    }
+
+
+    .amount-table tbody td {
+        font-size: 14px;
+
+        padding: 0 8px;
+    }
+
+
+    .amount-table .text-right {
+        padding-right: 12px;
+    }
+
+
+    .amount-table .status-badge {
+        min-width: 64px;
+
+        font-size: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   16. 반응형 - 768px
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .amount-container {
+        padding: 40px 16px 80px;
+    }
+
+
+    /* 상단 영역 */
+
+    .amount-container > div:first-child {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 16px;
+
+        margin-bottom: 20px;
+    }
+
+
+    /* 제목 */
+
+    .amount-title {
+        font-size: 24px;
+
+        letter-spacing: -0.7px;
+    }
+
+
+    /* 통계 버튼 */
+
+    .amount-container .btn-secondary {
+        width: 100%;
+
+        min-width: 0;
+
+        height: 42px;
+    }
+
+
+    /* 테이블 */
+
+    .amount-table {
+        min-width: 900px;
+    }
+
+
+    /* 가로 스크롤 */
+
+    .amount-container {
+        overflow-x: hidden;
+    }
+
+
+    /* 페이징 */
+
+    .pagination {
+        margin-top: 25px;
+
+        gap: 3px;
+
+        flex-wrap: nowrap;
+    }
+
+
+    .pagination button {
+        min-width: 34px;
+
+        height: 34px;
+
+        padding: 0 8px;
+
+        font-size: 13px;
+    }
+
+
+    .pagination button:first-child,
+    .pagination button:last-child {
+        min-width: 55px;
+    }
+
+}
+
+
+/* =========================================================
+   17. 반응형 - 480px
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .amount-container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+
+    .amount-title {
+        font-size: 21px;
+    }
+
+
+    .amount-container .btn-secondary {
+        font-size: 13px;
+    }
+
+
+    .pagination {
+        gap: 2px;
+    }
+
+
+    .pagination button {
+        min-width: 32px;
+
+        height: 32px;
+
+        padding: 0 6px;
+
+        font-size: 12px;
+    }
+
+
+    .pagination button:first-child,
+    .pagination button:last-child {
+        min-width: 48px;
+    }
+
+}

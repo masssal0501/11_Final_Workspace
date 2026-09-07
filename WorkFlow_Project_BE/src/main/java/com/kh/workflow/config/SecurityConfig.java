@@ -118,20 +118,26 @@ public class SecurityConfig {
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts"
                         	).permitAll()
-                        // 관리자 정산 추후 권한 수정
-                        .requestMatchers(
+
+                        	.requestMatchers(
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts/admin/cost/list"
                         	).permitAll()
-                        
-                        .requestMatchers(
+
+                        	.requestMatchers(
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts/cost/detail/**"
                         	).permitAll()
-                        
-                        .requestMatchers(
+
+                        	.requestMatchers(
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts/*"
+                        	).permitAll()
+
+                        	// 관리자 정산 승인/보류/반려
+                        	.requestMatchers(
+                        	    HttpMethod.PATCH,
+                        	    "/api/v1/amounts/*/approval"
                         	).permitAll()
                      // 공지사항
                         .requestMatchers(

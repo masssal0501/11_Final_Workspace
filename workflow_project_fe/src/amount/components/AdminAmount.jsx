@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { amountApi } from '../api/amountApi';
-import '../styles/AmountStyle.css';
+import '../styles/AdminAmount.css';
 
 export default function AdminAmount() {
 
@@ -69,6 +69,7 @@ export default function AdminAmount() {
             } else if (Array.isArray(data?.list)) {
 
                 list = data.list;
+
             }
 
 
@@ -127,6 +128,7 @@ export default function AdminAmount() {
                     '신청일:',
                     amount.requestedAt
                 );
+
             });
 
 
@@ -139,20 +141,6 @@ export default function AdminAmount() {
 
             // =====================================================
             // 페이징 정보 저장
-            //
-            // 서버 응답 예:
-            //
-            // {
-            //     pageLimit: 5,
-            //     startPage: 1,
-            //     boardLimit: 10,
-            //     limit: 10,
-            //     page: 1,
-            //     endPage: 1,
-            //     maxPage: 1,
-            //     listCount: 5,
-            //     list: [...]
-            // }
             // =====================================================
 
             const newPageInfo = {
@@ -234,7 +222,9 @@ export default function AdminAmount() {
             );
 
             setLoading(false);
+
         }
+
     };
 
 
@@ -278,10 +268,12 @@ export default function AdminAmount() {
             );
 
             return;
+
         }
 
 
         fetchAmountList(newPage);
+
     };
 
 
@@ -292,7 +284,9 @@ export default function AdminAmount() {
     const formatDate = (date) => {
 
         if (!date) {
+
             return '-';
+
         }
 
 
@@ -300,7 +294,9 @@ export default function AdminAmount() {
 
 
         if (Number.isNaN(d.getTime())) {
+
             return '-';
+
         }
 
 
@@ -319,6 +315,7 @@ export default function AdminAmount() {
 
 
         return `${year}-${month}-${day}`;
+
     };
 
 
@@ -335,6 +332,7 @@ export default function AdminAmount() {
         ) {
 
             return '-';
+
         }
 
 
@@ -345,10 +343,12 @@ export default function AdminAmount() {
         if (Number.isNaN(number)) {
 
             return '-';
+
         }
 
 
         return `${number.toLocaleString('ko-KR')} 원`;
+
     };
 
 
@@ -369,282 +369,26 @@ export default function AdminAmount() {
             H: '보류됨',
 
             C: '취소됨'
+
         };
 
 
         return (
+
             <span
                 className={`status-badge status-${status}`}
             >
+
                 {
                     statusMap[status] ||
                     status ||
                     '-'
                 }
+
             </span>
+
         );
-    };
 
-
-    // =========================================================
-    // 결재 처리
-    // =========================================================
-
-    const handleApproval = async (
-        e,
-        item,
-        status
-    ) => {
-
-        // 행 클릭 이벤트 방지
-
-        e.stopPropagation();
-
-
-        let comment = '';
-
-        let approvedAmount = 0;
-
-
-        // =====================================================
-        // 보류 / 반려
-        // =====================================================
-
-        if (
-            status === 'H' ||
-            status === 'J'
-        ) {
-
-            const reasonTitle =
-                status === 'H'
-                    ? '보류 사유를 입력하세요.'
-                    : '반려 사유를 입력하세요.';
-
-
-            const inputComment =
-                window.prompt(
-                    reasonTitle
-                );
-
-
-            // 취소
-
-            if (
-                inputComment === null
-            ) {
-
-                return;
-            }
-
-
-            comment =
-                inputComment.trim();
-
-
-            // 사유 필수
-
-            if (!comment) {
-
-                alert(
-                    status === 'H'
-                        ? '보류 사유를 입력해주세요.'
-                        : '반려 사유를 입력해주세요.'
-                );
-
-                return;
-            }
-        }
-
-
-        // =====================================================
-        // 승인
-        // =====================================================
-
-        if (status === 'A') {
-
-            const inputAmt =
-                window.prompt(
-                    '승인 금액을 입력하세요:',
-                    item.approvedAmount ??
-                    item.requestedAmount ??
-                    0
-                );
-
-
-            // 취소
-
-            if (
-                inputAmt === null
-            ) {
-
-                return;
-            }
-
-
-            // 콤마 제거
-
-            const cleanAmount =
-                String(inputAmt)
-                    .replace(/,/g, '')
-                    .trim();
-
-
-            approvedAmount =
-                Number(cleanAmount);
-
-
-            // 숫자 검증
-
-            if (
-                cleanAmount === '' ||
-                Number.isNaN(approvedAmount) ||
-                approvedAmount < 0
-            ) {
-
-                alert(
-                    '올바른 금액을 입력해 주세요.'
-                );
-
-                return;
-            }
-
-
-            // 신청 금액
-
-            const requestedAmount =
-                Number(
-                    item.requestedAmount
-                ) || 0;
-
-
-            // 신청 금액 초과 방지
-
-            if (
-                approvedAmount >
-                requestedAmount
-            ) {
-
-                alert(
-                    `승인 금액(${approvedAmount.toLocaleString()}원)은 ` +
-                    `신청 금액(${requestedAmount.toLocaleString()}원)을 ` +
-                    `초과할 수 없습니다.`
-                );
-
-                return;
-            }
-        }
-
-
-        // =====================================================
-        // 서버 요청
-        // =====================================================
-
-        try {
-
-            console.log(
-                '================================'
-            );
-
-            console.log(
-                '===== 정산 결재 처리 ====='
-            );
-
-            console.log(
-                'amountNo:',
-                item.amountNo
-            );
-
-            console.log(
-                'status:',
-                status
-            );
-
-            console.log(
-                'approvedAmount:',
-                approvedAmount
-            );
-
-            console.log(
-                'comment:',
-                comment
-            );
-
-            console.log(
-                '================================'
-            );
-
-
-            await amountApi.updateApproval(
-
-                item.amountNo,
-
-                status,
-
-                approvedAmount,
-
-                comment
-            );
-
-
-            // =================================================
-            // 완료 메시지
-            // =================================================
-
-            const statusMessage = {
-
-                A:
-                    '승인 처리가 완료되었습니다.',
-
-                H:
-                    '보류 처리가 완료되었습니다.',
-
-                J:
-                    '반려 처리가 완료되었습니다.'
-            };
-
-
-            alert(
-                statusMessage[status] ||
-                '결재 처리가 완료되었습니다.'
-            );
-
-
-            // =================================================
-            // 현재 페이지 유지하면서 다시 조회
-            // =================================================
-
-            await fetchAmountList(
-                pageInfo.currentPage
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                '❌ 결재 처리 실패:',
-                error
-            );
-
-            console.error(
-                '❌ 서버 응답:',
-                error.response?.data
-            );
-
-            console.error(
-                '❌ HTTP 상태:',
-                error.response?.status
-            );
-
-
-            alert(
-
-                error.response?.data?.message ||
-
-                error.response?.data ||
-
-                '결재 처리에 실패했습니다.'
-            );
-        }
     };
 
 
@@ -669,12 +413,16 @@ export default function AdminAmount() {
                         textAlign: 'center'
                     }}
                 >
+
                     정산 신청 목록을
                     불러오는 중입니다...
+
                 </div>
 
             </div>
+
         );
+
     }
 
 
@@ -717,7 +465,9 @@ export default function AdminAmount() {
                         margin: 0
                     }}
                 >
+
                     비용 정산 결재 관리 (관리자)
+
                 </h2>
 
 
@@ -738,7 +488,9 @@ export default function AdminAmount() {
                         cursor: 'pointer'
                     }}
                 >
+
                     📊 정산 통계 보기
+
                 </button>
 
             </div>
@@ -798,7 +550,9 @@ export default function AdminAmount() {
                                     colSpan="7"
                                     className="text-center"
                                 >
+
                                     정산 신청 내역이 없습니다.
+
                                 </td>
 
                             </tr>
@@ -895,85 +649,35 @@ export default function AdminAmount() {
                                     </td>
 
 
-                                    {/* 결재 처리 */}
+                                    {/* =================================================
+                                        결재 처리
+
+                                        승인 / 보류 / 반려 버튼 제거
+                                    ================================================= */}
 
                                     <td className="text-center">
 
                                         {
-                                            ['R', 'H'].includes(
-                                                item.status
+                                            item.status === 'C' ? (
+
+                                                <span className="text-disabled">
+                                                    신청자 취소건
+                                                </span>
+
+                                            ) : (
+                                                
+                                                item.status === 'A' ||
+                                                item.status === 'J'
                                             ) ? (
 
-                                                <>
-
-                                                    {/* 승인 */}
-
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-approve"
-                                                        onClick={(e) =>
-                                                            handleApproval(
-                                                                e,
-                                                                item,
-                                                                'A'
-                                                            )
-                                                        }
-                                                    >
-                                                        승인
-                                                    </button>
-
-
-                                                    {/* 반려 */}
-
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-reject"
-                                                        onClick={(e) =>
-                                                            handleApproval(
-                                                                e,
-                                                                item,
-                                                                'J'
-                                                            )
-                                                        }
-                                                    >
-                                                        반려
-                                                    </button>
-
-
-                                                    {/* 보류 */}
-
-                                                    {
-                                                        item.status === 'R' && (
-
-                                                            <button
-                                                                type="button"
-                                                                className="btn btn-hold"
-                                                                onClick={(e) =>
-                                                                    handleApproval(
-                                                                        e,
-                                                                        item,
-                                                                        'H'
-                                                                    )
-                                                                }
-                                                            >
-                                                                보류
-                                                            </button>
-
-                                                        )
-                                                    }
-
-                                                </>
+                                                <span className="text-disabled">
+                                                    처리 완료
+                                                </span>
 
                                             ) : (
 
                                                 <span className="text-disabled">
-
-                                                    {
-                                                        item.status === 'C'
-                                                            ? '신청자 취소건'
-                                                            : '처리 완료'
-                                                    }
-
+                                                    미처리
                                                 </span>
 
                                             )
@@ -1002,6 +706,7 @@ export default function AdminAmount() {
 
                     <div className="pagination">
 
+
                         {/* 이전 */}
 
                         <button
@@ -1015,7 +720,9 @@ export default function AdminAmount() {
                                 )
                             }
                         >
+
                             이전
+
                         </button>
 
 
@@ -1058,11 +765,15 @@ export default function AdminAmount() {
                                                 )
                                             }
                                         >
+
                                             {pageNumber}
+
                                         </button>
 
                                     );
+
                                 }
+
                             )
                         }
 
@@ -1081,7 +792,9 @@ export default function AdminAmount() {
                                 )
                             }
                         >
+
                             다음
+
                         </button>
 
                     </div>
@@ -1090,6 +803,7 @@ export default function AdminAmount() {
             }
 
         </div>
-    );
-}
 
+    );
+
+}
