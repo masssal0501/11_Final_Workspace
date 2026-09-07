@@ -184,7 +184,7 @@ export const getWorkcationSchedule = async (date) => {
         `${BASE_URL}/workcation/schedule`,
         {
             params: { date: date },
-            headers: { Authorization: `Bearer {token}` }
+            headers: { Authorization: `Bearer ${token}` }
         }
     )
     return response.data;

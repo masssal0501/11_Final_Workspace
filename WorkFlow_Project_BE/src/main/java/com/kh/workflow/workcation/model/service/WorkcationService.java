@@ -54,5 +54,8 @@ public interface WorkcationService {
 
 	void updateTask(Integer taskNo, Integer progress, String title, String content, MultipartFile file);
 	
-	List<WorkcationInfo> getWorkcationSchedule(LocalDate date);
+	Map<String, Object> getWorkcationSchedule(
+	        LocalDate date,
+	        int empNo
+	);
 }

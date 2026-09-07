@@ -15,13 +15,13 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 @Repository
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
-
+//AND w.approverState ='Y' --> 승인 기능 추가후
 	@Query("""
 			SELECT w
 			FROM WorkcationInfo w
 			WHERE w.startAt <= :endOfDay
 			AND w.endAt >= :startOfDay
-			AND w.approverState ='Y'
+			
 			ORDER BY w.startAt ASC
 			""")
 	List<WorkcationInfo> findWorkcationByDate(

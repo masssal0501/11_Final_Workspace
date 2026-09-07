@@ -291,13 +291,25 @@ public class WorkcationController {
 	
 	@GetMapping("/schedule")
 	public ResponseEntity<?> getWorkcationSchedule(
-			@RequestParam String date){
-		
-		LocalDate selectedDate = LocalDate.parse(date);
-		
-		List<WorkcationInfo> list = workcationService.getWorkcationSchedule(selectedDate);
-		
-		return ResponseEntity.ok(list);
+	        @RequestParam String date,
+	        Authentication authentication) {
+
+	    String empId = (String) authentication.getPrincipal();
+
+	    Employee employee = employeeDao.findByEmpId(empId)
+	            .orElseThrow(() ->
+	                    new RuntimeException("회원 정보를 찾을 수 없습니다.")
+	            );
+
+	    LocalDate selectedDate = LocalDate.parse(date);
+
+	    Map<String, Object> result =
+	            workcationService.getWorkcationSchedule(
+	                    selectedDate,
+	                    employee.getEmpNo()
+	            );
+
+	    return ResponseEntity.ok(result);
 	}
 
 }

@@ -903,14 +903,91 @@ public class WorkcationServiceImpl implements WorkcationService {
 	}
 
 	@Override
-	public List<WorkcationInfo> getWorkcationSchedule(LocalDate date) {
-		
-		LocalDateTime startOfDay = date.atStartOfDay();
-		
-		LocalDateTime endOfDay = date
-				.plusDays(1)
-				.atStartOfDay()
-				.minusNanos(1);
-		return workcationDao.findWorkcationByDate(startOfDay, endOfDay);
+	public Map<String, Object> getWorkcationSchedule(
+	        LocalDate date,
+	        int empNo
+	) {
+
+	    LocalDateTime startOfDay =
+	            date.atStartOfDay();
+
+	    LocalDateTime endOfDay =
+	            date.plusDays(1)
+	                    .atStartOfDay()
+	                    .minusNanos(1);
+
+	    List<WorkcationInfo> list =
+	            workcationDao.findWorkcationByDate(
+	                    startOfDay,
+	                    endOfDay
+	            );
+
+	    List<Map<String, Object>> mySchedule =
+	            new ArrayList<>();
+
+	    List<Map<String, Object>> departmentSchedule =
+	            new ArrayList<>();
+
+	    for (WorkcationInfo workcation : list) {
+
+	        Employee employee =
+	                workcation.getEmployee();
+
+	        if (employee == null) {
+	            continue;
+	        }
+
+	        Map<String, Object> schedule =
+	                new HashMap<>();
+
+	        schedule.put(
+	                "workcationNo",
+	                workcation.getWorkcationNo()
+	        );
+
+	        schedule.put(
+	                "empNo",
+	                employee.getEmpNo()
+	        );
+
+	        schedule.put(
+	                "empName",
+	                employee.getEmpName()
+	        );
+
+	        schedule.put(
+	                "startAt",
+	                workcation.getStartAt()
+	        );
+
+	        schedule.put(
+	                "endAt",
+	                workcation.getEndAt()
+	        );
+
+	        if (employee.getEmpNo() == empNo) {
+
+	            mySchedule.add(schedule);
+
+	        } else {
+
+	            departmentSchedule.add(schedule);
+	        }
+	    }
+
+	    Map<String, Object> result =
+	            new HashMap<>();
+
+	    result.put(
+	            "mySchedule",
+	            mySchedule
+	    );
+
+	    result.put(
+	            "departmentSchedule",
+	            departmentSchedule
+	    );
+
+	    return result;
 	}
 }
