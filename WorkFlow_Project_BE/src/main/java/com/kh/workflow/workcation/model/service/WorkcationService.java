@@ -1,5 +1,7 @@
 package com.kh.workflow.workcation.model.service;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
@@ -51,4 +53,6 @@ public interface WorkcationService {
     );
 
 	void updateTask(Integer taskNo, Integer progress, String title, String content, MultipartFile file);
+	
+	List<WorkcationInfo> getWorkcationSchedule(LocalDate date);
 }

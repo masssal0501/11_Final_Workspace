@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getMainRegionList, getSubRegionList, getWorkcationList } from "../api/WorkcationApi";
+import { getStatusText } from "../utils/StatusBadge";
 
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
 
@@ -87,7 +88,21 @@ function WorkcationListComponent() {
         const items = Array.isArray(responseData) ? responseData
             : (responseData?.list || responseData?.content || []);
 
-        const trArr = items.map((item) => {            
+        const statusMap = {
+            approved:"Y",
+            canceled:"C",
+            hold:"H",
+            rejected:"R",
+            review:"W"
+        }
+
+        const filteredItems = searchType === "all" ? items : items.filter(item =>{
+                        const status = item.approverState || item.workStatus;
+
+                        return status === statusMap[searchType];
+        })
+
+        const trArr = filteredItems.map((item) => {            
             const main = item.mainRegion || "";
             const sub = item.subRegion || "";
             const regionText = (main || sub) ? `${main} ${sub}`.trim() : "-";
@@ -99,7 +114,7 @@ function WorkcationListComponent() {
                     <td>{regionText}</td>
                     <td>{item.employee?.empName || "-"}</td>
                     <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
-                    <td>{item.approverState || item.workcationStatus || "대기"}</td>
+                    <td>{getStatusText(item.approverState || item.workcationStatus)}</td>
                 </tr>
             )
         });

@@ -141,12 +141,16 @@ export const getHubList = async (params) => {
     return response.data;
 };
 
-//진행률 저장
+// 진행률 저장
 export const saveTaskProgress = async (data, file) => {
+
+    const token = localStorage.getItem("accessToken");
+
+    console.log("saveTaskProgress token =", token);
+    console.log("saveTaskProgress data =", data);
 
     const formData = new FormData();
 
-    formData.append("taskNo", data.taskNo);
     formData.append("progress", data.progress);
     formData.append("title", data.title);
     formData.append("content", data.content);
@@ -155,20 +159,34 @@ export const saveTaskProgress = async (data, file) => {
         formData.append("file", file);
     }
 
-    const response = await axios.put(
-        `${BASE_URL}/workcation/task/${data.taskNo}`,
-        {
-            progress: data.progress,
-            title: data.title,
-            content: data.content
-        },
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`
-            }
+    console.log("FormData =", [...formData.entries()]);
+
+    const response = await axios({
+        method: "PUT",
+        url: `${BASE_URL}/workcation/task/${data.taskNo}`,
+        data: formData,
+
+        headers: {
+            Authorization: `Bearer ${token}`
         }
-    );
+    });
 
     return response.data;
 };
+
+//워케이션 리스트 일정 조회
+export const getWorkcationSchedule = async (date) => {
+
+    const token = localStorage.getItem("accessToken");
+    console.log("schedule token =", token);
+
+    const response = await axios.get(
+        `${BASE_URL}/workcation/schedule`,
+        {
+            params: { date: date },
+            headers: { Authorization: `Bearer {token}` }
+        }
+    )
+    return response.data;
+}
 

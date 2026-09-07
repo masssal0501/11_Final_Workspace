@@ -26,6 +26,7 @@ function MyWorkcationDetailFormComponent() {
         getMyWorkcationDetail(workcationNo)
             .then(res => {
                 setDetailData(res);
+                setActivityList(res.historyList || []);
             })
             .catch(err => {
                 console.error("내 워케이션 조회 실패:", err);
@@ -114,6 +115,12 @@ function MyWorkcationDetailFormComponent() {
 
     const handleTaskSave = async () => {
 
+        if (!selectedTask?.taskNo) {
+            console.error("taskNo 없음 : ", selectedTask);
+            alert("업무 번호가 없습니다.")
+            return;
+        }
+
         if (!taskReportTitle.trim()) {
             alert("업무 리포트 제목을 입력해주세요.");
             return;
@@ -129,6 +136,7 @@ function MyWorkcationDetailFormComponent() {
             progress: taskProgress,
             title: taskReportTitle,
             content: taskReportContent
+
         };
 
         try {
@@ -139,24 +147,15 @@ function MyWorkcationDetailFormComponent() {
 
             setSelectedTask(null);
 
-            // 상세페이지 데이터 다시 조회
-            const res =
-                await getMyWorkcationDetail(
-                    workcationNo
-                );
-
+            // 상세 데이터 저장후 다시 조회
+            const res = await getMyWorkcationDetail(workcationNo);
             setDetailData(res);
+            setActivityList(res.historyList || []);
 
         } catch (error) {
-
             console.error(
-                "업무 저장 실패:",
-                error
-            );
-
-            alert(
-                "업무 저장 중 오류가 발생했습니다."
-            );
+                "업무 저장 실패:", error);
+            alert("업무 저장 중 오류가 발생했습니다.");
         }
     };
 
@@ -292,35 +291,27 @@ function MyWorkcationDetailFormComponent() {
                         <div className="task-modal-section">
                             <h4>최근 활동</h4>
 
-                            {activityList.length === 0 ? (
+                            {activityList.filter(activity => activity.taskNo === selectedTask.taskNo).length === 0 ? (
                                 <p>등록된 최근 활동이 없습니다.</p>
                             ) : (
                                 <div className="activity-list">
 
-                                    {activityList
-                                        .filter(
-                                            activity =>
-                                                activity.taskNo === selectedTask.taskNo
-                                        )
+                                    {activityList.filter(activity => activity.taskNo === selectedTask.taskNo)
                                         .map(activity => (
                                             <div
-                                                key={activity.activityNo}
-                                                className="activity-item"
-                                            >
+                                                key={activity.historyNo}
+                                                className="activity-item">
                                                 <span>
-                                                    {activity.activityTitle}
+                                                    {activity.title}
                                                 </span>
-
                                                 <span>
                                                     {activity.createdAt}
                                                 </span>
-
                                                 <span>
-                                                    {activity.progress}%
+                                                    {activity.progress}% 진행
                                                 </span>
                                             </div>
                                         ))}
-
                                 </div>
                             )}
                         </div>

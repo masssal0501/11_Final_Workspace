@@ -1,5 +1,7 @@
 package com.kh.workflow.workcation.model.dao;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,62 +16,77 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 @Repository
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
-	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " +
-            "JOIN Reservation r ON r.workcation = w " +
-            "JOIN r.hub h " +
-            "WHERE (h.hubType = 1 OR h.hubType = 2) " +
-            "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) " +
-            "AND (:subRegion IS NULL OR h.subRegion = :subRegion) " +
-            "ORDER BY w.workcationNo DESC",
-    countQuery = "SELECT COUNT(DISTINCT w) FROM WorkcationInfo w " +
-                 "JOIN Reservation r ON r.workcation = w " +
-                 "JOIN r.hub h " +
-                 "WHERE (h.hubType = 1 OR h.hubType = 2) " +
-                 "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) " +
-                 "AND (:subRegion IS NULL OR h.subRegion = :subRegion)")
-	Page<WorkcationInfo> searchWorkcationList(
-		@Param("mainRegion") String mainRegion,
-		@Param("subRegion") String subRegion,
-		Pageable pageable);
+	@Query("""
+			SELECT w
+			FROM WorkcationInfo w
+			WHERE w.startAt <= :endOfDay
+			AND w.endAt >= :startOfDay
+			AND w.approverState ='Y'
+			ORDER BY w.startAt ASC
+			""")
+	List<WorkcationInfo> findWorkcationByDate(
+			@Param("startOfDay") LocalDateTime startOfDay,
+			@Param("endOfDay") LocalDateTime endOfDay);
 	
-	Page<WorkcationInfo> findByEmployeeEmpNo(int empNo, Pageable pageable);
-		
-	@Query(
-		    value = """
-		        SELECT DISTINCT w
-		        FROM WorkcationInfo w
-		        JOIN Reservation r
-		            ON r.workcation = w
-		        JOIN r.hub h
-		        WHERE w.employee.empNo = :empNo
-		          AND (h.hubType = 1 OR h.hubType = 2)
-		          AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
-		          AND (:subRegion IS NULL OR h.subRegion = :subRegion)
-		        ORDER BY w.workcationNo DESC
-		    """,
-		    countQuery = """
-		        SELECT COUNT(DISTINCT w)
-		        FROM WorkcationInfo w
-		        JOIN Reservation r
-		            ON r.workcation = w
-		        JOIN r.hub h
-		        WHERE w.employee.empNo = :empNo
-		          AND (h.hubType = 1 OR h.hubType = 2)
-		          AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
-		          AND (:subRegion IS NULL OR h.subRegion = :subRegion)
-		    """)
-		Page<WorkcationInfo> searchMyWorkcationList(
-		        @Param("empNo") int empNo,
+	 @Query(
+		        value = """
+		            SELECT DISTINCT w
+		            FROM WorkcationInfo w
+		            JOIN Reservation r
+		                ON r.workcationNo = w.workcationNo
+		            JOIN Hub h
+		                ON r.hubNo = h.hubNo
+		            WHERE (h.hubType = 1 OR h.hubType = 2)
+		              AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
+		              AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+		            ORDER BY w.workcationNo DESC
+		        """,
+		        countQuery = """
+		            SELECT COUNT(DISTINCT w)
+		            FROM WorkcationInfo w
+		            JOIN Reservation r
+		                ON r.workcationNo = w.workcationNo
+		            JOIN Hub h
+		                ON r.hubNo = h.hubNo
+		            WHERE (h.hubType = 1 OR h.hubType = 2)
+		              AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
+		              AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+		        """
+		    )
+		    Page<WorkcationInfo> searchWorkcationList(
 		        @Param("mainRegion") String mainRegion,
 		        @Param("subRegion") String subRegion,
 		        Pageable pageable
-		);
-	
-	Optional<WorkcationInfo> findByWorkcationNoAndEmployeeEmpNo(
-	        Integer workcationNo,
-	        int empNo
-	);
-	
-	}
+		    );
 
+	Page<WorkcationInfo> findByEmployeeEmpNo(int empNo, Pageable pageable);
 
+	@Query(value = """
+			    SELECT DISTINCT w
+			    FROM WorkcationInfo w
+			    JOIN Reservation r
+			        ON r.workcationNo = w.workcationNo
+			    JOIN Hub h
+			        ON r.hubNo = h.hubNo
+			    WHERE w.employee.empNo = :empNo
+			      AND (h.hubType = 1 OR h.hubType = 2)
+			      AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
+			      AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+			    ORDER BY w.workcationNo DESC
+			""", countQuery = """
+			    SELECT COUNT(DISTINCT w)
+			    FROM WorkcationInfo w
+			    JOIN Reservation r
+			        ON r.workcationNo = w.workcationNo
+			    JOIN Hub h
+			        ON r.hubNo = h.hubNo
+			    WHERE w.employee.empNo = :empNo
+			      AND (h.hubType = 1 OR h.hubType = 2)
+			      AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
+			      AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+			""")
+	Page<WorkcationInfo> searchMyWorkcationList(@Param("empNo") int empNo, @Param("mainRegion") String mainRegion,
+			@Param("subRegion") String subRegion, Pageable pageable);
+
+	Optional<WorkcationInfo> findByWorkcationNoAndEmployeeEmpNo(Integer workcationNo, int empNo);
+}

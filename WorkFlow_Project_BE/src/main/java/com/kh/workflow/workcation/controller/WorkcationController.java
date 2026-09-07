@@ -1,5 +1,6 @@
 package com.kh.workflow.workcation.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.workcation.model.service.WorkcationService;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
 @RestController
@@ -282,7 +284,20 @@ public class WorkcationController {
 										title,
 										content,
 										file);
+		
+		
 		return ResponseEntity.ok("업무 진행 상황 저장 완료");
+	}
+	
+	@GetMapping("/schedule")
+	public ResponseEntity<?> getWorkcationSchedule(
+			@RequestParam String date){
+		
+		LocalDate selectedDate = LocalDate.parse(date);
+		
+		List<WorkcationInfo> list = workcationService.getWorkcationSchedule(selectedDate);
+		
+		return ResponseEntity.ok(list);
 	}
 
 }
