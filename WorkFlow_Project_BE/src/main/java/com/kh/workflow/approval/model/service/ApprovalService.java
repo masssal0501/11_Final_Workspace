@@ -14,4 +14,6 @@ public interface ApprovalService {
 
 	WorkcationInfo rejectApproval(WorkcationInfo w);
 
+	Page<WorkcationInfo> selectApprovalQueueList(Pageable pageable);
+
 }

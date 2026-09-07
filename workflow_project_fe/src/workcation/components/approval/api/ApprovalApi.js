@@ -19,6 +19,20 @@ export const ApprovalApi = {
         return response.data;
     },
 
+    // 승인 대기 목록 조회
+    getApprovalQueueList: async (cpage = 1) => {
+
+        const response = await axiosInstance.get(
+            `${BASE_URL}/queue/list`,
+            {
+                params: {
+                    cpage
+                }
+            }
+        );
+        return response.data;
+    },
+
 
     // 승인 이력 상세 조회
     getApprovalDetail: async (workcationNo) => {

@@ -111,6 +111,56 @@ public class ApprovalController {
                 .status(HttpStatus.OK)
                 .body(map);
     }
+    
+ // 승인 대기 목록 조회
+    @GetMapping("/queue")
+    public ResponseEntity<Map<String, Object>> selectApprovalQueueList(
+            @RequestParam(
+                    value = "cpage",
+                    defaultValue = "1"
+            )
+            int currentPage) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        currentPage - 1,
+                        10
+                );
+
+        // 승인 대기(W) 데이터 조회
+        Page<WorkcationInfo> pageResult =
+                approvalService.selectApprovalQueueList(
+                        pageable
+                );
+
+        int listCount =
+                (int) pageResult.getTotalElements();
+
+        PageInfo pageInfo =
+                Pagination.getPageInfo(
+                        listCount,
+                        currentPage,
+                        5,
+                        10
+                );
+
+        Map<String, Object> map =
+                new HashMap<>();
+
+        map.put(
+                "list",
+                pageResult.getContent()
+        );
+
+        map.put(
+                "pageInfo",
+                pageInfo
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(map);
+    }
 
 
     // 승인 이력 상세 조회

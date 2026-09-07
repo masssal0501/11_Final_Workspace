@@ -1,5 +1,7 @@
 package com.kh.workflow.approval.model.dao;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,5 +30,7 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
     WorkcationInfo findApprovalDetail(
             @Param("workcationNo") Integer workcationNo
     );
+
+	Page<WorkcationInfo> findByApprovalStateNotIn(List<String> of, Pageable pageable);
 
 }

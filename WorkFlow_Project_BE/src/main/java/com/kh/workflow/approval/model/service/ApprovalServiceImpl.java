@@ -1,5 +1,7 @@
 package com.kh.workflow.approval.model.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,14 @@ public class ApprovalServiceImpl implements ApprovalService {
 	@Override
 	public WorkcationInfo rejectApproval(WorkcationInfo w) {
 		return approvalDao.save(w);
+	}
+
+	@Override
+	public Page<WorkcationInfo> selectApprovalQueueList(Pageable pageable) {
+		return approvalDao.findByApprovalStateNotIn(
+					List.of("A", "C", "J"),
+					pageable
+				);
 	}
 
 }
