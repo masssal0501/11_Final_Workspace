@@ -78,12 +78,14 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
      */
     @Query("""
             SELECT COALESCE(ROUND(AVG(CAST(sa.answerValue AS double)), 1), 0.0)
-            FROM Reservation r
-            JOIN r.workcation w
-            JOIN WorkcationSurvey ws ON ws.workcationInfo = w
-            JOIN SurveyAnswer sa ON sa.workcationSurvey = ws
-            JOIN sa.surveyQuestion sq
-            WHERE r.hub.hubNo = :hubNo AND sq.questionType = 'SCORE'
+              FROM Reservation r
+              JOIN Hub h ON r.hubNo = h.hubNo
+              JOIN WorkcationInfo w ON w.workcationNo = r.workcationNo
+              JOIN WorkcationSurvey ws ON ws.workcationInfo = w
+              JOIN SurveyAnswer sa ON sa.workcationSurvey = ws
+              JOIN sa.surveyQuestion sq
+             WHERE h.hubNo = :hubNo
+               AND sq.questionType = 'SCORE'
             """)
 	double selectAvgScore(@Param("hubNo") int hubNo);
     

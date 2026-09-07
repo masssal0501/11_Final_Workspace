@@ -3,7 +3,7 @@ package com.kh.workflow.dashboard.model.dto;
 import java.util.List;
 
 import com.kh.workflow.notice.vo.Notice;
-import com.kh.workflow.workcation.model.vo.Reservation;
+import com.kh.workflow.reservation.model.vo.Reservation;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

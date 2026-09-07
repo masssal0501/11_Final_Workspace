@@ -11,10 +11,12 @@ import { selectHubApi, deleteHubApi, BASE_URL } from "../api/hubApi";
  */
 function HubDetailComponent(props) {
     
-    
     // URL 경로 파라미터에서 거점 번호 추출
     const hubNo = useParams().hubNo;
     const navigate = useNavigate();
+
+    // 카카오맵 SDK 로드 완료 여부 State
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // Kakao 지도 API 전역 객체 참조
     const { kakao } = window;
@@ -41,11 +43,8 @@ function HubDetailComponent(props) {
     // 로그인한 사용자 정보 (권한 확인용)
     const loginUser = props.loginUser;
 
-    // 카카오 주소-좌표 변환(지오코딩) 객체 생성
-    const geocoder = new kakao.maps.services.Geocoder();
-    
     /**
-     * 1. 거점 상세 정보 서버 데이터 패칭 (마운트 및 hubNo 변경 시 동작)
+     * 거점 상세 정보 서버 데이터 패칭 (마운트 및 hubNo 변경 시 동작)
      */
     useEffect(() =>{
         // 비동기 API 호출: 거점 상세 정보 조회
@@ -69,11 +68,29 @@ function HubDetailComponent(props) {
     }, [hubNo]);
 
     /**
-     * 2. 주소 데이터를 기반으로 카카오맵 좌표(위경도) 변환 처리
+     * kakao.maps.load()로 SDK 초기화 감지
+     */
+    useEffect(() => {
+        const checkKakaoMap = () => {
+            if (kakao && kakao.maps) {
+                kakao.maps.load(() => {
+                    setIsLoaded(true); // 로딩 완료 처리
+                });
+            } else {
+                setTimeout(checkKakaoMap, 100); // 스크립트 로드 대기
+            }
+        };
+        checkKakaoMap();
+    }, []);
+
+    /**
+     * 주소 데이터를 기반으로 카카오맵 좌표(위경도) 변환 처리
      */
     useEffect(() => {
         // 주소 데이터가 로드된 이후에만 좌표 변환 수행
         if (kakao && kakao.maps && kakao.maps.services && hub.hubAddress) {
+            const geocoder = new kakao.maps.services.Geocoder();
+    
             geocoder.addressSearch(hub.hubAddress, (result, status) => {
                 if (status === kakao.maps.services.Status.OK) {
                     // 변환 성공 시 마커를 띄울 위치 좌표 지정
@@ -124,25 +141,28 @@ function HubDetailComponent(props) {
 
     /**
      * 카카오맵 길찾기 외부 링크 열기 핸들러
-     * 사용자의 현재 위치(GPS)를 출발지로, 거점 위치를 목적지로 설정하여 길찾기를 제공합니다.
+     * 사용자의 현재 위치를 출발지로, 거점 위치를 목적지로 설정하여 길찾기를 제공합니다.
      */
     const goToKakaoMap = () => {
         if (!position) return;
 
-        // HTML5 Geolocation API로 사용자 현재 위치 확인
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (data) => {
-                    // 현재 좌표를 주소로 변환하여 길찾기 링크(from ~ to) 오픈
-                    geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
-                        window.open(`https://map.kakao.com/link/from/${result[0].address.address_name},${data.coords.latitude},${data.coords.longitude}/to/${hub.hubName},${position.lat},${position.lng}`);
-                    });
-                }
-            );
-        } else {
-            // 위치 정보 미제공 시 해당 목적지의 지도 뷰만 오픈
-            window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`);
+        if(kakao && kakao.maps && kakao.maps.services) {
+            const geocoder = new kakao.maps.services.Geocoder();
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (data) => {
+                        // 현재 좌표를 주소로 변환하여 길찾기 링크(from ~ to) 오픈
+                        geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
+                            window.open(`https://map.kakao.com/link/from/${result[0].address.address_name},${data.coords.latitude},${data.coords.longitude}/to/${hub.hubName},${position.lat},${position.lng}`);
+                        });
+                    }
+                );
+            } else {
+                // 위치 정보 미제공 시 해당 목적지의 지도 뷰만 오픈
+                window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`);
+            }
         }
+        
     }
 
     // return 구문
@@ -184,8 +204,8 @@ function HubDetailComponent(props) {
                                                                        (avgScore >= 1) ? "★☆☆☆☆" : 
                                                                                              "☆☆☆☆☆"))))} ({ avgScore })</span>
                 </div>
-                {/* 카카오맵 렌더링 영역 */}
-                {position && (
+                {/* SDK 로딩이 완료되고 좌표가 존재할 때만 맵 렌더링 */}
+                {isLoaded && position && (
                     <Map
                         center={position} 
                         style={{ width: "50%", height: "300px", border: "1px solid gray" }}

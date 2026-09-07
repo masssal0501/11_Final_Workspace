@@ -31,6 +31,9 @@ function StaffComponent(props) {
         endAt: ""
     });
 
+    // 카카오맵 SDK 로드 완료 여부 State
+    const [isLoaded, setIsLoaded] = useState(false);
+
     const loginUser = props.loginUser;
 
     // 페이지 이동을 위한 useNavigate 훅 선언
@@ -55,20 +58,37 @@ function StaffComponent(props) {
         return d.toLocaleDateString('ko-KR');
     };
 
-    // 컴포넌트 마운트 시 카카오 지오코더를 이용한 현재 위치 조회 및 임직원 대시보드 API 호출
+    /**
+     * autoload=false 환경에서 kakao.maps.load()로 SDK 초기화 감지
+     */
     useEffect(() => {
-        const geocoder = new kakao.maps.services.Geocoder();
-        navigator.geolocation.getCurrentPosition(
-            (data) => {
-                geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
-                    setData(prevData => ({
-                        ...prevData,
-                        position: result[0].address.address_name
-                    }));
+        const checkKakaoMap = () => {
+            if (kakao && kakao.maps) {
+                kakao.maps.load(() => {
+                    setIsLoaded(true); // 로딩 완료 처리
+                    // 컴포넌트 마운트 시 카카오 지오코더를 이용한 현재 위치 조회 및 임직원 대시보드 API 호출
+                    const geocoder = new kakao.maps.services.Geocoder();
+                    navigator.geolocation.getCurrentPosition(
+                        (data) => {
+                            geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
+                                setData(prevData => ({
+                                    ...prevData,
+                                    position: result[0].address.address_name
+                                }));
+                            });
+                        }
+                    );
                 });
+            } else {
+                setTimeout(checkKakaoMap, 100); // 스크립트 로드 대기
             }
-        );
+        };
+        checkKakaoMap();
+    }, []);
 
+    
+    
+    useEffect(() => {
         const selectStaffDashboard = async () => {
             
             try {
@@ -87,7 +107,7 @@ function StaffComponent(props) {
 
         selectStaffDashboard();
 
-    }, [kakao]);
+    }, [loginUser.empNo]);
 
     /**
      * 출근하기 버튼 클릭 시 호출되는 핸들러 함수
@@ -170,7 +190,7 @@ function StaffComponent(props) {
                                 <button className="btn btn-primary" disabled={!data.isWorkcation} onClick={ commuteClicker }>
                                     출근하기
                                 </button><br />
-                                <span>현재 위치 : {data.position}</span>
+                                <span>현재 위치 : { (isLoaded) ? data.position : ""}</span>
                             </div>
                         </td>
                     </tr>

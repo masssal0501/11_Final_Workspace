@@ -24,11 +24,10 @@ public class WebConfig implements WebMvcConfigurer {
     // =========================================================
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-
-        registry.addResourceHandler("/resources/upload/hub/**")
-                .addResourceLocations(
-                    "file:/Users/macbookpro/MyWorkspace/11_Final_Workspace/WorkFlow_Project_BE/src/main/webapp/resources/upload/hub/"
-                )
+        // 브라우저에서 /resources/** 로 요청했을 때 
+        // 프로젝트 내부 src/main/webapp/resources/ 폴더를 바라보도록 설정
+        registry.addResourceHandler("/resources/**")
+                .addResourceLocations("file:src/main/webapp/resources/")
                 .setCachePeriod(3600);
     }
 
