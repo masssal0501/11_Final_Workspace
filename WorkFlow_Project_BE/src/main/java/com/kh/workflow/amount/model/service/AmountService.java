@@ -45,10 +45,7 @@ public interface AmountService {
     // 5. 비용 신청 등록
     // =========================================================
 
-    int insertAmount(
-            Amount amount,
-            MultipartFile[] files
-    );
+    int insertAmount(Amount amount);
 
 
     // =========================================================
