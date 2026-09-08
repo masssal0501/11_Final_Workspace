@@ -1,6 +1,11 @@
 import axiosInstance from "../../common/api/axiosInstance"
 
-const BASE_URL = 'http://localhost:8006/workflow/dashboard';
+// axios 요청 config의 url이 절대경로면 axiosInstance의 baseURL이 무시되므로
+// 여기서도 동일하게 VITE_API_BASE_URL을 사용해 배포 환경에 맞춘다.
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8006/workflow";
+
+const BASE_URL = `${API_BASE_URL}/dashboard`;
 
 /**
  * [관리자] 전사 대시보드 데이터를 조회하는 API 호출

@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +30,7 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import jakarta.servlet.http.HttpSession;
 
-@CrossOrigin
+// CORS는 SecurityConfig에서 중앙 관리 (기본 @CrossOrigin은 모든 origin을 허용해 제거함)
 @RestController
 @RequestMapping("/approval")
 public class ApprovalController {

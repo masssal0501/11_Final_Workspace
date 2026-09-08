@@ -1,7 +1,9 @@
 package com.kh.workflow.config;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,6 +22,12 @@ import com.kh.workflow.config.jwt.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+
+    // Production에서는 CORS_ALLOWED_ORIGINS 환경변수로 실제 도메인/EC2 접속 주소를 지정한다.
+    // 콤마로 여러 origin을 구분할 수 있다. (와일드카드 "*"는 credentials 허용 시 사용 불가하며,
+    // 이 프로젝트에서는 의도적으로 지원하지 않는다 - 반드시 명시적인 origin 목록을 사용할 것)
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private String allowedOrigins;
 
     // 비밀번호 암호화
     @Bean
@@ -225,9 +233,13 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        // React 개발 서버
+        // 환경변수(CORS_ALLOWED_ORIGINS)로 주입되는 허용 origin 목록
+        // (로컬 개발 기본값: http://localhost:5173)
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
+                Arrays.stream(allowedOrigins.split(","))
+                        .map(String::trim)
+                        .filter(origin -> !origin.isBlank())
+                        .toList()
         );
 
         // 허용 HTTP Method

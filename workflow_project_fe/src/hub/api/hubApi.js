@@ -1,9 +1,15 @@
 import axiosInstance from "../../common/api/axiosInstance"
 
-/** 
- * 워케이션 허브(Hub) 관련 API 통신을 위한 기본 URL 
+/**
+ * 워케이션 허브(Hub) 관련 API 통신을 위한 기본 URL
+ *
+ * axios 요청 config의 url이 절대경로면 axiosInstance의 baseURL이 무시되므로
+ * 여기서도 동일하게 VITE_API_BASE_URL을 사용해 배포 환경에 맞춘다.
  */
-const BASE_URL = 'http://localhost:8006/workflow/hubs';
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8006/workflow";
+
+const BASE_URL = `${API_BASE_URL}/hubs`;
 
 /**
  * [목록 조회] 허브 전체 목록을 조회합니다. (페이징 처리 포함)

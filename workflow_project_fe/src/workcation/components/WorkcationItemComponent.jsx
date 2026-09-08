@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+// 참고: 아래 두 호출은 원래부터 "/workflow" context-path와 "/hubs"(복수형)가 빠져 있어
+// 로컬 개발 환경에서도 404가 나는 상태였던 것으로 보임(별도 버그, 이번 배포 작업 범위 밖).
+// 여기서는 하드코딩된 개발용 host만 배포 환경에 맞게 주입 가능하도록 정리함.
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8006/workflow";
+
 export const OPTION_CONFIG = {
     program: { label: "체험 프로그램", key: "program", priceKey: "programPrice", dateName: "programDate" },
     restaurant: { label: "맛집", key: "restaurant", priceKey: "restaurantPrice", dateName: "restaurantDate" },
@@ -15,7 +21,7 @@ function WorkcationItemComponent(props) {
 
     //메인 지역 목록 조회(강원, 부산, 제주)
     useEffect(() => {
-        axios.get(`http://localhost:8006/hub/mainRegion`)
+        axios.get(`${API_BASE_URL}/hub/mainRegion`)
             .then(res => {
                 const data = Array.isArray(res.data) ? res.data : (res.data.list || []);
                 setMainRegionList(res.data);
@@ -29,7 +35,7 @@ function WorkcationItemComponent(props) {
             setSubRegionList([]);
             return;
         }
-        axios.get(`http://localhost:8006/hub/subRegion?mainRegion=${mainRegion}`)
+        axios.get(`${API_BASE_URL}/hub/subRegion?mainRegion=${mainRegion}`)
             .then(res => setSubRegionList(res.data))
             .catch(err => console.error("서브 지역 로딩 실패: ", err))
     }, [mainRegion])

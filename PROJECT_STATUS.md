@@ -110,4 +110,5 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **STEP 6 전체 완료**
 - **STEP 7(Notice MyBatis→JPA 전환) 완료** — 실제 DB로 목록/상세/검색/등록/수정/삭제/권한/대시보드 연동까지 전부 검증, MyBatis 파일(`NoticeDao.java`, `notice-mapper.xml`) 삭제 완료. `mybatis-spring-boot-starter` 의존성/`mybatis.*` 설정 자체는 아직 pom.xml/application.properties에 남아있음(요청 범위 밖이라 유지, 필요 시 별도 정리 가능)
 - **신규 확인 필요**: 조회수 증가 미구현, 첨부파일 미구현(둘 다 이번 전환 이전부터 없던 기능, 그대로 포팅함) — 완성 여부 결정 필요
-- 다음 작업 후보 없음(모든 STEP 완료) — 추가로 진행할 작업을 알려주시면 그에 따라 진행
+- **STEP 8(AWS CI/CD 준비) 완료** — `.github/workflows/deploy.yml`, Nginx/systemd/env 템플릿, 백엔드·프론트 환경변수 분리(local/prod), CORS/파일업로드 경로 배포환경 대응까지 준비 완료. **AWS 리소스는 아직 생성되지 않았고 실제 배포도 아직 수행하지 않음** — README "AWS 배포 가이드" 섹션의 체크리스트대로 사용자가 AWS 측 작업을 완료해야 최초 배포 가능
+- 다음 작업 후보: AWS 리소스 실제 생성(EC2/RDS/S3/IAM) 및 최초 배포 실행 — 전부 사용자 승인/직접 수행 필요

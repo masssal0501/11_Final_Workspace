@@ -74,7 +74,7 @@ import {
 function App() {
 
     useKakaoLoader({
-        appkey: "a00510cb26a4e33be1647f26b12df5c9", 
+        appkey: import.meta.env.VITE_KAKAO_APP_KEY,
         libraries: ["services"],
     });
 

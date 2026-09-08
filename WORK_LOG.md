@@ -313,3 +313,74 @@ Notice 전체 구조(Entity/DTO/Controller/Service/DAO/mapper.xml/파일업로�
 
 #### 사용자 확인 필요
 - **있음** — 조회수 증가, 첨부파일 기능을 이번에 추가로 구현할지 여부만 결정 필요. 그 외에는 STEP 7 완료.
+
+---
+
+## 2026-09-09 (7차 작업 — STEP 8: AWS CI/CD 준비)
+
+### [작업 완료]
+
+#### 작업 내용
+AWS 리소스는 생성하지 않고, 배포 가능한 상태를 만들기 위한 설정/코드만 준비. 분석 과정에서 발견한 배포 차단 요소(하드코딩된 시크릿·CORS·업로드 경로·API URL)를 함께 정리.
+
+**1. 분석 결과 (실제 코드 기준)**
+- Backend: `./mvnw clean package -DskipTests` → `target/WorkFlow_Project_BE-0.0.1-SNAPSHOT.jar` (실제로 `mvn package` 실행해 92.8MB 실행 가능 JAR 생성까지 확인)
+- Frontend: `npm ci && npm run build` → `dist/`
+- context-path=`/workflow`, port=`8006` (기존 설정 유지)
+- 하드코딩된 시크릿 발견: DB 비밀번호, **Gemini API 키(실제 유효해 보이는 값이 git에 커밋되어 있었음)**, JWT secret
+- CORS 설정이 `SecurityConfig` 하나가 아니라 **5개 컨트롤러**(`AmountController`, `WorkcationController`, `DashboardController`, `ApprovalController`, `HubController`)에 개별 `@CrossOrigin`으로 흩어져 있었고, 그중 3개는 사실상 와일드카드(`*`) 허용 — SecurityConfig의 제한적 CORS를 무력화할 수 있는 상태였음
+- 파일 업로드 경로가 `C:/upload/receipts/`로 하드코딩(Windows 전용, Linux EC2에서 그대로 쓰면 안 됨)
+- 프론트 API base URL이 `axiosInstance.js`(공용) 외에 `dashboardApi.js`/`hubApi.js`가 각자 `http://localhost:8006/workflow`를 하드코딩해 axiosInstance의 baseURL을 무시하고 있었음(절대경로 URL은 baseURL을 덮어씀), `WorkcationItemComponent.jsx`도 별도로 하드코딩
+- Kakao Maps 키가 `App.jsx`에 하드코딩
+- `.github/workflows`, Docker 관련 파일, 기존 AWS 설정 전부 없음(신규 구축)
+
+**2. Backend 수정**
+- `application.properties`: 시크릿 전부 `${ENV_VAR:로컬기본값}` 형태로 전환(DB 비밀번호/JWT secret/Gemini 키). 사용되지 않던 `file.upload-dir` 속성 삭제(코드에서 참조하는 곳이 없던 죽은 설정)
+- `application-prod.properties`(신규): `SPRING_PROFILES_ACTIVE=prod`로 활성화되는 운영 프로필. 시크릿에 기본값을 두지 않아 환경변수 누락 시 조용히 로컬값으로 뜨는 사고를 방지
+- `SecurityConfig.java`: CORS 허용 origin을 `app.cors.allowed-origins` 프로퍼티(콤마 구분, 환경변수 `CORS_ALLOWED_ORIGINS`)로 외부화
+- `AmountController`/`WorkcationController`/`DashboardController`/`ApprovalController`/`HubController`: 개별 `@CrossOrigin`(3개는 사실상 와일드카드) 전부 제거, `SecurityConfig` 하나로 중앙화
+- `AmountController`/`AmountServiceImpl`: `UPLOAD_DIR` 하드코딩 → `@Value("${app.upload.receipts-dir:...}")`로 전환(환경변수: `APP_UPLOAD_RECEIPTS_DIR`)
+
+**3. Frontend 수정**
+- `axiosInstance.js`, `dashboardApi.js`, `hubApi.js`, `WorkcationItemComponent.jsx`: 하드코딩된 `http://localhost:8006/workflow`를 `import.meta.env.VITE_API_BASE_URL`(로컬 기본값 유지)로 전환. 실제 빌드 시 env 주입이 번들에 정상 반영되는지 직접 빌드해 확인
+- `App.jsx`: Kakao 키를 `import.meta.env.VITE_KAKAO_APP_KEY`로 전환
+- `.env.example`(신규): 로컬 개발용 환경변수 템플릿
+
+**4. 배포 설정 파일 (신규)**
+- `.github/workflows/deploy.yml`: `Deploy` 브랜치 push 트리거, JDK21+Maven 빌드 → Node22+npm 빌드 → **AWS Access Key/Secret Key 인증(OIDC 미사용)** → S3에 산출물 업로드 → **AWS SSM(RunShellScript)으로 EC2에서 배포 스크립트 실행(SSH 미사용)** → SSM 명령 결과 검증(stdout/stderr 로그 출력, 실패 시 파이프라인 실패 처리) → (선택) 외부 스모크 테스트
+- `deploy/scripts/remote-deploy.sh`: EC2에서 실제로 실행되는 배포 로직(S3에서 JAR/프론트 다운로드 → systemd 재시작 → 헬스체크 → Nginx 정적파일 교체 → reload → 최종 확인)
+- `deploy/nginx/workflow.conf`: `/` → React 정적파일(SPA 폴백 포함), `/workflow/**` → `127.0.0.1:8006` 프록시
+- `deploy/systemd/workflow.service`: `EnvironmentFile=/etc/workflow/workflow.env` + `SPRING_PROFILES_ACTIVE=prod`로 기동
+- `deploy/workflow.env.example`: EC2에 올릴 실제 환경변수 파일의 템플릿(값은 비워둠)
+- `.gitignore`: `.env*`, `application-local.properties`, `workflow.env`, AWS 자격증명/키 파일 등 추가(템플릿 파일들은 예외 처리)
+
+**5. 검증**
+- Backend: `mvn compile` PASS, **`mvn package -DskipTests`까지 실제로 실행해 실행 가능 JAR 생성 확인**(로컬 오프라인 캐시에 없는 surefire 플러그인은 온라인으로 재시도해 정상 해결됨 - CI는 항상 온라인이라 문제 없음)
+- Frontend: `npm run build` PASS, **`VITE_API_BASE_URL`/`VITE_KAKAO_APP_KEY`를 실제로 주입해 빌드한 뒤 번들 파일을 직접 grep해 주입값이 반영되고 기존 하드코딩된 실제 Kakao 키는 그 빌드에 전혀 남지 않음을 확인**
+- `.github/workflows/deploy.yml`: `js-yaml`로 파싱해 문법 오류 없음을 확인
+- `deploy/scripts/remote-deploy.sh`: `bash -n`으로 문법 검사 통과
+- AWS 리소스는 생성/삭제하지 않음(요청대로)
+
+#### 수정 이유
+"AWS 배포 가능한 상태를 만드는 것을 최우선"으로 하되, 실제로 배포하면 곧바로 깨질 게 확실한 요소(하드코딩된 시크릿, 와일드카드에 가까운 CORS, Windows 전용 업로드 경로, localhost 하드코딩 API URL)는 "배포 준비"의 일부로 판단해 함께 정리함. MyBatis 잔존 설정은 지시대로 손대지 않음.
+
+#### 변경 파일
+**Backend (수정)**: `application.properties`, `SecurityConfig.java`, `AmountController.java`, `AmountServiceImpl.java`, `WorkcationController.java`, `DashboardController.java`, `ApprovalController.java`, `HubController.java`
+**Backend (신규)**: `application-prod.properties`
+**Frontend (수정)**: `axiosInstance.js`, `dashboardApi.js`, `hubApi.js`, `WorkcationItemComponent.jsx`, `App.jsx`
+**Frontend (신규)**: `.env.example`
+**배포 설정 (신규)**: `.github/workflows/deploy.yml`, `deploy/nginx/workflow.conf`, `deploy/systemd/workflow.service`, `deploy/workflow.env.example`, `deploy/scripts/remote-deploy.sh`
+**문서**: `.gitignore`, `README.md`(AWS 배포 가이드 섹션 신규), `PROJECT_STATUS.md`, `WORK_LOG.md`(본 파일)
+
+#### 현재 상태
+- 코드/설정 레벨에서는 배포 가능한 상태. AWS 실제 리소스(EC2/RDS/S3/IAM)는 아직 하나도 생성되지 않음
+- Git에 남아있던 실제 Gemini API 키는 이번에 코드에서는 제거했으나 **과거 커밋 이력에는 여전히 남아있음** — 별도 조치 필요(아래 참고)
+
+#### 남은 문제
+- **Gemini API 키 회전 필요**: 이미 git 커밋 이력에 노출된 값이라 코드에서 지운 것만으로는 부족함 — Google AI Studio에서 키를 재발급하고 기존 키는 폐기할 것을 권장
+- `FileRenamePolicy.java`(Hub/Place 이미지 업로드)가 `session.getServletContext().getRealPath()`를 사용 — 실행 가능 JAR(fat jar) 배포 환경에서는 이 값이 `null`을 반환할 가능성이 높아 **거점/장소 이미지 업로드가 운영에서 NPE로 실패할 수 있음**. 이번 STEP 범위(설정/배포 준비)를 넘어서는 코드 수정이라 손대지 않고 리스크로만 기록 - 별도 확인 필요
+- `WorkcationItemComponent.jsx`의 지역 목록 조회는 원래부터 경로가 잘못돼(`/workflow`, `/hubs` 누락) 로컬에서도 404였던 것으로 보임 - host만 환경변수화했고 경로 버그 자체는 손대지 않음
+- pom.xml의 `mysql-connector-j` 중복 선언 경고는 그대로 남아있음(기능에는 영향 없음)
+
+#### 사용자 확인 필요
+- **있음** — 아래 [AWS CI/CD 준비 결과] 보고의 "AWS에서 직접 해야 할 작업"/"GitHub에서 직접 해야 할 작업"을 완료해야 실제 배포가 가능함

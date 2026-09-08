@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -34,12 +34,11 @@ import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.SupportList;
 
+// CORS는 SecurityConfig에서 app.cors.allowed-origins 기준으로 중앙 관리한다
+// (기존 originPatterns="*" + allowCredentials="true" 조합은 사실상 모든 origin을
+//  자격증명 포함으로 허용하는 것과 같아 production 배포 기준에 맞지 않아 제거함)
 @RestController
 @RequestMapping("/api/v1/amounts")
-@CrossOrigin(
-        originPatterns = "*",
-        allowCredentials = "true"
-)
 public class AmountController {
 
     private final AmountService amountService;
@@ -69,8 +68,10 @@ public class AmountController {
                     "image/webp"
             );
 
-    private static final String UPLOAD_DIR =
-            "C:/upload/receipts/";
+    // 운영 환경에서는 APP_UPLOAD_RECEIPTS_DIR 환경변수로 실제 저장 경로를 지정한다.
+    // (기본값은 로컬 개발용 Windows 경로 - 기존 동작 유지)
+    @Value("${app.upload.receipts-dir:C:/upload/receipts/}")
+    private String UPLOAD_DIR;
 
     private static final String FILE_PATH =
             "/upload/receipts/";

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,8 +36,9 @@ public class AmountServiceImpl implements AmountService {
     // 파일 설정
     // =========================================================
 
-    private static final String UPLOAD_DIR =
-            "C:/upload/receipts/";
+    // 운영 환경에서는 APP_UPLOAD_RECEIPTS_DIR 환경변수로 실제 저장 경로를 지정한다.
+    @Value("${app.upload.receipts-dir:C:/upload/receipts/}")
+    private String UPLOAD_DIR;
 
     private static final String FILE_PATH =
             "/upload/receipts/";
