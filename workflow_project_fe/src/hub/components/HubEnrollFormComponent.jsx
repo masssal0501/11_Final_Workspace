@@ -222,7 +222,7 @@ function HubEnrollFormComponent(props) {
         <div className="hub-content">
             { (loginUser.authCode === "ADMIN") ? (
                 <>
-                    <h2 align="center"><b>거점 등록</b></h2>
+                    <h2 align="center" className="hub-header"><b>거점 등록</b></h2>
                     <br />
                     {/* 거점 작성 입력 폼 */}
                     <form ref={formRef}>

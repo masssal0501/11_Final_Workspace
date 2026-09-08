@@ -279,7 +279,7 @@ function HubUpdateFormComponent(props) {
         <div className="hub-content">
             { (loginUser.authCode === "ADMIN") ? (
                 <>
-                    <h2 align="center"><b>거점 수정</b></h2>
+                    <h2 align="center" className="hub-header"><b>거점 수정</b></h2>
                     <br />
                     <form ref={formRef}>
                         <table width="100%" className="hub-table">

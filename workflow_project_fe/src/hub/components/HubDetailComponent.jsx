@@ -176,7 +176,7 @@ function HubDetailComponent(props) {
         <div className={ `hub-content ${hub.hubStatus === 'CLOSED' && 'content-off'}` }>
             
             {/* 타이틀: 거점명 */}
-            <h2 align="center"><b>{ hub.hubName }</b></h2>
+            <h2 align="center" className="hub-header"><b>{ hub.hubName }</b></h2>
             <br /><br />
             
             {/* 썸네일 이미지와 기본 정보 */}
