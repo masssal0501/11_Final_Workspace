@@ -34,7 +34,6 @@ public class ReservationController {
 
         return ResponseEntity.ok(
                 reservationService.getAvailableFacilities(
-                        hubNo,
                         rsvStart,
                         rsvEnd
                 )

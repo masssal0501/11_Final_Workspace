@@ -6,10 +6,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.workflow.hub.model.vo.Hub;
+import com.kh.workflow.reservation.model.dao.ReservationDao;
 import com.kh.workflow.reservation.model.dto.ReservationCreateRequest;
 import com.kh.workflow.reservation.model.dto.ReservationUpdateRequest;
-import com.kh.workflow.reservation.model.dao.ReservationDao;
 import com.kh.workflow.reservation.model.vo.Reservation;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,19 +29,20 @@ public class ReservationServiceImpl implements ReservationService {
     // =========================================================
 
     @Override
-    public List<?> getAvailableFacilities(
-            Integer hubNo,
+    public List<Hub> getAvailableFacilities(
             LocalDateTime rsvStart,
             LocalDateTime rsvEnd) {
 
+        validateReservationTime(rsvStart, rsvEnd);
+
         /*
-         * 현재 reservation 테이블에는
+         * 현재 Reservation 테이블에는
          * 시설 정보가 없기 때문에
          * Hub / Facility 테이블과 연결해서 구현해야 함.
          *
-         * 예:
-         * hubNo + 예약 시간
-         * → 해당 시간에 예약 가능한 시설 조회
+         * 현재 Reservation 엔티티에서는
+         * Hub와의 연관관계만 존재하므로
+         * 실제 시설 조회는 Facility 엔티티 구조 확인 후 구현한다.
          */
 
         return List.of();
@@ -77,14 +80,21 @@ public class ReservationServiceImpl implements ReservationService {
     public Reservation createReservation(
             ReservationCreateRequest request) {
 
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "예약 신청 정보가 없습니다."
+            );
+        }
+
         validateReservationTime(
                 request.getRsvStart(),
                 request.getRsvEnd()
         );
 
+
         // 예약 중복 확인
         long overlapCount =
-        		reservationDao.countOverlappingReservation(
+                reservationDao.countOverlappingReservation(
                         request.getHubNo(),
                         request.getRsvStart(),
                         request.getRsvEnd()
@@ -96,13 +106,49 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
 
+
+        /*
+         * Reservation의 workcation 필드는
+         * WorkcationInfo 객체를 참조한다.
+         *
+         * 따라서 workcationNo를 그대로 넣을 수 없고
+         * WorkcationInfo 객체를 조회해야 한다.
+         */
+        WorkcationInfo workcation =
+                reservationDao.findWorkcationByNo(
+                        request.getWorkcationNo()
+                );
+
+        if (workcation == null) {
+            throw new IllegalArgumentException(
+                    "해당 워케이션 정보를 찾을 수 없습니다."
+            );
+        }
+
+
+        /*
+         * Reservation의 hub 필드 역시
+         * Hub 객체를 참조한다.
+         */
+        Hub hub =
+                reservationDao.findHubByNo(
+                        request.getHubNo()
+                );
+
+        if (hub == null) {
+            throw new IllegalArgumentException(
+                    "해당 거점 정보를 찾을 수 없습니다."
+            );
+        }
+
+
         Reservation reservation = Reservation.builder()
                 .rsvStart(request.getRsvStart())
                 .rsvEnd(request.getRsvEnd())
                 .rsvStatus("N")
                 .userCapacity(request.getUserCapacity())
-                .workcationNo(request.getWorkcationNo())
-                .hubNo(request.getHubNo())
+                .workcation(workcation)
+                .hub(hub)
                 .build();
 
         return reservationDao.save(reservation);
@@ -117,6 +163,12 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public Reservation getReservationDetail(
             Integer rsvNo) {
+
+        if (rsvNo == null) {
+            throw new IllegalArgumentException(
+                    "예약 번호가 없습니다."
+            );
+        }
 
         return reservationDao.findById(rsvNo)
                 .orElseThrow(() ->
@@ -138,13 +190,27 @@ public class ReservationServiceImpl implements ReservationService {
             Integer rsvNo,
             ReservationUpdateRequest request) {
 
+        if (rsvNo == null) {
+            throw new IllegalArgumentException(
+                    "예약 번호가 없습니다."
+            );
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "예약 수정 정보가 없습니다."
+            );
+        }
+
+
         Reservation reservation =
-        		reservationDao.findById(rsvNo)
+                reservationDao.findById(rsvNo)
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "예약 정보를 찾을 수 없습니다."
                                 )
                         );
+
 
         // 취소된 예약 수정 방지
         if ("C".equals(reservation.getRsvStatus())) {
@@ -153,6 +219,7 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
 
+
         // 완료된 예약 수정 방지
         if ("Y".equals(reservation.getRsvStatus())) {
             throw new IllegalStateException(
@@ -160,20 +227,21 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
 
+
         validateReservationTime(
                 request.getRsvStart(),
                 request.getRsvEnd()
         );
 
+
         // 자기 자신을 제외한 중복 예약 검사
         long overlapCount =
-        		reservationDao
-                        .countOverlappingReservationForUpdate(
-                                rsvNo,
-                                reservation.getHubNo(),
-                                request.getRsvStart(),
-                                request.getRsvEnd()
-                        );
+                reservationDao.countOverlappingReservationForUpdate(
+                        rsvNo,
+                        reservation.getHub().getHubNo(),
+                        request.getRsvStart(),
+                        request.getRsvEnd()
+                );
 
         if (overlapCount > 0) {
             throw new IllegalStateException(
@@ -181,8 +249,15 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
 
-        reservation.setRsvStart(request.getRsvStart());
-        reservation.setRsvEnd(request.getRsvEnd());
+
+        reservation.setRsvStart(
+                request.getRsvStart()
+        );
+
+        reservation.setRsvEnd(
+                request.getRsvEnd()
+        );
+
         reservation.setUserCapacity(
                 request.getUserCapacity()
         );
@@ -201,6 +276,13 @@ public class ReservationServiceImpl implements ReservationService {
     public void cancelReservation(
             Integer rsvNo) {
 
+        if (rsvNo == null) {
+            throw new IllegalArgumentException(
+                    "예약 번호가 없습니다."
+            );
+        }
+
+
         Reservation reservation =
                 reservationDao.findById(rsvNo)
                         .orElseThrow(() ->
@@ -209,11 +291,13 @@ public class ReservationServiceImpl implements ReservationService {
                                 )
                         );
 
+
         if ("C".equals(reservation.getRsvStatus())) {
             throw new IllegalStateException(
                     "이미 취소된 예약입니다."
             );
         }
+
 
         if ("Y".equals(reservation.getRsvStatus())) {
             throw new IllegalStateException(
@@ -221,7 +305,40 @@ public class ReservationServiceImpl implements ReservationService {
             );
         }
 
+
         reservation.setRsvStatus("C");
+    }
+
+
+    // =========================================================
+    // 워케이션별 예약 조회
+    // =========================================================
+
+    @Override
+    public List<Reservation> getReservationsByWorkcation(
+            Integer workcationNo) {
+
+        if (workcationNo == null) {
+            throw new IllegalArgumentException(
+                    "워케이션 번호가 없습니다."
+            );
+        }
+
+        WorkcationInfo workcation =
+                reservationDao.findWorkcationByNo(
+                        workcationNo
+                );
+
+        if (workcation == null) {
+            throw new IllegalArgumentException(
+                    "해당 워케이션 정보를 찾을 수 없습니다."
+            );
+        }
+
+        return reservationDao
+                .findByWorkcationOrderByRsvStartDesc(
+                        workcation
+                );
     }
 
 
@@ -244,16 +361,5 @@ public class ReservationServiceImpl implements ReservationService {
                     "예약 종료 시간은 시작 시간보다 이후여야 합니다."
             );
         }
-    }
-    
-    //
-    @Override
-    public List<Reservation> getReservationsByWorkcation(
-            Integer workcationNo) {
-
-        return reservationDao
-                .findByWorkcationNoOrderByRsvStartDesc(
-                        workcationNo
-                );
     }
 }
