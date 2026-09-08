@@ -79,8 +79,8 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     @Query("""
             SELECT COALESCE(ROUND(AVG(CAST(sa.answerValue AS double)), 1), 0.0)
               FROM Reservation r
-              JOIN Hub h ON r.hubNo = h.hubNo
-              JOIN WorkcationInfo w ON w.workcationNo = r.workcationNo
+              JOIN r.hub h
+              JOIN r.workcation w
               JOIN WorkcationSurvey ws ON ws.workcationInfo = w
               JOIN SurveyAnswer sa ON sa.workcationSurvey = ws
               JOIN sa.surveyQuestion sq
@@ -108,7 +108,20 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 
 	List<Hub> findByMainRegionAndSubRegionAndHubType(String mainRegion, String subRegion, int hubType);
 
+	@Query("SELECT h.mainRegion FROM Hub h")
 	List<String> selectMainRegionList();
 
-	List<String> selectSubRegionList(String mainRegion);
+    @Query("""
+    		SELECT h.hubAddress
+    		  FROM Hub h
+    		  JOIN Reservation r ON r.hub = h
+    		  JOIN WorkcationInfo w ON r.workcation = w
+    		  JOIN w.employee e
+    		 WHERE e.empNo = :empNo
+    		   AND h.hubType = 1
+    		""")
+	String selectHubAddress(@Param("empNo") int empNo);
+
+    @Query("SELECT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
+	List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
 }

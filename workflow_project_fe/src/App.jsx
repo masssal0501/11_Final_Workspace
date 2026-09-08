@@ -62,6 +62,8 @@ import AdminComponent from "./dashboard/components/AdminComponent";
 import ManagerComponent from "./dashboard/components/ManagerComponent";
 import StaffComponent from "./dashboard/components/StaffComponent";
 
+import { useKakaoLoader } from "react-kakao-maps-sdk";
+
 import {
     Routes,
     Route,
@@ -69,6 +71,11 @@ import {
 } from "react-router-dom";
 
 function App() {
+
+    useKakaoLoader({
+        appkey: "a00510cb26a4e33be1647f26b12df5c9", 
+        libraries: ["services"],
+    });
 
     const [loginUser, setLoginUser] = useState(() => {
 
@@ -279,7 +286,7 @@ function App() {
                 /> */}
 
                 <Route
-                    path="/dashboard"
+                    path="/"
                     element={
                         loginUser.authCode === "ADMIN"
                             ? <AdminComponent />

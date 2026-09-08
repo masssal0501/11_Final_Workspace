@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -1117,4 +1119,25 @@ public class AmountServiceImpl implements AmountService {
                         "해당 비용 신청 내역이 존재하지 않습니다. ID: " + amountNo
                 ));
     }
+
+
+	@Override
+	public int insertAmount(Amount amount, MultipartFile[] files) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public Page<Amount> selectAmountList(Pageable pageable) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Page<Amount> selectAmountListByWorkcationNo(int workcationNo, Pageable pageable) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

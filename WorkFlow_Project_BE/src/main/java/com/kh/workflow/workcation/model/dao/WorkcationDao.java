@@ -120,8 +120,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState) 
 		      FROM WorkcationInfo w 
 		      JOIN w.employee e
-		      JOIN Reservation r ON w.workcationNo = r.workcationNo
-		      JOIN Hub h ON r.hubNo = h.hubNo
+		      JOIN Reservation r ON r.workcation = w
+		      JOIN r.hub h
 		      JOIN Department d ON d.depId = e.depId
 		     WHERE e.depId = d.depId 
 		       AND w.approverState = 'W' 
@@ -137,11 +137,11 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
 				h.mainRegion,
-				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcationNo = w2.workcationNo WHERE w2.approverState = 'A')
+				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
 			)
 			  FROM WorkcationInfo w
-			  JOIN Reservation r ON r.workcationNo = w.workcationNo
-			  JOIN Hub h ON r.hubNo = h.hubNo
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			 WHERE w.approverState = 'A'
 			   AND w.startAt <= CURRENT_TIMESTAMP
 			 GROUP BY h.mainRegion
@@ -226,8 +226,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState) 
 		      FROM WorkcationInfo w 
 		      JOIN w.employee e
-		      JOIN Reservation r ON w.workcationNo = r.workcationNo
-		      JOIN Hub h ON r.hubNo = h.hubNo
+		      JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 		     WHERE e.depId = :depId
 		       AND w.approverState = 'W'
 		     ORDER BY w.workcationNo DESC
@@ -243,11 +243,11 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
 				h.mainRegion,
-				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcationNo = w2.workcationNo WHERE w2.approverState = 'A')
+				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
 			)
 			  FROM WorkcationInfo w
-			  JOIN Reservation r ON r.workcationNo = w.workcationNo
-			  JOIN Hub h ON r.hubNo = h.hubNo
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE w.approverState = 'A'
 			   AND e.depId = :depId
@@ -263,7 +263,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
-				e.empNo,
+				w.workcationNo,
 				w.workcationTitle,
 				h.mainRegion,
 				h.subRegion,
@@ -273,8 +273,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 				e.status
 			)
 			  FROM WorkcationInfo w
-			  JOIN Reservation r ON r.workcationNo = w.workcationNo
-			  JOIN Hub h ON r.hubNo = h.hubNo
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
 			""")
@@ -291,7 +291,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
-				e.empNo,
+				w.workcationNo,
 				w.workcationTitle,
 				h.mainRegion,
 				h.subRegion,
@@ -301,8 +301,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 				e.status
 			)
 			  FROM WorkcationInfo w
-			  JOIN Reservation r ON r.workcationNo = w.workcationNo
-			  JOIN Hub h ON r.hubNo = h.hubNo
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
 			   AND e.empName LIKE '%'||:keyword||'%'
@@ -378,15 +378,16 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ReservationListDto(
+				r.rsvNo,
 				h.hubName,
 				r.rsvStart,
 				r.rsvEnd,
 				r.userCapacity,
 				r.rsvStatus
 			)
-			  FROM Reservation r
-			  JOIN Hub h ON r.hubNo = h.hubNo
-			  JOIN WorkcationInfo w ON r.workcationNo = w.workcationNo
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
 			""")
@@ -403,16 +404,17 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ReservationListDto(
+				r.rsvNo,
 				h.hubName,
 				r.rsvStart,
 				r.rsvEnd,
 				r.userCapacity,
 				r.rsvStatus
 			)
-			  FROM Reservation r
-			  JOIN WorkcationInfo w ON r.workcationNo = w.workcationNo
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			  JOIN w.employee e
-			  JOIN Hub h ON r.hubNo = h.hubNo
 			 WHERE e.empNo = :empNo
 			   AND h.hubName LIKE '%'||:keyword||'%'
 			   AND w.startAt >= :startDate

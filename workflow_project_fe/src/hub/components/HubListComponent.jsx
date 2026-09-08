@@ -272,7 +272,7 @@ function HubListComponent(props) {
             {/* 관리자용 거점 등록 버튼 */}
             { (loginUser.authCode === "ADMIN") && (
                 <div>
-                    <button type="button" className="btn btn-primary btn-sm" onClick={ () => { navigate("/hub/enrollForm") } }>▶ 거점 등록</button>
+                    <button type="button" className="btn btn-primary btn-sm hub-primary" onClick={ () => { navigate("/hub/enrollForm") } }>▶ 거점 등록</button>
                 </div>
             )}
             <br /><br />

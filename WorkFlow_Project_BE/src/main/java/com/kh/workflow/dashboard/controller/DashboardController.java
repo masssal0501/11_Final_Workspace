@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.workflow.dashboard.model.dto.AdminDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
+import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.dashboard.model.service.DashboardService;
@@ -144,7 +145,7 @@ public class DashboardController {
 	""")))
 	@SecurityRequirement(name="JWT")
 	@GetMapping("/dashboard/staff/{empNo}/reservation")
-	public ResponseEntity<List<Reservation>> selectStaffReservationList(@PathVariable int empNo,
+	public ResponseEntity<List<ReservationListDto>> selectStaffReservationList(@PathVariable int empNo,
 																		@RequestParam(required=false) String keyword,
 																		@RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate startAt,
 																		@RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate endAt) {
@@ -152,9 +153,10 @@ public class DashboardController {
 		LocalDateTime startDate = (startAt != null) ? startAt.atStartOfDay() : null;
 	    LocalDateTime endDate = (endAt != null) ? endAt.atTime(LocalTime.MAX) : null;
 	    // 사번 기준의 예약 리스트 검색 수행
-		List<Reservation> list = dashboardService.selectStaffReservationList(empNo, keyword, startDate, endDate);
+		List<ReservationListDto> list = dashboardService.selectStaffReservationList(empNo, keyword, startDate, endDate);
 		
 		return ResponseEntity.status(HttpStatus.OK)
 				 			 .body(list);
 	}
+	
 }

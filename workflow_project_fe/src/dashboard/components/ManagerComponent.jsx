@@ -282,8 +282,9 @@ function ManagerComponent(props) {
                     <tbody>
                         {data.workcationList?.length > 0 ? (
                             data.workcationList.map((item, index) => (
-                                <tr key={index} style={ { cursor : "auto", backgroundColor : "white" } }>
-                                    <td>{item.workcationNo}</td>
+                                <tr key={index} onClick={ () => { navigate(`/workcation/detail/${item.workcationNo}`) } }>
+                                    <td>{index+1}</td>
+                                    <td>{item.workcationTitle}</td>
                                     <td>{item.mainRegion} {item.subRegion}</td>
                                     <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
                                     <td>{item.empName}</td>

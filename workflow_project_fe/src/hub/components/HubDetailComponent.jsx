@@ -15,12 +15,6 @@ function HubDetailComponent(props) {
     const hubNo = useParams().hubNo;
     const navigate = useNavigate();
 
-    // 카카오맵 SDK 로드 완료 여부 State
-    const [isLoaded, setIsLoaded] = useState(false);
-
-    // Kakao 지도 API 전역 객체 참조
-    const { kakao } = window;
-
     // 주소 → 좌표 변환을 완료한 위도/경도 저장 State
     const [position, setPosition] = useState(null);
 
@@ -65,39 +59,48 @@ function HubDetailComponent(props) {
             }
         }
         selectBoard();
-    }, [hubNo]);
-
-    /**
-     * kakao.maps.load()로 SDK 초기화 감지
-     */
-    useEffect(() => {
-        const checkKakaoMap = () => {
-            if (kakao && kakao.maps) {
-                kakao.maps.load(() => {
-                    setIsLoaded(true); // 로딩 완료 처리
-                });
-            } else {
-                setTimeout(checkKakaoMap, 100); // 스크립트 로드 대기
-            }
-        };
-        checkKakaoMap();
-    }, []);
+    }, [hub]);
 
     /**
      * 주소 데이터를 기반으로 카카오맵 좌표(위경도) 변환 처리
      */
     useEffect(() => {
+        if (!hub.hubAddress) return;
         // 주소 데이터가 로드된 이후에만 좌표 변환 수행
-        if (kakao && kakao.maps && kakao.maps.services && hub.hubAddress) {
-            const geocoder = new kakao.maps.services.Geocoder();
-    
-            geocoder.addressSearch(hub.hubAddress, (result, status) => {
-                if (status === kakao.maps.services.Status.OK) {
-                    // 변환 성공 시 마커를 띄울 위치 좌표 지정
-                    setPosition({ lat: result[0].y, lng: result[0].x });
+        const executeAddressSearch = () => {
+            const { kakao } = window;
+            if (!kakao?.maps) return false;
+            kakao.maps.load(() => {
+                if (!kakao.maps.services) {
+                    console.error("카카오 지도 services 라이브러리가 로드되지 않았습니다.");
+                    return;
+                }
+
+                if (kakao.maps.services) {
+                    const geocoder = new kakao.maps.services.Geocoder();
+                    
+                    geocoder.addressSearch(hub.hubAddress, (result, status) => {
+                        if (status === kakao.maps.services.Status.OK) {
+                            // 변환 성공 시 마커를 띄울 위치 좌표 지정
+                            setPosition({ lat: result[0].y, lng: result[0].x });
+                        }
+                    });
                 }
             });
+            return true;
+        };
+
+        // 이미 로드된 경우 즉시 실행
+    if (executeAddressSearch()) return;
+
+    // 아직 로드되지 않은 경우 100ms 간격으로 확인하여 로드 완료 시 실행
+    const timer = setInterval(() => {
+        if (executeAddressSearch()) {
+            clearInterval(timer);
         }
+    }, 100);
+
+    return () => clearInterval(timer);
     }, [hub.hubAddress]);
 
     /**
@@ -145,6 +148,8 @@ function HubDetailComponent(props) {
      */
     const goToKakaoMap = () => {
         if (!position) return;
+
+        const { kakao } = window;
 
         if(kakao && kakao.maps && kakao.maps.services) {
             const geocoder = new kakao.maps.services.Geocoder();
@@ -204,8 +209,8 @@ function HubDetailComponent(props) {
                                                                        (avgScore >= 1) ? "★☆☆☆☆" : 
                                                                                              "☆☆☆☆☆"))))} ({ avgScore })</span>
                 </div>
-                {/* SDK 로딩이 완료되고 좌표가 존재할 때만 맵 렌더링 */}
-                {isLoaded && position && (
+                {/* 맵 렌더링 */}
+                {position && (
                     <Map
                         center={position} 
                         style={{ width: "50%", height: "300px", border: "1px solid gray" }}

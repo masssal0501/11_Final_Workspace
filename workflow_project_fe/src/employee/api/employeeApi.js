@@ -187,3 +187,24 @@ export const updateEmployeeRole = async (
 
     return response.data;
 };
+
+/*
+ * USR-008
+ * 아이디 찾기
+ */
+export const findEmployeeId = async () => {
+
+    const token =
+        localStorage.getItem("accessToken");
+
+    const response = await axiosInstance.get(
+        "/employees",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    return response.data;
+};

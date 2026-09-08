@@ -474,7 +474,7 @@ function HubUpdateFormComponent(props) {
                         />
                         <br />
                     
-                        <button type="submit" className="btn btn-primary" onClick={ updateHub }>수정하기</button>
+                        <button type="submit" className="btn btn-primary hub-primary" onClick={ updateHub }>수정하기</button>
                         <button type="button" className="btn btn-dark" style={ { float : "right", borderRadius : "99px" } } onClick={ () => { navigate(-1); } }>뒤로가기</button>
                     </form>
                 </>

@@ -85,15 +85,4 @@ const selectStaffReservationListApi = (empNo, inputData) => {
     return response;
 }
 
-const selectStaffHubApi = empNo => {
-
-    const response = axiosInstance({
-        url : `${ BASE_URL }/staff/${empNo}/commute`,
-        method : "get"
-    });
-
-    return response;
-
-}
-
-export { selectAdminDashboardApi, selectManagerDashboardApi, selectManagerWorkcationListApi, selectStaffDashboardApi, selectStaffReservationListApi, selectStaffHubApi };
+export { selectAdminDashboardApi, selectManagerDashboardApi, selectManagerWorkcationListApi, selectStaffDashboardApi, selectStaffReservationListApi };

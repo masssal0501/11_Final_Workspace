@@ -96,11 +96,11 @@ public interface ReservationDao
             @Param("rsvEnd") LocalDateTime rsvEnd
     );
 
+    @Query("SELECT w FROM WorkcationInfo w WHERE w.workcationNo = :workcationNo")
+	WorkcationInfo findWorkcationByNo(@Param("workcationNo") Integer workcationNo);
 
-	WorkcationInfo findWorkcationByNo(Integer workcationNo);
-
-
-	Hub findHubByNo(Integer hubNo);
+	@Query("SELECT h FROM Hub h WHERE h.hubNo = :hubNo")
+	Hub findHubByNo(@Param("hubNo") Integer hubNo);
 
 
 	List<Reservation> findByWorkcation(WorkcationInfo workcation);

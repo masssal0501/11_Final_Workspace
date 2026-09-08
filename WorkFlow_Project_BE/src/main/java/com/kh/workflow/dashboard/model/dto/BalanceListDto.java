@@ -17,7 +17,7 @@ import lombok.ToString;
 @ToString
 public class BalanceListDto {
 	private String empName;
-	private String empNo;
+	private int empNo;
 	private int approvedAmount;
 	private String status;
 }
