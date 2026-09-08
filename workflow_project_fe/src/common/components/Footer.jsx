@@ -26,7 +26,7 @@ function Footer() {
 
           <a
             href="/privacy"
-            // className="important"
+            className="important"
           >
             개인정보처리방침
           </a>

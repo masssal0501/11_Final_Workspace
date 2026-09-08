@@ -1,7 +1,9 @@
 import "../styles/Header.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { logout } from "../../employee/api/employeeApi";
 
+// App.jsx에서 내려주는 loginUser와 onLogout을 프롭스로 받습니다.
 function Header({ loginUser, onLogout }) {
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
@@ -10,22 +12,49 @@ function Header({ loginUser, onLogout }) {
   // 프로필 드롭다운
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 마이페이지 이동
-  const handleMyPage = () => {
+  // 로그아웃
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error(
+        "로그아웃 API 실패:",
+        error
+      );
+    } finally {
+      if (onLogout) {
+        onLogout(); // App.jsx의 상태 초기화 및 네비게이션 실행
+      } else {
+        // JWT 삭제
+        localStorage.removeItem("accessToken");
 
-    setIsProfileOpen(false);
+        // 사용자 정보 삭제
+        localStorage.removeItem("user");
 
-    navigate("/mypage");
+        // 로그인 페이지 이동
+        navigate("/login");
+      }
+    }
   };
 
 
-  // =========================
+  // 마이페이지 이동
+  const handleMyPage = () => {
+    setIsProfileOpen(false);
+    navigate("/myPage");
+  };
+
+  //내 워케이션 리스트 이동
+  const handleMyWorcation =() =>{
+    setIsProfileOpen(false);
+    navigate("/workcation/mylist");
+  }
+
   // 메뉴
-  // =========================
   const menus = [
     {
       id: "workcation",
-      label: "워케이션",
+      label: "워케이션 신청",
       icon: "▣",
       path: "/workcation/list",
 
@@ -58,28 +87,9 @@ function Header({ loginUser, onLogout }) {
       label: "업무 관리",
       icon: "☷",
       path: "/task/list",
-
-      roles: ["ADMIN", "MANAGER", "STAFF"],
-      
-      children: [ 
-        { 
-          label: "내 업무", 
-          path: "/task/list",
-          roles: ["MANAGER", "STAFF"]
-        }, 
-        { 
-          label: "업무 이력", 
-          path: "/task/history" 
-        } , 
-        { 
-          label: "업무 현황", 
-          path: "/task/list",
-          roles:["ADMIN", "MANAGER"]
-        } 
-      ]
     },
     {
-      id: "cost",
+      id: "amount",
       label: "비용 관리",
       icon: "₩",
       path: "/cost/list",
@@ -151,43 +161,22 @@ function Header({ loginUser, onLogout }) {
       label: "공지사항",
       icon: "♢",
       path: "/notice",
-      roles: ["ADMIN", "MANAGER", "STAFF"],
-      children: [ 
-        { 
-          label: "공지사항", 
-          path: "/notice"
-        }, 
-        { 
-          label: "공지사항 작성", 
-          path: "/notice/insert",
-          roles:["ADMIN"]
-        } 
-      ]
+    },
+    {
+      id: "hub",
+      label: "장소/거점",
+      icon: "⌖",
+      path: "/placeInfo/list",
     },
 
   ];
 
-  // 현재 사용자의 권한
-  const authCode = loginUser?.authCode;
-
-  // 현재 사용자가 볼 수 있는 메뉴만 필터링
-  const visibleMenus = menus.filter(menu =>
-    menu.roles.includes(authCode)
-  )
-
 
   // 메뉴 클릭
   const handleMenuClick = (menu) => {
-
     setActiveMenu(menu.id);
-
     navigate(menu.path);
     // React Router를 사용한다면 navigate(menu.path) 사용
-  };
-
-  // 하위 메뉴 이동 
-  const handleSubMenuClick = (path) => { 
-    navigate(path); 
   };
 
 
@@ -195,18 +184,13 @@ function Header({ loginUser, onLogout }) {
    * 권한 코드 → 화면에 표시할 명칭
    */
   const getAuthName = (authCode) => {
-
     switch (authCode) {
-
       case "ADMIN":
         return "관리자";
-
       case "MANAGER":
         return "부서장";
-
       case "STAFF":
         return "사원";
-
       default:
         return "";
     }
@@ -219,27 +203,19 @@ function Header({ loginUser, onLogout }) {
    * 현재 DB의 department 데이터에 맞춰 수정하면 됨
    */
   const getDepartmentName = (depId) => {
-
     switch (depId) {
-
       case "D1":
         return "기획";
-
       case "D2":
         return "디자인";
-
       case "D3":
         return "FE 개발";
-
       case "D4":
         return "BE 개발";
-
       case "D5":
         return "데이터";
-
       case "D6":
         return "QA";
-
       default:
         return "";
     }
@@ -247,53 +223,34 @@ function Header({ loginUser, onLogout }) {
 
 
   return (
-
     <header className="wf-header">
-
       <div className="wf-header-inner">
 
 
         {/* =========================
             Logo
         ========================= */}
-
         <div className="wf-logo">
-
           <Link to="/">
-
             <div className="wf-logo-mark">
-
               <span className="logo-w logo-w-blue">
                 W
               </span>
-
             </div>
-
           </Link>
-
           <span className="wf-logo-text">
             WorkFlow
           </span>
-
         </div>
 
 
         {/* =========================
             Navigation
         ========================= */}
-
         <nav className="wf-nav">
-
-          {visibleMenus.map((menu) => (
-
-            <div
-              key={menu.id}
-              className="wf-nav-dropdown"
-            >
-
-            {/* 상위 메뉴 */}
-
+          {menus.map((menu) => (
             <button
+              key={menu.id}
               className={`wf-nav-item ${
                 activeMenu === menu.id
                   ? "active"
@@ -301,166 +258,118 @@ function Header({ loginUser, onLogout }) {
               }`}
               onClick={() => handleMenuClick(menu)}
             >
-
               <span className="wf-nav-icon">
                 {menu.icon}
               </span>
-
               <span>
                 {menu.label}
               </span>
-
             </button>
-
-            {/* 하위 메뉴 */}
-
-            {menu.children && menu.children.length > 0 && ( 
-              <div className="wf-submenu"> 
-              
-                {menu.children .filter(child => { 
-                  
-                // roles가 없으면 모든 권한 허용 
-                if (!child.roles) { 
-                  return true; 
-                } 
-                
-                return child.roles.includes( 
-                  loginUser?.authCode 
-                ); 
-              
-              }) .map((child) => ( 
-
-                <button 
-                  key={child.path} 
-                  type="button" 
-                  onClick={() => handleSubMenuClick( child.path ) } 
-                >   
-                  {child.label} 
-                
-                </button> 
-              ))} 
-            
-            </div> 
-          )}
-
-            </div>
-
           ))}
-
         </nav>
 
 
         {/* =========================
             Header Right
         ========================= */}
-
         <div className="wf-header-actions">
 
 
           {/* =========================
               Profile
           ========================= */}
-
-          <div className="wf-profile-wrapper">
-
-
-            {/* Profile Button */}
-
-            <button
-              className="wf-profile"
-              onClick={() =>
-                setIsProfileOpen(
-                  !isProfileOpen
-                )
-              }
-            >
-
-              {/* 프로필 이미지 */}
-
-              <div className="wf-profile-image">
-
-                {loginUser?.empName
-                  ? loginUser.empName.charAt(0)
-                  : "?"}
-
-              </div>
+          {loginUser && (
+            <div className="wf-profile-wrapper">
 
 
-              {/* 사용자 정보 */}
+              {/* Profile Button */}
+              <button
+                className="wf-profile"
+                onClick={() =>
+                  setIsProfileOpen(
+                    !isProfileOpen
+                  )
+                }
+              >
 
-              <div className="wf-profile-info">
+                {/* 프로필 이미지 */}
+                <div className="wf-profile-image">
+                  {loginUser?.empName
+                    ? loginUser.empName.charAt(0)
+                    : "?"}
+                </div>
 
-                <div className="wf-profile-name">
 
-                  {loginUser?.empName || "사용자"}
+                {/* 사용자 정보 */}
+                <div className="wf-profile-info">
+                  <div className="wf-profile-name">
+                    {loginUser?.empName || "사용자"}
+                    <span>
+                      {getAuthName(
+                        loginUser?.authCode
+                      )}
+                    </span>
+                  </div>
 
-                  <span>
-                    {getAuthName(
-                      loginUser?.authCode
+                  <div className="wf-profile-department">
+                    {getDepartmentName(
+                      loginUser?.depId
                     )}
-                  </span>
-
+                  </div>
                 </div>
 
-                <div className="wf-profile-department">
 
-                  {getDepartmentName(
-                    loginUser?.depId
-                  )}
+                {/* 화살표 */}
+                <span className="wf-profile-arrow">
+                  {isProfileOpen ? "⌃" : "⌄"}
+                </span>
+
+              </button>
+
+
+              {/* =========================
+                  Profile Dropdown
+              ========================= */}
+              {isProfileOpen && (
+                <div className="wf-profile-dropdown">
+
+                  <button
+                    type="button"
+                    onClick={handleMyPage}
+                  >
+                    <span>👤</span>
+                    마이페이지
+                  </button>
+
+                   <button
+                    type="button"
+                    onClick={handleMyWorcation}
+                  >
+                    <span>🏖️</span>
+                    내 워케이션
+                  </button>
+
+                  <div className="wf-profile-divider" />
+
+                  <button
+                    type="button"
+                    className="logout-button"
+                    onClick={handleLogout}
+                  >
+                    <span>↪</span>
+                    로그아웃
+                  </button>
 
                 </div>
+              )}
 
-              </div>
-
-
-              {/* 화살표 */}
-
-              <span className="wf-profile-arrow">
-                {isProfileOpen ? "⌃" : "⌄"}
-              </span>
-
-            </button>
-
-
-            {/* =========================
-                Profile Dropdown
-            ========================= */}
-
-            {isProfileOpen && (
-
-              <div className="wf-profile-dropdown">
-
-                <button
-                  type="button"
-                  onClick={handleMyPage}
-                >
-                  <span>👤</span>
-                  마이페이지
-                </button>
-
-                <div className="wf-profile-divider" />
-
-                <button
-                  type="button"
-                  className="logout-button"
-                  onClick={onLogout}
-                >
-                  <span>↪</span>
-                  로그아웃
-                </button>
-
-              </div>
-
-            )}
-
-          </div>
+            </div>
+          )}
 
         </div>
 
       </div>
-
     </header>
-
   );
 }
 

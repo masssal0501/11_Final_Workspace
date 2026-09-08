@@ -1,28 +1,32 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+
+import { getMainRegionList, getSubRegionList, getWorkcationList } from "../api/WorkcationApi";
 
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
-import WorkcationItemComponent from "./WorkcationItemComponent";
 
 // import "../styles/WorkcationList.css";
 
+// 선택 옵션 설정 (WorkcationItemComponent에 있던 상수)
+export const OPTION_CONFIG = {
+    program: { label: "체험 프로그램", key: "program", priceKey: "programPrice", dateName: "programDate" },
+    restaurant: { label: "맛집", key: "restaurant", priceKey: "restaurantPrice", dateName: "restaurantDate" },
+    tour: { label: "관광지", key: "tour", priceKey: "tourPrice", dateName: "tourDate" }
+};
+
 function WorkcationListComponent() {
 
-    //실행구문
-    const navigate = useNavigate();//페이지 이동 함수
+    const navigate = useNavigate(); // 페이지 이동 함수
 
+    // 지역 관련 상태
     const [mainRegion, setMainRegion] = useState("");
     const [subRegion, setSubRegion] = useState("");
+    const [mainRegionList, setMainRegionList] = useState([]);
+    const [subRegionList, setSubRegionList] = useState([]);
 
-    const handleRegionChange = (main, sub) => {
-        setMainRegion(main);
-        setSubRegion(sub);
-    }
-
+    // 검색 및 페이징 상태
     const [searchType, setSearchType] = useState("all");
     const [searchParams, setSearchParams] = useSearchParams();
-
     const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
     const searchCondition = searchParams.get("condition") || "all";
@@ -31,117 +35,221 @@ function WorkcationListComponent() {
 
     const [dataList, setDataList] = useState([]);
     const [pageList, setPageList] = useState([]);
-    
+
+    // 1. 메인 지역 목록 조회 (강원, 부산, 제주 등)
     useEffect(() => {
+        getMainRegionList()
+            .then(res => {
+                const data = Array.isArray(res) ? res : (res.list || []);
+                setMainRegionList(data);
+            })
+            .catch(err => console.error("메인 지역 로딩 실패: ", err));
+    }, []);
+
+    // 2. 메인 지역이 바뀔 때마다 하위 상세 지역 조회
+    useEffect(() => {
+        if (!mainRegion) {
+            setSubRegionList([]);
+            return;
+        }
+        getSubRegionList(mainRegion)
+            .then(res => setSubRegionList(res))
+            .catch(err => console.error("서브 지역 로딩 실패: ", err));
+    }, [mainRegion]);
+
+    // 3. 조건 변경 시 워케이션 목록 조회
+    useEffect(() => {
+        if(mainRegion && !subRegion){
+            return;
+        }
         selectWorkcationList();
-    }, [cpage, searchCondition, searchKeyword, mainRegion, subRegion,searchType]);
+    }, [cpage, searchCondition, searchKeyword, mainRegion, subRegion, searchType]);
 
     const selectWorkcationList = async () => {
         try {
-            const response = await axios.get("http://localhost:8006/workflow/workcation/list", {
-                params: {
-                    cpage: cpage,
-                    condition: searchCondition,
-                    keyword: searchKeyword,
-                    mainRegion: mainRegion,
-                    subRegion: subRegion,
-                    searchType: searchType
-                }
-            })
+            const responseData = await getWorkcationList({
+                cpage: cpage,
+                condition: searchCondition,
+                keyword: searchKeyword,
+                mainRegion: mainRegion,
+                subRegion: subRegion,
+                searchType: searchType
+            });
 
-            handleResponse(response.data);
+            handleResponse(responseData);
         } catch (error) {
             console.error("조회 실패", error);
-        };
-    }
+        }
+    };
 
-    //응답 데이터 처리후 공통 함수(dataList, pageList)
+    // 응답 데이터 처리 후 공통 함수 (dataList, pageList)
     const handleResponse = (responseData) => {
-
-        //tbody에 넣을 td생성
         const items = Array.isArray(responseData) ? responseData
-            : (responseData?.list || responseData?.content || [])
+            : (responseData?.list || responseData?.content || []);
 
-        const trArr = items.map((item) => (
-            <tr key={item.workcationNo}
-                onClick={() => navigate(`/workcation/detail/${item.workcationNo}`)}>
-                <td>{item.workcationNo}</td>
-                <td>{item.workcationTitle}</td>
-                <td>{item.regionName || "-"}</td>
-                <td>{item.employee?.empName || "-"}</td>
-                <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
-                <td>{item.approverState || item.workcationStatus || "대기"}</td>
-            </tr>
-        ))
+        const trArr = items.map((item) => {            
+            const main = item.mainRegion || "";
+            const sub = item.subRegion || "";
+            const regionText = (main || sub) ? `${main} ${sub}`.trim() : "-";
+            return (
+                <tr key={item.workcationNo}
+                    onClick={() => navigate(`/workcation/detail/${item.workcationNo}`)}>
+                    <td>{item.workcationNo}</td>
+                    <td style={{ whiteSpace: "pre-line" }}>{item.workcationTitle}</td>
+                    <td>{regionText}</td>
+                    <td>{item.employee?.empName || "-"}</td>
+                    <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
+                    <td>{item.approverState || item.workcationStatus || "대기"}</td>
+                </tr>
+            )
+        });
 
         setDataList(trArr);
 
-        //pageList 
+        // pageList 생성
         const totalPages = responseData.totalPages || 1;
         const btnArr = [];
 
-        //이전버튼
+        // 이전 버튼
         btnArr.push(
             <button key="prev"
                 className="page-btn"
                 disabled={cpage === 1}
-                onClick={() => cpage > 1 && setSearchParams({ cpage: cpage - 1, condition: searchCondition, keyword: searchKeyword })}>
+                onClick={() => cpage > 1 && setSearchParams({
+                    cpage: cpage - 1, condition: searchCondition, keyword: searchKeyword, mainRegion: mainRegion,
+                    subRegion: subRegion,
+                    searchType: searchType
+                })}>
                 &lt;
             </button>
-        )
+        );
 
-        //페이지버튼
+        // 페이지 번호 버튼
         for (let p = 1; p <= totalPages; p++) {
             btnArr.push(
                 <button
                     key={p}
                     className={`page-btn ${cpage === p ? `active` : ''}`}
-                    onClick={() => setSearchParams({ cpage: p, condition: searchCondition, keyword: searchKeyword })}>
+                    onClick={() => setSearchParams({
+                        cpage: p, condition: searchCondition, keyword: searchKeyword, mainRegion: mainRegion,
+                        subRegion: subRegion,
+                        searchType: searchType
+                    })}>
                     {p}
-                </button >
-            )
+                </button>
+            );
         }
 
-        //다음버튼
+        // 다음 버튼
         btnArr.push(
             <button
                 key="next"
                 className="page-btn"
                 disabled={cpage === totalPages}
-                onClick={() => cpage < totalPages && setSearchParams({ cpage: cpage + 1, condition: searchCondition, keyword: searchKeyword })}>
+                onClick={() => cpage < totalPages && setSearchParams({
+                    cpage: cpage + 1, condition: searchCondition, keyword: searchKeyword,
+                    mainRegion: mainRegion,
+                    subRegion: subRegion,
+                    searchType: searchType
+                })}>
                 &gt;
             </button>
-        )
+        );
         setPageList(btnArr);
+    };
 
+    // 지역 드롭다운 변경 이벤트 핸들러
+    const handleMainRegionChange = (e) => {
+        const newMain = e.target.value;
+        setMainRegion(newMain);
+        setSubRegion(""); // 메인이 바뀌면 상세 지역 초기화
+
+        setSearchParams({
+            cpage: 1,
+            condition: searchCondition,
+            keyword: searchKeyword,
+            mainRegion: newMain,
+            subRegion: "",
+            searchType: searchType
+        })
+    };
+
+    const handleSubRegionChange = (e) => {
+        const newSub = e.target.value;
+        setSubRegion(newSub);
+
+        setSearchParams({
+            cpage: 1,
+            condition: searchCondition,
+            keyword: searchKeyword,
+            mainRegion: mainRegion,
+            subRegion: newSub,
+            searchType: searchType
+        })
+    };
+
+    //승인/취소 등 상태 변경 핸들러
+    const handleSearchTypeChange = (e) => {
+        const newSearchType = e.target.value;
+        setSearchType(newSearchType);
+
+        setSearchParams({
+            cpage: 1,
+            condition: searchCondition,
+            keyword: searchKeyword,
+            mainRegion: mainRegion,
+            subRegion: subRegion,
+            searchType: newSearchType
+        })
     }
-    //return구문
+
     return (
         <div align="center" className="content-area">
             <h2>워케이션 신청 목록</h2>
 
             <div className="workcation-btnSet">
-
-                {/*일정관리 */}
+                {/* 일정관리 버튼 */}
                 <button className="skedule-btn"
                     onClick={() => setIsScheduleOpen(true)}>
                     일정관리
                 </button>
-                {/**상단에서 import 한 컴포넌트를 불러오기 */}
                 {isScheduleOpen && (
                     <WorkcationScheduleComponent onClose={() => setIsScheduleOpen(false)} />
                 )}
 
-                {/**지역과 상세지역 드롭다운 호출 */}
-                <WorkcationItemComponent 
-                mainRegion={mainRegion}
-                subRegion={subRegion}
-                onRegionChange={handleRegionChange}/>
+                {/* 지역 및 상세지역 드롭다운 (기존 WorkcationItemComponent 내용 병합) */}
+                <form onSubmit={(e) => e.preventDefault()}>
+                    <div className="drop-group">
+                        <select className="main-region"
+                            value={mainRegion}
+                            onChange={handleMainRegionChange}>
+                            <option value="">지역명</option>
+                            {mainRegionList.map((main, index) => (
+                                <option key={index} value={typeof main === 'string' ? main : main.main_region}>
+                                    {typeof main === 'string' ? main : main.main_region}
+                                </option>
+                            ))}
+                        </select>
 
-                {/**상태 드롭다운 */}
+                        <select
+                            className="sub-region"
+                            value={subRegion}
+                            onChange={handleSubRegionChange}
+                            disabled={!mainRegion}>
+                            <option value="">상세 지역명</option>
+                            {subRegionList.map((sub, index) => (
+                                <option key={index} value={typeof sub === 'string' ? sub : sub.sub_region}>
+                                    {typeof sub === 'string' ? sub : sub.sub_region}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </form>
+
+                {/* 상태 드롭다운 */}
                 <select className="status-drop"
                     value={searchType}
-                    onChange={(e) => setSearchType(e.target.value)}>
+                    onChange={handleSearchTypeChange}>
                     <option value="all">전체</option>
                     <option value="approved">승인</option>
                     <option value="canceled">취소</option>
@@ -151,10 +259,11 @@ function WorkcationListComponent() {
                 </select>
             </div>
 
-            {/**신청하기 */}
+            {/* 신청하기 버튼 */}
             <div className="apply-btn">
                 <button onClick={() => { navigate("/workcation/enrollform"); }}>신청</button>
             </div>
+
             <table className="workcation-list">
                 <thead>
                     <tr>
@@ -166,27 +275,24 @@ function WorkcationListComponent() {
                         <th>상태</th>
                     </tr>
                 </thead>
-                <tbody>{dataList.length > 0 ? (dataList) :
-                    (
+                <tbody>
+                    {dataList.length > 0 ? dataList : (
                         <tr>
                             <td colSpan={6} align="center">
                                 조회된 워케이션 내역이 없습니다.
                             </td>
                         </tr>
-                    )
-                }
+                    )}
                 </tbody>
             </table>
             <br /><br />
 
-            {/**페이징 영역 */}
+            {/* 페이징 영역 */}
             <div align="center" className="paging-area">
                 {pageList}
             </div>
         </div>
-
     );
 }
 
-//내보내기
-export default WorkcationListComponent
+export default WorkcationListComponent;

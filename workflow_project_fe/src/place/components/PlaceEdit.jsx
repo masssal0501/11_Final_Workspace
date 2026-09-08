@@ -12,8 +12,8 @@ function PlaceEdit() {
     const [place, setPlace] = useState(null);
 
     // 관리자 여부 확인
-    const user = JSON.parse(localStorage.getItem("user"));
-    const isAdmin = user?.authCode === "ADMIN";
+    const role = localStorage.getItem("role");
+    const isAdmin = role === "ADMIN";
 
     const [file, setFile] = useState(null);
 
@@ -109,47 +109,30 @@ function PlaceEdit() {
     };
 
 
+    // 저장하기
     const handleSubmit = async (e) => {
 
         e.preventDefault();
 
         try {
 
-            const formData = new FormData();
-
-            formData.append(
-                "place",
-                new Blob(
-                    [JSON.stringify(place)],
-                    {
-                        type: "application/json"
-                    }
-                )
-            );
-
-            if (file) {
-                formData.append("file", file);
-            }
-
-            console.log("IS FORMDATA :", formData instanceof FormData);
-
             await placeApi.updatePlace(
                 hubNo,
-                formData
+                place
             );
 
             alert("지역 정보가 수정되었습니다.");
 
-            navigate(`/workflow/place/detail/${hubNo}`);
+            navigate(`/place/${hubNo}`);
 
         } catch (error) {
 
             console.log("지역 정보 수정 실패", error);
-            console.log("response:", error.response?.data);
 
             alert("지역 정보 수정에 실패했습니다.");
 
         }
+
     };
 
 
@@ -175,7 +158,7 @@ function PlaceEdit() {
 
 
                     {/* 거점 이름 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>거점 이름 : </h4>
 
@@ -190,7 +173,7 @@ function PlaceEdit() {
 
 
                     {/* 메인 지역 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>지역명 : </h4>
 
@@ -222,7 +205,8 @@ function PlaceEdit() {
 
 
                     {/* 하위 지역 */}
-                    <div className="formGroup">
+                    <div>
+
                         <h4>상세지역명 : </h4>
 
                         <select
@@ -253,10 +237,13 @@ function PlaceEdit() {
                             }
 
                         </select>
+
                     </div>
+
+
                     {/* 장소 유형 */}
-                    <div className="formGroup">
-                            <div className="Detail">
+                    <div>
+
                         <h4>장소 유형 : </h4>
 
                         <select
@@ -282,12 +269,12 @@ function PlaceEdit() {
                             </option>
 
                         </select>
-                            </div>
+
                     </div>
 
 
                     {/* 운영 상태 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>운영 상태 : </h4>
 
@@ -298,15 +285,15 @@ function PlaceEdit() {
                         >
 
                             <option value="OPEN">
-                                ✅
+                                🟢
                             </option>
 
                             <option value="PAUSED">
-                                ⚠️
+                                🟠
                             </option>
 
                             <option value="CLOSED">
-                                🚫
+                                🔴
                             </option>
 
                         </select>
@@ -315,7 +302,7 @@ function PlaceEdit() {
 
 
                     {/* 주소 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>주소 : </h4>
 
@@ -330,7 +317,7 @@ function PlaceEdit() {
 
 
                     {/* 전화번호 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>전화번호 : </h4>
 
@@ -345,7 +332,7 @@ function PlaceEdit() {
 
 
                     {/* 설명 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>지역 설명 : </h4>
 
@@ -358,7 +345,7 @@ function PlaceEdit() {
                     </div>
 
                     {/* 사진 첨부 */}
-                    <div className="formGroup">
+                    <div>
 
                         <h4>사진 첨부 : </h4>
 
@@ -373,17 +360,20 @@ function PlaceEdit() {
 
                 </div>
 
-                <div className="buttonGroup">
-                    <button type="submit" className="submitBtn">
+
+                <div>
+
+                    <button type="submit">
                         저장하기
                     </button>
+
                     <button
                         type="button"
-                        className="backBtn"
                         onClick={() => navigate(-1)}
                     >
                         뒤로가기
                     </button>
+
                 </div>
 
             </form>
