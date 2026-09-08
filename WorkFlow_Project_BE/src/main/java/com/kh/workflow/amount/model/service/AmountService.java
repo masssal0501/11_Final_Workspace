@@ -141,7 +141,7 @@ public interface AmountService {
 	Page<Amount> selectAmountList(Pageable pageable);
 
 
-	int insertAmount(Amount amount);
+	int insertAmount(Amount amount, MultipartFile[] files);
 
 
 	Page<Amount> selectAmountListByWorkcationNo(int workcationNo, Pageable pageable);
