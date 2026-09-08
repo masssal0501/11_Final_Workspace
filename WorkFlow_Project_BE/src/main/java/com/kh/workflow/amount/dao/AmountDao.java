@@ -375,6 +375,14 @@ public interface AmountDao
 	 * @param empNo 사원 번호
 	 * @return int 남은 지원금 잔액
 	 */
+    @Query("""
+            SELECT COALESCE(SUM(a.approvedAmount), 0)
+            FROM Amount a
+            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
+            JOIN Employee e ON w.employee = e
+            WHERE e.empNo = :empNo
+              AND a.status = 'A'
+        """)
 	int selectAmountSupport(int empNo);
 
 	/**
@@ -383,15 +391,15 @@ public interface AmountDao
 	 * @param empNo 사원 번호
 	 * @return int 사용 비용 합계
 	 */
-	@Query("""
-	        SELECT COALESCE(SUM(ai.itemAmount), 0)
-	        FROM Amount a
-	        JOIN AmountItem ai ON ai.amount = a
-	        JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
-	        JOIN Employee e ON w.employee = e
-	        WHERE e.empNo = :empNo
-	          AND a.status = 'A'
-	    """)
+    @Query("""
+            SELECT COALESCE(SUM(ai.itemAmount), 0)
+            FROM Amount a
+            JOIN AmountItem ai ON ai.amount = a
+            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
+            JOIN Employee e ON w.employee = e
+            WHERE e.empNo = :empNo
+              AND a.status = 'A'
+        """)
 	int selectUseAmount(int empNo);
 
     @Query("SELECT COUNT(a) FROM Amount a")
