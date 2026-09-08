@@ -279,7 +279,7 @@ function HubUpdateFormComponent(props) {
         <div className="hub-content">
             { (loginUser.authCode === "ADMIN") ? (
                 <>
-                    <h2 align="center"><b>거점 수정</b></h2>
+                    <h2 align="center" className="hub-header"><b>거점 수정</b></h2>
                     <br />
                     <form ref={formRef}>
                         <table width="100%" className="hub-table">
@@ -474,7 +474,7 @@ function HubUpdateFormComponent(props) {
                         />
                         <br />
                     
-                        <button type="submit" className="btn btn-primary" onClick={ updateHub }>수정하기</button>
+                        <button type="submit" className="btn btn-primary hub-primary" onClick={ updateHub }>수정하기</button>
                         <button type="button" className="btn btn-dark" style={ { float : "right", borderRadius : "99px" } } onClick={ () => { navigate(-1); } }>뒤로가기</button>
                     </form>
                 </>

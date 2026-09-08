@@ -72,7 +72,7 @@ function AIComponent() {
     return (
         <div className="hub-content">
             {/* 타이틀 영역 */}
-            <h2 align="center"><b>AI 추천</b></h2>
+            <h2 align="center" className="hub-header"><b>AI 추천</b></h2>
             <hr />
             <br />
 

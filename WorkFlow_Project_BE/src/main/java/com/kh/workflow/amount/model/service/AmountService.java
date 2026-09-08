@@ -3,6 +3,8 @@ package com.kh.workflow.amount.model.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.amount.model.vo.Amount;
@@ -134,5 +136,17 @@ public interface AmountService {
     // =========================================================
 
     Map<String, Object> getFullStatistics();
+
+
+	Page<Amount> selectAmountList(Pageable pageable);
+
+
+	int insertAmount(Amount amount, MultipartFile[] files);
+
+
+	Page<Amount> selectAmountListByWorkcationNo(int workcationNo, Pageable pageable);
+
+
+	Amount selectAmountById(Integer amountNo);
 
 }

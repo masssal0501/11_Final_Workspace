@@ -14,6 +14,7 @@ import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
+import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.dashboard.model.dto.BalanceListDto;
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 
@@ -120,9 +121,10 @@ public interface AmountDao
     // amount_item
     // =========================================================
 
+    @Query("SELECT ai FROM AmountItem ai WHERE ai.amount.amountNo = :amountNo ORDER BY ai.itemNo ASC")
     List<AmountItem>
     findByAmount_AmountNoOrderByItemNoAsc(
-            Integer amountNo
+    		@Param("amountNo") Integer amountNo
     );
 
 
@@ -154,9 +156,9 @@ public interface AmountDao
     // support_list
     // =========================================================
 
-    List<SupportList>
+    @Query("SELECT sl FROM SupportList sl WHERE sl.amount.amountNo = :amountNo ORDER BY sl.supportNo ASC")List<SupportList>
     findByAmount_AmountNoOrderBySupportNoAsc(
-            Integer amountNo
+    		@Param("amountNo") Integer amountNo
     );
 
 
@@ -174,10 +176,11 @@ public interface AmountDao
     // amount_file
     // =========================================================
 
+    @Query("SELECT af FROM AmountFile af WHERE af.amount.amountNo = :amountNo AND af.status = :status ORDER BY af.amountFileNo ASC")
     List<AmountFile>
     findByAmount_AmountNoAndStatusOrderByAmountFileNoAsc(
-            Integer amountNo,
-            String status
+    		@Param("amountNo") Integer amountNo,
+    		@Param("status") String status
     );
 
 
@@ -213,6 +216,14 @@ public interface AmountDao
 	 * 
 	 * @return int 예산 소진 백분율 값
 	 */
+    @Query("""
+            SELECT COALESCE((SUM(ai.itemAmount - sl.approvedAmount) / SUM(a.approvedAmount)) * 100, 0)
+            FROM Amount a
+            JOIN AmountItem ai ON ai.amount = a
+            JOIN SupportList sl ON sl.amount = a
+            WHERE MONTH(CURRENT_DATE) = MONTH(a.approvedAt)
+              AND a.status = 'A'
+        """)
 	int adminSelectBudgetExhaustionRate();
 
 	/**
@@ -220,6 +231,13 @@ public interface AmountDao
 	 * 
 	 * @return int 회사 부담금 합계
 	 */
+    @Query("""
+            SELECT COALESCE(SUM(ai.itemAmount - sl.approvedAmount), 0)
+            FROM AmountItem ai
+            JOIN Amount a ON ai.amount = a
+            JOIN SupportList sl ON sl.amount = a
+            WHERE a.status IN ('H', 'R', 'W')
+        """)
 	int selectTotalBudget();
 
 	/**
@@ -227,6 +245,11 @@ public interface AmountDao
 	 * 
 	 * @return int 지원금 잔액
 	 */
+    @Query("""
+            SELECT COALESCE(SUM(a.approvedAmount), 0)
+            FROM Amount a
+            WHERE a.status IN ('H', 'R', 'W')
+        """)
 	int selectSupportFund();
 
 	/**
@@ -234,6 +257,13 @@ public interface AmountDao
 	 * 
 	 * @return int 총 비용 합계
 	 */
+    @Query("""
+            SELECT COALESCE(SUM(ai.itemAmount - sl.approvedAmount - a.approvedAmount), 0)
+            FROM Amount a
+            JOIN SupportList sl ON a = sl.amount
+            JOIN AmountItem ai ON ai.amount = a
+            WHERE a.status = 'A'
+        """)
 	int selectTotalCost();
 	
 	/**
@@ -241,6 +271,13 @@ public interface AmountDao
 	 * 
 	 * @return int 예산 집행률 백분율 값
 	 */
+    @Query("""
+            SELECT COALESCE((SUM(ai.itemAmount - sl.approvedAmount) / SUM(a.approvedAmount)) * 100, 0)
+            FROM Amount a
+            JOIN AmountItem ai ON ai.amount = a
+            JOIN SupportList sl ON sl.amount = a
+            WHERE a.status IN ('H', 'R', 'W')
+        """)
 	int selectBudgetData();
 
 	/**
@@ -248,6 +285,20 @@ public interface AmountDao
 	 * 
 	 * @return List<ChartDataDto> 항목별 지출 비중 데이터 목록
 	 */
+    @Query("""
+            SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(
+                CASE WHEN ai.itemType = 'S' THEN '숙박'
+                     WHEN ai.itemType = 'T' THEN '교통'
+                     WHEN ai.itemType = 'E' THEN '체험'
+                     WHEN ai.itemType = 'F' THEN '식비'
+                     WHEN ai.itemType = 'V' THEN '차량'
+                     ELSE '기타'
+                END,
+                COALESCE(SUM(ai.itemAmount), 0)
+            )
+            FROM AmountItem ai
+            GROUP BY ai.itemType
+        """)
 	List<ChartDataDto> selectCategoryData();
 
 	/**
@@ -255,6 +306,19 @@ public interface AmountDao
 	 * 
 	 * @return List<ChartDataDto> 부서별 예산 사용량 데이터 목록
 	 */
+    @Query("""
+            SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(
+                d.depTitle,
+                COALESCE(SUM(ai.itemAmount), 0)
+            )
+            FROM AmountItem ai
+            JOIN Amount a ON a = ai.amount
+            JOIN WorkcationInfo w ON w.workcationNo = a.workcationNo
+            JOIN Employee e ON w.employee = e
+            JOIN Department d ON d.depId = e.depId
+            WHERE a.status = 'A'
+            GROUP BY d.depTitle
+        """)
 	List<ChartDataDto> selectDeptData();
 
 	/* =====================================================================
@@ -267,6 +331,16 @@ public interface AmountDao
 	 * @param depId 부서 아이디
 	 * @return int 부서 예산 소진 백분율 값
 	 */
+    @Query("""
+            SELECT COALESCE((SUM(ai.itemAmount - sl.approvedAmount) / SUM(a.approvedAmount)) * 100, 0)
+            FROM Amount a
+            JOIN AmountItem ai ON ai.amount = a
+            JOIN SupportList sl ON sl.amount = a
+            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
+            JOIN Employee e ON w.employee = e
+            WHERE e.depId = :depId
+              AND a.status = 'A'
+        """)
 	int managerSelectBudgetExhaustionRate(String depId);
 
 	/**
@@ -275,6 +349,20 @@ public interface AmountDao
 	 * @param depId 부서 아이디
 	 * @return List<BalanceListDto> 부서원들의 정산 대기 내역 리스트
 	 */
+    @Query("""
+            SELECT new com.kh.workflow.dashboard.model.dto.BalanceListDto(
+                e.empName,
+                e.empNo,
+                ai.itemAmount,
+                a.status
+            )
+            FROM Amount a
+            JOIN AmountItem ai ON a = ai.amount
+            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
+            JOIN Employee e ON w.employee = e
+            WHERE e.depId = :depId
+              AND a.status IN ('H', 'R', 'W')
+        """)
 	List<BalanceListDto> selectBalanceList(String depId);
 
 	/* =====================================================================
@@ -287,6 +375,14 @@ public interface AmountDao
 	 * @param empNo 사원 번호
 	 * @return int 남은 지원금 잔액
 	 */
+    @Query("""
+            SELECT COALESCE(SUM(a.approvedAmount), 0)
+            FROM Amount a
+            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
+            JOIN Employee e ON w.employee = e
+            WHERE e.empNo = :empNo
+              AND a.status = 'A'
+        """)
 	int selectAmountSupport(int empNo);
 
 	/**
@@ -295,6 +391,59 @@ public interface AmountDao
 	 * @param empNo 사원 번호
 	 * @return int 사용 비용 합계
 	 */
+    @Query("""
+            SELECT COALESCE(SUM(ai.itemAmount), 0)
+            FROM Amount a
+            JOIN AmountItem ai ON ai.amount = a
+            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
+            JOIN Employee e ON w.employee = e
+            WHERE e.empNo = :empNo
+              AND a.status = 'A'
+        """)
 	int selectUseAmount(int empNo);
+
+    @Query("SELECT COUNT(a) FROM Amount a")
+	int getAmountListCount();
+
+	@Query("SELECT a FROM Amount a")
+	List<Amount> selectAmountList(PageInfo pi);
+
+	@Query("SELECT COUNT(a) FROM Amount a WHERE a.workcationNo = :workcationNo")
+	int selectAmountCountByWorkcationNo(@Param("workcationNo") int workcationNo);
+
+	@Query("""
+		    SELECT a
+		    FROM Amount a
+		    WHERE a.workcationNo = :workcationNo
+		""")
+	List<Amount> selectAmountListByWorkcationNo(@Param("workcationNo") int workcationNo, PageInfo pi);
+
+	@Query("""
+		SELECT FUNCTION('MONTH', a.createdAt), SUM(ai.itemAmount)
+          FROM Amount a
+          JOIN AmountItem ai ON ai.amount = a
+         GROUP BY FUNCTION('MONTH', a.createdAt)
+         """)
+	Object getMonthlyStatistics();
+
+	@Query("""
+			SELECT d.depTitle, SUM(ai.itemAmount)
+	          FROM Amount a
+	          JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo 
+	          JOIN AmountItem ai ON ai.amount = a
+	          JOIN Employee e ON w.employee = e
+	          JOIN Department d ON e.depId = d.depId
+	         GROUP BY d.depTitle
+	           """)
+	Object getDeptStatistics();
+
+	@Query("""
+		SELECT ai.itemType, SUM(ai.itemAmount)
+	      FROM AmountItem ai 
+	      GROUP BY ai.itemType
+			""")
+	Object getItemStatistics();
+
+	List<Amount> findByWorkcationNo(Integer workcationNo);
 
 }

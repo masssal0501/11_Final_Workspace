@@ -3,7 +3,6 @@ package com.kh.workflow.dashboard.model.dto;
 import java.util.List;
 
 import com.kh.workflow.notice.vo.Notice;
-import com.kh.workflow.reservation.model.vo.Reservation;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,11 +23,12 @@ public class StaffDto {
 	private int workcationCount;
 	private int amountSupport;
 	private int useAmount;
-	private boolean isWorkcation;
+	private boolean WorkcationIsTrue;
 	private String workcationPlan;
 	private double progressRate;
+	private String hubAddress;
 	
 	/* --- 리스트 데이터 --- */
 	private List<Notice> noticeData;
-	private List<Reservation> reservationList;
+	private List<ReservationListDto> reservationList;
 }

@@ -222,7 +222,7 @@ function HubEnrollFormComponent(props) {
         <div className="hub-content">
             { (loginUser.authCode === "ADMIN") ? (
                 <>
-                    <h2 align="center"><b>거점 등록</b></h2>
+                    <h2 align="center" className="hub-header"><b>거점 등록</b></h2>
                     <br />
                     {/* 거점 작성 입력 폼 */}
                     <form ref={formRef}>
@@ -433,7 +433,7 @@ function HubEnrollFormComponent(props) {
                         <br />
                     
                         {/* 하단 동작 버튼 */}
-                        <button type="submit" className="btn btn-primary" onClick={ insertHub }>등록하기</button>
+                        <button type="submit" className="btn btn-primary hub-primary" onClick={ insertHub }>등록하기</button>
                         <button type="button" className="btn btn-dark" style={ { float : "right", borderRadius : "99px" } }  onClick={ () => { navigate(-1); } }>뒤로가기</button>
                     </form>
                 </>

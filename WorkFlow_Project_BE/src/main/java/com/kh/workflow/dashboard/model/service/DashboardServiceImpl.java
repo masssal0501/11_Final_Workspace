@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 import com.kh.workflow.amount.dao.AmountDao;
 import com.kh.workflow.dashboard.model.dto.AdminDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
+import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.hub.model.dao.HubDao;
 import com.kh.workflow.notice.dao.NoticeDao;
-import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 
@@ -151,13 +151,14 @@ public class DashboardServiceImpl implements DashboardService {
 		staffDto.setWorkcationCount(workcationDao.selectWorkcationCount(empNo));
 		staffDto.setAmountSupport(amountDao.selectAmountSupport(empNo));
 		staffDto.setUseAmount(amountDao.selectUseAmount(empNo));
-		staffDto.setWorkcation(workcationDao.existsWorkcation(empNo));
+		staffDto.setWorkcationIsTrue(workcationDao.existsWorkcation(empNo));
 		
 		/* --- [2] 업무 및 일정 관리 데이터 --- */
 		staffDto.setWorkcationPlan(workcationDao.selectWorkcationPlan(empNo));
 		staffDto.setProgressRate(taskDao.selectProgressRate(empNo));
 		staffDto.setReservationList(workcationDao.selectReservationList(empNo));
-				
+		staffDto.setHubAddress(hubDao.selectHubAddress(empNo));
+		
 		/* --- [3] 공통 데이터 --- */
 		// 공지사항
 		Map<String, Object> map = new HashMap<>();
@@ -172,7 +173,7 @@ public class DashboardServiceImpl implements DashboardService {
 	 * [사원] 조건 기반 본인 예약 목록 조회
 	 */
 	@Override
-	public List<Reservation> selectStaffReservationList(int empNo, String keyword, LocalDateTime startDate, LocalDateTime endDate) {
+	public List<ReservationListDto> selectStaffReservationList(int empNo, String keyword, LocalDateTime startDate, LocalDateTime endDate) {
 		// 사번(empNo)을 고정값으로 두고 키워드와 기간으로 개인 예약 일정 필터링
 		return workcationDao.staffSearchReservationList(empNo, keyword, startDate, endDate);
 	}

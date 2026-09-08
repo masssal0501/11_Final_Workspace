@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
+import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.WaitingListDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.reservation.model.vo.Reservation;
@@ -118,15 +119,16 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WaitingListDto> 관리자 승인 대기 리스트
 	 */
 	@Query("""
-			SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState)
-			  FROM WorkcationInfo w
-			  JOIN w.employee e, Department d, Reservation r
-			  JOIN r.hub h
-			 WHERE e.depId = d.depId
-			   AND w = r.workcation
-			   AND w.approverState = 'W'
-			 ORDER BY w.workcationNo DESC
-			""")
+		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState) 
+		      FROM WorkcationInfo w 
+		      JOIN w.employee e
+		      JOIN Reservation r ON r.workcation = w
+		      JOIN r.hub h
+		      JOIN Department d ON d.depId = e.depId
+		     WHERE e.depId = d.depId 
+		       AND w.approverState = 'W' 
+		     ORDER BY w.workcationNo DESC
+		    """)
 	List<WaitingListDto> adminSelectWaitingList();
 
 	/**
@@ -224,15 +226,15 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WaitingListDto> 부서 승인 대기 리스트
 	 */
 	@Query("""
-			SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState)
-			  FROM WorkcationInfo w
-			  JOIN w.employee e, Reservation r
+		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState) 
+		      FROM WorkcationInfo w 
+		      JOIN w.employee e
+		      JOIN Reservation r ON r.workcation = w
 			  JOIN r.hub h
-			 WHERE e.depId = :depId
-			   AND w = r.workcation
-			   AND w.approverState = 'W'
-			 ORDER BY w.workcationNo DESC
-			""")
+		     WHERE e.depId = :depId
+		       AND w.approverState = 'W'
+		     ORDER BY w.workcationNo DESC
+		    """)
 	List<WaitingListDto> managerSelectWaitingList(@Param("depId") String depId);
 
 	/**
@@ -264,7 +266,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
-				e.empNo,
+				w.workcationNo,
 				w.workcationTitle,
 				h.mainRegion,
 				h.subRegion,
@@ -292,7 +294,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
-				e.empNo,
+				w.workcationNo,
 				w.workcationTitle,
 				h.mainRegion,
 				h.subRegion,
@@ -376,16 +378,24 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * [사원] 특정 사원의 워케이션 예약 리스트 전체 조회
 	 * 
 	 * @param empNo 사원 번호
-	 * @return List<Reservation> 예약 정보 목록
+	 * @return List<ReservationListDto> 예약 정보 목록
 	 */
 	@Query("""
-			SELECT r
-			  FROM Reservation r
-			  JOIN r.workcation w
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ReservationListDto(
+				r.rsvNo,
+				h.hubName,
+				r.rsvStart,
+				r.rsvEnd,
+				r.userCapacity,
+				r.rsvStatus
+			)
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
+			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
 			""")
-	List<Reservation> selectReservationList(@Param("empNo") int empNo);
+	List<ReservationListDto> selectReservationList(@Param("empNo") int empNo);
 
 	/**
 	 * [사원] 키워드 및 기간 조건을 포함한 개인 예약 리스트 검색 조회
@@ -393,23 +403,32 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @param empNo     사원 번호
 	 * @param keyword   검색어 (허브명 등)
 	 * @param startDate 검색 시작일자
-	 * @param endDate   검색 종료일자
-	 * @return List<Reservation> 조건에 부합하는 예약 검색 목록
+	 * @param endDate 검색 종료일자
+	 * @return List<ReservationListDto> 조건에 부합하는 예약 검색 목록
 	 */
 	@Query("""
-			SELECT r
-			  FROM Reservation r
-			  JOIN r.workcation w
-			  JOIN w.employee e
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ReservationListDto(
+				r.rsvNo,
+				h.hubName,
+				r.rsvStart,
+				r.rsvEnd,
+				r.userCapacity,
+				r.rsvStatus
+			)
+			  FROM WorkcationInfo w
+			  JOIN Reservation r ON r.workcation = w
 			  JOIN r.hub h
+			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
 			   AND h.hubName LIKE '%'||:keyword||'%'
 			   AND w.startAt >= :startDate
 			   AND w.endAt <= :endDate
 			""")
-	List<Reservation> staffSearchReservationList(@Param("empNo") int empNo, @Param("keyword") String keyword,
-			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-
+	List<ReservationListDto> staffSearchReservationList(@Param("empNo") int empNo,
+												 @Param("keyword") String keyword,
+												 @Param("startDate") LocalDateTime startDate,
+												 @Param("endDate") LocalDateTime endDate);
+	
 	// 남훈님 작업 - 이창현 옮김 0908_0929
 	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " + "JOIN Reservation r ON r.workcation = w "
 			+ "JOIN r.hub h " + "WHERE (h.hubType = 1 OR h.hubType = 2) "

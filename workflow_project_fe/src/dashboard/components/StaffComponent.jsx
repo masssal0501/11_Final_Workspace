@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { selectStaffDashboardApi, selectStaffReservationListApi } from "../api/dashboardApi";
+import LocationCheckModal from "../../common/components/LocationCheckModal";
 
 /**
  * 일반 임직원(Staff) 전용 대시보드 컴포넌트
@@ -16,13 +17,18 @@ function StaffComponent(props) {
         workcationCount: 0,
         amountSupport: 0,
         useAmount: 0,
-        isWorkcation: false,
+        WorkcationIsTrue: false,
         workcationPlan: "",
-        position: "",
         progressRate: 100,
+        hubAddress : "",
         noticeData: [],
         reservationList: []
     });
+
+    const [address, setAddress] = useState("");
+
+    // 출근/퇴근 상태 관리 (false: 출근 전, true: 출근 완료/퇴근 전)
+    const [isCheckedIn, setIsCheckedIn] = useState(false);
 
     // 개인 예약 리스트 검색 및 필터링(기간, 키워드)을 위한 입력 상태 관리
     const [inputData, setInputData] = useState({
@@ -30,6 +36,13 @@ function StaffComponent(props) {
         startAt: "",
         endAt: ""
     });
+
+    // 카카오맵 SDK 로드 완료 여부 State
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    // 모달 제어용 State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [hubInfo, setHubInfo] = useState(null);
 
     const loginUser = props.loginUser;
 
@@ -55,61 +68,129 @@ function StaffComponent(props) {
         return d.toLocaleDateString('ko-KR');
     };
 
-    // 컴포넌트 마운트 시 카카오 지오코더를 이용한 현재 위치 조회 및 임직원 대시보드 API 호출
+    /**
+     * autoload=false 환경에서 kakao.maps.load()로 SDK 초기화 감지
+     */
     useEffect(() => {
-        const geocoder = new kakao.maps.services.Geocoder();
-        navigator.geolocation.getCurrentPosition(
-            (data) => {
-                geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
-                    setData(prevData => ({
-                        ...prevData,
-                        position: result[0].address.address_name
-                    }));
+        const checkKakaoMap = () => {
+            if (kakao.maps) {
+                kakao.maps.load(() => {
+                    setIsLoaded(true); // 로딩 완료 처리
+                    if (kakao.maps.services) {
+                        // 컴포넌트 마운트 시 카카오 지오코더를 이용한 현재 위치 조회 및 임직원 대시보드 API 호출
+                        const geocoder = new kakao.maps.services.Geocoder();
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                geocoder.coord2Address(pos.coords.longitude, pos.coords.latitude, (result) => {
+                                    if(result.length > 0) {
+                                        setAddress(result[0].address.address_name);
+                                    }
+                                });
+                            }
+                        );
+                    }
                 });
+            } else {
+                setTimeout(checkKakaoMap, 100); // 스크립트 로드 대기
             }
-        );
+        };
+        checkKakaoMap();
+    }, [kakao]);
 
+    useEffect(() => {
         const selectStaffDashboard = async () => {
-            
             try {
                 // 임직원 대시보드 데이터 조회 API 호출 (사번 전달)
                 const response = await selectStaffDashboardApi(loginUser.empNo);
-                
-                console.log(response.data);
-
                 // API 응답 데이터로 대시보드 상태 값 업데이트
                 setData(response.data);
-
             } catch(error) {
                 console.error(error);
             }
         }
-
         selectStaffDashboard();
-
-    }, [kakao]);
+    }, [loginUser.empNo]);
 
     /**
      * 출근하기 버튼 클릭 시 호출되는 핸들러 함수
      * 워케이션 등록 여부에 따라 출근 처리를 수행하거나 안내 메시지를 띄웁니다.
      * @param {Object} e - 이벤트 객체
      */
-    const commuteClicker = async e => {
-
+    const commuteClicker = e => {
         e.preventDefault();
 
-        if(!data.isWorkcation) {            
-            try {
+        const now = new Date();
+        const currentHour = now.getHours();
 
-                alert("출근 성공");
-
-            } catch(error) {
-                console.error(error);
-            }
-        } else {
+        if (!data.WorkcationIsTrue) {
             alert("등록된 워케이션이 없습니다.");
+            return; 
         }
+
+        // 출근 시간 체크 (08:00 ~ 12:00)
+        if (!isCheckedIn) {
+            if (currentHour < 8 || currentHour >= 12) {
+                alert("지금은 출근 시간이 아닙니다. (출근 가능 시간: 08:00 ~ 12:00)");
+                return;
+            }
+        } 
+        // 퇴근 시간 체크 (17:00 ~ 23:00) - 필요에 따라 시간 변경 가능
+        else {
+            if (currentHour < 17 || currentHour >= 23) {
+                alert("지금은 퇴근 시간이 아닙니다. (퇴근 가능 시간: 17:00 ~ 23:00)");
+                return;
+            }
+        }
+
+        if (!kakao || !kakao.maps || !kakao.maps.services) {
+            alert("지도 API가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.");
+            return;
+        }
+
+        // 거점 주소를 좌표로 변환
+        const geocoder = new kakao.maps.services.Geocoder();
+        geocoder.addressSearch(data.hubAddress, (result, status) => {
+            
+            if (status === kakao.maps.services.Status.OK) {
+                // 모달에 넘겨줄 거점 정보 세팅
+                setHubInfo({
+                    hubName: data.hubAddress || "워케이션 거점", 
+                    latitude: parseFloat(result[0].y),
+                    longitude: parseFloat(result[0].x),
+                    allowedRadius: 100 // 허용 반경 100m
+                });
+                
+                // 모달 열기
+                setIsModalOpen(true);
+            } else {
+                alert("거점 주소를 좌표로 변환할 수 없습니다.");
+            }
+        });
+
     }
+
+    /**
+     * 모달에서 위치 인증 완료 후 실제 출근(API) 처리
+     */
+    const handleCheckInModal = async (checkInData) => {
+        try {
+            const now = new Date();
+            
+            if (checkInData.attendanceType === "IN") {
+                const isLate = now.getHours() >= 9 && now.getMinutes() > 10;
+                alert(isLate ? "출근 성공 (지각)" : "출근 성공");
+                setIsCheckedIn(true); // 출근 완료 상태로 변경
+            } else {
+                alert("퇴근 성공");
+                setIsCheckedIn(false); // 퇴근 완료 상태로 변경
+            }
+            
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            alert("출퇴근 처리 중 오류가 발생했습니다.");
+        }
+    };
 
     /**
      * 사용자가 검색 폼의 입력값(날짜, 검색어 등)을 변경할 때 호출되는 핸들러 함수
@@ -127,9 +208,7 @@ function StaffComponent(props) {
      * @param {Object} e - 이벤트 객체
      */
     const handleSearch = async e => {
-
         e.preventDefault();
-
         try {
             // 개인 예약 리스트 조회/검색 API 호출
             const response = await selectStaffReservationListApi(loginUser.empNo, inputData);
@@ -157,7 +236,7 @@ function StaffComponent(props) {
                         <td>
                             <div>
                                 <span>워케이션 간 횟수 : {data.workcationCount}회</span>&nbsp;&nbsp;&nbsp;
-                                <span>남은 지원금 : {data.amountSupport}원</span>&nbsp;&nbsp;&nbsp;
+                                <span>사용한 지원금(지자체 지원금 제외) : {data.amountSupport}원</span>&nbsp;&nbsp;&nbsp;
                                 <span>사용 비용 : {data.useAmount}원</span>
                             </div> 
                         </td>
@@ -167,10 +246,10 @@ function StaffComponent(props) {
                         <th>오늘의 근태</th>
                         <td>
                             <div>
-                                <button className="btn btn-primary" disabled={!data.isWorkcation} onClick={ commuteClicker }>
-                                    출근하기
+                                <button className="btn btn-primary dashboard-primary" disabled={!data.WorkcationIsTrue} onClick={ commuteClicker }>
+                                    {isCheckedIn ? "퇴근하기" : "출근하기"}
                                 </button><br />
-                                <span>현재 위치 : {data.position}</span>
+                                <span>현재 위치 : { (isLoaded) ? address : ""}</span>
                             </div>
                         </td>
                     </tr>
@@ -256,7 +335,7 @@ function StaffComponent(props) {
                 <table className="table table-hover">
                     <thead>
                         <tr>
-                            <th>이름</th>
+                            <th>숙소명</th>
                             <th>예약일자</th>
                             <th>인원</th>
                             <th>상태</th>
@@ -265,21 +344,29 @@ function StaffComponent(props) {
                     <tbody>
                         {data.reservationList?.length > 0 ? (
                             data.reservationList.map((item, index) => (
-                                <tr key={index} style={ { cursor : "auto" } }>
-                                    <td>{item.hub.hubName}</td>
+                                <tr key={index} onClick={ () => { navigate(`/reservations/${item.rsvNo}`) } }>
+                                    <td>{item.hubName}</td>
                                     <td>{item.rsvStart?.substring(5, 10)}~{item.rsvEnd?.substring(5, 10)}</td>
-                                    <td>{item.workcation.employee.empName}</td>
-                                    <td>{ (item.rsvState === "Y") ? "예약완료" : "예약대기"}</td>
+                                    <td>{item.userCapacity}</td>
+                                    <td>{ (item.rsvState === "Y") ? "예약완료" : ((item.rsvState === "C") ? "예약취소" : "예약대기")}</td>
                                 </tr>
                             ))
                         ) : (
-                            <tr style={ { cursor : "auto" } }>
+                            <tr style={ { cursor : "auto", backgroundColor : "white" } }>
                                 <td colSpan="6">예약 건이 없습니다.</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
+
+            <LocationCheckModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                hub={hubInfo}
+                onCheckIn={handleCheckInModal}
+                isCheckedIn={isCheckedIn}
+            />
         </div>
     )
 }

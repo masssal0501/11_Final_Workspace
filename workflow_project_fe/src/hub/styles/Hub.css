@@ -13,9 +13,11 @@
   background-color: white;
   border: 1px solid gray;
   border-radius: 50px;
-  padding: 50px 25px;
+  padding: 35px 25px;
 }
-
+.hub-header {
+    padding: 10px;
+}
 /* ==========================================
    2. 허브 테이블(Hub Table) 세부 스타일
    ========================================== */
@@ -299,4 +301,16 @@
 .kakao-map-go{
     font-size: 20px;
     border : 1px solid currentColor
+}
+
+.hub-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+}
+
+.hub-primary:hover {
+    background-color: #0b5ed7; 
+    border-color: #0a58ca;
+    color: #ffffff;
 }

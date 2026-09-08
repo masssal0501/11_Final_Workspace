@@ -20,7 +20,7 @@ import lombok.ToString;
 @ToString
 public class WorkcationListDto {
 
-	private int empNo;
+	private int workcationNo;
 	private String workcationTitle;
 	private String mainRegion;
 	private String subRegion;

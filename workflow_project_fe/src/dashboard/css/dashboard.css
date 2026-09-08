@@ -16,6 +16,10 @@
   padding: 50px 25px;
 }
 
+.dashboard-content div {
+    margin: 0; /* 혹은 필요한 경우 initial 등으로 재설정 */
+}
+
 /* ==========================================
    2. 대시보드 섹션 타이틀 및 요약 통계 영역
    ========================================== */
@@ -80,4 +84,16 @@
 /** 임직원(Staff) 전용 테이블 행(tr)의 마우스 커서를 기본값(auto)으로 고정 */
 .staff-table tr{
     cursor: auto;
+}
+
+.dashboard-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+}
+
+.dashboard-primary:hover {
+    background-color: #0b5ed7; 
+    border-color: #0a58ca;
+    color: #ffffff;
 }

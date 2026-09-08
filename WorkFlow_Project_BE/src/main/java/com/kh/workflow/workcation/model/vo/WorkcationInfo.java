@@ -6,7 +6,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import com.kh.workflow.employee.model.vo.Employee;
-import com.kh.workflow.hub.model.vo.Hub;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;

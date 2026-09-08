@@ -59,12 +59,11 @@ import ReservationDetailComponent from "./reservation/components/ReservationDeta
 import ReservationUpdateComponent from "./reservation/components/ReservationUpdateComponent";
 import ReservationScheduleComponent from "./reservation/components/ReservationScheduleComponent";
 
-import LocationCheckModal from "./common/components/LocationCheckModal";
-import ErrorPage from "./common/components/ErrorPage";
-
 import AdminComponent from "./dashboard/components/AdminComponent";
 import ManagerComponent from "./dashboard/components/ManagerComponent";
 import StaffComponent from "./dashboard/components/StaffComponent";
+
+import { useKakaoLoader } from "react-kakao-maps-sdk";
 
 import {
     Routes,
@@ -72,10 +71,12 @@ import {
     Navigate
 } from "react-router-dom";
 
-
-import { useKakaoLoader } from "react-kakao-maps-sdk";
-
 function App() {
+
+    useKakaoLoader({
+        appkey: "a00510cb26a4e33be1647f26b12df5c9", 
+        libraries: ["services"],
+    });
 
     const [loginUser, setLoginUser] = useState(() => {
 
@@ -86,16 +87,7 @@ function App() {
             ? JSON.parse(savedUser)
             : null;
     });
-
-    // 카카오 SDK 로더
-    const [loading, error] = useKakaoLoader({
-        appkey: 'a00510cb26a4e33be1647f26b12df5c9',
-        libraries: ['services'] // 주소 변환을 위해 필수
-    });
     
-    if (loading) return;
-    if (error) return;
-
     /*
      * 로그인 성공
      */
@@ -295,7 +287,7 @@ function App() {
                 /> */}
 
                 <Route
-                    path="/dashboard"
+                    path="/"
                     element={
                         loginUser.authCode === "ADMIN"
                             ? <AdminComponent />

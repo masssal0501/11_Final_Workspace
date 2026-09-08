@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.kh.workflow.dashboard.model.dto.AdminDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
+import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
-import com.kh.workflow.reservation.model.vo.Reservation;
 
 /**
  * 대시보드 비즈니스 로직 처리를 위한 서비스 인터페이스
@@ -62,8 +62,8 @@ public interface DashboardService {
 	 * @param keyword 검색어 (예: 지역명, 허브명 등)
 	 * @param startDate 검색 범위 시작일자 (시간은 00:00:00 으로 세팅됨)
 	 * @param endDate 검색 범위 종료일자 (시간은 23:59:59 로 세팅됨)
-	 * @return List<Reservation> 조건에 만족하는 본인의 예약 목록
+	 * @return List<ReservationListDto> 조건에 만족하는 본인의 예약 목록
 	 */
-	List<Reservation> selectStaffReservationList(int empNo, String keyword, LocalDateTime startDate, LocalDateTime endDate);
+	List<ReservationListDto> selectStaffReservationList(int empNo, String keyword, LocalDateTime startDate, LocalDateTime endDate);
 	
 }

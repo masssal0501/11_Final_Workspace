@@ -201,11 +201,9 @@ function HubListComponent(props) {
     return (
         <div className="hub-content">
             <div className="position-relative d-flex align-items-center w-100 mb-4 hub-list-header">
-                <h2 className="m-0 w-100 text-center"><b>거점 목록</b></h2>
+                <h2 className="m-0 w-100 text-center hub-header"><b>거점 목록</b></h2>
                 <button className="btn btn-outline-dark" onClick={ () => { navigate("/place/list") } }>지역 정보 목록으로</button>
             </div>
-            <br />
-
             {/* 검색 필터 영역 */}
             <table align="left" className="search-filter-table hub-table">
                 <tbody>
@@ -272,7 +270,7 @@ function HubListComponent(props) {
             {/* 관리자용 거점 등록 버튼 */}
             { (loginUser.authCode === "ADMIN") && (
                 <div>
-                    <button type="button" className="btn btn-primary btn-sm" onClick={ () => { navigate("/hub/enrollForm") } }>▶ 거점 등록</button>
+                    <button type="button" className="btn btn-primary btn-sm hub-primary" onClick={ () => { navigate("/hub/enrollForm") } }>▶ 거점 등록</button>
                 </div>
             )}
             <br /><br />
