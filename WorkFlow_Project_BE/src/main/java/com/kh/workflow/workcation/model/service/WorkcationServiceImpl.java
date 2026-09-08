@@ -54,7 +54,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 	
 	@Autowired
 	private TaskDao taskDao;
-	
+
+	@Autowired
 	private TaskHistoryDao taskHistoryDao;
 	
 	@Override

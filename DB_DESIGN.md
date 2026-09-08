@@ -1,0 +1,205 @@
+# DB_DESIGN.md
+
+DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 확정)
+> `SQL/WorkFlow_Script_Nam_ver.sql`은 기준이 아님. 충돌 시 `WorkFlow_Script.sql` → README → 현재 Java 코드 순으로 판단.
+
+이 문서는 테이블마다 `Entity / Repository / Service / Controller / Frontend API` 매핑과 정합성 상태를 기록한다.
+상태 기호: ✅ 일치 / ⚠️ 경미한 불일치(동작에 영향 적음) / 🔴 불일치(수정 필요) / ❓ 사용자 확인 필요(구조적 충돌) / ⛔ 대응 코드 없음
+
+---
+
+## job / department / authority (기준 코드 테이블)
+
+- `job`, `authority`: 대응 Entity 없음. `Employee.jobCode`/`Employee.authCode`는 평범한 String 컬럼(FK는 SQL에만 존재, JPA 연관관계 없음). ⚠️ 설계상 허용 가능(코드성 테이블이라 관계 매핑 없이 문자열 검증만 하는 경우가 흔함) — 리팩토링 시 관계로 바꿀지 여부는 낮은 우선순위.
+- `department` ↔ `Department` ✅ 완전 일치 (`dep_id CHAR(2)`, `dep_title`)
+
+## employee
+
+- `employee` ↔ `Employee` (`WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/vo/Employee.java`) ✅ 컬럼명/길이/nullable 모두 일치 (`email VARCHAR(100)`, `dep_id CHAR(2)`, `pw_chg_required BOOLEAN DEFAULT TRUE` 등)
+- Repository: `EmployeeDao`(JPA) / Service: `EmployeeService`+`EmployeeServiceImpl` / Controller: `EmployeeController` (`/employees`) / Frontend: `employeeApi.js`
+
+## hub / hub_file
+
+- `hub` ↔ `Hub.java` ✅ / `hub_file` ↔ `HubFile.java` ✅ (양쪽 다 컬럼 매핑 정상)
+- Repository: `HubDao`(JPA) / Controller: `HubController`(`/hubs`, `@RequestMapping` 없이 경로 하드코딩) / Frontend: `hubApi.js`
+- 동일 `Hub` 엔티티를 `place` 모듈이 별도 DAO(`PlaceDao`)로 재사용 중 (hub_type 1,2 = hub 모듈 / 3,4,5 = place 모듈) — 스키마 문제는 아니고 모듈 중복 설계 이슈 (PROJECT_STATUS.md 참고)
+
+## workcation_info
+
+- ↔ `WorkcationInfo.java` — 컬럼명 전부 일치 (`approver_at`↔`approvetAt` 필드명은 오타지만 `@Column(name="approver_at")`로 명시 매핑되어 있어 DB 동작에는 영향 없음, 코드 가독성 문제일 뿐)
+- 🔴/❓ **`approver_state` 기본값 불일치**: SQL은 `DEFAULT 'R'`(검토), 코드 주석은 `'A 승인, C 취소, H 보류, J 반려, R 검토'`(**W 없음**). 그런데 Entity는 `DEFAULT 'W'`이고 `allowableValues`에 `"W"`를 포함, `Workflow_Script_Data.sql`도 `approver_state='A'`만 삽입(W는 코드에서 신청 시 기본값으로 세팅되는 것으로 추정). → **[확인 필요] 항목 1** (아래 참조)
+- Repository: `WorkcationDao`(JPA, ~30개 커스텀 `@Query`) / Controller: `WorkcationController`(`/workcation`) / Frontend: `WorkcationApi.js`
+
+## reservation
+
+- ↔ `Reservation.java` ✅ 일치 (`rsv_no`, `rsv_status` N/C/Y, `workcation_no`/`hub_no` FK)
+- Repository: `ReservationDao`(JPA) / Controller: `ReservationController`(`/reservations`) / Frontend: `reservationApi.js`
+- `GET /reservations/facilities`는 스텁(항상 빈 리스트) — SQL에 `facility` 테이블 자체가 없음 → 신규 테이블 필요 여부는 **[확인 필요] 항목 4**
+
+## work / task / task_history / work_file
+
+- `work` ↔ `Work.java` ✅
+- `task` ↔ `Task.java` ✅ **완전 일치** (`progress INT NOT NULL DEFAULT 0` 포함 — 이전 조사에서 "progress 컬럼 없음"으로 잘못 보고되었던 부분, 재확인 결과 SQL에 존재함을 확정)
+- `task_history` ↔ `TaskHistory.java` ✅ **완전 일치** (이전 조사에서 "테이블 없음"으로 잘못 보고되었던 부분, 재확인 결과 SQL에 존재함을 확정)
+- `work_file` ↔ **대응 Entity 없음.** 대신 `TaskFile.java`가 `@Table(name="task_file")`로 **존재하지 않는 테이블**을 가리키고 있고, PK도 `taskfile_no`(SQL은 `workfile_no`), FK도 `task_no`가 아니라 엉뚱하게 `amount_no`(nullable=false)로 되어 있음(AmountFile 복붙 흔적으로 추정). 🔴 어느 DAO/Service도 `TaskFile`을 참조하지 않아 완전한 고아 엔티티. → **[확인 필요] 항목 3**
+- Repository: `TaskDao`(JPA, 통계 전용 커스텀 쿼리 다수), `TaskHistoryDao`(JPA, 커스텀 메서드 없음) / Controller: **없음** (`WorkcationController.updateTask()`가 `TaskDao`/`TaskHistoryDao`를 직접 주입받아 처리, `task` 패키지의 `TaskService`는 `@Service` 없는 빈 클래스로 죽은 코드) / Frontend: 없음(`TaskListComponent.jsx`가 더미데이터만 사용, `taskApi.js` 파일 자체가 없음)
+
+## amount / amount_item / amount_list / amount_file
+
+- 🔴 **`Amount.java`와 `AmountSupport.java`가 둘 다 `@Table(name="amount_support")`를 가리키는데, SQL에는 그런 테이블이 없다. 실제 테이블명은 `amount`.**
+  - `AmountDao extends JpaRepository<Amount,Integer>`가 실제 사용되는 경로이며 `Amount.java`의 컬럼 매핑(`amount_no`,`requested_amount`,`approved_amount`,`requested_at`,`approved_at`,`created_at`,`updated_at`,`status`(10,NOT NULL,allowableValues A/C/H/J/R — SQL 주석과 정확히 일치),`amount_comment`,`workcation_no`)은 **`@Table` 이름만 빼면 나머지는 `amount` 테이블과 전부 일치**한다.
+  - `AmountSupport.java`는 `AmountSupportDao`(타입 파라미터가 `JpaRepository<Amount,Integer>`로 잘못 선언됨 — `AmountSupport`가 아님)를 통해서만 참조되고 어디서도 실사용되지 않는 고아 엔티티. `status` 기본값이 `DEFAULT'W'`(공백 누락 오타, SQL DDL로 그대로 쓰면 문법 오류 가능)로 되어 있어 더 위험함.
+  - → **[확인 필요] 항목 2** — `Amount.java`의 `@Table` 을 `amount`로 수정하고 `AmountSupport`/`AmountSupportDao`를 정리(삭제 후보)하는 안 제안.
+- 🔴 **`AmountItem.java`**: `item_type`(15)✅, `item_date`✅, `item_description`(500)✅, FK `amount_no`✅는 일치. 하지만:
+  - `itemAmount` 필드가 컬럼명 `item_amount`로 매핑되어 있는데, SQL은 `ALTER TABLE amount_item ADD COLUMN amount INT ...`로 컬럼명이 **`amount`**다. 🔴 컬럼명 불일치.
+  - SQL에는 `item_approved VARCHAR(15) NULL`(항목별 승인상태), `item_approved_amount INT NOT NULL DEFAULT 0`(항목별 승인금액) 컬럼이 있는데 Entity에는 이 두 필드가 **아예 없음**. 🔴 필드 누락.
+- 🔴/❓ **`SupportList.java`가 `@Table(name="support_list")`를 가리키는데 SQL에는 그런 테이블이 없다. 실제 테이블명은 `amount_list`이며, 구조 자체가 근본적으로 다르다:**
+  - SQL `amount_list`: PK가 `amount_no` **단독**(즉 `amount` 1건당 `amount_list` 1건만 가능한 구조로 보임), `amount_no`가 `amount` 테이블 FK이면서 동시에 자신의 PK, 추가로 `item_no`가 `amount_item` FK. 금액 필드는 `amount INT NOT NULL`(지원금액) **하나뿐**.
+  - `SupportList.java`: PK는 별도 auto-increment `support_no`, `amount`에 대한 `@ManyToOne`(즉 한 `amount`에 여러 `SupportList` 행 가능 — SQL과 반대되는 카디널리티), `item_no` 참조 없음, `requestAmount`/`approvedAmount` **두 개**의 금액 필드, SQL에 없는 `transport_supported`/`other_supported` 컬럼까지 존재.
+  - 단순 컬럼명 변경이 아니라 **"지자체 지원금은 신청당 1건인가 여러 건인가"라는 비즈니스 규칙 자체가 다름** → 반드시 사용자 확인 필요. **[확인 필요] 항목 5**
+- `amount_file` ↔ `AmountFile.java` 🔴 세 가지 불일치:
+  1. PK 컬럼명: Entity `amountfile_no` vs SQL `amountattachment_no`
+  2. 타임스탬프: Entity `created_at` vs SQL `updated_at`(SQL에는 created_at 자체가 없음)
+  3. `fileSize`(Long, NOT NULL) 필드가 있는데 SQL `amount_file`에는 `file_size` 컬럼이 아예 없음
+  - → **[확인 필요] 항목 6**
+- Repository: `AmountDao`(JPA, 통계/대시보드 쿼리 다수, `AmountItem`/`SupportList`/`AmountFile` 관련 쿼리 포함) / Controller: `AmountController`(`/api/v1/amounts`) / Frontend: `amountApi.js`(+ `Amount/components/*.jsx`)
+
+## notice / notice_file (MyBatis, JPA 미전환)
+
+- `notice` ↔ `Notice.java`(순수 POJO, `@Entity` 아님) — MyBatis `notice-mapper.xml`이 컬럼을 alias로 매핑. 컬럼(`notice_no`,`notice_title`,`notice_content`,`created_at`,`notice_status`,`view_count`,`emp_no`) 자체는 SQL과 일치하는 것으로 보이나 JPA 엔티티가 아니므로 이 문서의 정합성 검사 대상 밖(마이그레이션 시 재검증 필요).
+- `notice_file` ↔ `NoticeFile.java`(POJO) 동일.
+- Repository: `NoticeDao`(MyBatis `SqlSessionTemplate` 직접 호출, `@Repository` 클래스, `@Mapper` 인터페이스 아님) / Service: `NoticeService`+`NoticeServiceImpl` / Controller: `NoticeController`(`/api/v1/notice`) / Frontend: `noticeApi.js`
+- 🔴 **버그(런타임)**: `NoticeDao.isAdmin()`이 `noticeMapper.isAdmin`을 호출하는데 XML에는 `selectIsAdminByLoginId`라는 id로만 정의되어 있어 관리자 글쓰기(`POST`/`PUT`/`DELETE`) 3종이 전부 실패. **STEP 6에서 단순 오타로 패치하지 않고, master prompt 지침에 따라 STEP 7(Notice 전체 JPA 전환) 때 함께 해결 예정.**
+- ⚠️ **의존관계 주의**: `DashboardServiceImpl`(관리자/부서장/사원 대시보드 3곳 전부)이 `noticeDao.selectNoticeList(sqlSession, map)`을 직접 호출해 최근 공지 3건을 가져옴. Notice를 JPA로 전환할 때 `DashboardServiceImpl`도 함께 수정해야 함(누락 시 대시보드 공지 위젯이 깨짐).
+
+## survey_question / workcation_survey / survey_answer
+
+- `survey_question` ↔ `SurveyQuestion.java` 🔴 두 가지 불일치:
+  1. SQL에 `question_order INT NOT NULL UNIQUE`가 있는데 Entity에 해당 필드가 **없음**
+  2. Entity `allowableValues={"S","T","M"}` — 실제 SQL 코멘트/시드 데이터는 `SCORE`/`TEXT`/`SCORE_TEXT`(문자열 전체), 완전히 다른 코드 체계
+- `workcation_survey` ↔ `WorkcationSurvey.java`, `survey_answer` ↔ `SurveyAnswer.java` — 개별 재확인 전이나 이전 조사에서 큰 구조적 문제는 없었음(경미한 `updated_at` 기본값 메타데이터 차이 정도로 추정, ddl-auto 미사용이라 런타임엔 영향 없음)
+
+## verification
+
+- ⛔ **대응 Entity/DAO/Service/Controller가 전혀 없음.** `FindPWForm.jsx`(비밀번호 재설정 버튼 미구현), `findEmployeeId`(아이디 찾기 오동작) 등 "찾기" 계열 기능이 미완성인 것과 정확히 맞물림 — 이 테이블이 원래 이메일/SMS 인증코드 기반 아이디·비밀번호 찾기 플로우를 위해 설계된 것으로 추정됨. → **[확인 필요] 항목 4**와 함께 신규 기능 범위로 판단.
+
+---
+
+## MyBatis 사용 영역 전체 검색 결과 (STEP 4)
+
+`SqlSessionTemplate`/`@Mapper`/`mapper.xml` 등을 프로젝트 전체에서 검색한 결과, MyBatis를 실제로 사용하는 파일은 **정확히 3개**뿐이며 전부 `notice` 관련:
+
+1. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/notice/dao/NoticeDao.java` (SqlSessionTemplate 직접 사용)
+2. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/notice/service/NoticeServiceImpl.java`
+3. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/dashboard/model/service/DashboardServiceImpl.java` (대시보드 3곳에서 `noticeDao.selectNoticeList(sqlSession, map)` 호출)
+
+→ **다른 모듈은 이미 전부 JPA**. Notice 모듈 하나만 JPA로 전환하면 "JPA로 통일" 목표가 완료됨 (`mybatis-spring-boot-starter` 의존성과 `mapper-locations` 설정도 그 다음 제거 가능).
+
+---
+
+## [확인 필요] 목록 (섹션 23 형식)
+
+### 항목 1. `workcation_info.approver_state` 기본값/허용값
+
+**현재**
+- 기존 구조: `WorkcationInfo.java`는 `DEFAULT 'W'`, `allowableValues={"A","C","H","J","R","W"}`로 "대기(W)" 상태를 사용 중
+- README 요구사항: 신청 상태 흐름은 "임시저장→신청→검토중→승인/반려"로 서술 — "대기"에 해당하는 별도 상태명이 명시되어 있진 않음
+- `WorkFlow_Script.sql`: `DEFAULT 'R'`, 코멘트는 `A 승인, C 취소, H 보류, J 반려, R 검토` (**W 없음**)
+
+**충돌/문제**
+Java 코드는 신청 직후 상태를 `'W'`(대기)로 시작해 부서장이 검토를 시작하면 `'R'`(검토중)로 바뀌는 2단계 흐름을 전제하는 것으로 보이나, SQL은 애초에 `'R'`을 초기값으로 잡고 있어 "대기" 단계가 없음. `ApprovalDao`의 승인 대기열 쿼리들이 `'H','R','W'`를 함께 필터링하고 있어, SQL 그대로 가면 신청 직후 상태가 `'R'`이 되어 동작 자체는 문제없이 흘러갈 가능성이 높지만, "대기(W)"라는 상태 자체가 UI/통계에서 의미를 잃음.
+
+**선택지**
+A. 기존 구조 유지 — Entity 기본값을 `'W'`로, SQL도 `WorkFlow_Script.sql`에 `'W'`를 추가 반영(코멘트+DEFAULT 값 수정)
+B. README 기준으로 변경 — README는 이 세부 상태를 규정하지 않으므로 사실상 판단 불가
+C. SQL 기준으로 변경 — Entity 기본값을 `'R'`로 바꾸고 `allowableValues`에서 `'W'` 제거, "대기"라는 상태 개념 자체를 없앰
+
+**추천**: A (SQL에 `'W'`를 추가하는 쪽)
+**이유**: `ApprovalDao`, 프론트 대시보드, `Workflow_Script_Data.sql`이 이미 `'W'`를 전제로 만들어져 있어 코드 변경 범위가 SQL 한 줄 수정보다 훨씬 큼. SQL 파일 자체를 "최종 배포 기준"으로 유지보수하는 것이 지침 15번("필요한 수정사항 발견 시 최종적으로 WorkFlow_Script.sql에 반영")과도 부합.
+
+---
+
+### 항목 2. `amount`/`amount_support` 테이블명 및 `AmountSupport` 처리
+
+**현재**
+- 기존 구조: `Amount.java`, `AmountSupport.java` 둘 다 `@Table(name="amount_support")`
+- WorkFlow_Script.sql: 테이블명은 `amount`, `amount_support`라는 테이블 자체가 없음
+
+**충돌/문제**
+`Amount`가 실사용 엔티티(`AmountDao`가 이를 기반으로 동작)이므로 `@Table` 이름만 `amount`로 고치면 나머지 컬럼은 이미 SQL과 일치한다. `AmountSupport`는 `AmountSupportDao`의 제네릭 타입이 `Amount`로 잘못 선언되어 있어 사실상 어디서도 정상 동작하지 않는 고아 코드.
+
+**선택지**
+A. `Amount.java`의 `@Table`만 `amount`로 수정하고, `AmountSupport.java`/`AmountSupportDao.java`는 일단 남겨둔 채 미사용 표시만
+B. A에 더해 `AmountSupport.java`/`AmountSupportDao.java`를 삭제
+C. 그대로 유지(비추천 — 존재하지 않는 테이블을 가리키는 죽은 매핑을 방치)
+
+**추천**: B
+**이유**: `AmountSupportDao`는 컴파일은 되지만 제네릭 타입 오류(`JpaRepository<Amount,Integer>`인데 클래스명은 `AmountSupportDao`)로 사실상 처음부터 의도대로 동작한 적이 없는 코드이고, 참조하는 Controller/Service가 전혀 없음(지침 14번 Dead Code 절차대로 reference 검색 완료 — 참조 0건 확인). 다만 삭제는 지침에 따라 사용자 승인 후 진행.
+
+---
+
+### 항목 3. `TaskFile` ↔ `work_file` 재설계 필요
+
+**현재**
+- 기존 구조: `TaskFile.java`가 `@Table(name="task_file")`, PK `taskfile_no`, FK 필드가 `task_no`가 아니라 `amountNo`
+- WorkFlow_Script.sql: 실제 파일 테이블명은 `work_file`, PK `workfile_no`, FK는 `task_no`(→ `task` 테이블 참조)
+
+**충돌/문제**
+`TaskFile`을 참조하는 DAO/Service/Controller가 프로젝트 어디에도 없음(reference 검색 완료, 0건). 업무(Task) 첨부파일 기능 자체가 백엔드/프론트 양쪽에서 완전히 미구현 상태.
+
+**선택지**
+A. `TaskFile.java`를 `work_file` 테이블에 맞춰 재작성(테이블명/PK명/FK를 `Task`에 대한 `@ManyToOne`으로 교체)하고 `TaskFileDao`/Service/Controller까지 신규 구현 — 업무 첨부파일 기능을 실제로 완성
+B. 지금 당장은 손대지 않고 "구현 대상 후보"로만 기록, 우선순위가 낮으므로 후순위 작업으로 미룸
+
+**추천**: B (지금 단계에서는)
+**이유**: README에는 "업무 완료 및 결과 기록"까지만 언급되고 첨부파일 필수 여부가 명시되어 있지 않음. 지침 20번 테스트 우선순위 기준으로도 Task는 3순위이며, 지금 무리하게 새 Repository/Controller를 만드는 것보다 1~2순위(Login/Employee/JWT/Role, Workcation/Approval/Manager) 먼저 안정화하는 편이 낫다고 판단.
+
+---
+
+### 항목 4. `facility`/`verification` 신규 테이블 필요 여부
+
+**현재**
+- 기존 구조: `ReservationController.getAvailableFacilities()`가 항상 빈 리스트를 반환(주석으로 `Facility` 엔티티 부재를 인정). "아이디/비밀번호 찾기" 기능은 프론트 버튼 미연결, 백엔드에 대응 로직 없음.
+- WorkFlow_Script.sql: `facility` 테이블은 없음. `verification` 테이블(인증코드+만료일시+emp_no FK)은 이미 정의되어 있으나 대응 Entity/DAO/Service/Controller가 전혀 없음.
+
+**충돌/문제**
+`verification`은 SQL에 이미 설계되어 있으므로 "새 테이블이 필요한 경우"는 아니고 기존 테이블에 대한 Entity/API 구현이 빠진 상태 — 상대적으로 안전하게 진행 가능. 반면 `facility`는 SQL에 아예 없어 신규 테이블 설계가 필요.
+
+**선택지 (facility)**
+A. `hub` 테이블 자체를 "시설"로 취급해 `reservation` 가용 여부만 계산(신규 테이블 없이 기존 `hub`/`reservation`로 가용시간 계산)
+B. `facility`라는 신규 테이블을 SQL에 추가
+
+**추천**: A
+**이유**: README 어디에도 "거점(Hub)"과 별개인 "시설(Facility)" 개념이 명시되어 있지 않음. `hub`가 이미 숙소/오피스 개념을 담당하므로 예약 가능 여부는 `hub_no` + `reservation` 기간 겹침 계산으로 충분해 보임. 다만 최종 판단은 확인 필요.
+
+**verification(아이디/비밀번호 찾기)은 A(기존 테이블 그대로 사용)로 즉시 진행 가능** — Entity/Repository/Service/Controller 신규 작성만 필요하고 스키마 변경이 없으므로 사용자 승인 시 바로 착수 가능.
+
+---
+
+### 항목 5. `amount_list`(SupportList) 카디널리티
+
+위 "amount_item" 섹션 참조 — **가장 구조적으로 큰 충돌.** 지자체 지원금이 "1건 신청당 1개 지원처만 가능"(SQL 구조)인지 "여러 지원처를 동시에 받을 수 있다"(현재 Java 코드 구조)인지에 대한 비즈니스 규칙 확인이 반드시 필요.
+
+**선택지**
+A. SQL 기준 채택 — `amount` 1건당 `amount_list` 1건(단일 지원처)만 허용하도록 `SupportList`를 재설계, `transport_supported`/`other_supported`/`requestAmount` 이원화 로직은 제거하거나 SQL에 반영
+B. 현재 Java 로직(여러 지원처 지원) 유지 — `WorkFlow_Script.sql`의 `amount_list` 구조를 다중 지원처가 가능하도록 수정(PK를 별도 auto-increment `support_no`로 변경, `transport_supported`/`other_supported` 컬럼 추가)
+
+**추천**: B
+**이유**: README 7번 섹션("지자체 지원금")과 실제 `AmountDetail.jsx`/`AdminAmount.jsx` UI가 이미 "회사부담금 + 지자체지원금"을 항목별로 나눠 승인하는 화면을 구현해 놓은 상태라, 여러 지원 유형을 동시에 다루는 현재 로직 쪽이 실제 화면 기능과 더 부합함. SQL을 다중 지원처 구조로 갱신하는 편이 손실이 적음. 단, 최종 결정은 사용자 확인 필요.
+
+---
+
+### 항목 6. `amount_file`의 `file_size` 컬럼
+
+**현재**: `AmountFile.java`가 `fileSize`(Long, NOT NULL)를 요구하지만 SQL `amount_file`에는 해당 컬럼이 없음.
+
+**선택지**
+A. SQL에 `file_size BIGINT NULL` 컬럼 추가(용량 표시가 필요한 실제 요구사항이 있다면)
+B. Entity에서 `fileSize` 필드 제거(SQL 그대로 유지)
+
+**추천**: A
+**이유**: 파일 업로드 UI(`AmountForm.jsx` 등)에서 용량 검증/표시가 일반적으로 필요하고, `TaskFile.java`에도 동일한 `fileSize` 필드가 이미 관례적으로 존재해 프로젝트 전반의 파일 첨부 패턴과 일치시키는 편이 자연스러움. 다만 실제로 프론트에서 파일 용량을 쓰는지 여부는 확인 필요.
+
+---
+
+*최초 작성: 2026-09-09 (STEP 1~5 분석 결과 기준, 코드 미변경 상태에서 작성 — 단 WorkcationServiceImpl의 `@Autowired` 누락만 별도로 STEP 6에서 수정함, WORK_LOG.md 참조)*
