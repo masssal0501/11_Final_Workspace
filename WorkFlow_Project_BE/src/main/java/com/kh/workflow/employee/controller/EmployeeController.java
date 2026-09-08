@@ -26,6 +26,8 @@ import com.kh.workflow.employee.model.dto.FindIdRequest;
 import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
+import com.kh.workflow.employee.model.dto.PasswordResetRequest;
+import com.kh.workflow.employee.model.dto.PasswordResetVerifyRequest;
 import com.kh.workflow.employee.model.service.EmployeeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -420,6 +422,58 @@ public class EmployeeController {
             employeeService.findEmployeeId(request);
 
         return ResponseEntity.ok(response);
+    }
+
+
+    // 비밀번호 찾기 - 1단계 (인증번호 발송)
+    @Operation(
+        summary = "비밀번호 찾기 - 인증번호 발송",
+        description = "직원 ID와 이메일이 일치하면 인증번호를 이메일로 발송합니다."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "인증번호 발송 성공"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "일치하는 계정을 찾을 수 없음"
+        )
+    })
+    @PostMapping("/password/reset/request")
+    public ResponseEntity<Void> requestPasswordReset(
+        @RequestBody PasswordResetRequest request
+    ) {
+
+        employeeService.requestPasswordReset(request);
+
+        return ResponseEntity.ok().build();
+    }
+
+
+    // 비밀번호 찾기 - 2단계 (인증번호 확인 및 임시 비밀번호 발급)
+    @Operation(
+        summary = "비밀번호 찾기 - 인증번호 확인",
+        description = "인증번호를 확인하고, 일치하면 임시 비밀번호를 발급하여 이메일로 발송합니다."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "임시 비밀번호 발급 성공"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "인증번호가 올바르지 않거나 만료됨"
+        )
+    })
+    @PostMapping("/password/reset/verify")
+    public ResponseEntity<Void> verifyPasswordReset(
+        @RequestBody PasswordResetVerifyRequest request
+    ) {
+
+        employeeService.verifyPasswordResetCode(request);
+
+        return ResponseEntity.ok().build();
     }
 
 

@@ -223,8 +223,8 @@ CREATE TABLE workcation_info (
     approver_comment VARCHAR(300) NULL
         COMMENT '결재 의견',
 
-    approver_state VARCHAR(1) NOT NULL DEFAULT 'R'
-        COMMENT 'A 승인, C 취소, H 보류, J 반려, R 검토',
+    approver_state VARCHAR(1) NOT NULL DEFAULT 'W'
+        COMMENT 'W 대기, A 승인, C 취소, H 보류, J 반려, R 검토',
 
     emp_no INT NOT NULL
         COMMENT '신청자 회원 PK',
@@ -467,16 +467,26 @@ CREATE TABLE amount_item (
 
 ALTER TABLE amount_item ADD COLUMN amount INT NOT NULL DEFAULT 0 COMMENT '비용 상세 항목 금액';
 
-/* 지원금 목록 */
+/* 지원금 목록
+ *
+ * 하나의 비용 신청(amount) 건에 여러 지원처(지자체/기관)를
+ * 동시에 연결할 수 있도록 amount 1 : N amount_list 구조로 설계.
+ * (기존에는 amount_no가 PK 겸 FK라 신청 1건당 1개 지원처만
+ *  가능했으나, 여러 지원처를 지원하는 실제 비즈니스 요구사항에
+ *  맞춰 별도 auto-increment PK(support_no)로 변경함)
+ */
 CREATE TABLE amount_list (
-    amount_no INT NOT NULL
-        COMMENT '비용 신청 PK',
+    support_no INT NOT NULL AUTO_INCREMENT
+        COMMENT '지원금 PK',
 
     sponsor_name VARCHAR(50) NULL
         COMMENT '지원기관명 / 익명 가능',
 
-    amount INT NOT NULL
-        COMMENT '지원금액',
+    request_amount INT NOT NULL
+        COMMENT '지원 신청금액',
+
+    approved_amount INT NOT NULL DEFAULT 0
+        COMMENT '지원 승인금액',
 
     payment_date TIMESTAMP NOT NULL
         COMMENT '지급일시',
@@ -487,19 +497,21 @@ CREATE TABLE amount_list (
     remark VARCHAR(300) NULL
         COMMENT '특이사항',
 
-    item_no INT NOT NULL
-        COMMENT '비용 상세 PK',
+    transport_supported VARCHAR(1) NOT NULL DEFAULT 'N'
+        COMMENT '교통비 지원 여부 Y/N',
+
+    other_supported VARCHAR(1) NOT NULL DEFAULT 'N'
+        COMMENT '기타 지원 여부 Y/N',
+
+    amount_no INT NOT NULL
+        COMMENT '비용 신청 PK',
 
     CONSTRAINT pk_amount_list
-        PRIMARY KEY (amount_no),
+        PRIMARY KEY (support_no),
 
     CONSTRAINT fk_amount_list_amount
         FOREIGN KEY (amount_no)
-        REFERENCES amount (amount_no),
-
-    CONSTRAINT fk_amount_list_item
-        FOREIGN KEY (item_no)
-        REFERENCES amount_item (item_no)
+        REFERENCES amount (amount_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -744,6 +756,9 @@ CREATE INDEX idx_amount_workcation
 
 CREATE INDEX idx_amount_item_amount
     ON amount_item (amount_no);
+
+CREATE INDEX idx_amount_list_amount
+    ON amount_list (amount_no);
 
 CREATE INDEX idx_amount_file_amount
     ON amount_file (amount_no);

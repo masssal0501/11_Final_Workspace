@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +53,7 @@ public class HubController {
 	
 	@Autowired
 	private ChatClient chatClient;
-	
-	// AI 대화 이력을 메모리에 유지
-	private ArrayList<Message> chatHistory = new ArrayList<>();
-	
+
 	/**
      * 거점 목록 조회 (페이징)
      * @param currentPage 현재 페이지 번호 (기본값: 1)
@@ -279,13 +275,14 @@ public class HubController {
 				- 너의 역할과 관련 없는 질문에는 "저는 장소 및 일정 추천 해주는 AI 입니다. 다른 질문을 해주세요" 라고 답변해
 				- 확실하지 않은 내용은 추측하지 마
                 """, dbHubInfo.toString());
-        
+
+		// 요청마다 새로 생성 - 사용자 간 대화 내용이 서로 섞이지 않도록 컨트롤러 필드가 아닌 지역 변수로 유지
+		List<Message> chatHistory = new ArrayList<>();
+
 		chatHistory.add(new UserMessage(message));
-		
+
 		String reply = chatClient.prompt().system(dynamicSystemPrompt).messages(chatHistory).call().content();
-		
-		chatHistory.add(new AssistantMessage(reply));
-		
+
 		return ResponseEntity.status(HttpStatus.OK).body(reply);
 	}
 	

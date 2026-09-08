@@ -3,6 +3,8 @@
 DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 확정)
 > `SQL/WorkFlow_Script_Nam_ver.sql`은 기준이 아님. 충돌 시 `WorkFlow_Script.sql` → README → 현재 Java 코드 순으로 판단.
 
+**2026-09-09 업데이트**: 아래 "[확인 필요] 목록"의 6개 항목에 대해 사용자 결정을 받아 반영 완료. 각 항목의 최종 처리 내용은 "[확인 필요] 목록 → 처리 결과"(하단)에 기록. 이 결정 과정에서 원래 6개 항목에 포함되지 않았던 `amount_item`(컬럼명/누락 필드)과 `amount_file`(PK/타임스탬프 컬럼명)의 정렬도 "SQL이 최종 기준"이라는 동일 원칙을 적용해 함께 정리했음 — 아래 표에 반영.
+
 이 문서는 테이블마다 `Entity / Repository / Service / Controller / Frontend API` 매핑과 정합성 상태를 기록한다.
 상태 기호: ✅ 일치 / ⚠️ 경미한 불일치(동작에 영향 적음) / 🔴 불일치(수정 필요) / ❓ 사용자 확인 필요(구조적 충돌) / ⛔ 대응 코드 없음
 
@@ -27,7 +29,7 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 ## workcation_info
 
 - ↔ `WorkcationInfo.java` — 컬럼명 전부 일치 (`approver_at`↔`approvetAt` 필드명은 오타지만 `@Column(name="approver_at")`로 명시 매핑되어 있어 DB 동작에는 영향 없음, 코드 가독성 문제일 뿐)
-- 🔴/❓ **`approver_state` 기본값 불일치**: SQL은 `DEFAULT 'R'`(검토), 코드 주석은 `'A 승인, C 취소, H 보류, J 반려, R 검토'`(**W 없음**). 그런데 Entity는 `DEFAULT 'W'`이고 `allowableValues`에 `"W"`를 포함, `Workflow_Script_Data.sql`도 `approver_state='A'`만 삽입(W는 코드에서 신청 시 기본값으로 세팅되는 것으로 추정). → **[확인 필요] 항목 1** (아래 참조)
+- ✅ **[해결됨, 2026-09-09]** `approver_state` 기본값 — [확인 필요] 항목 1 결정에 따라 `SQL/WorkFlow_Script.sql`의 `DEFAULT`를 `'R'`→`'W'`로 변경하고 코멘트에 `W 대기`를 추가해 Entity(`DEFAULT 'W'`, allowableValues에 `W` 포함)와 일치시킴. Entity는 이미 `W`를 쓰고 있어 Java 코드 변경 없음.
 - Repository: `WorkcationDao`(JPA, ~30개 커스텀 `@Query`) / Controller: `WorkcationController`(`/workcation`) / Frontend: `WorkcationApi.js`
 
 ## reservation
@@ -46,23 +48,30 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 
 ## amount / amount_item / amount_list / amount_file
 
-- 🔴 **`Amount.java`와 `AmountSupport.java`가 둘 다 `@Table(name="amount_support")`를 가리키는데, SQL에는 그런 테이블이 없다. 실제 테이블명은 `amount`.**
-  - `AmountDao extends JpaRepository<Amount,Integer>`가 실제 사용되는 경로이며 `Amount.java`의 컬럼 매핑(`amount_no`,`requested_amount`,`approved_amount`,`requested_at`,`approved_at`,`created_at`,`updated_at`,`status`(10,NOT NULL,allowableValues A/C/H/J/R — SQL 주석과 정확히 일치),`amount_comment`,`workcation_no`)은 **`@Table` 이름만 빼면 나머지는 `amount` 테이블과 전부 일치**한다.
-  - `AmountSupport.java`는 `AmountSupportDao`(타입 파라미터가 `JpaRepository<Amount,Integer>`로 잘못 선언됨 — `AmountSupport`가 아님)를 통해서만 참조되고 어디서도 실사용되지 않는 고아 엔티티. `status` 기본값이 `DEFAULT'W'`(공백 누락 오타, SQL DDL로 그대로 쓰면 문법 오류 가능)로 되어 있어 더 위험함.
-  - → **[확인 필요] 항목 2** — `Amount.java`의 `@Table` 을 `amount`로 수정하고 `AmountSupport`/`AmountSupportDao`를 정리(삭제 후보)하는 안 제안.
-- 🔴 **`AmountItem.java`**: `item_type`(15)✅, `item_date`✅, `item_description`(500)✅, FK `amount_no`✅는 일치. 하지만:
-  - `itemAmount` 필드가 컬럼명 `item_amount`로 매핑되어 있는데, SQL은 `ALTER TABLE amount_item ADD COLUMN amount INT ...`로 컬럼명이 **`amount`**다. 🔴 컬럼명 불일치.
-  - SQL에는 `item_approved VARCHAR(15) NULL`(항목별 승인상태), `item_approved_amount INT NOT NULL DEFAULT 0`(항목별 승인금액) 컬럼이 있는데 Entity에는 이 두 필드가 **아예 없음**. 🔴 필드 누락.
-- 🔴/❓ **`SupportList.java`가 `@Table(name="support_list")`를 가리키는데 SQL에는 그런 테이블이 없다. 실제 테이블명은 `amount_list`이며, 구조 자체가 근본적으로 다르다:**
-  - SQL `amount_list`: PK가 `amount_no` **단독**(즉 `amount` 1건당 `amount_list` 1건만 가능한 구조로 보임), `amount_no`가 `amount` 테이블 FK이면서 동시에 자신의 PK, 추가로 `item_no`가 `amount_item` FK. 금액 필드는 `amount INT NOT NULL`(지원금액) **하나뿐**.
-  - `SupportList.java`: PK는 별도 auto-increment `support_no`, `amount`에 대한 `@ManyToOne`(즉 한 `amount`에 여러 `SupportList` 행 가능 — SQL과 반대되는 카디널리티), `item_no` 참조 없음, `requestAmount`/`approvedAmount` **두 개**의 금액 필드, SQL에 없는 `transport_supported`/`other_supported` 컬럼까지 존재.
-  - 단순 컬럼명 변경이 아니라 **"지자체 지원금은 신청당 1건인가 여러 건인가"라는 비즈니스 규칙 자체가 다름** → 반드시 사용자 확인 필요. **[확인 필요] 항목 5**
-- `amount_file` ↔ `AmountFile.java` 🔴 세 가지 불일치:
-  1. PK 컬럼명: Entity `amountfile_no` vs SQL `amountattachment_no`
-  2. 타임스탬프: Entity `created_at` vs SQL `updated_at`(SQL에는 created_at 자체가 없음)
-  3. `fileSize`(Long, NOT NULL) 필드가 있는데 SQL `amount_file`에는 `file_size` 컬럼이 아예 없음
-  - → **[확인 필요] 항목 6**
+전부 **[해결됨, 2026-09-09]** — [확인 필요] 항목 2, 5, 6 결정에 따라 처리 완료:
+
+- **`Amount` → `amount` 테이블.** [Amount.java](WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/Amount.java) `@Table`을 `amount_support`→`amount`로 수정. `AmountSupport.java`/`AmountSupportDao.java`는 참조 재확인 결과(grep, 코드베이스 전체) 실제 참조 0건 확인(`DashboardServiceImpl`/`AmountDao`에 있던 "AmountSupport" 매치는 `selectAmountSupport`/`setAmountSupport`라는 무관한 메서드명에 대한 우연한 문자열 일치였음) — 두 파일 삭제 완료.
+- **`AmountItem`을 `amount_item` 컬럼에 맞춤** (SQL이 최종 기준이라는 원칙을 항목 2/6과 동일하게 적용, Java 필드명은 유지해 API 응답 JSON 계약은 변경 없음):
+  - `itemAmount` 필드의 `@Column`을 `item_amount`→`amount`로 수정 (Java 필드명 `itemAmount`는 그대로라 프론트가 받는 JSON 키는 안 바뀜)
+  - SQL에 있던 `item_approved`(항목별 결재상태), `item_approved_amount`(항목별 승인금액, 기본값 0) 두 컬럼에 대응하는 필드를 신규 추가(`itemApproved`, `itemApprovedAmount`) — 추가만 했을 뿐 기존 로직에서 사용을 강제하지 않아 회귀 위험 없음
+- **`SupportList`(지자체 지원금)를 1:N 구조로 확정** — 결정: "하나의 비용 신청에 여러 지원처가 붙을 수 있다"가 맞는 비즈니스 규칙. `SupportList.java`의 필드 구조(`@ManyToOne Amount`, 자체 auto-increment PK) 자체는 원래도 이미 이 구조였으므로 바꾸지 않았지만, **`@Table(name="support_list")`가 존재하지 않는 테이블명을 가리키던 것을 처음 처리할 때 `amount_list`로 고치는 것을 누락**했었고, 이는 2026-09-09 실제 API 테스트(`POST /api/v1/amounts` 실행 중 `Table 'workflow.support_list' doesn't exist` 오류)로 발견해 수정 완료. `SQL/WorkFlow_Script.sql`의 `amount_list` 테이블은 다음과 같이 재설계:
+  - PK를 `amount_no`(겸 FK) 단독 → 별도 auto-increment `support_no`로 변경
+  - `amount`(단일 금액) → `request_amount` + `approved_amount`(기본값 0) 두 컬럼으로 분리
+  - `transport_supported`/`other_supported`(VARCHAR(1), 기본값 'N') 컬럼 추가
+  - `item_no` FK(amount_item 참조)는 제거 — 현재 `SupportList.java`/`AmountDao`의 실사용 쿼리가 전부 `amount` 단위로만 지원처를 다루고 있어(항목 단위 연결 없음) 기존 코드/Frontend와 가장 자연스럽게 맞음
+  - `amount_no` FK(→`amount`)는 유지, `idx_amount_list_amount` 인덱스 신규 추가
+- **`AmountFile`을 `amount_file` 컬럼에 맞춤**:
+  - PK `@Column`을 `amountfile_no`→`amountattachment_no`로 수정 (Java 필드명 `amountFileNo`는 유지, JSON 계약 불변)
+  - 타임스탬프 `@Column`을 `created_at`→`updated_at`으로 수정 (SQL에 `created_at` 컬럼 자체가 없음, Java 필드명 `createdAt`은 유지, JSON 계약 불변)
+  - `origin_name`/`change_name` 길이를 SQL과 동일하게 255→225로 조정
+  - `fileSize` 필드는 **삭제** (SQL에 `file_size` 컬럼 없음) — 참조하던 `AmountServiceImpl.saveNewFiles()`와 `AmountController.createAmount()`의 `setFileSize(...)` 호출 2곳도 함께 제거함
 - Repository: `AmountDao`(JPA, 통계/대시보드 쿼리 다수, `AmountItem`/`SupportList`/`AmountFile` 관련 쿼리 포함) / Controller: `AmountController`(`/api/v1/amounts`) / Frontend: `amountApi.js`(+ `Amount/components/*.jsx`)
+
+**참고**: `AmountServiceImpl.selectAmountList(Pageable)`/`selectAmountListByWorkcationNo(int, Pageable)` 스텁(`return null`)도 함께 수정 — `AmountDao`에 이미 있던 `findAllByOrderByCreatedAtDescAmountNoDesc`/`findByWorkcationNoOrderByCreatedAtDescAmountNoDesc`에 연결. `GET /api/v1/amounts`, `GET /api/v1/amounts/workcation/{no}` 500 오류 해결.
+
+**✅ [해결됨, 2026-09-09] `AmountForm.jsx` 요청 포맷 (PROJECT_STATUS.md 신규 항목 7, A안 채택)**: `AmountForm.jsx`를 `FormData` 조립 방식으로 재작성해 백엔드의 `@ModelAttribute Amount` + `multipart/form-data` 계약을 그대로 유지했다. 실제 로컬 DB에 연결한 백엔드로 end-to-end 테스트하는 과정에서 다음 두 가지 별개의 버그를 추가로 발견/수정했다(둘 다 이번 세션 이전부터 존재하던 잠재 버그로, 최초 실제 요청 테스트를 해봐서야 드러남):
+- **Jackson 순환참조**: `AmountItem`/`AmountFile`/`SupportList`의 `amount`(부모 `@ManyToOne` 역참조) 필드에 `@JsonIgnore`가 없어 `Amount`를 JSON으로 반환하는 모든 엔드포인트(`POST /api/v1/amounts`, `GET /api/v1/amounts/{no}`, `GET /api/v1/amounts`, `GET /api/v1/amounts/workcation/{no}`)가 무한에 가깝게 순환 직렬화됨 — 세 필드 모두에 `@JsonIgnore` 추가로 해결.
+- **`SecurityConfig`의 `/error` 미포함**: 예외 발생 시 서블릿 컨테이너의 내부 `/error` forward가 인증 요구 규칙에 걸려, 실제 오류 상태코드/메시지 대신 항상 빈 403이 반환되던 버그(애플리케이션 전역 영향) — `/error`를 permitAll에 추가로 해결.
 
 ## notice / notice_file (MyBatis, JPA 미전환)
 
@@ -81,7 +90,13 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 
 ## verification
 
-- ⛔ **대응 Entity/DAO/Service/Controller가 전혀 없음.** `FindPWForm.jsx`(비밀번호 재설정 버튼 미구현), `findEmployeeId`(아이디 찾기 오동작) 등 "찾기" 계열 기능이 미완성인 것과 정확히 맞물림 — 이 테이블이 원래 이메일/SMS 인증코드 기반 아이디·비밀번호 찾기 플로우를 위해 설계된 것으로 추정됨. → **[확인 필요] 항목 4**와 함께 신규 기능 범위로 판단.
+- ✅ **[구현 완료, 2026-09-09]** — [확인 필요] 항목 4 결정("verification은 스키마 변경 없이 기능 구현 진행")에 따라 신규 구현:
+  - Entity: [Verification.java](WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/vo/Verification.java) — `verification` 테이블 컬럼과 완전히 일치 (`verification_no` PK, `verification_code`, `expires_at`, `verified_at`, `created_at`, `emp_no` FK → `Employee` `@ManyToOne`)
+  - Repository: [VerificationDao.java](WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/dao/VerificationDao.java)(JPA)
+  - Service: `EmployeeService`/`EmployeeServiceImpl`에 `requestPasswordReset`(1단계: empId+email 확인 → 6자리 인증번호 생성·저장(5분 유효)·이메일 발송) / `verifyPasswordResetCode`(2단계: 인증번호 확인 → 임시 비밀번호 발급·저장·이메일 발송, 기존 `TemporaryPasswordGenerator`/`MailService.sendTemporaryPassword` 재사용)
+  - Controller: `POST /employees/password/reset/request`, `POST /employees/password/reset/verify` (둘 다 `SecurityConfig`에 `permitAll` 추가 — 로그인 전 사용자가 호출해야 하므로)
+  - Frontend: [FindPWForm.jsx](workflow_project_fe/src/employee/components/FindPWForm.jsx) 2단계 UI로 재작성(기존엔 버튼에 핸들러 자체가 없는 정적 화면이었음), [employeeApi.js](workflow_project_fe/src/employee/api/employeeApi.js)에 `requestPasswordReset`/`verifyPasswordResetCode` 함수 추가
+  - `아이디 찾기`(`POST /employees/findId`)는 원래도 백엔드 구현이 정상이었고 프론트 `FindIDForm.jsx`도 올바르게 호출하고 있었음 — 버그는 오직 `employeeApi.js`의 `findEmployeeId`가 인자를 무시하고 `GET /employees`(전체 목록)를 호출하던 것뿐이라 이 부분만 `POST /employees/findId`로 수정.
 
 ---
 
@@ -97,7 +112,18 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 
 ---
 
-## [확인 필요] 목록 (섹션 23 형식)
+## [확인 필요] 목록 (섹션 23 형식) — 결정/처리 현황
+
+| 항목 | 결정 | 처리 상태 |
+|---|---|---|
+| 1. `approver_state` 기본값 | SQL을 `'W'`로 변경 | ✅ 완료 (SQL 수정) |
+| 2. `Amount`/`AmountSupport` | `Amount`→`amount` 테이블, `AmountSupport` 계열 삭제 | ✅ 완료 (참조 0건 확인 후 삭제) |
+| 3. `TaskFile` | 현재 보류 | ⏸ 보류 (SQL/Entity 미변경) |
+| 4. `facility`/`verification` | facility 보류, verification 기능 구현 | ✅ verification 구현 완료 / ⏸ facility 보류 |
+| 5. `SupportList` 카디널리티 | 여러 지원처 가능(1:N) 확정 | ✅ 완료 (SQL `amount_list` 재설계, Java는 원래도 1:N 구조라 무변경) |
+| 6. `amount_file.file_size` | Entity 매핑에서 제거 | ✅ 완료 (참조 2곳 함께 정리) |
+
+아래는 각 항목의 원래 논의 기록(참고용, 결정 내용은 위 표 및 해당 테이블 섹션 참조).
 
 ### 항목 1. `workcation_info.approver_state` 기본값/허용값
 

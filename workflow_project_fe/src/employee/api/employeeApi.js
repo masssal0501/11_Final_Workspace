@@ -189,20 +189,50 @@ export const updateEmployeeRole = async (
 };
 
 /*
- * USR-008
+ * USR-009
  * 아이디 찾기
  */
-export const findEmployeeId = async () => {
+export const findEmployeeId = async ({ empName, email }) => {
 
-    const token =
-        localStorage.getItem("accessToken");
-
-    const response = await axiosInstance.get(
-        "/employees",
+    const response = await axiosInstance.post(
+        "/employees/findId",
         {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            empName,
+            email,
+        }
+    );
+
+    return response.data;
+};
+
+/*
+ * 비밀번호 찾기 - 1단계
+ * 인증번호 발송 요청
+ */
+export const requestPasswordReset = async ({ empId, email }) => {
+
+    const response = await axiosInstance.post(
+        "/employees/password/reset/request",
+        {
+            empId,
+            email,
+        }
+    );
+
+    return response.data;
+};
+
+/*
+ * 비밀번호 찾기 - 2단계
+ * 인증번호 확인 및 임시 비밀번호 발급
+ */
+export const verifyPasswordResetCode = async ({ empId, verificationCode }) => {
+
+    const response = await axiosInstance.post(
+        "/employees/password/reset/verify",
+        {
+            empId,
+            verificationCode,
         }
     );
 

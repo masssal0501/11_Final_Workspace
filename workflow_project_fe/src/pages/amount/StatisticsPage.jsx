@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { amountApi } from "../../Amount/api/amountApi";
+import { amountApi } from "../../amount/api/amountApi";
 
 import {
     PieChart,
@@ -18,7 +18,7 @@ import {
     CartesianGrid
 } from "recharts";
 
-import "../../Amount/styles/Statistics.css";
+import "../../amount/styles/Statistics.css";
 
 
 // =========================================================
@@ -381,7 +381,7 @@ export default function Statistics() {
                         // 항목 코드
                         // -----------------------------------------
                         itemType:
-                            item.amountamountitemType ??
+                            item.itemType ??
                             item.AMOUNTAMOUNTITEMTYPE ??
                             item.amountamountitem_type ??
                             item.AMOUNTAMOUNTITEM_TYPE ??

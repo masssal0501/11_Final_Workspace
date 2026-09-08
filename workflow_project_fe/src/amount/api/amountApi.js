@@ -62,12 +62,17 @@ const amountApi = {
     // =========================================================
     insertAmount: async (formData) => {
 
+        // Content-Type을 명시하지 않아야 axiosInstance의 기본값(application/json)이
+        // 덮어써지지 않고, 브라우저가 FormData를 보고 boundary가 포함된
+        // multipart/form-data Content-Type을 자동으로 설정한다.
+        // (여기서 "multipart/form-data"를 직접 지정하면 boundary가 빠져 서버가
+        //  파트를 구분하지 못해 요청이 깨진다)
         const response = await axiosInstance.post(
             API_BASE_URL,
             formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": undefined
                 }
             }
         );
@@ -84,12 +89,13 @@ const amountApi = {
         formData
     ) => {
 
+        // insertAmount와 동일한 이유로 Content-Type을 직접 지정하지 않는다.
         const response = await axiosInstance.put(
             `${API_BASE_URL}/${amountNo}`,
             formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": undefined
                 }
             }
         );

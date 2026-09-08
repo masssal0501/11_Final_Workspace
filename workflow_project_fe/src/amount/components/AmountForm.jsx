@@ -20,7 +20,7 @@ export default function AmountForm({
   const [itemList, setItemList] = useState([
     {
       tempId: Date.now(),
-      amountamountitemType: 'S',
+      itemType: 'S',
       amount: '',
       itemDate: '',
       itemDescription: ''
@@ -132,7 +132,7 @@ export default function AmountForm({
 
       {
         tempId: Date.now() + Math.random(),
-        amountamountitemType: 'S',
+        itemType: 'S',
         amount: '',
         itemDate: '',
         itemDescription: ''
@@ -292,7 +292,7 @@ export default function AmountForm({
       ) {
 
         alert(
-          `${i + 1}번째 ${typeMap[item.amountamountitemType] || '비용 항목'}의 신청금액을 입력해주세요.`
+          `${i + 1}번째 ${typeMap[item.itemType] || '비용 항목'}의 신청금액을 입력해주세요.`
         );
 
         return;
@@ -426,111 +426,118 @@ export default function AmountForm({
 
 
     // =======================================================
-    // API 요청 데이터
+    // API 요청 데이터 (multipart/form-data)
+    //
+    // Backend AmountController.createAmount()는
+    // @ModelAttribute Amount amount + @RequestParam MultipartFile[] file
+    // 로 바인딩하므로, 중첩 리스트는 Spring의 인덱스 표기법
+    // (itemList[0].필드명, supportList[0].필드명)을 그대로 key로 사용해야
+    // Amount.itemList / Amount.supportList 에 자동으로 바인딩된다.
     // =======================================================
-    const requestData = {
+    const formData = new FormData();
 
-      // -----------------------------------------------------
-      // amount
-      // -----------------------------------------------------
-      workcationNo:
-        Number(workcationNo),
-
-      requestedAmount:
-        totalRequestedAmount,
-
-      amountComment:
-        amountComment.trim(),
-
-
-      // -----------------------------------------------------
-      // amount_item
-      //
-      // amount
-      //   → 신청금액
-      //
-      // itemApprovedAmount
-      //   → 회사 지원금
-      //   → 신청 시 0
-      // -----------------------------------------------------
-      itemList:
-        itemList.map(item => ({
-
-          amountamountitemType:
-            item.amountamountitemType,
-
-          amount:
-            Number(item.amount),
-
-          itemApprovedAmount:
-            0,
-
-          itemDate:
-            item.itemDate,
-
-          itemDescription:
-            item.itemDescription.trim()
-        })),
-
-
-      // -----------------------------------------------------
-      // amount_list
-      // -----------------------------------------------------
-      sponsor:
-        hasLocalSupport
-          ? {
-
-              sponsorName:
-                sponsor.sponsorName.trim(),
-
-              amount:
-                Number(sponsor.amount) || 0,
-
-              paymentDate:
-                sponsor.paymentDate,
-
-              status:
-                sponsor.status,
-
-              remark:
-                sponsor.remark.trim()
-
-            }
-          : null,
-
-
-      // -----------------------------------------------------
-      // amount_file
-      // -----------------------------------------------------
-      files
-    };
-
-
-    console.log(
-      '================================='
+    // -------------------------------------------------------
+    // amount
+    // -------------------------------------------------------
+    formData.append(
+      'workcationNo',
+      String(Number(workcationNo))
     );
 
-    console.log(
-      '📌 비용 정산 신청 데이터'
+    formData.append(
+      'requestedAmount',
+      String(totalRequestedAmount)
     );
 
-    console.log(
-      requestData
+    formData.append(
+      'amountComment',
+      amountComment.trim()
     );
 
-    console.log(
-      '📌 총 신청금액:',
-      totalRequestedAmount
-    );
+    // -------------------------------------------------------
+    // amount_item (itemList)
+    // -------------------------------------------------------
+    itemList.forEach((item, index) => {
 
-    console.log(
-      '📌 지자체 지원금:',
-      totalLocalSupport
-    );
+      formData.append(
+        `itemList[${index}].itemType`,
+        item.itemType
+      );
 
-    console.log(
-      '================================='
-    );
+      formData.append(
+        `itemList[${index}].itemAmount`,
+        String(Number(item.amount))
+      );
+
+      formData.append(
+        `itemList[${index}].itemDate`,
+        `${item.itemDate}T00:00:00`
+      );
+
+      formData.append(
+        `itemList[${index}].itemDescription`,
+        item.itemDescription.trim()
+      );
+    });
+
+    // -------------------------------------------------------
+    // amount_list (supportList) - 지자체 지원금 입력 시에만
+    //
+    // approvedAmount/paymentDate는 화면에 입력란이 없어
+    // 신청 단계에서는 기본값(0원 / 현재 시각)으로 채운다.
+    // (실제 승인 금액과 지급일은 관리자 승인 단계에서 반영됨)
+    // -------------------------------------------------------
+    if (hasLocalSupport) {
+
+      formData.append(
+        'supportList[0].sponsorName',
+        sponsor.sponsorName.trim()
+      );
+
+      formData.append(
+        'supportList[0].requestAmount',
+        String(Number(sponsor.amount) || 0)
+      );
+
+      formData.append(
+        'supportList[0].approvedAmount',
+        '0'
+      );
+
+      formData.append(
+        'supportList[0].paymentDate',
+        sponsor.paymentDate
+          ? `${sponsor.paymentDate}T00:00:00`
+          : new Date().toISOString().slice(0, 19)
+      );
+
+      formData.append(
+        'supportList[0].status',
+        sponsor.status
+      );
+
+      formData.append(
+        'supportList[0].remark',
+        sponsor.remark.trim()
+      );
+
+      formData.append(
+        'supportList[0].transportSupported',
+        'N'
+      );
+
+      formData.append(
+        'supportList[0].otherSupported',
+        'N'
+      );
+    }
+
+    // -------------------------------------------------------
+    // amount_file (첨부파일)
+    // -------------------------------------------------------
+    files.forEach(file => {
+      formData.append('file', file);
+    });
 
 
     // =======================================================
@@ -538,9 +545,9 @@ export default function AmountForm({
     // =======================================================
     try {
 
-      const createdAmountNo =
-        await amountApi.createAmount(
-          requestData
+      const createdAmount =
+        await amountApi.insertAmount(
+          formData
         );
 
 
@@ -552,7 +559,7 @@ export default function AmountForm({
       if (onSuccess) {
 
         onSuccess(
-          createdAmountNo
+          createdAmount?.amountNo
         );
       }
 
@@ -698,12 +705,12 @@ export default function AmountForm({
 
                       <select
                         value={
-                          item.amountamountitemType
+                          item.itemType
                         }
                         onChange={e =>
                           handleItemChange(
                             item.tempId,
-                            'amountamountitemType',
+                            'itemType',
                             e.target.value
                           )
                         }

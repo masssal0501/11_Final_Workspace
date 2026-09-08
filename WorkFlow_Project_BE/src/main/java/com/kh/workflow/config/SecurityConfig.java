@@ -66,6 +66,13 @@ public class SecurityConfig {
                                 "/**"
                         ).permitAll()
 
+                        // 에러 페이지 - 예외 발생 시 서블릿 컨테이너가 내부적으로
+                        // /error 로 재요청(forward)하는데, 이 경로가 인증을 요구하면
+                        // 실제 오류 응답(4xx/5xx + 메시지) 대신 빈 본문의 403이 반환됨
+                        .requestMatchers(
+                                "/error"
+                        ).permitAll()
+
                         // 로그인
                         .requestMatchers(
                                 HttpMethod.POST,
@@ -103,6 +110,13 @@ public class SecurityConfig {
                         .requestMatchers(
                     	    HttpMethod.POST,
                     	    "/employees/findId"
+                    	).permitAll()
+
+                        // 비밀번호 찾기 (인증번호 발송/확인)
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/password/reset/request",
+                    	    "/employees/password/reset/verify"
                     	).permitAll()
                         
                         // 장소 관련 API

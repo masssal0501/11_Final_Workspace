@@ -14,8 +14,8 @@ import NoticeWritePage from './pages/notice/NoticeWritePage';
 
 import AmountPage from './pages/amount/AmountPage';
 import AdminAmountPage from './pages/amount/AdminAmountPage';
-import AmountForm from './Amount/components/AmountForm';
-import AmountDetail from './Amount/components/AmountDetail';
+import AmountForm from './amount/components/AmountForm';
+import AmountDetail from './amount/components/AmountDetail';
 import StatisticsPage from './pages/amount/StatisticsPage';
 
 import HubListComponent from './hub/components/HubListComponent';

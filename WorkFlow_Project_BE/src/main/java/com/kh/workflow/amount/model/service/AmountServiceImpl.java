@@ -976,10 +976,6 @@ public class AmountServiceImpl implements AmountService {
                     FILE_PATH + changeName
             );
 
-            amountFile.setFileSize(
-                    multipartFile.getSize()
-            );
-
             amountFile.setStatus("Y");
 
             amount.addAmountFile(
@@ -1115,14 +1111,12 @@ public class AmountServiceImpl implements AmountService {
 
 	@Override
 	public Page<Amount> selectAmountList(Pageable pageable) {
-		// TODO Auto-generated method stub
-		return null;
+		return amountDao.findAllByOrderByCreatedAtDescAmountNoDesc(pageable);
 	}
 
 
 	@Override
 	public Page<Amount> selectAmountListByWorkcationNo(int workcationNo, Pageable pageable) {
-		// TODO Auto-generated method stub
-		return null;
+		return amountDao.findByWorkcationNoOrderByCreatedAtDescAmountNoDesc(workcationNo, pageable);
 	}
 }

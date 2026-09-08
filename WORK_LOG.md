@@ -37,3 +37,149 @@
 
 #### 사용자 확인 필요
 - **있음** — `DB_DESIGN.md`의 [확인 필요] 항목 1~6 (Amount/AmountSupport 테이블 통합, SupportList 카디널리티, TaskFile 재설계 여부, facility/verification 신규 구현 범위, amount_file file_size 컬럼 추가 여부, approver_state 기본값)
+
+---
+
+## 2026-09-09 (2차 작업 — STEP 6 나머지)
+
+### [작업 완료]
+
+#### 작업 내용
+사용자가 [확인 필요] 항목 1~6에 대해 전부 결정을 내려주어 다음을 반영:
+
+1. `SQL/WorkFlow_Script.sql`: `workcation_info.approver_state` 기본값 `'R'`→`'W'` 변경(코멘트에 W 추가)
+2. `SQL/WorkFlow_Script.sql`: `amount_list` 테이블을 1:N(별도 auto-increment PK `support_no`, `request_amount`/`approved_amount` 분리, `transport_supported`/`other_supported` 추가, `item_no` FK 제거)로 재설계, 인덱스 `idx_amount_list_amount` 추가
+3. `Amount.java`: `@Table`을 `amount_support`→`amount`로 수정
+4. `AmountSupport.java`/`AmountSupportDao.java`: 코드베이스 전체 참조 재확인(0건, 기존 grep 매치는 무관한 메서드명과의 우연한 문자열 일치였음 확인) 후 삭제
+5. `AmountItem.java`: `itemAmount`의 `@Column`을 `item_amount`→`amount`로 수정(Java 필드명은 유지), SQL에 있던 `item_approved`/`item_approved_amount` 필드 신규 추가
+6. `AmountFile.java`: PK `@Column`을 `amountfile_no`→`amountattachment_no`, 타임스탬프를 `created_at`→`updated_at`으로 수정(Java 필드명 모두 유지), `origin_name`/`change_name` 길이 255→225로 조정, `fileSize` 필드 삭제
+7. `AmountServiceImpl.java`/`AmountController.java`: 삭제된 `fileSize`를 설정하던 2곳(`setFileSize(...)`) 제거
+8. `AmountServiceImpl.java`: `selectAmountList(Pageable)`/`selectAmountListByWorkcationNo(int, Pageable)` 스텁(`return null`)을 `AmountDao`의 기존 JPA 메서드에 연결
+9. `HubController.java`: 컨트롤러 필드였던 `chatHistory`(전역 공유, 사용자 간 대화 혼입 버그)를 `sendMessage()` 메서드 지역 변수로 변경, 미사용 `AssistantMessage` import 제거
+10. 신규 구현 — `verification` 테이블 기반 아이디/비밀번호 찾기:
+    - `Verification.java`(Entity), `VerificationDao.java`(Repository)
+    - `PasswordResetRequest.java`, `PasswordResetVerifyRequest.java`(DTO)
+    - `EmployeeService`/`EmployeeServiceImpl`: `requestPasswordReset`(인증번호 발송), `verifyPasswordResetCode`(인증번호 확인+임시비밀번호 발급) 구현
+    - `MailService.java`: `sendVerificationCode(...)` 메서드 추가
+    - `EmployeeController.java`: `POST /employees/password/reset/request`, `POST /employees/password/reset/verify` 신규 엔드포인트
+    - `SecurityConfig.java`: 위 두 엔드포인트 `permitAll` 추가
+    - Frontend: `employeeApi.js`에 `requestPasswordReset`/`verifyPasswordResetCode` 추가, **`findEmployeeId`의 실제 버그(인자 무시하고 `GET /employees` 호출)를 `POST /employees/findId` 호출로 수정**(원래 백엔드 `findId` 자체는 정상 구현되어 있었음 — 확인 후 발견), `FindPWForm.jsx`를 2단계(정보입력→인증번호확인) UI로 재작성(기존엔 버튼 핸들러 자체가 없는 정적 화면)
+
+#### 수정 이유
+사용자가 명시적으로 결정한 6개 항목을 반영했고, 그 결정을 실제로 적용하는 과정에서 원래 6개 항목에 포함되지 않았던 `amount_item`/`amount_file`의 컬럼명 불일치도 "SQL이 최종 기준"이라는 동일 원칙으로 함께 정리(항목 2, 6과 같은 성격의 문제라 판단, PROJECT_STATUS.md/DB_DESIGN.md에 그 근거를 명시). `AmountServiceImpl` 스텁, `HubController` 전역 상태 버그는 스키마/API 계약과 무관한 "명확한 버그"라 사용자 지시("나머지 스키마와 무관하게 명확한 버그 수정은 계속 진행해도 된다")에 따라 함께 처리.
+
+#### 변경 파일
+**SQL**
+- `SQL/WorkFlow_Script.sql`
+
+**Backend (수정)**
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/Amount.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/AmountItem.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/AmountFile.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/service/AmountServiceImpl.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/controller/AmountController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/hub/controller/HubController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/dao/EmployeeDao.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/service/EmployeeService.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/service/EmployeeServiceImpl.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/controller/EmployeeController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/mail/MailService.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/SecurityConfig.java`
+
+**Backend (신규)**
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/vo/Verification.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/dao/VerificationDao.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/dto/PasswordResetRequest.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/dto/PasswordResetVerifyRequest.java`
+
+**Backend (삭제)**
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/AmountSupport.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/dao/AmountSupportDao.java`
+
+**Frontend (수정)**
+- `workflow_project_fe/src/employee/api/employeeApi.js`
+- `workflow_project_fe/src/employee/components/FindPWForm.jsx`
+
+**문서**
+- `PROJECT_STATUS.md`, `DB_DESIGN.md`, `API_STATUS.md`, `WORK_LOG.md`(본 파일)
+
+#### 검증
+- Backend compile: **PASS** (`./mvnw -o compile -DskipTests`, target/classes 강제 재생성하며 4단계에 걸쳐 재확인 — Amount 계열 변경 후 96개 소스, HubController 수정 후 96개, verification 기능 추가 후 100개 소스 모두 BUILD SUCCESS)
+- Frontend build: 미실행 (`node_modules` 미설치 상태 지속, 설치 여부 사용자 확인 필요)
+- API/DB 실연동 테스트: 미실행 (로컬 MySQL 미구축, SMTP 자격증명 미설정 — `verification` 이메일 발송 경로는 코드 리뷰 수준에서만 검증됨)
+
+#### 현재 상태
+- STEP 6에서 파악된 명확한 백엔드 버그(Amount 목록조회 2건, Task 진행률저장 NPE, Hub AI챗봇 전역상태, 아이디/비밀번호찾기 미구현)는 모두 해결
+- DB_DESIGN.md [확인 필요] 항목 1,2,5,6 → 반영 완료, 항목 3(TaskFile)·4의 facility 부분은 계속 보류
+- Amount/AmountItem/AmountFile Entity가 `SQL/WorkFlow_Script.sql`과 완전히 일치하도록 정렬됨
+
+#### 남은 문제
+- **신규 발견**: `AmountForm.jsx`의 비용신청 제출 기능은 여전히 깨져 있음 — `amountApi.createAmount` 함수가 없는 것뿐 아니라, 프론트가 만드는 JSON 요청 구조 자체가 백엔드의 `multipart/form-data` 바인딩 방식과 근본적으로 다름(PROJECT_STATUS.md 신규 항목 7로 기록, 결정 대기)
+- Notice 관리자 CRUD 3종 500 오류 — STEP 7(Notice MyBatis→JPA 전체 전환)에서 처리 예정
+- 부서장(MANAGER) 승인 화면 프론트 라우팅 누락 — 아직 미착수
+- `/hubs/**`, `/api/v1/amounts/**` 등 보안 정책 정리 — 아직 미착수
+- Frontend `node_modules` 미설치, 로컬 DB 미구축 — 실동작 검증 전부 보류 상태
+
+#### 사용자 확인 필요
+- **있음** — PROJECT_STATUS.md 신규 [확인 필요] 항목 7 (`AmountForm.jsx` ↔ 백엔드 요청 포맷을 어느 쪽에 맞출지)
+- 그 외 결정 대기 없는 항목(부서장 승인 라우팅, 보안 정책 정리, STEP 7 Notice 전환)은 계속 진행 가능
+
+---
+
+## 2026-09-09 (3차 작업 — 항목 7 A안 적용 + 실제 API 검증)
+
+### [작업 완료]
+
+#### 작업 내용
+사용자가 항목 7을 A안(프론트를 FormData 조립 방식으로 수정, 백엔드 계약 유지)으로 확정. 이를 구현하고 **로컬 MySQL에 실제로 `SQL/WorkFlow_Script.sql` 스키마를 구축한 뒤, JWT 로그인부터 실제 HTTP 요청, DB row 확인까지 end-to-end로 검증**했다. 이 과정에서 계획에 없던 버그 5건을 추가로 발견해 함께 수정했다.
+
+1. **로컬 MySQL(`localhost:3306`, `root`/`mysql`) 확인** — 이미 서버는 떠 있었으나 `workflow` 스키마 자체가 존재하지 않아, `SQL/WorkFlow_Script.sql`을 그대로 실행해 신규 구축(기존 데이터 없어 파괴적 작업 아님)
+2. **사용자가 이미 IDE로 띄워둔 8006 포트의 백엔드 인스턴스는 건드리지 않고**, 동일 클래스패스로 별도 포트(8007)에 격리된 테스트 인스턴스를 직접 `java` 명령으로 실행해 코드 변경사항을 즉시 반영·재기동하며 검증
+3. **`AmountForm.jsx` 재작성**: 내부 상태 필드명 `amountamountitemType`(예전 스키마 잔재) → `itemType`으로 정리, `handleSubmit`을 JSON `requestData` 대신 `FormData` 조립 방식으로 전면 재작성 — `itemList[i].필드명`/`supportList[0].필드명` 형태의 Spring 인덱스 표기법으로 `@ModelAttribute` 바인딩에 맞춤. 응답에서 `amountNo`를 추출하도록 `onSuccess` 콜백도 수정
+4. **`amountApi.js`**: `insertAmount`/`updateAmount`가 `Content-Type: multipart/form-data`를 boundary 없이 직접 지정해 요청이 깨지던 문제 발견 — `Content-Type: undefined`로 변경해 axios/브라우저가 boundary 포함 헤더를 자동 설정하도록 수정
+5. **[신규 발견] `SecurityConfig`의 `/error` 미포함 버그**: 실제 로그인 테스트 중 `permitAll`로 선언된 `/employees/login`조차 403이 반환되는 것을 발견 → Spring Security DEBUG 로그로 원인 추적 → 컨트롤러 예외 발생 시 서블릿의 내부 `/error` forward가 인증 요구 규칙에 걸려 실제 오류 대신 빈 403이 반환되는 것이었음. `/error`를 permitAll에 추가해 해결 (애플리케이션 전역 에러 응답에 영향을 준 심각한 버그)
+6. **[신규 발견] Jackson 순환참조 버그**: 위 버그를 고친 뒤 실제 비용신청 API를 테스트하자 응답 본문이 수십만 자로 폭주 — `Amount`↔`AmountItem`/`AmountFile`/`SupportList`의 양방향 연관관계에 순환참조 방지 처리가 없었던 것이 원인. 세 자식 엔티티의 `amount`(부모 역참조) 필드에 `@JsonIgnore` 추가로 해결. `Amount`를 반환하는 모든 엔드포인트(`POST/GET /api/v1/amounts`, `GET .../workcation/{no}`)에 영향
+7. **[신규 발견] `SupportList.java` 테이블명 오류**: 위 버그를 고친 뒤 재테스트하자 `Table 'workflow.support_list' doesn't exist` — 지난 세션에서 결정 5(SupportList 1:N)를 반영할 때 SQL의 `amount_list` 테이블 구조는 재설계했지만 `SupportList.java`의 `@Table` 자체를 `support_list`→`amount_list`로 바꾸는 것을 빠뜨렸음(오탈자성 실수, 실제 요청을 보내보고 나서야 발견). `@Table(name="amount_list")`로 수정
+8. **[신규 발견] `AmountDetail.jsx`/`StatisticsPage.jsx` 필드명 오류**: 실제 API 응답 필드명(`itemType`, `itemAmount`)을 확인하는 과정에서, 두 화면이 예전 스키마 시절 필드명(`amountamountitemType`, `item.amount`)을 읽고 있어 비용 항목 유형/금액 표시가 항상 깨져 있었던 것을 발견 — 실제 필드명으로 일괄 수정
+
+#### 수정 이유
+사용자가 명시적으로 요청한 검증 체크리스트(정상 저장/파일첨부/itemList·sponsor 바인딩 등)를 코드 리뷰만으로는 확인할 수 없다고 판단해, 실제 로컬 환경에서 end-to-end 테스트를 수행했다. 그 과정에서 드러난 버그들은 전부 "예상과 다르게 동작함을 실제로 관찰"해서 발견한 것이며, 전부 명확한 버그 수정(스키마/API 계약 변경 아님)이라 사용자 확인 없이 바로 수정했다.
+
+#### 변경 파일
+**Backend**
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/SecurityConfig.java` (`/error` permitAll 추가)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/SupportList.java` (`@Table` 수정, `@JsonIgnore` 추가)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/AmountItem.java` (`@JsonIgnore` 추가)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/model/vo/AmountFile.java` (`@JsonIgnore` 추가)
+
+**Frontend**
+- `workflow_project_fe/src/Amount/components/AmountForm.jsx` (FormData 재작성, 필드명 정리)
+- `workflow_project_fe/src/Amount/api/amountApi.js` (Content-Type 수정)
+- `workflow_project_fe/src/Amount/components/AmountDetail.jsx` (필드명 수정)
+- `workflow_project_fe/src/pages/amount/StatisticsPage.jsx` (필드명 수정)
+
+**문서**: `PROJECT_STATUS.md`, `DB_DESIGN.md`, `API_STATUS.md`, `WORK_LOG.md`(본 파일)
+
+**로컬 환경 (git 추적 대상 아님)**: 로컬 MySQL `workflow` 스키마를 `SQL/WorkFlow_Script.sql`로 신규 구축(유지 — 로컬 개발에 필요). 테스트로 생성한 임시 직원(`claudetest01`)과 비용신청(`amount_no=3`) 데이터는 검증 후 삭제 완료.
+
+#### 검증
+- Backend compile: **PASS** (`mvn -o compile`, 강제 재컴파일)
+- Frontend build: **PASS** (`npm run build`, 청크 크기 경고만 있음)
+- 실제 API 요청 테스트: **PASS** — JWT 로그인 → `POST /api/v1/amounts` multipart 요청(itemList 1건 + supportList 1건 + 파일 1건) → `201 Created`, 정상 크기(883바이트)의 깨끗한 JSON 응답
+- 정상 저장 여부: **PASS** — `amount`/`amount_item`/`amount_list`/`amount_file` 4개 테이블에 직접 SELECT로 확인, FK(`amount_no`) 전부 일치
+- 파일 첨부 여부: **PASS** — `amount_file`에 origin_name/change_name/status 정상 저장
+- itemList 바인딩: **PASS** — `itemType`/`itemAmount`/`itemDate`/`itemDescription` 전부 정상
+- supportList(sponsor) 바인딩: **PASS** — `sponsorName`/`requestAmount`/`approvedAmount`/`paymentDate`/`status`/`remark`/`transportSupported`/`otherSupported` 전부 정상, 새 1:N 구조로 저장 확인
+- `GET /api/v1/amounts/{no}`, `GET /api/v1/amounts/workcation/{no}?page=1` 재검증: **PASS** (순환참조 버그 수정 후 정상 크기 응답 확인)
+
+#### 현재 상태
+- PROJECT_STATUS.md 신규 항목 7 해결 완료. 비용신청(Amount) 기능은 신청→저장→조회 흐름이 실제 DB로 검증된 상태
+- Notice, 부서장 승인 라우팅, 보안 정책 정리 등은 아직 미착수
+
+#### 남은 문제
+- `StatisticsPage.jsx`의 월별/부서별/항목별 통계(`item.amount ?? item.AMOUNT` 등 다중 fallback 패턴)는 `AmountDao`의 `getMonthlyStatistics()`/`getDeptStatistics()`/`getItemStatistics()`가 타입 없는 raw `Object`(JPQL tuple)를 반환하는 구조라 실제 직렬화 형태가 불확실함 — 이번 작업 범위 밖이라 손대지 않았으나, 통계 화면 자체가 깨져 있을 가능성이 있어 별도 확인이 필요할 수 있음
+- Notice 관리자 CRUD 3종 500 오류 — STEP 7에서 처리 예정
+- 부서장 승인 화면 라우팅, `/hubs`·`/api/v1/amounts` 보안 정책 정리 — 미착수
+
+#### 사용자 확인 필요
+- **없음** — 이번 작업분은 전부 명확한 버그 수정으로 판단해 바로 처리함. STEP 7(Notice MyBatis→JPA)로 진행 가능

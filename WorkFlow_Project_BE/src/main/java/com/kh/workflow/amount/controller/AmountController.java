@@ -289,10 +289,6 @@ public class AmountController {
                             FILE_PATH + changeName
                     );
 
-                    fileVo.setFileSize(
-                            file.getSize()
-                    );
-
                     fileVo.setStatus("Y");
 
 

@@ -22,6 +22,11 @@ public interface EmployeeDao
             String email
     );
 
+    Optional<Employee> findByEmpIdAndEmail(
+            String empId,
+            String email
+    );
+
     /**
 	 * [부서장] 부서 아이디(depId)를 기반으로 해당 부서의 부서명(depTitle) 조회
 	 * 
