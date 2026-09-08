@@ -106,11 +106,30 @@ function Header({ loginUser, onLogout }) {
           label: "정산 목록", 
           path: "/cost/list" 
         }, 
-        { 
-          label: "지원금 목록", 
+        {
+          label: "지원금 목록",
           path: "/subsidy/list" ,
-          rolse:["ADMIN"]
-        }, 
+          roles:["ADMIN"]
+        },
+      ]
+    },
+    {
+      id: "approval",
+      label: "승인 관리",
+      icon: "✓",
+      path: "/approval/queue/list",
+
+      roles: ["ADMIN", "MANAGER"],
+
+      children: [
+        {
+          label: "승인 대기 목록",
+          path: "/approval/queue/list"
+        },
+        {
+          label: "승인 이력",
+          path: "/approval/history"
+        }
       ]
     },
     {
@@ -248,7 +267,12 @@ function Header({ loginUser, onLogout }) {
             Navigation
         ========================= */}
         <nav className="wf-nav">
-          {menus.map((menu) => (
+          {menus
+            .filter((menu) =>
+              !menu.roles ||
+              menu.roles.includes(loginUser?.authCode)
+            )
+            .map((menu) => (
             <button
               key={menu.id}
               className={`wf-nav-item ${

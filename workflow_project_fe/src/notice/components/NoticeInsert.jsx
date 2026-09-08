@@ -22,13 +22,12 @@ export default function NoticeInsert() {
 
     useEffect(() => {
 
-        const loginMember =
+        const loginUser =
             JSON.parse(
-                sessionStorage.getItem('loginMember')
+                localStorage.getItem('user')
             );
 
-        // 관리자 권한 = S
-        if (loginMember?.role !== 'S') {
+        if (loginUser?.authCode !== 'ADMIN') {
 
             alert(
                 '관리자만 공지사항을 등록할 수 있습니다.'
@@ -119,12 +118,12 @@ export default function NoticeInsert() {
         // 관리자 확인
         // =====================================================
 
-        const loginMember =
+        const loginUser =
             JSON.parse(
-                sessionStorage.getItem('loginMember')
+                localStorage.getItem('user')
             );
 
-        if (loginMember?.role !== 'S') {
+        if (loginUser?.authCode !== 'ADMIN') {
 
             alert(
                 '관리자만 공지사항을 등록할 수 있습니다.'

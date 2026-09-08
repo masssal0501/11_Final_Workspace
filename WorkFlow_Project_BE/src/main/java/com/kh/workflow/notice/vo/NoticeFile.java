@@ -1,84 +1,57 @@
 package com.kh.workflow.notice.vo;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Entity
+@Table(name = "notice_file")
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(exclude = "notice")
 public class NoticeFile {
 
-    private int noticefileNo;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "noticefile_no")
+    private Integer noticefileNo;
+
+    @Column(name = "file_path", length = 500, nullable = false)
     private String filePath;
+
+    @Column(name = "origin_name", length = 225, nullable = false)
     private String originName;
+
+    @Column(name = "change_name", length = 255)
     private String changeName;
-    private Timestamp updatedAt;
+
+    @Column(
+        name = "updated_at",
+        columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
+    private LocalDateTime updatedAt;
+
+    @Column(name = "status", length = 1)
     private String status;
-    private int noticeNo;
 
-    public NoticeFile() {
-    }
-
-    public int getNoticefileNo() {
-        return noticefileNo;
-    }
-
-    public void setNoticefileNo(int noticefileNo) {
-        this.noticefileNo = noticefileNo;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public String getOriginName() {
-        return originName;
-    }
-
-    public void setOriginName(String originName) {
-        this.originName = originName;
-    }
-
-    public String getChangeName() {
-        return changeName;
-    }
-
-    public void setChangeName(String changeName) {
-        this.changeName = changeName;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public int getNoticeNo() {
-        return noticeNo;
-    }
-
-    public void setNoticeNo(int noticeNo) {
-        this.noticeNo = noticeNo;
-    }
-
-    @Override
-    public String toString() {
-        return "NoticeFile [noticefileNo=" + noticefileNo
-                + ", filePath=" + filePath
-                + ", originName=" + originName
-                + ", changeName=" + changeName
-                + ", updatedAt=" + updatedAt
-                + ", status=" + status
-                + ", noticeNo=" + noticeNo + "]";
-    }
+    // 부모(Notice) 역참조 - Amount 계열과 동일하게 순환참조 방지를 위해 JsonIgnore
+    @JsonIgnore
+    @JoinColumn(name = "notice_no", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Notice notice;
 }

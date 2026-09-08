@@ -153,6 +153,19 @@ export default function NoticeList() {
 
 
     // =========================================================
+    // 로그인 사용자 정보 (관리자만 등록 버튼 노출)
+    // =========================================================
+
+    const loginUser =
+        JSON.parse(
+            localStorage.getItem('user')
+        );
+
+    const isAdmin =
+        loginUser?.authCode === 'ADMIN';
+
+
+    // =========================================================
     // 날짜
     // =========================================================
 
@@ -279,20 +292,17 @@ export default function NoticeList() {
                 </h2>
 
 
-                {/* 
-                 * 현재는 임시로 모두에게 표시
-                 *
-                 * 추후 관리자 권한 체크 후
-                 * 관리자에게만 표시하면 됨
-                 */}
+                {isAdmin && (
 
-                <button
-                    type="button"
-                    className="notice-btn primary"
-                    onClick={handleInsert}
-                >
-                    공지사항 등록
-                </button>
+                    <button
+                        type="button"
+                        className="notice-btn primary"
+                        onClick={handleInsert}
+                    >
+                        공지사항 등록
+                    </button>
+
+                )}
 
             </div>
 

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,7 @@ import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.hub.model.dao.HubDao;
-import com.kh.workflow.notice.dao.NoticeDao;
+import com.kh.workflow.notice.service.NoticeService;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 
@@ -39,16 +38,13 @@ public class DashboardServiceImpl implements DashboardService {
 	private AmountDao amountDao;
 	
 	@Autowired
-	private NoticeDao noticeDao;
-	
+	private NoticeService noticeService;
+
 	@Autowired
 	private EmployeeDao employeeDao;
 
 	@Autowired
 	private TaskDao taskDao;
-	
-	@Autowired
-	private SqlSessionTemplate sqlSession;
 
 	/**
 	 * [관리자] 전사 대시보드 데이터 조회
@@ -80,7 +76,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Map<String, Object> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("limit", 3);
-		adminDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+		adminDto.setNoticeData(noticeService.selectNoticeList(map));
 		
 		/* --- [4] 차트 시각화용 데이터 --- */
 		// 최근 6개월간의 월별 참가 현황 트렌드
@@ -126,7 +122,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Map<String, Object> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("limit", 3);
-		managerDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+		managerDto.setNoticeData(noticeService.selectNoticeList(map));
 		
 		return managerDto;
 	}
@@ -164,7 +160,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Map<String, Object> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("limit", 3);
-		staffDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+		staffDto.setNoticeData(noticeService.selectNoticeList(map));
 				
 		return staffDto;
 	}

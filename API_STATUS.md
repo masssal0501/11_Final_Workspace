@@ -11,7 +11,7 @@
 
 | Method/Path | Frontend 호출 | 상태 | 비고 |
 |---|---|---|---|
-| `POST /employees` | `createEmployee` | ✅ | `permitAll` — 보안 갭(authCode 직접 전달 가능) |
+| `POST /employees` | `createEmployee` | ✅ | **(2026-09-09 수정 완료)** `hasRole("ADMIN")`로 전환 — 실제 토큰 테스트로 STAFF/MANAGER 403, ADMIN 통과 확인. 프론트 `EmployeeEnrollFormComponent`는 이미 관리자 메뉴 하위에서만 쓰이므로 영향 없음 |
 | `GET /employees/checkId` | `checkEmpIdDuplicate` | ✅ | |
 | `POST /employees/login` | `login` | ✅ | |
 | `POST /employees/logout` | `logout` | ✅ | 서버측 로직은 no-op(JWT라 세션 정리 불필요, 의도된 설계) |
@@ -50,7 +50,7 @@
 | `GET /approval/{no}` | ✅ | |
 | `GET /approval/queue` | ✅ | STAFF 차단 정상 |
 | `GET /approval/queue/{no}` | ✅ | |
-| `POST /approval/{no}` (반려) | ⚠️ | 역할 검사 없음(STAFF도 호출 가능) — 보안 갭 |
+| `POST /approval/{no}` (반려) | ✅ **(2026-09-09 수정 완료)** | `hasAnyRole("ADMIN","MANAGER")`로 전환 — 실제 토큰 테스트로 STAFF 403, MANAGER/ADMIN 보안계층 통과 확인 |
 
 **Frontend 라우팅 갭**: 위 API들은 모두 정상 호출 가능하지만 `App.jsx`가 승인 관련 라우트(`/approval/*`)를 `authCode==="ADMIN"` 블록에만 배치해 부서장(MANAGER)은 화면 자체에 도달할 방법이 없음. README 권한표 위반 — 수정 후보 1순위.
 
@@ -70,19 +70,19 @@
 | `GET /api/v1/amounts/statistics` | ✅ | |
 | `PATCH .../file/{fileNo}/delete` | ✅ | 프론트 `deleteFile`은 다른 URL 패턴(`/files/{fileNo}`)로 호출 — 경로 재확인 필요 |
 
-**전부 `permitAll`** — 보안 갭.
+**(2026-09-09)** GET 전체 `authenticated()`로 전환 완료 — 실제 STAFF/MANAGER/ADMIN 토큰으로 200 확인, 무인증은 403 확인.
 
 ## notice (`/api/v1/notice`) ↔ `noticeApi.js`
 
 | Method/Path | 상태 | 비고 |
 |---|---|---|
-| `GET /api/v1/notice` | ✅ | |
-| `GET /api/v1/notice/{no}` | ✅ | |
-| `POST /api/v1/notice` | 🔴 | `isAdmin()` MyBatis 매퍼ID 불일치로 항상 500 |
-| `PUT /api/v1/notice/{no}` | 🔴 | 동일 |
-| `DELETE /api/v1/notice/{no}` | 🔴 | 동일 |
+| `GET /api/v1/notice` | ✅ | 실제 검색(제목/내용/작성자/제목+내용)·페이징·IMPORTANT 우선정렬까지 실제 DB로 확인 |
+| `GET /api/v1/notice/{no}` | ✅ | 존재하지 않는 번호는 404 확인 |
+| `POST /api/v1/notice` | ✅ **(2026-09-09 STEP 7에서 근본 해결)** | JPA 전환하며 `isAdmin()`을 `EmployeeDao` 기반으로 재구현 — STAFF 403, ADMIN 201 실제 확인 |
+| `PUT /api/v1/notice/{no}` | ✅ **(2026-09-09)** | STAFF 403, ADMIN 200 실제 확인 |
+| `DELETE /api/v1/notice/{no}` | ✅ **(2026-09-09)** | STAFF 403, ADMIN 200 + 삭제 후 404 확인, 존재하지 않는 번호 삭제 시 400 확인 |
 
-→ STEP 7(Notice JPA 전환)에서 근본 해결 예정(단순 오타 패치로 끝내지 않음 — DB_DESIGN.md 참조).
+MyBatis(`NoticeDao`, `notice-mapper.xml`) 완전 제거, `NoticeController`/`noticeApi.js`는 코드 변경 없이 그대로 동작(Service 인터페이스를 유지한 채 내부만 JPA로 교체).
 
 ## hub (`/hubs`) ↔ `hubApi.js`
 
@@ -90,7 +90,7 @@
 |---|---|---|
 | `GET /hubs`, `/hubs/search` | ✅ | |
 | `POST /hubs/send` (AI 챗봇) | ✅ **(2026-09-09 수정 완료)** | 전역 `chatHistory` 필드를 요청 단위 지역 변수로 변경, 사용자 간 대화 혼입 버그 해결 |
-| `POST /hubs`, `PUT /hubs/{no}`, `DELETE /hubs/{no}` | 🔴 보안 | 인증 없이 호출 가능(`permitAll` + 컨트롤러 레벨 권한체크 없음) |
+| `POST /hubs`, `PUT /hubs/{no}`, `DELETE /hubs/{no}` | ✅ **(2026-09-09 수정 완료)** `hasRole("ADMIN")`로 전환, 실제 STAFF/MANAGER/ADMIN 토큰으로 테스트해 정상 차단/허용 확인 |
 | `GET /hubs/{no}` | ✅ | |
 
 ## place (`/place`) ↔ `placeApi.js`

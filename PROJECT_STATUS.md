@@ -20,7 +20,7 @@
 | 직원 관리 | ✅ 대부분 동작 | ✅ 대부분 동작 | ✅ | `POST /employees` 자가입 시 `authCode` 직접 전달 가능(권한상승 위험), 아이디/비번 찾기만 미구현 |
 | 아이디/비밀번호 찾기 | ✅ **(2026-09-09 구현 완료)** `verification` 테이블 기반 2단계 인증코드 플로우(`POST /employees/password/reset/request`, `/verify`) 신규 구현 | ✅ **(2026-09-09)** `FindPWForm.jsx` 2단계 UI로 재작성, `employeeApi.js`의 `findEmployeeId`가 실제로 `POST /employees/findId`를 호출하도록 수정 | ✅ `verification` 테이블 그대로 사용 | 실제 DB/이메일 연동 테스트는 아직 못함(로컬 DB/SMTP 미구성) |
 | 워케이션 신청/조회/수정/삭제 | ✅ 동작(단, 소유권 검사 없이 아무나 타인 워케이션 수정/삭제 가능) | ✅ 동작 | ⚠️ `approver_state` 기본값 이슈, **[확인 필요] 항목 1** | 2순위 |
-| 워케이션 승인(부서장/관리자) | ✅ Backend는 MANAGER 허용 | 🔴 **Frontend가 승인 라우트를 ADMIN 전용으로 막아놔서 부서장은 승인 화면에 접근 불가** | ✅ | README 권한표(부서장=승인 가능)와 불일치 → 조치 필요 |
+| 워케이션 승인(부서장/관리자) | ✅ Backend는 MANAGER 허용 | ✅ **(2026-09-09 수정 완료)** 승인 라우트(App.jsx)를 ADMIN 전용→ADMIN·MANAGER 공용으로 변경, Header.jsx에 "승인 관리" 메뉴 신규 추가(+ 기존에 죽어있던 메뉴 role 필터링 로직도 함께 활성화, `rolse` 오타 수정) | ✅ | README 권한표(부서장=승인 가능)와 일치하도록 수정 완료 |
 | 워케이션 취소 | ⚠️ `approver_state='C'` 하나로만 처리, 별도 취소사유/이력 없음 | ⚠️ 동일 | 상태값 자체는 SQL에 존재 | README 8번 섹션의 "취소요청→상급자검토" 별도 플로우는 없음. 별도 테이블 필요 여부는 향후 판단 (지금은 저비용으로 기존 구조 활용 가능해 보임) |
 | 업무/업무진행(Task) | ✅ `updateTask` NPE **(2026-09-09 수정 완료)**, Task 컨트롤러 자체가 없음(Workcation쪽에 붙어있음) | ⛔ **전체 더미데이터, API 연동 0%** | ✅ (Task/TaskHistory는 SQL과 완전 일치) | 3순위, Frontend 작업량이 가장 큼 |
 | 업무 첨부파일 | ⛔ `TaskFile` 엔티티가 잘못된 테이블/FK를 가리키는 고아 코드 | ⛔ 없음 | 🔴 **[확인 필요] 항목 3** | 후순위 |
@@ -30,7 +30,7 @@
 | 예약(Reservation) | ⚠️ 대부분 동작, `getAvailableFacilities`만 스텁 | ✅ 동작 | **[확인 필요] 항목 4** | |
 | 비용 신청/승인/정산 | ✅ **(2026-09-09)** 목록조회 스텁 해결 + Entity를 SQL에 정렬 + `/error` 보안 버그 수정 + Jackson 순환참조 버그 수정, **실제 로컬 DB로 전체 흐름 end-to-end 검증 완료** | ✅ **(2026-09-09)** `AmountForm.jsx` FormData 방식으로 재작성, 실제 API 테스트로 정상 저장/파일첨부/itemList/supportList 바인딩 전부 확인 | ✅ 완료 | 4순위 — **완료** |
 | 지원금(지자체) | ✅ **(2026-09-09)** 여러 지원처(1:N) 구조로 확정, `amount_list` SQL 재설계 완료(Java 코드는 원래도 1:N 구조라 무변경) | ✅ UI는 있음 | ✅ 완료 | |
-| 공지사항 | 🔴 관리자 글쓰기 3종 MyBatis 매퍼ID 불일치로 500 (Notice 전체 JPA 전환 시 함께 해결 예정, STEP7 대기) | ✅ 조회는 동작 | N/A(POJO, JPA 전환 전) | 5순위 |
+| 공지사항 | ✅ **(2026-09-09 STEP 7 완료)** MyBatis→JPA 전환, isAdmin 버그 근본 해결, 대시보드 연동 포함 실제 DB로 전체 흐름 검증 | ✅ **(2026-09-09)** 관리자 등록/수정/삭제 버튼이 잘못된 로그인 정보 저장소를 참조해 실제 관리자도 클릭 불가였던 버그 발견·수정 | ✅ 완료 | 5순위 — **완료**. 조회수 증가·첨부파일은 원래도 미구현이었고 이번에도 그대로 포팅(결정 대기) |
 | 대시보드(관리자/부서장/사원) | ✅ 동작 (Notice 조회 위해 MyBatis 의존 — Notice 전환 시 영향받음) | ✅ 동작 | ✅ | 6순위 |
 | 설문(Survey) | 미확인(개별 기능 테스트 전) | 미확인 | 🔴 `SurveyQuestion`에 `question_order` 누락 + 코드값 불일치(S/T/M vs SCORE/TEXT/SCORE_TEXT) | 6순위 |
 
@@ -39,13 +39,15 @@
 | 항목 | 상태 |
 |---|---|
 | JWT 발급/검증 | ✅ 정상 동작 (`JwtUtil`, `JwtAuthenticationFilter`) |
-| Role 기반 URL 인가 | ⚠️ 있지만 불균일 — 컨트롤러별로 수동 체크(`place`)/전혀 없음(`hub`)/컨트롤러 내부 if문(`notice`,`approval`)이 혼재, `@PreAuthorize` 미사용 |
-| `/hubs/**` | 🔴 전체 `permitAll` — 생성/수정/삭제(관리자 기능)까지 인증 없이 호출 가능 |
-| `/api/v1/amounts/**` | 🔴 전체 `permitAll` — 코드 주석 `// 추후 관리자로 수정` 방치 |
-| `POST /employees` (자가입) | 🔴 `permitAll` + 요청 바디에 `authCode` 포함 → 이론상 스스로 ADMIN 등록 가능 |
-| `POST /approval/{workcationNo}` (반려) | 🔴 형제 엔드포인트(`/approval/queue`)와 달리 STAFF 차단 로직 없음 |
-| CORS | ⚠️ `SecurityConfig`(제한적, localhost:5173만 허용)와 `WebConfig`(와일드카드 `allowedOriginPatterns("*")`)가 동시에 활성화되어 중복/충돌 |
+| Role 기반 URL 인가 | ⚠️ 여전히 컨트롤러별 수동 체크(`place`)와 `SecurityConfig` 매처가 혼재하지만, 아래 5개 항목은 전부 `SecurityConfig` 레벨로 통일·정리 완료(`@PreAuthorize`는 여전히 미사용) |
+| `/hubs/**` | ✅ **(2026-09-09 수정 및 실제 요청으로 검증 완료)** `GET`=인증 필요, `POST /hubs/send`(AI챗봇)=인증 필요, `POST/PUT/DELETE`(등록·수정·삭제)=`ADMIN` 전용으로 분리 |
+| `/api/v1/amounts/**` GET | ✅ **(2026-09-09 수정 및 검증 완료)** 전체 `authenticated()`로 전환(role 제한 없음 — STAFF/MANAGER/ADMIN 모두 조회 가능) |
+| `POST /employees` (직원 등록) | ✅ **(2026-09-09 수정 및 검증 완료)** `hasRole("ADMIN")`으로 전환. `WorkFlow_Script.sql` 시드 관리자 계정이 이미 있어 별도 부트스트랩 불필요 |
+| `POST /approval/{workcationNo}` (반려) | ✅ **(2026-09-09 수정 및 검증 완료)** `hasAnyRole("ADMIN","MANAGER")`로 전환, STAFF는 403 |
+| CORS | ✅ **(2026-09-09 정리 완료)** 중복·미사용이던 `WebConfig.java`(와일드카드 CORS, 다른 곳에서 참조 없음 확인 후 삭제) 제거, `SecurityConfig`의 CORS 설정만 유지. 실제 OPTIONS preflight/GET 요청으로 허용 오리진(`localhost:5173`)은 정상 통과, 비허용 오리진은 CORS 헤더 없이 차단됨을 확인 |
 | `/error` 경로 인증 | 🔴→✅ **(2026-09-09 발견 및 수정)** `/error`가 permitAll이 아니어서 컨트롤러 예외 발생 시 실제 상태코드/메시지 대신 항상 빈 본문의 403이 반환되던 버그. 애플리케이션 전역 에러 응답에 영향 — permitAll 추가로 해결 |
+
+**실제 검증 방법**: 로컬 MySQL에 STAFF/MANAGER/ADMIN 역할별 테스트 계정을 직접 시드(SQL)한 뒤 각각 실제 로그인 → JWT 발급 → 위 5개 항목의 엔드포인트를 전부 무인증/STAFF/MANAGER/ADMIN 4가지 조합으로 실제 호출해 상태코드를 확인(무인증은 전부 403, STAFF는 관리자 전용 엔드포인트에서 전부 403, MANAGER는 승인/반려까지만 통과, ADMIN은 전부 보안 계층 통과). 검증 후 테스트 계정은 삭제.
 
 > 보안 정책 변경은 지침 10번대로 README 역할 정의(EMPLOYEE/MANAGER/ADMIN)를 기준으로 정리할 예정이며, 실제 변경 전 각 API별 접근 가능 역할표를 별도로 작성해 사용자 확인을 받을 예정.
 
@@ -95,9 +97,17 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 
 > 참고: 로컬 MySQL이 이미 `localhost:3306`에 떠 있었고(`root`/`mysql`), `workflow` 스키마가 아직 없어서 `SQL/WorkFlow_Script.sql`로 새로 만들었습니다(기존 데이터 없음, 파괴적 작업 아님). 검증은 사용자가 이미 IDE로 띄워둔 8006 인스턴스를 건드리지 않기 위해 별도 포트(8007)의 격리된 인스턴스로 진행했고, 테스트로 만든 임시 직원/비용신청 데이터는 검증 후 삭제했습니다. 스키마 자체는 로컬 개발에 필요하므로 남겨두었습니다.
 
+### 항목 8~12. 백엔드 보안 정책 정리 — ✅ 전부 해결 완료 (2026-09-09, A안)
+
+`/hubs/**`, `POST /employees`, `POST /approval/{workcationNo}`, `/api/v1/amounts/**` GET, `WebConfig` CORS 중복 — 5개 항목 전부 A안 채택, `SecurityConfig.java` 수정 및 `WebConfig.java` 삭제로 반영. 상세 내용은 "보안 점검 상태" 표 및 `WORK_LOG.md` 5차 작업 참조. **로컬 MySQL에 STAFF/MANAGER/ADMIN 역할별 테스트 계정을 직접 시드해 4가지 인증 조합(무인증/STAFF/MANAGER/ADMIN) × 8개 엔드포인트를 실제로 호출해 전부 의도한 상태코드가 나오는지 확인**했고, CORS(허용/비허용 오리진) 및 Frontend build도 함께 검증함.
+
 ## 다음 단계 (사용자 확인 대기 중)
 
 - DB_DESIGN.md [확인 필요] 항목 1,2,5,6 → 처리 완료
 - **신규 항목 7**(AmountForm 요청 포맷) → ✅ 처리 완료 (A안, 실제 API 테스트로 검증)
 - DB_DESIGN.md [확인 필요] 항목 3(TaskFile), 4의 facility 부분 → 계속 보류 중, 필요 시점에 재논의
-- 결정 대기 항목 없음 — 다음 작업(부서장 승인화면 프론트 라우팅 복구, `/hubs/**` 등 보안 정책 정리, STEP 7 Notice MyBatis→JPA 전환)으로 진행 가능
+- **신규 항목 8~12**(보안 정책 5건) → ✅ 처리 완료 (A안, 실제 4-역할 조합 테스트로 검증)
+- **STEP 6 전체 완료**
+- **STEP 7(Notice MyBatis→JPA 전환) 완료** — 실제 DB로 목록/상세/검색/등록/수정/삭제/권한/대시보드 연동까지 전부 검증, MyBatis 파일(`NoticeDao.java`, `notice-mapper.xml`) 삭제 완료. `mybatis-spring-boot-starter` 의존성/`mybatis.*` 설정 자체는 아직 pom.xml/application.properties에 남아있음(요청 범위 밖이라 유지, 필요 시 별도 정리 가능)
+- **신규 확인 필요**: 조회수 증가 미구현, 첨부파일 미구현(둘 다 이번 전환 이전부터 없던 기능, 그대로 포팅함) — 완성 여부 결정 필요
+- 다음 작업 후보 없음(모든 STEP 완료) — 추가로 진행할 작업을 알려주시면 그에 따라 진행

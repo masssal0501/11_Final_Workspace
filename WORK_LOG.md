@@ -183,3 +183,133 @@
 
 #### 사용자 확인 필요
 - **없음** — 이번 작업분은 전부 명확한 버그 수정으로 판단해 바로 처리함. STEP 7(Notice MyBatis→JPA)로 진행 가능
+
+---
+
+## 2026-09-09 (4차 작업 — STEP 6 나머지: 부서장 승인 라우팅)
+
+### [작업 완료]
+
+#### 작업 내용
+- `App.jsx`: `/approval/reject/:workcationNo`, `/approval/history`, `/approval/history/detail/:workcationNo`, `/approval/queue/list` 라우트를 `authCode === "ADMIN"` 전용 블록에서 분리해 `authCode === "ADMIN" || authCode === "MANAGER"` 조건으로 이동. 백엔드 `ApprovalController`는 원래부터 STAFF만 차단하고 MANAGER를 허용하고 있어, 프론트만 뒤늦게 맞춘 것.
+- 승인 관련 4개 컴포넌트(`ApprovalQueueList`, `ApprovalReject`, `ApprovalHistoryList`, `ApprovalHistoryDetail`)를 확인한 결과 ADMIN 전용을 가정하는 하드코딩이 없어(전부 서버가 역할별로 스코프된 데이터를 내려주는 구조) 라우트만 열어도 안전하게 동작함을 확인.
+- **[신규 발견]** `Header.jsx`의 내비게이션 메뉴가 `roles`/`children` 필드를 정의해두고도 실제 렌더링에서 전혀 사용하지 않고 있었음(모든 로그인 사용자에게 전체 메뉴가 그대로 노출되고, 하위 메뉴는 아예 렌더링되지 않음) — 라우트를 열어도 부서장이 실제로 찾아갈 메뉴 링크가 없었던 것. `menus.map()` 앞에 `roles` 기반 `.filter()`를 추가해 역할별 메뉴 노출을 실제로 동작하게 하고, "승인 관리"(ADMIN/MANAGER) 메뉴를 신규 추가. 겸사겸사 인접해 있던 `rolse` 오타(`roles`여야 함)도 수정.
+
+#### 수정 이유
+README 권한표("워케이션 승인 = 부서장 ✅")와 백엔드 코드가 이미 일치시켜둔 정책을 프론트엔드 라우팅만 반영하지 못하고 있던 명확한 버그. 메뉴 필터링 활성화는 라우트를 열어도 실제로 화면에 도달할 방법이 없다면 무의미하다고 판단해 같은 작업 단위로 함께 처리.
+
+#### 변경 파일
+- `workflow_project_fe/src/App.jsx`
+- `workflow_project_fe/src/common/components/Header.jsx`
+
+#### 검증
+- Frontend build: **PASS** (`npm run build`)
+- 백엔드/DB 변경 없음(프론트 전용 변경)
+
+#### 현재 상태
+- 부서장이 승인 대기 목록/이력 화면에 도달할 수 있는 라우트와 메뉴 링크 모두 마련됨
+
+#### 남은 문제
+- 메뉴 역할 필터링을 이번에 활성화하면서, 기존에 `roles` 없이(=모든 역할에 노출) 정의돼 있던 메뉴들의 노출 범위는 그대로 유지됨 — 예를 들어 "업무 관리"/"공지사항" 등은 원래도 role 제한이 없었으므로 동작 변화 없음. 다만 이 활성화로 인해 이전에는(버그로 인해) 모든 사용자에게 보이던 "직원 관리" 메뉴가 이제 ADMIN에게만 보이도록 **정상화**됨 — 의도된 개선이지만 사용자 눈에 띄는 변화이므로 기록.
+- `/hubs/**`, `/api/v1/amounts/**` 등 백엔드 보안 정책 정리는 아직 미착수 — 별도로 확인 필요 항목을 정리해 보고 예정
+
+---
+
+## 2026-09-09 (5차 작업 — STEP 6 나머지: 보안 정책 정리, 항목 8~12)
+
+### [작업 완료]
+
+#### 작업 내용
+사용자가 항목 8~12를 전부 A안으로 확정. `SecurityConfig.java`를 다음과 같이 수정:
+
+1. **`/hubs/**`**: `permitAll` 일괄 제거 → `GET`은 `authenticated()`, `POST /hubs/send`(AI챗봇)는 `authenticated()`(모든 로그인 사용자), `POST /hubs`·`PUT /hubs/**`·`DELETE /hubs/**`(등록/수정/삭제)는 `hasRole("ADMIN")`으로 세분화
+2. **`POST /employees`**: `permitAll` → `hasRole("ADMIN")`
+3. **`POST /approval/*`**(반려): 신규 규칙 추가, `hasAnyRole("ADMIN","MANAGER")` (`GET /approval/queue`의 기존 컨트롤러 내부 STAFF 차단 정책과 동일한 효과를 보안 설정 레벨에도 반영)
+4. **`GET /api/v1/amounts/**`**: 6개로 흩어져 있던 개별 `permitAll` 매처를 `authenticated()` 하나로 통합(동일 정책, 정리)
+5. **`WebConfig.java`**: 전체 코드베이스에서 참조 여부 재검색(자기 자신 외 0건) 후 삭제
+
+#### 수정 이유
+사용자가 명시한 정책(README 역할 정의, 프론트가 이미 전제하던 관리자 전용 정책과 백엔드를 일치)을 그대로 반영. API URL/DTO/DB/Entity/JWT 구조/비즈니스 로직은 전혀 건드리지 않음(SecurityConfig의 접근 제어 규칙만 수정).
+
+#### 변경 파일
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/SecurityConfig.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/WebConfig.java` (삭제)
+
+#### 검증 (사용자 체크리스트 전체 실제 테스트로 확인)
+- Backend compile: **PASS**
+- 로컬 MySQL에 STAFF/MANAGER/ADMIN 역할별 테스트 계정을 SQL로 직접 시드(`POST /employees`가 이제 ADMIN 전용이라 API로는 부트스트랩 불가) → 각각 실제 로그인해 JWT 획득
+- **무인증 호출**: `/hubs`, `/hubs/send`, `/hubs`(POST), `/hubs/1`(PUT/DELETE), `/api/v1/amounts`, `/employees`(POST), `/approval/1`(POST) 전부 **403** 확인
+- **STAFF 호출**: `GET /hubs`=200, `POST /hubs/send`=400(보안 통과, 바디 누락으로 인한 정상적인 검증 실패), `POST/PUT/DELETE /hubs`=403, `GET /api/v1/amounts`=200, `POST /employees`=403, `POST /approval/1`=403 — 전부 기대대로
+- **MANAGER 호출**: `GET /hubs`=200, `POST /hubs`=403(관리자 전용 유지 확인), `GET /api/v1/amounts`=200, `POST /employees`=403, `POST /approval/1`=500(보안 통과 후 비즈니스 로직에서 실패 — 403이 아님을 확인해 보안계층 통과를 검증)
+- **ADMIN 호출**: `GET /hubs`=200, `POST/PUT /hubs`=415(보안 통과, multipart 바디 미전송으로 인한 정상적인 미디어타입 오류), `DELETE /hubs/999999`=200, `GET /api/v1/amounts`=200, `POST /employees`=400(보안 통과, 필수값 누락), `POST /approval/1`=500(보안 통과) — 전부 기대대로
+- **CORS**: `Origin: http://localhost:5173`(허용) → preflight/실제 요청 모두 `Access-Control-Allow-Origin` 정상 반환. `Origin: http://evil.example.com`(비허용) → 403, CORS 허용 헤더 없음 확인. `WebConfig.java` 삭제가 CORS 동작에 영향 없음을 확인
+- Frontend build: **PASS** (`npm run build`) — 백엔드 계약 자체는 안 바꿨고 앱이 항상 로그인 후에만 이 API들을 호출하므로 프론트 동작에 영향 없음
+- 테스트로 만든 STAFF/MANAGER/ADMIN 계정은 검증 후 전부 삭제, 격리된 테스트 백엔드 인스턴스도 종료(사용자의 8006 인스턴스는 미접촉)
+
+#### 현재 상태
+- DB_DESIGN.md/PROJECT_STATUS.md [확인 필요] 항목 8~12 전부 반영 완료
+- STEP 6에서 파악된 항목 전부(라우팅 복구 포함) 처리 완료
+
+#### 남은 문제
+- Role 기반 인가가 여전히 `SecurityConfig` 매처와 컨트롤러 내부 수동 체크(`place`, `notice` 등)에 혼재 — `@PreAuthorize` 등으로 통일하는 것은 더 큰 리팩토링이라 이번 범위 밖
+- `StatisticsPage.jsx` 통계 데이터 형태 불확실 이슈는 여전히 미확인 상태
+
+#### 사용자 확인 필요
+- **없음** — STEP 6 전체 항목 처리 완료. STEP 7(Notice MyBatis→JPA)로 진행 가능
+
+---
+
+## 2026-09-09 (6차 작업 — STEP 7: Notice MyBatis → JPA 전환)
+
+### [작업 완료]
+
+#### 작업 내용
+Notice 전체 구조(Entity/DTO/Controller/Service/DAO/mapper.xml/파일업로드/Security/Frontend API/화면/SQL)를 먼저 전부 읽고 분석한 뒤 JPA로 전환:
+
+1. **`Notice.java`**: 순수 POJO → `@Entity`. `emp_no`는 관계매핑 대신 plain FK 컬럼 + `@Transient empName`(서비스에서 채움) 유지(Amount 계열과 동일 컨벤션). `createdAt`을 `java.sql.Timestamp`→`LocalDateTime`으로 정규화(코드베이스 컨벤션 통일, JSON은 여전히 ISO-8601이라 프론트 영향 없음). `fileList`(`@OneToMany`)는 응답 형태 유지를 위해 구조만 추가.
+2. **`NoticeFile.java`**: 순수 POJO → `@Entity`, `Notice`에 대한 `@ManyToOne` + `@JsonIgnore`(Amount 계열과 동일하게 순환참조 방지).
+3. **`NoticeRepository.java`**(신규, `notice.dao` 패키지): `JpaRepository<Notice,Integer>` + 목록/검색용 `@Query` 5개(전체/제목/내용/작성자/제목+내용, 전부 `notice_status <> 'UNVISIBLE'` + IMPORTANT 우선 정렬 유지). Spring Data derived query로 표현 불가능한 조건부 정렬(CASE WHEN)만 JPQL `@Query`로 처리 — 우선순위 원칙대로 가장 단순한 방식 사용.
+4. **`NoticeServiceImpl.java`**: 내부 구현을 `NoticeRepository`+`EmployeeDao` 기반으로 재작성. **`NoticeService` 인터페이스는 시그니처 하나도 바꾸지 않아 `NoticeController.java`는 코드 변경이 전혀 필요 없었음.** `isAdmin()`/`selectEmpNoByLoginId()`는 `EmployeeDao.findByEmpId()` 기반으로 재구현 — 기존 MyBatis 매퍼 ID 불일치 버그(`noticeMapper.isAdmin` vs 실제 정의 `selectIsAdminByLoginId`)가 원천적으로 해결됨.
+5. **`DashboardServiceImpl.java`**: `NoticeDao`+`SqlSessionTemplate` 필드를 `NoticeService`로 교체, 3개 호출부(admin/manager/staff 대시보드) 수정.
+6. **[신규 발견, Notice 모듈 자체 파일이라 범위 내로 판단해 수정]** `NoticeDetail.jsx`/`NoticeInsert.jsx`/`NoticeList.jsx`가 앱 전역 로그인 저장 방식(`localStorage`의 `user.authCode`)이 아니라 아무 데서도 설정되지 않는 `sessionStorage`의 `loginMember.role==='S'`를 참조하고 있어, **실제 관리자로 로그인해도 공지 등록/수정/삭제가 전혀 동작하지 않던 버그**를 발견 — `localStorage`/`authCode==='ADMIN'` 기준으로 통일. `NoticeDetail.jsx`의 `handleUpdate`가 주석 처리된 채로 JSX에서 참조되고 있던 것도 복원.
+7. **검증 완료 후** `NoticeDao.java`(MyBatis), `notice-mapper.xml` 삭제(참조 0건 재확인 후).
+
+#### 수정 이유
+사용자가 명시한 진행 순서(분석 → JPA 구현 → 동일 동작 확인 → 참조 0건 재확인 → 삭제)를 그대로 따름. 프론트 관리자 권한 버그는 "일반 사용자 권한"/"관리자 권한" 실제 검증이라는 완료 조건을 충족하려면 반드시 고쳐야 했던 항목(Notice 모듈 자체 파일, 스키마/API 계약과 무관한 순수 버그).
+
+#### 변경 파일
+**Backend (수정)**: `Notice.java`, `NoticeFile.java`, `NoticeServiceImpl.java`, `DashboardServiceImpl.java`
+**Backend (신규)**: `NoticeRepository.java`
+**Backend (삭제)**: `NoticeDao.java`, `notice-mapper.xml`
+**Frontend (수정)**: `NoticeDetail.jsx`, `NoticeInsert.jsx`, `NoticeList.jsx`
+**문서**: `PROJECT_STATUS.md`, `DB_DESIGN.md`, `API_STATUS.md`, `WORK_LOG.md`(본 파일)
+
+#### 검증 (전부 실제 로컬 DB + 격리된 백엔드 인스턴스로 실제 API 호출)
+- Backend compile: **PASS**(JPA 전환 직후, MyBatis 파일 삭제 후 각각 재확인)
+- Frontend build: **PASS**(`npm run build`, 프론트 수정 후·최종 각각 재확인)
+- STAFF/ADMIN 테스트 계정을 SQL로 시드해 실제 로그인 → JWT 획득 후:
+  - 목록 조회(빈 목록/검색어 없음) PASS
+  - 등록: STAFF 403 확인 → ADMIN 201 확인(각각 실제 DB row 생성 확인)
+  - 검색: 제목/내용/작성자 조건 전부 실제 키워드로 확인, UNVISIBLE 공지는 검색에서도 제외됨을 확인
+  - 목록 정렬: IMPORTANT 우선 + 최신순 확인
+  - 상세 조회: 정상 필드 + 존재하지 않는 번호 404 확인
+  - 수정: STAFF 403 → ADMIN 200, 실제 반영 확인(제목/내용/상태만 변경되고 작성일/작성자는 유지되는 것까지 원본 SQL 동작과 일치)
+  - 삭제: STAFF 403 → ADMIN 200 → 삭제 후 404 확인, 존재하지 않는 번호 삭제 시 400 확인
+  - **대시보드 연동**: `/dashboard/admin` 실제 호출로 `noticeData`가 정상 반환됨을 확인(DashboardServiceImpl 수정이 실제로 동작함을 검증)
+  - MyBatis 파일 삭제 후 위 전체 흐름 재검증 — 전부 동일하게 PASS
+- 참조 검색: `NoticeDao`/`notice-mapper.xml`/`noticeMapper` 전체 코드베이스 재검색 결과 자기 자신 외 0건 확인 후 삭제
+- 테스트 계정/데이터는 매 검증 후 삭제, 격리된 테스트 인스턴스도 종료(사용자의 8006 인스턴스는 미접촉)
+
+#### 현재 상태
+- Notice 기능이 100% JPA 기반으로 동작하며, 기존 API URL/Request/Response 구조는 전혀 변경되지 않음
+- 이전부터 있던 관리자 확인 로직 버그(글쓰기 3종 500 에러)가 근본적으로 해결됨
+- 실제 관리자로도 등록/수정/삭제가 안 되던 프론트 버그도 함께 해결되어 기능이 실사용 가능한 상태가 됨
+
+#### 남은 문제
+- 조회수(view_count) 증가 로직 미구현 — 원래도 없던 기능, 이번에도 추가하지 않고 그대로 포팅(결정 필요 시 별도 작업)
+- 공지사항 첨부파일 저장 로직 미구현 — 원래도 없던 기능(controller가 파일을 받기만 하고 저장 안 함), `NoticeFile` 엔티티/관계는 구조만 준비됨(결정 필요 시 별도 작업)
+- `mybatis-spring-boot-starter` 의존성, `application.properties`의 `mybatis.*` 설정은 아직 미제거(요청 범위 밖으로 판단해 유지)
+- `/api/v1/notice/**`의 SecurityConfig `permitAll` 정책은 이번 작업 범위가 아니라 그대로 둠(관리자 확인은 여전히 컨트롤러 내부 `isAdmin()` 체크로만 이루어짐)
+
+#### 사용자 확인 필요
+- **있음** — 조회수 증가, 첨부파일 기능을 이번에 추가로 구현할지 여부만 결정 필요. 그 외에는 STEP 7 완료.

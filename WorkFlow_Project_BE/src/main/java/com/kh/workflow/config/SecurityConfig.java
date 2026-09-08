@@ -90,11 +90,11 @@ public class SecurityConfig {
                                 "/employees/checkId"
                         ).permitAll()
 
-                        // 직원 등록
+                        // 직원 등록 - 관리자 전용 (USR-001: 관리자 계정 등록)
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/employees"
-                        ).permitAll()
+                        ).hasRole("ADMIN")
                         
                         // Swagger UI 및 API 문서화 경로 허용
                         .requestMatchers(
@@ -124,9 +124,33 @@ public class SecurityConfig {
                                 "/place/**"
                         ).permitAll()
                         
+                        // 거점 조회 - 로그인 사용자면 누구나
                         .requestMatchers(
-                        		"/hubs/**"
-                		).permitAll()
+                                HttpMethod.GET,
+                                "/hubs/**"
+                        ).authenticated()
+
+                        // AI 여행 추천 챗봇 - 로그인 사용자면 누구나
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/hubs/send"
+                        ).authenticated()
+
+                        // 거점 등록/수정/삭제 - 관리자 전용
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/hubs"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/hubs/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/hubs/**"
+                        ).hasRole("ADMIN")
 
 	                     // 관리자 - 계정 상태 변경
 	                    .requestMatchers(
@@ -154,39 +178,19 @@ public class SecurityConfig {
                             "/employees/password"
                         ).authenticated()
 
-                        
-                        // 통계페이지 추후 관리자로 수정
+
+                        // 비용 조회 - 로그인 사용자(STAFF/MANAGER/ADMIN)면 누구나
                         .requestMatchers(
                         	    HttpMethod.GET,
-                        	    "/api/v1/amounts/statistics"
-                        	).permitAll()
-                        
-                        
+                        	    "/api/v1/amounts/**"
+                        	).authenticated()
+
+                        // 워케이션 반려 - 관리자/부서장만 (GET /approval/queue와 동일 정책, STAFF 차단)
                         .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/workcation/**"
-                        	).permitAll()
-                        
-                        
-                        .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts"
-                        	).permitAll()
-                        // 관리자 정산 추후 권한 수정
-                        .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/admin/cost/list"
-                        	).permitAll()
-                        
-                        .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/cost/detail/**"
-                        	).permitAll()
-                        
-                        .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/*"
-                        	).permitAll()
+                                HttpMethod.POST,
+                                "/approval/*"
+                        ).hasAnyRole("ADMIN", "MANAGER")
+
                      // 공지사항
                         .requestMatchers(
                             "/api/v1/notice/**"

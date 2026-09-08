@@ -73,13 +73,17 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 - **Jackson 순환참조**: `AmountItem`/`AmountFile`/`SupportList`의 `amount`(부모 `@ManyToOne` 역참조) 필드에 `@JsonIgnore`가 없어 `Amount`를 JSON으로 반환하는 모든 엔드포인트(`POST /api/v1/amounts`, `GET /api/v1/amounts/{no}`, `GET /api/v1/amounts`, `GET /api/v1/amounts/workcation/{no}`)가 무한에 가깝게 순환 직렬화됨 — 세 필드 모두에 `@JsonIgnore` 추가로 해결.
 - **`SecurityConfig`의 `/error` 미포함**: 예외 발생 시 서블릿 컨테이너의 내부 `/error` forward가 인증 요구 규칙에 걸려, 실제 오류 상태코드/메시지 대신 항상 빈 403이 반환되던 버그(애플리케이션 전역 영향) — `/error`를 permitAll에 추가로 해결.
 
-## notice / notice_file (MyBatis, JPA 미전환)
+## notice / notice_file — ✅ JPA 전환 완료 (2026-09-09, STEP 7)
 
-- `notice` ↔ `Notice.java`(순수 POJO, `@Entity` 아님) — MyBatis `notice-mapper.xml`이 컬럼을 alias로 매핑. 컬럼(`notice_no`,`notice_title`,`notice_content`,`created_at`,`notice_status`,`view_count`,`emp_no`) 자체는 SQL과 일치하는 것으로 보이나 JPA 엔티티가 아니므로 이 문서의 정합성 검사 대상 밖(마이그레이션 시 재검증 필요).
-- `notice_file` ↔ `NoticeFile.java`(POJO) 동일.
-- Repository: `NoticeDao`(MyBatis `SqlSessionTemplate` 직접 호출, `@Repository` 클래스, `@Mapper` 인터페이스 아님) / Service: `NoticeService`+`NoticeServiceImpl` / Controller: `NoticeController`(`/api/v1/notice`) / Frontend: `noticeApi.js`
-- 🔴 **버그(런타임)**: `NoticeDao.isAdmin()`이 `noticeMapper.isAdmin`을 호출하는데 XML에는 `selectIsAdminByLoginId`라는 id로만 정의되어 있어 관리자 글쓰기(`POST`/`PUT`/`DELETE`) 3종이 전부 실패. **STEP 6에서 단순 오타로 패치하지 않고, master prompt 지침에 따라 STEP 7(Notice 전체 JPA 전환) 때 함께 해결 예정.**
-- ⚠️ **의존관계 주의**: `DashboardServiceImpl`(관리자/부서장/사원 대시보드 3곳 전부)이 `noticeDao.selectNoticeList(sqlSession, map)`을 직접 호출해 최근 공지 3건을 가져옴. Notice를 JPA로 전환할 때 `DashboardServiceImpl`도 함께 수정해야 함(누락 시 대시보드 공지 위젯이 깨짐).
+- `notice` ↔ `Notice.java`(`@Entity`로 전환) — 컬럼 전부 일치 (`notice_no`,`notice_title`,`notice_content`,`created_at`,`notice_status`,`view_count`,`emp_no`). `created_at`은 기존 `java.sql.Timestamp`에서 코드베이스 전반의 컨벤션(Amount/WorkcationInfo 등)에 맞춰 `LocalDateTime`으로 정규화(JSON 응답은 여전히 ISO-8601 문자열이라 프론트 영향 없음).
+- `notice_file` ↔ `NoticeFile.java`(`@Entity`로 전환, `Notice`에 대한 `@ManyToOne` + `@JsonIgnore`로 순환참조 방지 — Amount 계열과 동일 패턴).
+- Repository: `NoticeRepository extends JpaRepository<Notice,Integer>`(신규) / Service: `NoticeService`(인터페이스 무변경) + `NoticeServiceImpl`(내부 구현을 JPA 기반으로 재작성) / Controller: `NoticeController`(**무변경** — Service 인터페이스를 그대로 유지해 컨트롤러 코드를 건드릴 필요가 없었음) / Frontend: `noticeApi.js`(무변경)
+- ✅ **버그 해결**: `NoticeDao.isAdmin()`의 MyBatis statement id 불일치 버그(`noticeMapper.isAdmin` vs 실제 정의 `selectIsAdminByLoginId`)를 MyBatis 자체를 걷어내면서 근본 해결 — `EmployeeDao.findByEmpId()` 기반의 JPA 조회로 대체. 실제 로컬 DB로 STAFF/ADMIN 양쪽 토큰으로 등록/수정/삭제를 호출해 정상 차단·허용을 확인.
+- ✅ **의존관계 처리**: `DashboardServiceImpl`(관리자/부서장/사원 대시보드 3곳)이 `NoticeDao`+`SqlSessionTemplate`을 직접 호출하던 것을 `NoticeService.selectNoticeList(map)` 호출로 교체 — 실제 `/dashboard/admin` API 호출로 대시보드 공지 위젯이 정상 동작함을 확인.
+- ✅ **삭제 완료**: `NoticeDao.java`(MyBatis), `notice-mapper.xml` — 전체 코드베이스에서 참조 0건(자기 자신 제외) 확인 후 삭제, 삭제 후 재컴파일/재기동/재검증까지 통과.
+- ⚠️ **[확인 필요] 신규 발견 — 조회수 증가 미구현**: 기존 MyBatis 구현에서도 `selectNotice`(상세조회)가 `view_count`를 증가시키는 로직이 전혀 없었음(단순 SELECT뿐). "기존 기능과 동일하게 동작"을 원칙으로 이번 JPA 전환도 증가 로직을 추가하지 않고 그대로 포팅함 — 즉 상세조회 시 조회수가 오르지 않는 것은 이번 전환으로 생긴 문제가 아니라 원래부터 있던 상태. 필요하면 별도로 추가 여부 결정 필요.
+- ⚠️ **[확인 필요] 신규 발견 — 첨부파일 기능 미구현**: `NoticeController`가 `files`(MultipartFile 목록)를 받고 `Notice.setFiles()`로 전달은 하지만, 기존 MyBatis 매퍼에는애초에 `notice_file` 테이블에 INSERT/조회하는 statement가 하나도 없어 파일이 실제로 저장된 적이 없었음(`NoticeFile` VO도 어디서도 채워지지 않는 죽은 코드였음). JPA 전환에서도 `NoticeFile` 엔티티/`Notice.fileList` 관계는 구조만 갖춰두고(향후 구현 대비) 실제 저장 로직은 추가하지 않아 기존과 동일하게 항상 빈 배열로 응답함 — 실제로 파일 업로드 기능을 완성할지는 별도 결정 필요.
+- ⚠️ **[확인 필요] 신규 발견 — Frontend 관리자 권한 체크 버그**: `NoticeDetail.jsx`/`NoticeInsert.jsx`가 앱 전역 로그인 저장 방식(`localStorage`의 `user.authCode`)이 아니라 어디서도 설정된 적 없는 `sessionStorage`의 `loginMember.role==='S'`를 참조하고 있어, **실제 관리자로 로그인해도 공지 등록/수정/삭제 버튼이 전혀 동작하지 않는 버그**였음(이번 STEP 7 검증 과정에서 발견). Notice 모듈 자체 파일이라 이번 작업 범위 내로 판단해 `localStorage`/`authCode==='ADMIN'` 기준으로 수정 완료(스키마/API 계약 변경 아님, 순수 프론트 버그 수정).
 
 ## survey_question / workcation_survey / survey_answer
 
@@ -100,15 +104,9 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 
 ---
 
-## MyBatis 사용 영역 전체 검색 결과 (STEP 4)
+## MyBatis 사용 영역 전체 검색 결과 (STEP 4, 2026-09-09 STEP 7 완료 후 최신화)
 
-`SqlSessionTemplate`/`@Mapper`/`mapper.xml` 등을 프로젝트 전체에서 검색한 결과, MyBatis를 실제로 사용하는 파일은 **정확히 3개**뿐이며 전부 `notice` 관련:
-
-1. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/notice/dao/NoticeDao.java` (SqlSessionTemplate 직접 사용)
-2. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/notice/service/NoticeServiceImpl.java`
-3. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/dashboard/model/service/DashboardServiceImpl.java` (대시보드 3곳에서 `noticeDao.selectNoticeList(sqlSession, map)` 호출)
-
-→ **다른 모듈은 이미 전부 JPA**. Notice 모듈 하나만 JPA로 전환하면 "JPA로 통일" 목표가 완료됨 (`mybatis-spring-boot-starter` 의존성과 `mapper-locations` 설정도 그 다음 제거 가능).
+당초 MyBatis를 실제로 사용하던 파일은 `notice` 관련 정확히 3개(`NoticeDao.java`, `NoticeServiceImpl.java`, `DashboardServiceImpl.java`)였음 — **STEP 7에서 전부 JPA로 전환 완료, 현재 MyBatis 실사용 코드는 프로젝트 전체에서 0건**(`SqlSessionTemplate`/`noticeMapper` 등 재검색 결과 참조 없음). `mybatis-spring-boot-starter` 의존성과 `mybatis.*` 설정(`application.properties`)은 아직 정리하지 않고 남아있음(이번 STEP 7 요청 범위 밖으로 판단, 필요 시 후속 작업으로 제거 가능).
 
 ---
 
