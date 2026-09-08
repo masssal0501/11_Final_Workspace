@@ -33,4 +33,6 @@ public interface ApprovalService {
             LocalDateTime endDate,
             Pageable pageable
     );
+
+	WorkcationInfo selectQueue(int workcationNo);
 }
