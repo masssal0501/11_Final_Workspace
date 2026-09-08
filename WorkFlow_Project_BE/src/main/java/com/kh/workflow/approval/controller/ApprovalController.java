@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.workflow.approval.model.service.ApprovalService;
 import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.common.template.Pagination;
+import com.kh.workflow.workcation.model.service.WorkcationService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import jakarta.servlet.http.HttpSession;
@@ -34,6 +35,9 @@ public class ApprovalController {
 
 	@Autowired
 	private ApprovalService approvalService;
+	
+	@Autowired
+	private WorkcationService workcationService;
 
 	// 승인 이력 목록 조회
 	@GetMapping("/list")
@@ -136,11 +140,11 @@ public class ApprovalController {
 
 	// 승인 대기 상세 조회
 	@GetMapping("/queue/{workcationNo}")
-	public ResponseEntity<WorkcationInfo> selectQueue(@PathVariable int workcationNo) {
+	public ResponseEntity<Map<String, Object>> selectQueue(@PathVariable int workcationNo) {
 		
-		WorkcationInfo w = approvalService.selectQueue(workcationNo);
+		Map<String, Object> detail = workcationService.getWorkcationDetail(workcationNo);
 		
-		return ResponseEntity.status(HttpStatus.OK).body(w);
+		return ResponseEntity.ok(detail);
 	}
 
 	// 반려 기능

@@ -70,9 +70,4 @@ public class ApprovalServiceImpl implements ApprovalService {
         );
     }
 
-    // 승인 대기 상세 조회
-	@Override
-	public WorkcationInfo selectQueue(int workcationNo) {
-		return approvalDao.findByWorkcationNo(workcationNo);
-	}
 }

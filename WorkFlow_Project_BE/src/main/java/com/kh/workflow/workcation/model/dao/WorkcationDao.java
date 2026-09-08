@@ -18,49 +18,51 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
-	/* =====================================================================
-	 * 1. 관리자 대시보드 관련 쿼리
-	 * ===================================================================== */
-	
+	/*
+	 * ===================================================================== 1. 관리자
+	 * 대시보드 관련 쿼리
+	 * =====================================================================
+	 */
+
 	/**
 	 * [관리자] 이번 달 전사 총 워케이션 신청 건수 조회
 	 * 
 	 * @return int 이번 달 생성된 전체 신청 건수
 	 */
 	@Query("""
-			SELECT COUNT(w) 
+			SELECT COUNT(w)
 			  FROM WorkcationInfo w
 			 WHERE EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
 	int adminCountTotalApply();
-	
+
 	/**
 	 * [관리자] 이번 달 승인 대기 중인 워케이션 건수 조회
 	 * 
 	 * @return int 승인 대기('W') 상태인 신청 건수
 	 */
 	@Query("""
-			SELECT COUNT(w) 
-			  FROM WorkcationInfo w 
+			SELECT COUNT(w)
+			  FROM WorkcationInfo w
 			 WHERE w.approverState = 'W'
 			   AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
 	int adminCountWaiting();
-	
+
 	/**
 	 * [관리자] 이번 달 현재 진행 중인 워케이션 건수 조회
 	 * 
 	 * @return int 승인('A') 상태이면서 현재 날짜가 시작일과 종료일 사이에 포함되는 건수
 	 */
 	@Query("""
-			SELECT COUNT(w) 
+			SELECT COUNT(w)
 			  FROM WorkcationInfo w
 			 WHERE w.approverState = 'A'
 			   AND w.startAt <= CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP <= w.endAt
 			   AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
 	int adminCountInProgress();
-	
+
 	/**
 	 * [관리자] 워케이션에 승인되어 참여한 누적 총 인원수 조회 (중복 제거)
 	 * 
@@ -83,7 +85,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  FROM SurveyAnswer s
 			""")
 	double selectAvgSatisfaction();
-	
+
 	/**
 	 * [관리자] 승인된 워케이션의 평균 기간(일 수) 조회
 	 * 
@@ -95,38 +97,38 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			 WHERE w.approverState = 'A'
 			""")
 	int selectAvgDuration();
-	
+
 	/**
 	 * [관리자] 전사 임직원 대비 워케이션 이용률(%) 계산
 	 * 
 	 * @return int 이용률 백분율 값
 	 */
 	@Query("""
-	        SELECT COALESCE(
-	            (COUNT(DISTINCT w.employee) * 100) / NULLIF(COUNT(DISTINCT e), 0), 
-	        0) 
-	        FROM WorkcationInfo w, Employee e
+			      SELECT COALESCE(
+			          (COUNT(DISTINCT w.employee) * 100) / NULLIF(COUNT(DISTINCT e), 0),
+			      0)
+			      FROM WorkcationInfo w, Employee e
 			WHERE approverState = 'A'
-	        """)
+			      """)
 	int selectUsageRate();
-	
+
 	/**
 	 * [관리자] 승인 대기 중인 워케이션 목록 조회 (최신순)
 	 * 
 	 * @return List<WaitingListDto> 관리자 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState) 
-		      FROM WorkcationInfo w 
-		      JOIN w.employee e, Department d, Reservation r 
-		      JOIN r.hub h 
-		     WHERE e.depId = d.depId 
-		       AND w = r.workcation 
-		       AND w.approverState = 'W' 
-		     ORDER BY w.workcationNo DESC
-		    """)
+			SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState)
+			  FROM WorkcationInfo w
+			  JOIN w.employee e, Department d, Reservation r
+			  JOIN r.hub h
+			 WHERE e.depId = d.depId
+			   AND w = r.workcation
+			   AND w.approverState = 'W'
+			 ORDER BY w.workcationNo DESC
+			""")
 	List<WaitingListDto> adminSelectWaitingList();
-	
+
 	/**
 	 * [관리자] 지역별 워케이션 이용 통계 비율 데이터 조회 (차트용)
 	 * 
@@ -153,22 +155,23 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<ChartDataDto> 월별 참가 건수 데이터 목록
 	 */
 	@Query("""
-	        SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
-	            CAST(MONTH(w.startAt) AS string), 
-	            1.0 * COUNT(w)
-	        )
-	          FROM WorkcationInfo w
-	         WHERE w.approverState = 'A'
-	           AND w.startAt >= :startDate
-	         GROUP BY CAST(MONTH(w.startAt) AS string)
-	        """)
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
+			    CAST(MONTH(w.startAt) AS string),
+			    1.0 * COUNT(w)
+			)
+			  FROM WorkcationInfo w
+			 WHERE w.approverState = 'A'
+			   AND w.startAt >= :startDate
+			 GROUP BY CAST(MONTH(w.startAt) AS string)
+			""")
 	List<ChartDataDto> selectMonthlyData(@Param("startDate") LocalDateTime startDate);
 
-	
-	/* =====================================================================
-	 * 2. 부서장 대시보드 관련 쿼리
-	 * ===================================================================== */
-	
+	/*
+	 * ===================================================================== 2. 부서장
+	 * 대시보드 관련 쿼리
+	 * =====================================================================
+	 */
+
 	/**
 	 * [부서장] 특정 부서의 총 워케이션 신청 건수 조회
 	 * 
@@ -189,7 +192,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 부서 내 승인 대기 건수
 	 */
 	@Query("""
-			SELECT COUNT(w) 
+			SELECT COUNT(w)
 			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE w.approverState = 'W'
@@ -204,8 +207,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 진행 중인 인원 수
 	 */
 	@Query("""
-			SELECT COUNT(w) 
-			  FROM WorkcationInfo w 
+			SELECT COUNT(w)
+			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE w.approverState = 'A'
 			   AND w.startAt <= CURRENT_TIMESTAMP
@@ -221,15 +224,15 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WaitingListDto> 부서 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState) 
-		      FROM WorkcationInfo w 
-		      JOIN w.employee e, Reservation r 
-		      JOIN r.hub h 
-		     WHERE e.depId = :depId
-		       AND w = r.workcation 
-		       AND w.approverState = 'W'
-		     ORDER BY w.workcationNo DESC
-		    """)
+			SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState)
+			  FROM WorkcationInfo w
+			  JOIN w.employee e, Reservation r
+			  JOIN r.hub h
+			 WHERE e.depId = :depId
+			   AND w = r.workcation
+			   AND w.approverState = 'W'
+			 ORDER BY w.workcationNo DESC
+			""")
 	List<WaitingListDto> managerSelectWaitingList(@Param("depId") String depId);
 
 	/**
@@ -251,7 +254,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			   AND e.depId = :depId
 			 GROUP BY h.mainRegion
 			""")
-	List<ChartDataDto> managerSelectRegionData(@Param("depId")String depId);
+	List<ChartDataDto> managerSelectRegionData(@Param("depId") String depId);
 
 	/**
 	 * [부서장] 소속 부서원 전체 워케이션 목록 조회
@@ -276,15 +279,15 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
 			""")
-	List<WorkcationListDto> managerSelectWorkcationList(@Param("depId")String depId);
+	List<WorkcationListDto> managerSelectWorkcationList(@Param("depId") String depId);
 
 	/**
 	 * [부서장] 키워드 및 기간 조건을 포함한 부서 워케이션 목록 검색 조회
 	 * 
-	 * @param depId 부서 아이디
-	 * @param keyword 검색어 (사원명 또는 워케이션 제목)
+	 * @param depId     부서 아이디
+	 * @param keyword   검색어 (사원명 또는 워케이션 제목)
 	 * @param startDate 검색 시작일자
-	 * @param endDate 검색 종료일자
+	 * @param endDate   검색 종료일자
 	 * @return List<WorkcationListDto> 조건에 부합하는 부서 워케이션 검색 목록
 	 */
 	@Query("""
@@ -308,21 +311,23 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			   AND w.startAt >= :startDate
 			   AND w.endAt <= :endDate
 			""")
-	List<WorkcationListDto> managerSearchWorkcationList(@Param("depId") String depId,
-												  @Param("keyword") String keyword,
-												  @Param("startDate") LocalDateTime startDate,
-												  @Param("endDate") LocalDateTime endDate);
+	List<WorkcationListDto> managerSearchWorkcationList(@Param("depId") String depId, @Param("keyword") String keyword,
+			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-	/* =====================================================================
-	 * 3. 사원 대시보드 관련 쿼리
-	 * ===================================================================== */
-	
+	/*
+	 * ===================================================================== 3. 사원
+	 * 대시보드 관련 쿼리
+	 * =====================================================================
+	 */
+
 	/**
 	 * [사원] 특정 사원이 지금까지 완료하거나 참여한 승인된 워케이션 횟수 조회
 	 * 
 	 * @param empNo 사원 번호
 	 * @return int 워케이션 이용 횟수
+	 *
 	 */
+
 	@Query("""
 			SELECT COUNT(w)
 			  FROM WorkcationInfo w
@@ -350,7 +355,6 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			""")
 	boolean existsWorkcation(@Param("empNo") int empNo);
 
-	
 	/**
 	 * [사원] 현재 진행 중인 워케이션의 업무 계획 내용 조회
 	 * 
@@ -386,10 +390,10 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	/**
 	 * [사원] 키워드 및 기간 조건을 포함한 개인 예약 리스트 검색 조회
 	 * 
-	 * @param empNo 사원 번호
-	 * @param keyword 검색어 (허브명 등)
+	 * @param empNo     사원 번호
+	 * @param keyword   검색어 (허브명 등)
 	 * @param startDate 검색 시작일자
-	 * @param endDate 검색 종료일자
+	 * @param endDate   검색 종료일자
 	 * @return List<Reservation> 조건에 부합하는 예약 검색 목록
 	 */
 	@Query("""
@@ -403,66 +407,49 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			   AND w.startAt >= :startDate
 			   AND w.endAt <= :endDate
 			""")
-	List<Reservation> staffSearchReservationList(@Param("empNo") int empNo,
-												 @Param("keyword") String keyword,
-												 @Param("startDate") LocalDateTime startDate,
-												 @Param("endDate") LocalDateTime endDate);
-	
+	List<Reservation> staffSearchReservationList(@Param("empNo") int empNo, @Param("keyword") String keyword,
+			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
 	// 남훈님 작업 - 이창현 옮김 0908_0929
-	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " +
-            "JOIN Reservation r ON r.workcation = w " +
-            "JOIN r.hub h " +
-            "WHERE (h.hubType = 1 OR h.hubType = 2) " +
-            "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) " +
-            "AND (:subRegion IS NULL OR h.subRegion = :subRegion) " +
-            "ORDER BY w.workcationNo DESC",
-    countQuery = "SELECT COUNT(DISTINCT w) FROM WorkcationInfo w " +
-                 "JOIN Reservation r ON r.workcation = w " +
-                 "JOIN r.hub h " +
-                 "WHERE (h.hubType = 1 OR h.hubType = 2) " +
-                 "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) " +
-                 "AND (:subRegion IS NULL OR h.subRegion = :subRegion)")
-	Page<WorkcationInfo> searchWorkcationList(
-		@Param("mainRegion") String mainRegion,
-		@Param("subRegion") String subRegion,
-		Pageable pageable);
-	
+	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " + "JOIN Reservation r ON r.workcation = w "
+			+ "JOIN r.hub h " + "WHERE (h.hubType = 1 OR h.hubType = 2) "
+			+ "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) "
+			+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion) "
+			+ "ORDER BY w.workcationNo DESC", countQuery = "SELECT COUNT(DISTINCT w) FROM WorkcationInfo w "
+					+ "JOIN Reservation r ON r.workcation = w " + "JOIN r.hub h "
+					+ "WHERE (h.hubType = 1 OR h.hubType = 2) "
+					+ "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) "
+					+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion)")
+	Page<WorkcationInfo> searchWorkcationList(@Param("mainRegion") String mainRegion,
+			@Param("subRegion") String subRegion, Pageable pageable);
+
 	Page<WorkcationInfo> findByEmployeeEmpNo(int empNo, Pageable pageable);
-		
-	@Query(
-		    value = """
-		        SELECT DISTINCT w
-		        FROM WorkcationInfo w
-		        JOIN Reservation r
-		            ON r.workcation = w
-		        JOIN r.hub h
-		        WHERE w.employee.empNo = :empNo
-		          AND (h.hubType = 1 OR h.hubType = 2)
-		          AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
-		          AND (:subRegion IS NULL OR h.subRegion = :subRegion)
-		        ORDER BY w.workcationNo DESC
-		    """,
-		    countQuery = """
-		        SELECT COUNT(DISTINCT w)
-		        FROM WorkcationInfo w
-		        JOIN Reservation r
-		            ON r.workcation = w
-		        JOIN r.hub h
-		        WHERE w.employee.empNo = :empNo
-		          AND (h.hubType = 1 OR h.hubType = 2)
-		          AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
-		          AND (:subRegion IS NULL OR h.subRegion = :subRegion)
-		    """)
-		Page<WorkcationInfo> searchMyWorkcationList(
-		        @Param("empNo") int empNo,
-		        @Param("mainRegion") String mainRegion,
-		        @Param("subRegion") String subRegion,
-		        Pageable pageable
-		);
-	
-	Optional<WorkcationInfo> findByWorkcationNoAndEmployeeEmpNo(
-	        Integer workcationNo,
-	        int empNo
-	);
-	
+
+	@Query(value = """
+			    SELECT DISTINCT w
+			    FROM WorkcationInfo w
+			    JOIN Reservation r
+			        ON r.workcation = w
+			    JOIN r.hub h
+			    WHERE w.employee.empNo = :empNo
+			      AND (h.hubType = 1 OR h.hubType = 2)
+			      AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
+			      AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+			    ORDER BY w.workcationNo DESC
+			""", countQuery = """
+			    SELECT COUNT(DISTINCT w)
+			    FROM WorkcationInfo w
+			    JOIN Reservation r
+			        ON r.workcation = w
+			    JOIN r.hub h
+			    WHERE w.employee.empNo = :empNo
+			      AND (h.hubType = 1 OR h.hubType = 2)
+			      AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion)
+			      AND (:subRegion IS NULL OR h.subRegion = :subRegion)
+			""")
+	Page<WorkcationInfo> searchMyWorkcationList(@Param("empNo") int empNo, @Param("mainRegion") String mainRegion,
+			@Param("subRegion") String subRegion, Pageable pageable);
+
+	Optional<WorkcationInfo> findByWorkcationNoAndEmployeeEmpNo(Integer workcationNo, int empNo);
+
 }

@@ -34,5 +34,4 @@ public interface ApprovalService {
             Pageable pageable
     );
 
-	WorkcationInfo selectQueue(int workcationNo);
 }

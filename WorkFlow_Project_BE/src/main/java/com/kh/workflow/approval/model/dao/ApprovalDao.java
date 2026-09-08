@@ -91,4 +91,5 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
 			""")
 	WorkcationInfo findApprovalDetail(@Param("workcationNo") Integer workcationNo);
 
+
 }
