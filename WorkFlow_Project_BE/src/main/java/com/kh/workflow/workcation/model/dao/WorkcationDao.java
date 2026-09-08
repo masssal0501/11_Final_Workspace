@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
+import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.WaitingListDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.reservation.model.vo.Reservation;
@@ -372,16 +373,23 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * [사원] 특정 사원의 워케이션 예약 리스트 전체 조회
 	 * 
 	 * @param empNo 사원 번호
-	 * @return List<Reservation> 예약 정보 목록
+	 * @return List<ReservationListDto> 예약 정보 목록
 	 */
 	@Query("""
-			SELECT r
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ReservationListDto(
+				h.hubName,
+				r.rsvStart,
+				r.rsvEnd,
+				r.userCapacity,
+				r.rsvStatus
+			)
 			  FROM Reservation r
+			  JOIN Hub h ON r.hubNo = h.hubNo
 			  JOIN WorkcationInfo w ON r.workcationNo = w.workcationNo
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
 			""")
-	List<Reservation> selectReservationList(@Param("empNo") int empNo);
+	List<ReservationListDto> selectReservationList(@Param("empNo") int empNo);
 
 	/**
 	 * [사원] 키워드 및 기간 조건을 포함한 개인 예약 리스트 검색 조회
@@ -390,10 +398,16 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @param keyword 검색어 (허브명 등)
 	 * @param startDate 검색 시작일자
 	 * @param endDate 검색 종료일자
-	 * @return List<Reservation> 조건에 부합하는 예약 검색 목록
+	 * @return List<ReservationListDto> 조건에 부합하는 예약 검색 목록
 	 */
 	@Query("""
-			SELECT r
+			SELECT NEW com.kh.workflow.dashboard.model.dto.ReservationListDto(
+				h.hubName,
+				r.rsvStart,
+				r.rsvEnd,
+				r.userCapacity,
+				r.rsvStatus
+			)
 			  FROM Reservation r
 			  JOIN WorkcationInfo w ON r.workcationNo = w.workcationNo
 			  JOIN w.employee e
@@ -403,7 +417,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			   AND w.startAt >= :startDate
 			   AND w.endAt <= :endDate
 			""")
-	List<Reservation> staffSearchReservationList(@Param("empNo") int empNo,
+	List<ReservationListDto> staffSearchReservationList(@Param("empNo") int empNo,
 												 @Param("keyword") String keyword,
 												 @Param("startDate") LocalDateTime startDate,
 												 @Param("endDate") LocalDateTime endDate);
