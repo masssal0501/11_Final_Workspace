@@ -17,9 +17,9 @@ import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.hub.model.dao.HubDao;
 import com.kh.workflow.notice.dao.NoticeDao;
+import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
-import com.kh.workflow.workcation.model.vo.Reservation;
 
 /**
  * 대시보드 비즈니스 로직 구현체

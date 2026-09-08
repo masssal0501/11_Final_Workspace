@@ -20,7 +20,7 @@ import com.kh.workflow.dashboard.model.dto.ManagerDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.dashboard.model.service.DashboardService;
-import com.kh.workflow.workcation.model.vo.Reservation;
+import com.kh.workflow.reservation.model.vo.Reservation;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

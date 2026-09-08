@@ -15,10 +15,6 @@ public interface WorkcationService {
             Pageable pageable
     );
 
-        WorkcationInfo selectWorkcation(int workcationNo);
-
-	
-	
     void insertWorkcationEnrollForm(
             Map<String, Object> paramMap
     );

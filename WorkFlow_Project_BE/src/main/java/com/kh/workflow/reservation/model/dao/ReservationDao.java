@@ -7,20 +7,34 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.reservation.model.vo.Reservation;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface ReservationDao
         extends JpaRepository<Reservation, Integer> {
 
+    // =========================================================
+    // 워케이션별 예약 조회
+    // =========================================================
+
+    List<Reservation> findByWorkcationOrderByRsvStartDesc(
+            WorkcationInfo workcation
+    );
+
 
     // =========================================================
-    // 예약 가능 여부 확인
+    // 예약 중복 확인
+    //
+    // Reservation
+    // └─ hub
+    //     └─ hubNo
     // =========================================================
 
     @Query("""
         SELECT COUNT(r)
         FROM Reservation r
-        WHERE r.hubNo = :hubNo
+        WHERE r.hub.hubNo = :hubNo
           AND r.rsvStatus = 'N'
           AND r.rsvStart < :rsvEnd
           AND r.rsvEnd > :rsvStart
@@ -39,7 +53,7 @@ public interface ReservationDao
     @Query("""
         SELECT r
         FROM Reservation r
-        WHERE r.hubNo = :hubNo
+        WHERE r.hub.hubNo = :hubNo
           AND r.rsvStatus = 'N'
           AND r.rsvStart < :rsvEnd
           AND r.rsvEnd > :rsvStart
@@ -53,20 +67,11 @@ public interface ReservationDao
 
 
     // =========================================================
-    // 워케이션별 예약 조회
-    // =========================================================
-
-    List<Reservation> findByWorkcationNoOrderByRsvStartDesc(
-            Integer workcationNo
-    );
-
-
-    // =========================================================
     // 거점별 예약 조회
     // =========================================================
 
-    List<Reservation> findByHubNoOrderByRsvStartDesc(
-            Integer hubNo
+    List<Reservation> findByHubOrderByRsvStartDesc(
+            com.kh.workflow.hub.model.vo.Hub hub
     );
 
 
@@ -78,7 +83,7 @@ public interface ReservationDao
     @Query("""
         SELECT COUNT(r)
         FROM Reservation r
-        WHERE r.hubNo = :hubNo
+        WHERE r.hub.hubNo = :hubNo
           AND r.rsvNo <> :rsvNo
           AND r.rsvStatus = 'N'
           AND r.rsvStart < :rsvEnd
@@ -90,4 +95,13 @@ public interface ReservationDao
             @Param("rsvStart") LocalDateTime rsvStart,
             @Param("rsvEnd") LocalDateTime rsvEnd
     );
+
+
+	WorkcationInfo findWorkcationByNo(Integer workcationNo);
+
+
+	Hub findHubByNo(Integer hubNo);
+
+
+	List<Reservation> findByWorkcation(WorkcationInfo workcation);
 }

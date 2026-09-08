@@ -9,24 +9,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 import com.kh.workflow.dashboard.model.dto.WaitingListDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
-import com.kh.workflow.workcation.model.vo.Reservation;
+import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
-@Repository
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
-	WorkcationInfo findByWorkcationNo(int workcationNo);
-
-}
 	/* =====================================================================
 	 * 1. 관리자 대시보드 관련 쿼리
 	 * ===================================================================== */
@@ -417,7 +408,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 												 @Param("startDate") LocalDateTime startDate,
 												 @Param("endDate") LocalDateTime endDate);
 	
-}
+	// 남훈님 작업 - 이창현 옮김 0908_0929
 	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " +
             "JOIN Reservation r ON r.workcation = w " +
             "JOIN r.hub h " +
@@ -474,6 +465,4 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	        int empNo
 	);
 	
-	}
-
-
+}

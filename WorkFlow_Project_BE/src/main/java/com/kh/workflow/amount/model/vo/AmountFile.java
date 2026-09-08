@@ -21,51 +21,59 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="amount_file")
+@Table(name = "amount_file")
 
 @DynamicInsert
 @DynamicUpdate
 
 @NoArgsConstructor
-@Setter
 @Getter
-@ToString
+@Setter
+@ToString(exclude = "amount")
 public class AmountFile {
 
-	@Schema(description="첨부파일 번호", accessMode=Schema.AccessMode.READ_ONLY)
-	@Id
-	@Column(name="amountfile_no")
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Integer amountFileNo;
-	
-	@Schema(description="파일경로")
-	@Column(name="file_path", length=500)
-	private String filePath;
-	
-	@Schema(description="원본 파일명", requiredMode=Schema.RequiredMode.REQUIRED)
-	@Column(name="origin_name", length=255, nullable=false)
-	private String originName;
-	
-	@Schema(description="수정된 파일명", requiredMode=Schema.RequiredMode.REQUIRED)
-	@Column(name="change_name", length=255, nullable=false)
-	private String changeName;
-	
-	@Schema(description="첨부파일 등록", accessMode=Schema.AccessMode.READ_ONLY)
-	@Column(name="created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime createdAt;
-	
-	@Schema(description="파일용량", requiredMode=Schema.RequiredMode.REQUIRED)
-	@Column(name="file_size", nullable=false)
-	private Long fileSize;
-	
-	@Schema(description="상태", allowableValues={"Y","N"},defaultValue="Y")
-	@Column(name="status", columnDefinition = "VARCHAR(1) DEFAULT 'Y'")
-	private String status;
-	
-	@Schema(description="비용번호", requiredMode=Schema.RequiredMode.REQUIRED)
-	@JoinColumn(name="amount_no", nullable=false)
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Amount amount;
+    @Schema(description = "첨부파일 번호", accessMode = Schema.AccessMode.READ_ONLY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "amountfile_no")
+    private Integer amountFileNo;
 
+    @Schema(description = "파일경로")
+    @Column(name = "file_path", length = 500)
+    private String filePath;
+
+    @Schema(description = "원본 파일명", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Column(name = "origin_name", length = 255, nullable = false)
+    private String originName;
+
+    @Schema(description = "수정된 파일명", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Column(name = "change_name", length = 255, nullable = false)
+    private String changeName;
+
+    @Schema(description = "첨부파일 등록일", accessMode = Schema.AccessMode.READ_ONLY)
+    @Column(
+        name = "created_at",
+        columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
+    private LocalDateTime createdAt;
+
+    @Schema(description = "파일용량", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Column(name = "file_size", nullable = false)
+    private Long fileSize;
+
+    @Schema(
+        description = "상태",
+        allowableValues = {"Y", "N"},
+        defaultValue = "Y"
+    )
+    @Column(
+        name = "status",
+        columnDefinition = "VARCHAR(1) DEFAULT 'Y'"
+    )
+    private String status;
+
+    @Schema(description = "비용번호", requiredMode = Schema.RequiredMode.REQUIRED)
+    @JoinColumn(name = "amount_no", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Amount amount;
 }
-

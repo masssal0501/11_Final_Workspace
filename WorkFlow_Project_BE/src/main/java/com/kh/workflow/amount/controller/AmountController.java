@@ -1,15 +1,20 @@
 package com.kh.workflow.amount.controller;
 
 import java.io.File;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,9 +29,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kh.workflow.amount.service.AmountService;
-import com.kh.workflow.amount.vo.Amount;
-import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.amount.model.service.AmountService;
+import com.kh.workflow.amount.model.vo.Amount;
+import com.kh.workflow.amount.model.vo.AmountFile;
+import com.kh.workflow.amount.model.vo.SupportList;
 
 @RestController
 @RequestMapping("/api/v1/amounts")
@@ -83,6 +89,7 @@ public class AmountController {
 
     @GetMapping
     public ResponseEntity<?> getAmountList(
+
             @RequestParam(
                     value = "page",
                     defaultValue = "1"
@@ -91,29 +98,30 @@ public class AmountController {
 
         try {
 
-            int boardLimit = 10;
-            int pageLimit = 5;
-
             if (page < 1) {
                 page = 1;
             }
 
-            int listCount =
-                    amountService.getAmountListCount();
+            int boardLimit = 10;
 
-            PageInfo pi =
-                    new PageInfo(
-                            listCount,
-                            page,
-                            pageLimit,
+            /*
+             * JPA Pageable은 0부터 시작하므로
+             * React에서 받는 page(1부터 시작)를
+             * -1 해서 전달한다.
+             */
+            Pageable pageable =
+                    PageRequest.of(
+                            page - 1,
                             boardLimit
                     );
 
-            List<Amount> list =
-                    amountService.selectAmountList(pi);
+            Page<Amount> amountPage =
+                    amountService.selectAmountList(
+                            pageable
+                    );
 
             return ResponseEntity.ok(
-                    createPagingResult(list, pi)
+                    createPagingResult(amountPage)
             );
 
         } catch (Exception e) {
@@ -121,7 +129,9 @@ public class AmountController {
             e.printStackTrace();
 
             return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .status(
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    )
                     .body(
                             "비용 목록 조회 실패: "
                             + e.getMessage()
@@ -140,6 +150,7 @@ public class AmountController {
 
     @PostMapping
     public ResponseEntity<?> createAmount(
+
             @ModelAttribute Amount amount,
 
             @RequestParam(
@@ -153,6 +164,16 @@ public class AmountController {
 
         try {
 
+            if (amount == null) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "비용 신청 정보가 없습니다."
+                        );
+            }
+
+
             // -------------------------------------------------
             // 기본 상태
             // -------------------------------------------------
@@ -165,10 +186,29 @@ public class AmountController {
 
 
             // -------------------------------------------------
+            // 기본 일자
+            // -------------------------------------------------
+
+            if (amount.getRequestedAt() == null) {
+
+                amount.setRequestedAt(
+                        LocalDateTime.now()
+                );
+            }
+
+            if (amount.getCreatedAt() == null) {
+
+                amount.setCreatedAt(
+                        LocalDateTime.now()
+                );
+            }
+
+
+            // -------------------------------------------------
             // 파일 처리
             // -------------------------------------------------
 
-            List<Amount.File> fileList =
+            List<AmountFile> fileList =
                     new ArrayList<>();
 
             if (files != null) {
@@ -183,6 +223,7 @@ public class AmountController {
 
                     validateFile(file);
 
+
                     String originalFilename =
                             file.getOriginalFilename();
 
@@ -191,13 +232,16 @@ public class AmountController {
                                     originalFilename
                             ).getName();
 
+
                     String changeName =
                             UUID.randomUUID()
                             + "_"
                             + originalFilename;
 
+
                     File uploadDir =
                             new File(UPLOAD_DIR);
+
 
                     if (!uploadDir.exists()) {
 
@@ -210,13 +254,16 @@ public class AmountController {
                         }
                     }
 
+
                     File destination =
                             new File(
                                     uploadDir,
                                     changeName
                             );
 
+
                     file.transferTo(destination);
+
 
                     savedFiles.add(
                             destination.getAbsolutePath()
@@ -224,11 +271,11 @@ public class AmountController {
 
 
                     // -------------------------------------------------
-                    // Amount.File VO
+                    // AmountFile
                     // -------------------------------------------------
 
-                    Amount.File fileVo =
-                            new Amount.File();
+                    AmountFile fileVo =
+                            new AmountFile();
 
                     fileVo.setOriginName(
                             originalFilename
@@ -242,20 +289,41 @@ public class AmountController {
                             FILE_PATH + changeName
                     );
 
+                    fileVo.setFileSize(
+                            file.getSize()
+                    );
+
                     fileVo.setStatus("Y");
+
 
                     fileList.add(fileVo);
                 }
             }
 
-            amount.setFileList(fileList);
+
+            amount.setAmountFile(fileList);
 
 
             // -------------------------------------------------
             // Service
             // -------------------------------------------------
 
-            amountService.insertAmount(amount);
+            int result =
+                    amountService.insertAmount(
+                            amount
+                    );
+
+
+            if (result <= 0) {
+
+                deleteSavedFiles(savedFiles);
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "비용 신청 등록에 실패했습니다."
+                        );
+            }
 
 
             return ResponseEntity
@@ -298,24 +366,39 @@ public class AmountController {
 
     @GetMapping("/{amountNo}")
     public ResponseEntity<?> getAmountById(
+
             @PathVariable("amountNo")
             int amountNo) {
 
         try {
+
+            if (amountNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 신청 번호입니다."
+                        );
+            }
+
 
             Amount amount =
                     amountService.selectAmountById(
                             amountNo
                     );
 
+
             if (amount == null) {
 
                 return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
+                        .status(
+                                HttpStatus.NOT_FOUND
+                        )
                         .body(
                                 "해당 비용 정산 내역을 찾을 수 없습니다."
                         );
             }
+
 
             return ResponseEntity.ok(amount);
 
@@ -344,6 +427,7 @@ public class AmountController {
 
     @GetMapping("/workcation/{workcationNo}")
     public ResponseEntity<?> getAmountListByWorkcation(
+
             @PathVariable("workcationNo")
             int workcationNo,
 
@@ -355,36 +439,41 @@ public class AmountController {
 
         try {
 
-            int boardLimit = 10;
-            int pageLimit = 5;
+            if (workcationNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 워케이션 번호입니다."
+                        );
+            }
+
 
             if (page < 1) {
                 page = 1;
             }
 
-            int listCount =
-                    amountService
-                    .getAmountCountByWorkcationNo(
-                            workcationNo
-                    );
 
-            PageInfo pi =
-                    new PageInfo(
-                            listCount,
-                            page,
-                            pageLimit,
+            int boardLimit = 10;
+
+
+            Pageable pageable =
+                    PageRequest.of(
+                            page - 1,
                             boardLimit
                     );
 
-            List<Amount> list =
+
+            Page<Amount> amountPage =
                     amountService
                     .selectAmountListByWorkcationNo(
                             workcationNo,
-                            pi
+                            pageable
                     );
 
+
             return ResponseEntity.ok(
-                    createPagingResult(list, pi)
+                    createPagingResult(amountPage)
             );
 
 
@@ -412,6 +501,7 @@ public class AmountController {
 
     @PutMapping("/{amountNo}")
     public ResponseEntity<?> updateAmount(
+
             @PathVariable("amountNo")
             int amountNo,
 
@@ -428,11 +518,31 @@ public class AmountController {
 
         try {
 
+            if (amountNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 신청 번호입니다."
+                        );
+            }
+
+
+            if (amount == null) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "수정할 비용 정보가 없습니다."
+                        );
+            }
+
+
             amount.setAmountNo(amountNo);
 
 
             // -------------------------------------------------
-            // 기존 비용 상태 확인
+            // 기존 비용 확인
             // -------------------------------------------------
 
             Amount existingAmount =
@@ -440,10 +550,13 @@ public class AmountController {
                             amountNo
                     );
 
+
             if (existingAmount == null) {
 
                 return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
+                        .status(
+                                HttpStatus.NOT_FOUND
+                        )
                         .body(
                                 "수정할 비용 신청을 찾을 수 없습니다."
                         );
@@ -508,15 +621,27 @@ public class AmountController {
 
     @PatchMapping("/{amountNo}/cancel")
     public ResponseEntity<?> cancelAmount(
+
             @PathVariable("amountNo")
             int amountNo) {
 
         try {
 
+            if (amountNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 신청 번호입니다."
+                        );
+            }
+
+
             int result =
                     amountService.cancelAmount(
                             amountNo
                     );
+
 
             if (result > 0) {
 
@@ -524,6 +649,7 @@ public class AmountController {
                         "비용 신청이 취소되었습니다."
                 );
             }
+
 
             return ResponseEntity
                     .badRequest()
@@ -559,14 +685,11 @@ public class AmountController {
     // 7. 비용 결재 상태 변경
     //
     // PATCH /api/v1/amounts/{amountNo}/approval
-    //
-    // status
-    // approvedAmount
-    // comment
     // =========================================================
 
     @PatchMapping("/{amountNo}/approval")
     public ResponseEntity<?> updateApproval(
+
             @PathVariable("amountNo")
             int amountNo,
 
@@ -587,9 +710,15 @@ public class AmountController {
 
         try {
 
-            // -------------------------------------------------
-            // 결재 상태 검증
-            // -------------------------------------------------
+            if (amountNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 신청 번호입니다."
+                        );
+            }
+
 
             if (!isValidApprovalStatus(status)) {
 
@@ -601,10 +730,6 @@ public class AmountController {
             }
 
 
-            // -------------------------------------------------
-            // 승인 금액 검증
-            // -------------------------------------------------
-
             if (approvedAmount < 0) {
 
                 return ResponseEntity
@@ -615,10 +740,6 @@ public class AmountController {
             }
 
 
-            // -------------------------------------------------
-            // Service
-            // -------------------------------------------------
-
             int result =
                     amountService.updateApprovalStatus(
                             amountNo,
@@ -626,6 +747,7 @@ public class AmountController {
                             approvedAmount,
                             comment
                     );
+
 
             if (result <= 0) {
 
@@ -669,12 +791,11 @@ public class AmountController {
     // 8. 결재 + 지원금
     //
     // PATCH /api/v1/amounts/{amountNo}/approval/sponsor
-    //
-    // amount_list
     // =========================================================
 
     @PatchMapping("/{amountNo}/approval/sponsor")
     public ResponseEntity<?> updateApprovalWithSponsor(
+
             @PathVariable("amountNo")
             int amountNo,
 
@@ -721,19 +842,19 @@ public class AmountController {
                     value = "paymentDate",
                     required = false
             )
-            String paymentDate,
-
-            @RequestParam(
-                    value = "itemNo",
-                    required = false
-            )
-            Integer itemNo) {
+            String paymentDate) {
 
         try {
 
-            // -------------------------------------------------
-            // 결재 상태
-            // -------------------------------------------------
+            if (amountNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 신청 번호입니다."
+                        );
+            }
+
 
             if (!isValidApprovalStatus(status)) {
 
@@ -745,10 +866,6 @@ public class AmountController {
             }
 
 
-            // -------------------------------------------------
-            // 승인 금액
-            // -------------------------------------------------
-
             if (approvedAmount < 0) {
 
                 return ResponseEntity
@@ -758,10 +875,6 @@ public class AmountController {
                         );
             }
 
-
-            // -------------------------------------------------
-            // 지원금
-            // -------------------------------------------------
 
             if (sponsorAmount < 0) {
 
@@ -774,53 +887,63 @@ public class AmountController {
 
 
             // -------------------------------------------------
-            // Sponsor VO
+            // SupportList
             // -------------------------------------------------
 
-            Amount.Sponsor sponsor =
-                    new Amount.Sponsor();
+            SupportList support =
+                    new SupportList();
 
-            sponsor.setAmountNo(amountNo);
 
-            sponsor.setSponsorName(
+            support.setSponsorName(
                     sponsorName
             );
 
-            sponsor.setAmount(
+
+            support.setRequestAmount(
                     sponsorAmount
             );
 
-            sponsor.setStatus(
+
+            support.setApprovedAmount(
+                    sponsorAmount
+            );
+
+
+            support.setStatus(
                     sponsorStatus == null
                             || sponsorStatus.isBlank()
                             ? "UNPAID"
                             : sponsorStatus
             );
 
-            sponsor.setRemark(
+
+            support.setRemark(
                     remark
             );
 
-            sponsor.setItemNo(
-                    itemNo
-            );
+
+            support.setTransportSupported("N");
+
+            support.setOtherSupported("N");
 
 
             // -------------------------------------------------
-            // paymentDate
-            //
-            // DB:
-            // amount_list.payment_date TIMESTAMP
-            //
-            // VO:
-            // Date paymentDate
+            // 지급일
             // -------------------------------------------------
 
             if (paymentDate != null
                     && !paymentDate.isBlank()) {
 
-                sponsor.setPaymentDate(
-                        parsePaymentDate(paymentDate)
+                support.setPaymentDate(
+                        parsePaymentDate(
+                                paymentDate
+                        )
+                );
+
+            } else {
+
+                support.setPaymentDate(
+                        LocalDateTime.now()
                 );
             }
 
@@ -834,7 +957,7 @@ public class AmountController {
                     status,
                     approvedAmount,
                     comment,
-                    sponsor
+                    support
             );
 
 
@@ -864,93 +987,106 @@ public class AmountController {
                     );
         }
     }
-    
- // =========================================================
- // 8-1. 항목별 회사 지원금 수정
- //
- // PATCH /api/v1/amounts/{amountNo}/items/{itemNo}/company-support
- //
- // amount_item.amount
- // =========================================================
- @PatchMapping("/{amountNo}/items/{itemNo}/company-support")
- public ResponseEntity<?> updateItemCompanySupport(
-
-         @PathVariable("amountNo")
-         int amountNo,
-
-         @PathVariable("itemNo")
-         int itemNo,
-
-         @RequestParam("amount")
-         int amount) {
-
-     try {
-
-         // -------------------------------------------------
-         // 기본값 검증
-         // -------------------------------------------------
-         if (amountNo <= 0) {
-             return ResponseEntity
-                     .badRequest()
-                     .body("잘못된 비용 신청 번호입니다.");
-         }
-
-         if (itemNo <= 0) {
-             return ResponseEntity
-                     .badRequest()
-                     .body("잘못된 비용 항목 번호입니다.");
-         }
-
-         if (amount < 0) {
-             return ResponseEntity
-                     .badRequest()
-                     .body("회사 지원금은 0원 이상이어야 합니다.");
-         }
-
-         // -------------------------------------------------
-         // Service
-         // -------------------------------------------------
-         int result =
-                 amountService.updateItemCompanySupport(
-                         itemNo,
-                         amountNo,
-                         amount
-                 );
-
-         if (result <= 0) {
-             return ResponseEntity
-                     .badRequest()
-                     .body("회사 지원금 수정에 실패했습니다.");
-         }
-
-         return ResponseEntity.ok(
-                 "항목별 회사 지원금이 수정되었습니다."
-         );
-
-     } catch (IllegalArgumentException e) {
-
-         return ResponseEntity
-                 .badRequest()
-                 .body(e.getMessage());
-
-     } catch (Exception e) {
-
-         e.printStackTrace();
-
-         return ResponseEntity
-                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                 .body(
-                         "회사 지원금 수정 중 오류가 발생했습니다: "
-                         + e.getMessage()
-                 );
-     }
- }
 
 
     // =========================================================
-    // 9. 통계
-    //
-    // GET /api/v1/amounts/statistics
+    // 9. 항목별 회사 지원금 수정
+    // =========================================================
+
+    @PatchMapping(
+            "/{amountNo}/items/{itemNo}/company-support"
+    )
+    public ResponseEntity<?> updateItemCompanySupport(
+
+            @PathVariable("amountNo")
+            int amountNo,
+
+            @PathVariable("itemNo")
+            int itemNo,
+
+            @RequestParam("amount")
+            int amount) {
+
+        try {
+
+            if (amountNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 신청 번호입니다."
+                        );
+            }
+
+
+            if (itemNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 비용 항목 번호입니다."
+                        );
+            }
+
+
+            if (amount < 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "회사 지원금은 0원 이상이어야 합니다."
+                        );
+            }
+
+
+            int result =
+                    amountService.updateItemCompanySupport(
+                            itemNo,
+                            amountNo,
+                            amount
+                    );
+
+
+            if (result <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "회사 지원금 수정에 실패했습니다."
+                        );
+            }
+
+
+            return ResponseEntity.ok(
+                    "항목별 회사 지원금이 수정되었습니다."
+            );
+
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    )
+                    .body(
+                            "회사 지원금 수정 중 오류가 발생했습니다: "
+                            + e.getMessage()
+                    );
+        }
+    }
+
+
+    // =========================================================
+    // 10. 통계
     // =========================================================
 
     @GetMapping("/statistics")
@@ -960,6 +1096,7 @@ public class AmountController {
 
             Map<String, Object> statisticsData =
                     amountService.getFullStatistics();
+
 
             return ResponseEntity.ok(
                     statisticsData
@@ -983,22 +1120,34 @@ public class AmountController {
 
 
     // =========================================================
-    // 10. 첨부파일 삭제
-    //
-    // PATCH /api/v1/amounts/file/{amountattachmentNo}/delete
+    // 11. 첨부파일 삭제
     // =========================================================
 
-    @PatchMapping("/file/{amountattachmentNo}/delete")
+    @PatchMapping(
+            "/file/{amountFileNo}/delete"
+    )
     public ResponseEntity<?> deleteFile(
-            @PathVariable("amountattachmentNo")
-            int amountattachmentNo) {
+
+            @PathVariable("amountFileNo")
+            int amountFileNo) {
 
         try {
 
+            if (amountFileNo <= 0) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "잘못된 파일 번호입니다."
+                        );
+            }
+
+
             int result =
                     amountService.deleteFile(
-                            amountattachmentNo
+                            amountFileNo
                     );
+
 
             if (result <= 0) {
 
@@ -1008,6 +1157,7 @@ public class AmountController {
                                 "파일 삭제에 실패했습니다."
                         );
             }
+
 
             return ResponseEntity.ok(
                     "파일이 삭제되었습니다."
@@ -1038,15 +1188,11 @@ public class AmountController {
 
 
     // =========================================================
-    // 11. 파일 검증
+    // 파일 검증
     // =========================================================
 
     private void validateFile(
             MultipartFile file) {
-
-        // -----------------------------------------------------
-        // 크기
-        // -----------------------------------------------------
 
         if (file.getSize() > MAX_FILE_SIZE) {
 
@@ -1056,12 +1202,9 @@ public class AmountController {
         }
 
 
-        // -----------------------------------------------------
-        // Content-Type
-        // -----------------------------------------------------
-
         String contentType =
                 file.getContentType();
+
 
         if (contentType == null
                 || !ALLOWED_CONTENT_TYPES.contains(
@@ -1074,12 +1217,9 @@ public class AmountController {
         }
 
 
-        // -----------------------------------------------------
-        // 파일명
-        // -----------------------------------------------------
-
         String originalFilename =
                 file.getOriginalFilename();
+
 
         if (originalFilename == null
                 || originalFilename.isBlank()) {
@@ -1090,12 +1230,11 @@ public class AmountController {
         }
 
 
-        // -----------------------------------------------------
-        // 확장자
-        // -----------------------------------------------------
-
         String extension =
-                getExtension(originalFilename);
+                getExtension(
+                        originalFilename
+                );
+
 
         if (extension == null
                 || !ALLOWED_EXTENSIONS.contains(
@@ -1110,7 +1249,7 @@ public class AmountController {
 
 
     // =========================================================
-    // 12. 파일 목록 검증
+    // 파일 목록 검증
     // =========================================================
 
     private List<MultipartFile> validateFiles(
@@ -1119,9 +1258,11 @@ public class AmountController {
         List<MultipartFile> result =
                 new ArrayList<>();
 
+
         if (files == null) {
             return result;
         }
+
 
         for (MultipartFile file : files) {
 
@@ -1131,87 +1272,112 @@ public class AmountController {
                 continue;
             }
 
+
             validateFile(file);
 
             result.add(file);
         }
 
+
         return result;
     }
 
 
     // =========================================================
-    // 13. 페이징 응답
+    // JPA Page → 기존 프론트 응답 형식
     // =========================================================
 
     private Map<String, Object> createPagingResult(
-            List<Amount> list,
-            PageInfo pi) {
+            Page<Amount> amountPage) {
 
         Map<String, Object> result =
                 new HashMap<>();
 
+
         result.put(
                 "list",
-                list
+                amountPage.getContent()
         );
 
+
+        /*
+         * 프론트에서 기존 page 기반으로
+         * 사용하고 있으므로 1부터 시작하도록 반환
+         */
         result.put(
                 "page",
-                pi.getCurrentPage()
+                amountPage.getNumber() + 1
         );
 
-        result.put(
-                "pageLimit",
-                pi.getPageLimit()
-        );
-
-        result.put(
-                "boardLimit",
-                pi.getBoardLimit()
-        );
 
         result.put(
                 "limit",
-                pi.getBoardLimit()
+                amountPage.getSize()
         );
+
+
+        result.put(
+                "boardLimit",
+                amountPage.getSize()
+        );
+
 
         result.put(
                 "listCount",
-                pi.getListCount()
+                amountPage.getTotalElements()
         );
+
 
         result.put(
                 "maxPage",
-                pi.getMaxPage()
+                amountPage.getTotalPages()
+        );
+
+
+        /*
+         * 기존 PageInfo와 동일한 형태를
+         * 최대한 유지
+         */
+
+        int currentPage =
+                amountPage.getNumber() + 1;
+
+        int pageLimit = 5;
+
+        int startPage =
+                ((currentPage - 1) / pageLimit)
+                * pageLimit
+                + 1;
+
+        int endPage =
+                Math.min(
+                        startPage + pageLimit - 1,
+                        amountPage.getTotalPages()
+                );
+
+
+        result.put(
+                "pageLimit",
+                pageLimit
         );
 
         result.put(
                 "startPage",
-                pi.getStartPage()
+                startPage
         );
 
         result.put(
                 "endPage",
-                pi.getEndPage()
+                endPage
         );
+
 
         return result;
     }
 
 
     // =========================================================
-    // 14. 결재 상태 검증
-    //
-    // DB amount.status
-    //
-    // A 승인
-    // H 보류
-    // J 반려
-    // R 검토
-    // C 취소
-    //
-    // 결재 API에서는 A/H/J만 허용
+    // 결재 상태 검증
     // =========================================================
 
     private boolean isValidApprovalStatus(
@@ -1224,41 +1390,60 @@ public class AmountController {
 
 
     // =========================================================
-    // 15. paymentDate 변환
-    //
-    // React에서 전달되는 날짜:
-    //
-    // yyyy-MM-dd
-    // yyyy-MM-dd HH:mm:ss
-    // yyyy-MM-dd'T'HH:mm
-    // yyyy-MM-dd'T'HH:mm:ss
+    // paymentDate 변환
     // =========================================================
 
-    private Date parsePaymentDate(
+    private LocalDateTime parsePaymentDate(
             String paymentDate) {
 
-        String[] patterns = {
-                "yyyy-MM-dd",
-                "yyyy-MM-dd HH:mm:ss",
-                "yyyy-MM-dd'T'HH:mm",
-                "yyyy-MM-dd'T'HH:mm:ss"
+        DateTimeFormatter[] formatters = {
+
+                DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd HH:mm:ss"
+                ),
+
+                DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd'T'HH:mm"
+                ),
+
+                DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd'T'HH:mm:ss"
+                )
         };
 
-        for (String pattern : patterns) {
+
+        for (DateTimeFormatter formatter :
+                formatters) {
 
             try {
 
-                SimpleDateFormat sdf =
-                        new SimpleDateFormat(pattern);
+                return LocalDateTime.parse(
+                        paymentDate,
+                        formatter
+                );
 
-                sdf.setLenient(false);
+            } catch (DateTimeParseException ignored) {
 
-                return sdf.parse(paymentDate);
-
-            } catch (ParseException ignored) {
-                // 다음 형식 시도
             }
         }
+
+
+        // yyyy-MM-dd
+        try {
+
+            return LocalDate
+                    .parse(
+                            paymentDate,
+                            DateTimeFormatter.ofPattern(
+                                    "yyyy-MM-dd"
+                            )
+                    )
+                    .atStartOfDay();
+
+        } catch (DateTimeParseException ignored) {
+
+        }
+
 
         throw new IllegalArgumentException(
                 "지급일 형식이 올바르지 않습니다."
@@ -1267,7 +1452,7 @@ public class AmountController {
 
 
     // =========================================================
-    // 16. 확장자 추출
+    // 확장자 추출
     // =========================================================
 
     private String getExtension(
@@ -1279,14 +1464,17 @@ public class AmountController {
             return null;
         }
 
+
         int index =
                 filename.lastIndexOf(".");
+
 
         if (index < 0
                 || index == filename.length() - 1) {
 
             return null;
         }
+
 
         return filename
                 .substring(index + 1)
@@ -1295,7 +1483,7 @@ public class AmountController {
 
 
     // =========================================================
-    // 17. 저장 실패 파일 삭제
+    // 저장 실패 파일 삭제
     // =========================================================
 
     private void deleteSavedFiles(
@@ -1307,6 +1495,7 @@ public class AmountController {
             return;
         }
 
+
         for (String path : savedFiles) {
 
             if (path == null
@@ -1315,20 +1504,21 @@ public class AmountController {
                 continue;
             }
 
+
             try {
 
                 File file =
                         new File(path);
 
-                if (file.exists()) {
 
+                if (file.exists()) {
                     file.delete();
                 }
 
+
             } catch (Exception ignored) {
-                // 파일 정리 실패는 무시
+
             }
         }
     }
 }
-

@@ -91,6 +91,8 @@ public class HubServiceImpl implements HubService {
 	public List<String> selectSubRegion(String mainRegion) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
 	@Transactional
 	@Override
 	public Hub updateHub(int hubNo, Hub hubData, List<Integer> fileNos, 
