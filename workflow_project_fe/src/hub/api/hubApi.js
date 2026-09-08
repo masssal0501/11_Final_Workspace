@@ -3,13 +3,16 @@ import axiosInstance from "../../common/api/axiosInstance"
 /**
  * 워케이션 허브(Hub) 관련 API 통신을 위한 기본 URL
  *
- * axios 요청 config의 url이 절대경로면 axiosInstance의 baseURL이 무시되므로
- * 여기서도 동일하게 VITE_API_BASE_URL을 사용해 배포 환경에 맞춘다.
+ * BASE_URL(API_BASE_URL 포함, 절대경로)은 컴포넌트에서 <img src>를 직접
+ * 조립할 때 쓰는 용도로 export 유지한다. axiosInstance는 이미 baseURL을
+ * 갖고 있으므로, axios 요청에는 RELATIVE_PATH(상대경로)만 사용해야
+ * "/workflow/workflow/..." 중복을 피할 수 있다.
  */
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8006/workflow";
 
 const BASE_URL = `${API_BASE_URL}/hubs`;
+const RELATIVE_PATH = "/hubs";
 
 /**
  * [목록 조회] 허브 전체 목록을 조회합니다. (페이징 처리 포함)
@@ -19,7 +22,7 @@ const BASE_URL = `${API_BASE_URL}/hubs`;
 const selectHubListApi = cpage => {
 
     const response = axiosInstance({
-        url : `${ BASE_URL }`,
+        url : `${ RELATIVE_PATH }`,
         method : "get",
         params : {
             cpage : cpage
@@ -38,7 +41,7 @@ const selectHubListApi = cpage => {
 const searchHubListApi = (cpage, inputData) => {
 
     const response = axiosInstance({
-        url : `${ BASE_URL }/search`,
+        url : `${ RELATIVE_PATH }/search`,
         method : "get",
         params : {
             cpage : cpage,
@@ -60,7 +63,7 @@ const searchHubListApi = (cpage, inputData) => {
 const insertHubApi = formData => {
 
     const response = axiosInstance({
-       url : `${ BASE_URL }`,
+       url : `${ RELATIVE_PATH }`,
        method : "post",
        data : formData,
        headers : {
@@ -80,7 +83,7 @@ const insertHubApi = formData => {
 const selectHubApi = hubNo => {
 
     const response = axiosInstance({
-        url : `${ BASE_URL }/${ hubNo }`,
+        url : `${ RELATIVE_PATH }/${ hubNo }`,
         method : "get"
     });
 
@@ -95,7 +98,7 @@ const selectHubApi = hubNo => {
 const deleteHubApi = hubNo => {
 
     const response = axiosInstance({
-        url : `${ BASE_URL }/${ hubNo }`,
+        url : `${ RELATIVE_PATH }/${ hubNo }`,
         method : "delete"
     });
 
@@ -111,7 +114,7 @@ const deleteHubApi = hubNo => {
 const updateHubApi = (hubNo, formData) => {
 
     const response = axiosInstance({
-        url : `${ BASE_URL }/${ hubNo }`,
+        url : `${ RELATIVE_PATH }/${ hubNo }`,
         method : "put",
         data : formData,
         headers : {
@@ -131,7 +134,7 @@ const updateHubApi = (hubNo, formData) => {
 const sendMessageApi = message => {
     
     const response = axiosInstance({
-        url : `${ BASE_URL }/send`,
+        url : `${ RELATIVE_PATH }/send`,
         method : "post",
         data : {
             message : message
