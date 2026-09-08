@@ -11,6 +11,9 @@ public interface ApprovalService {
 	
     // 승인 이력 목록 조회
     Page<WorkcationInfo> selectApprovalList(
+    		String authCode,
+    		Integer empNo,
+    		String depId,
             String searchType,
             String keyword,
             LocalDateTime startDate,
@@ -26,6 +29,9 @@ public interface ApprovalService {
 
     // 승인 대기 목록 조회
     Page<WorkcationInfo> selectApprovalQueueList(
+    		String authCode,
+    		Integer empNo,
+    		String depId,    		
             String status,
             String searchType,
             String keyword,

@@ -38,7 +38,7 @@ public class AmountSupport {
 	private Integer amountNo;
 	
 	@Schema(description="최종 승인비용")
-	@Column(name="approved_amout")
+	@Column(name="approved_amount")
 	private Integer approvedAmount;
 	
 	@Schema(description="신청 일시", accessMode= Schema.AccessMode.READ_ONLY)

@@ -20,6 +20,9 @@ public class ApprovalServiceImpl implements ApprovalService {
     // 승인 이력 목록 조회
     @Override
     public Page<WorkcationInfo> selectApprovalList(
+    		String authCode,
+    		Integer empNo,
+    		String depId,
             String searchType,
             String keyword,
             LocalDateTime startDate,
@@ -27,6 +30,9 @@ public class ApprovalServiceImpl implements ApprovalService {
             Pageable pageable) {
 
         return approvalDao.searchApprovalHistory(
+        		authCode,
+        		empNo,
+        		depId,
                 searchType,
                 keyword,
                 startDate,
@@ -52,6 +58,9 @@ public class ApprovalServiceImpl implements ApprovalService {
     // 승인 대기 목록 조회
     @Override
     public Page<WorkcationInfo> selectApprovalQueueList(
+    		String authCode,
+    		Integer empNo,
+    		String depId,    		
             String status,
             String searchType,
             String keyword,
@@ -60,6 +69,9 @@ public class ApprovalServiceImpl implements ApprovalService {
             Pageable pageable) {
 
         return approvalDao.searchApprovalQueue(
+        		authCode,
+        		empNo,
+        		depId,        		
                 List.of("A", "C", "J"),
                 status,
                 searchType,

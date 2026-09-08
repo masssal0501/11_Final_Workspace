@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.workflow.approval.model.service.ApprovalService;
 import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.common.template.Pagination;
+import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.workcation.model.service.WorkcationService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
@@ -38,6 +41,9 @@ public class ApprovalController {
 	
 	@Autowired
 	private WorkcationService workcationService;
+	
+	@Autowired
+	private EmployeeDao employeeDao;
 
 	// 승인 이력 목록 조회
 	@GetMapping("/list")
@@ -51,7 +57,18 @@ public class ApprovalController {
 
 			@RequestParam(value = "searchType", required = false) String searchType,
 
-			@RequestParam(value = "keyword", required = false) String keyword) {
+			@RequestParam(value = "keyword", required = false) String keyword,
+			
+			Authentication authentication) {
+		
+		String empId = authentication.getName();
+		
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+		
+		String authCode = loginEmployee.getAuthCode();
+		Integer empNo = loginEmployee.getEmpNo();
+		String depId = loginEmployee.getDepId();
 
 		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 
@@ -67,7 +84,7 @@ public class ApprovalController {
 		}
 
 		// 승인 이력 조회
-		Page<WorkcationInfo> pageResult = approvalService.selectApprovalList(searchType, keyword, startDateTime,
+		Page<WorkcationInfo> pageResult = approvalService.selectApprovalList(authCode, empNo, depId, searchType, keyword, startDateTime,
 				endDateTime, pageable);
 
 		int listCount = (int) pageResult.getTotalElements();
@@ -106,8 +123,26 @@ public class ApprovalController {
 
 			@RequestParam(value = "keyword", required = false) String keyword,
 
-			@RequestParam(value = "status", required = false) String status) {
+			@RequestParam(value = "status", required = false) String status,
+			
+			Authentication authentication) {
 
+		String empId = authentication.getName();
+		
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+		
+		String authCode = loginEmployee.getAuthCode();
+		Integer empNo = loginEmployee.getEmpNo();
+		String depId = loginEmployee.getDepId();
+		
+		if ("STAFF".equals(authCode)) {
+			
+			return ResponseEntity
+					.status(HttpStatus.FORBIDDEN)
+					.build();
+		}
+		
 		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 
 		// 검색 날짜 변환
@@ -122,7 +157,7 @@ public class ApprovalController {
 		}
 
 		// 승인 대기 목록 조회
-		Page<WorkcationInfo> pageResult = approvalService.selectApprovalQueueList(status, searchType, keyword,
+		Page<WorkcationInfo> pageResult = approvalService.selectApprovalQueueList(authCode, empNo, depId, status, searchType, keyword,
 				startDateTime, endDateTime, pageable);
 
 		int listCount = (int) pageResult.getTotalElements();

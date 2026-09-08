@@ -19,7 +19,20 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
 	@Query("""
 			    SELECT w
 			    FROM WorkcationInfo w
+			    JOIN FETCH w.employee e
+
 			    WHERE w.approverState = 'A'
+			    AND (
+			    	:authCode = 'ADMIN'
+			    	OR (
+			    		:authCode = 'MANAGER'
+			    		AND e.depId = :depId
+			    	)
+			    	OR(
+			    		:authCode = 'STAFF'
+			    		AND e.empNo = :empNo
+			    	)
+			    )
 			    AND (
 			        :keyword IS NULL
 			        OR :keyword = ''
@@ -41,14 +54,28 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
 			        )
 			    )
 			""")
-	Page<WorkcationInfo> searchApprovalHistory(@Param("searchType") String searchType, @Param("keyword") String keyword,
+	Page<WorkcationInfo> searchApprovalHistory(@Param("authCode") String authCode, @Param("empNo") Integer empNo,
+			@Param("depId") String depId, @Param("searchType") String searchType, @Param("keyword") String keyword,
 			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
 
 	// 승인 대기 목록 조회
 	@Query("""
 			    SELECT w
 			    FROM WorkcationInfo w
+			    JOIN FETCH w.employee e
+
 			    WHERE w.approverState NOT IN :excludedStates
+
+			    AND (
+			    	:authCode = 'ADMIN'
+
+			    	OR (
+			    		:authCode = 'MANAGER'
+			    		AND e.depId = :depId
+			    		AND e.empNo <> :empNo
+			    	)
+			    )
+
 			    AND (
 			        :status IS NULL
 			        OR :status = ''
@@ -75,7 +102,8 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
 			        )
 			    )
 			""")
-	Page<WorkcationInfo> searchApprovalQueue(@Param("excludedStates") List<String> excludedStates,
+	Page<WorkcationInfo> searchApprovalQueue(@Param("authCode") String authCode, @Param("empNo") Integer empNo,
+			@Param("depId") String depId, @Param("excludedStates") List<String> excludedStates,
 			@Param("status") String status, @Param("searchType") String searchType, @Param("keyword") String keyword,
 			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
 
@@ -90,6 +118,5 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
 			    AND w.approverState = 'A'
 			""")
 	WorkcationInfo findApprovalDetail(@Param("workcationNo") Integer workcationNo);
-
 
 }
