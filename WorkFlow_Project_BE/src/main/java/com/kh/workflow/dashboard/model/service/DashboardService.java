@@ -7,7 +7,7 @@ import com.kh.workflow.dashboard.model.dto.AdminDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
-import com.kh.workflow.workcation.model.vo.Reservation;
+import com.kh.workflow.reservation.model.vo.Reservation;
 
 /**
  * 대시보드 비즈니스 로직 처리를 위한 서비스 인터페이스

@@ -22,13 +22,13 @@ import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
+import com.kh.workflow.reservation.model.dao.ReservationDao;
+import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.task.model.dao.TaskHistoryDao;
 import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.TaskHistory;
-import com.kh.workflow.workcation.model.dao.ReservationDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
-import com.kh.workflow.workcation.model.vo.Reservation;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 @Service
@@ -129,11 +129,6 @@ public class WorkcationServiceImpl implements WorkcationService {
 	}
 
 	@Override
-	public WorkcationInfo selectWorkcation(int workcationNo) {
-		return workcationDao.findByWorkcationNo(workcationNo);
-	}
-
-}
 	@Transactional
 	public void insertWorkcationEnrollForm(Map<String, Object> paramMap) {
 

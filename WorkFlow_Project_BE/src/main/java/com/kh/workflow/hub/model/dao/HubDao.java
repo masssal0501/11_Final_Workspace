@@ -103,4 +103,10 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     		GROUP BY h.mainRegion
     		""")
     List<ChartDataDto> HubShareData();
+
+	List<Hub> findByMainRegionAndSubRegionAndHubType(String mainRegion, String subRegion, int hubType);
+
+	List<String> selectMainRegionList();
+
+	List<String> selectSubRegionList(String mainRegion);
 }

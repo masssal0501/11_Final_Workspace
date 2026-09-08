@@ -2,6 +2,7 @@ package com.kh.workflow.amount.model.vo;
 
 import java.time.LocalDateTime;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,45 +18,54 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="support_list")
+@Table(name = "support_list")
 
 @NoArgsConstructor
-@Setter
 @Getter
-@ToString
-
+@Setter
+@ToString(exclude = "amount")
 public class SupportList {
-	
-	@Id
-	@Column(name="support_no")
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Integer supportNo;
-	
-	@Column(name="sponsor_name", length=50)
-	private String sponsorName;
-	
-	@Column(name="request_amount", nullable=false)
-	private Integer requestAmount;
-	
-	@Column(name="approved_amount", nullable=false)
-	private Integer approvedAmount;
-	
-	@Column(name="payment_date", nullable=false)
-	private LocalDateTime paymentDate;
-	
-	@Column(name="status", length=10)
-	private String status;
-	
-	@Column(name="remark", length=300)
-	private String remark;
-	
-	@Column(name="transport_supported", length=1, nullable=false)
-	private String transportSupported;
-	
-	@Column(name="other_supported", length=1, nullable=false)
-	private String otherSupported;
-	
-	@JoinColumn(name="amount_no", nullable=false)
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Amount amount;
+
+    @Schema(description = "지원금 번호", accessMode = Schema.AccessMode.READ_ONLY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "support_no")
+    private Integer supportNo;
+
+    @Schema(description = "지원 기관명")
+    @Column(name = "sponsor_name", length = 50)
+    private String sponsorName;
+
+    @Schema(description = "신청 금액")
+    @Column(name = "request_amount", nullable = false)
+    private Integer requestAmount;
+
+    @Schema(description = "승인 금액")
+    @Column(name = "approved_amount", nullable = false)
+    private Integer approvedAmount;
+
+    @Schema(description = "지급일")
+    @Column(name = "payment_date", nullable = false)
+    private LocalDateTime paymentDate;
+
+    @Schema(description = "지급 상태")
+    @Column(name = "status", length = 10)
+    private String status;
+
+    @Schema(description = "비고")
+    @Column(name = "remark", length = 300)
+    private String remark;
+
+    @Schema(description = "교통비 지원 여부")
+    @Column(name = "transport_supported", length = 1, nullable = false)
+    private String transportSupported;
+
+    @Schema(description = "기타 지원 여부")
+    @Column(name = "other_supported", length = 1, nullable = false)
+    private String otherSupported;
+
+    @Schema(description = "비용 정보")
+    @JoinColumn(name = "amount_no", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Amount amount;
 }
