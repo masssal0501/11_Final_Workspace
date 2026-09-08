@@ -1,28 +1,50 @@
-.workcation-btnSet,
-table {
-    width: 80%;
+.workcation-btnSet {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 6px;
+
+    margin: 15px 0 20px;
+}
+
+.workcation-btnSet form {
+    margin: 0;
+}
+
+.workcation-list tbody tr {
+    cursor: pointer;
+}
+
+.workcation-list tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.drop-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.skedule-btn,
+.main-region,
+.sub-region,
+.status-drop,
+.apply-btn button {
+    height: 28px;
+    box-sizing: border-box;
+}
+
+.apply-btn {
+    margin: 0;
+}
+
+.workcation-list {
     margin: 0 auto;
 }
 
-.workcation-btnSet {
+.paging-area {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.drop-group,
-.apply-btn {
-    margin: 0;
-    display: flex;
-    gap: 12px;
-}
-
-.workcation-list tbody tr td {
-    transition: background-color 0.2s ease-in-out;
-}
-
-.workcation-list tbody tr:hover td {
-    cursor: pointer;
-    background-color: rgba(216, 215, 215, 0.979);
+    justify-content: center;
+    gap: 3px;
 }

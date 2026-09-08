@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
+import com.kh.workflow.task.model.vo.Task;
+import com.kh.workflow.task.model.vo.Work;
 
 @Repository
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
@@ -89,4 +91,18 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			@Param("subRegion") String subRegion, Pageable pageable);
 
 	Optional<WorkcationInfo> findByWorkcationNoAndEmployeeEmpNo(Integer workcationNo, int empNo);
+	
+	@Query("""
+		    SELECT DISTINCT w
+		    FROM WorkcationInfo w
+		    JOIN Work wk ON wk.workcation = w
+		    JOIN Task t ON t.work = wk
+		    WHERE (:keyword = ''
+		        OR LOWER(w.workcationTitle)
+		            LIKE LOWER(CONCAT('%', :keyword, '%')))
+		    ORDER BY w.workcationNo DESC
+		""")
+		Page<WorkcationInfo> findTaskBoardList(
+		        @Param("keyword") String keyword,
+		        Pageable pageable);
 }

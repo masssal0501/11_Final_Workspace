@@ -60,7 +60,7 @@ function WorkcationListComponent() {
 
     // 3. 조건 변경 시 워케이션 목록 조회
     useEffect(() => {
-        if(mainRegion && !subRegion){
+        if (mainRegion && !subRegion) {
             return;
         }
         selectWorkcationList();
@@ -89,20 +89,21 @@ function WorkcationListComponent() {
             : (responseData?.list || responseData?.content || []);
 
         const statusMap = {
-            approved:"Y",
-            canceled:"C",
-            hold:"H",
-            rejected:"R",
-            review:"W"
-        }
+            approved: "A",
+            canceled: "C",
+            hold: "H",
+            rejected: "J",
+            review: "R",
+            waiting: "W"
+        };
 
-        const filteredItems = searchType === "all" ? items : items.filter(item =>{
-                        const status = item.approverState || item.workStatus;
+        const filteredItems = searchType === "all" ? items : items.filter(item => {
+            const status = item.approverState || item.workStatus;
 
-                        return status === statusMap[searchType];
+            return status === statusMap[searchType];
         })
 
-        const trArr = filteredItems.map((item) => {            
+        const trArr = filteredItems.map((item) => {
             const main = item.mainRegion || "";
             const sub = item.subRegion || "";
             const regionText = (main || sub) ? `${main} ${sub}`.trim() : "-";
@@ -217,31 +218,45 @@ function WorkcationListComponent() {
             searchType: newSearchType
         })
     }
-
     return (
         <div align="center" className="content-area">
+
             <h2>워케이션 신청 목록</h2>
 
+            {/* 상단 버튼 / 필터 */}
             <div className="workcation-btnSet">
-                {/* 일정관리 버튼 */}
-                <button className="skedule-btn"
-                    onClick={() => setIsScheduleOpen(true)}>
+
+                {/* 일정관리 */}
+                <button
+                    className="skedule-btn"
+                    onClick={() => setIsScheduleOpen(true)}
+                >
                     일정관리
                 </button>
+
                 {isScheduleOpen && (
-                    <WorkcationScheduleComponent onClose={() => setIsScheduleOpen(false)} />
+                    <WorkcationScheduleComponent
+                        onClose={() => setIsScheduleOpen(false)}
+                    />
                 )}
 
-                {/* 지역 및 상세지역 드롭다운 (기존 WorkcationItemComponent 내용 병합) */}
+                {/* 지역 */}
                 <form onSubmit={(e) => e.preventDefault()}>
                     <div className="drop-group">
-                        <select className="main-region"
+
+                        <select
+                            className="main-region"
                             value={mainRegion}
-                            onChange={handleMainRegionChange}>
+                            onChange={handleMainRegionChange}
+                        >
                             <option value="">지역명</option>
+
                             {mainRegionList.map((main, index) => (
-                                <option key={index} value={typeof main === 'string' ? main : main.main_region}>
-                                    {typeof main === 'string' ? main : main.main_region}
+                                <option
+                                    key={index}
+                                    value={typeof main === "string" ? main : main.main_region}
+                                >
+                                    {typeof main === "string" ? main : main.main_region}
                                 </option>
                             ))}
                         </select>
@@ -250,35 +265,48 @@ function WorkcationListComponent() {
                             className="sub-region"
                             value={subRegion}
                             onChange={handleSubRegionChange}
-                            disabled={!mainRegion}>
+                            disabled={!mainRegion}
+                        >
                             <option value="">상세 지역명</option>
+
                             {subRegionList.map((sub, index) => (
-                                <option key={index} value={typeof sub === 'string' ? sub : sub.sub_region}>
-                                    {typeof sub === 'string' ? sub : sub.sub_region}
+                                <option
+                                    key={index}
+                                    value={typeof sub === "string" ? sub : sub.sub_region}
+                                >
+                                    {typeof sub === "string" ? sub : sub.sub_region}
                                 </option>
                             ))}
                         </select>
+
                     </div>
                 </form>
 
-                {/* 상태 드롭다운 */}
-                <select className="status-drop"
+                {/* 상태 */}
+                <select
+                    className="status-drop"
                     value={searchType}
-                    onChange={handleSearchTypeChange}>
+                    onChange={handleSearchTypeChange}
+                >
                     <option value="all">전체</option>
                     <option value="approved">승인</option>
                     <option value="canceled">취소</option>
                     <option value="hold">보류</option>
                     <option value="rejected">반려</option>
                     <option value="review">검토</option>
+                    <option value="waiting">대기</option>
                 </select>
+
+                {/* 신청 */}
+                <div className="apply-btn">
+                    <button onClick={() => navigate("/workcation/enrollform")}>
+                        신청
+                    </button>
+                </div>
+
             </div>
 
-            {/* 신청하기 버튼 */}
-            <div className="apply-btn">
-                <button onClick={() => { navigate("/workcation/enrollform"); }}>신청</button>
-            </div>
-
+            {/* 목록 */}
             <table className="workcation-list">
                 <thead>
                     <tr>
@@ -290,6 +318,7 @@ function WorkcationListComponent() {
                         <th>상태</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     {dataList.length > 0 ? dataList : (
                         <tr>
@@ -300,12 +329,14 @@ function WorkcationListComponent() {
                     )}
                 </tbody>
             </table>
+
             <br /><br />
 
-            {/* 페이징 영역 */}
+            {/* 페이징 */}
             <div align="center" className="paging-area">
                 {pageList}
             </div>
+
         </div>
     );
 }

@@ -45,7 +45,7 @@ function Header({ loginUser, onLogout }) {
   };
 
   //내 워케이션 리스트 이동
-  const handleMyWorcation =() =>{
+  const handleMyWorcation = () => {
     setIsProfileOpen(false);
     navigate("/workcation/mylist");
   }
@@ -158,27 +158,21 @@ function Header({ loginUser, onLogout }) {
 
 
         {/* =========================
-            Navigation
+            Navigation staff는 업무관리가 안뜨게
         ========================= */}
         <nav className="wf-nav">
-          {menus.map((menu) => (
-            <button
-              key={menu.id}
-              className={`wf-nav-item ${
-                activeMenu === menu.id
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() => handleMenuClick(menu)}
-            >
-              <span className="wf-nav-icon">
-                {menu.icon}
-              </span>
-              <span>
-                {menu.label}
-              </span>
-            </button>
-          ))}
+          {menus
+            .filter((menu) => !(loginUser?.authCode === "STAFF" && menu.id === "task"))
+            .map((menu) => (
+              <button
+                key={menu.id}
+                className={`wf-nav-item ${activeMenu === menu.id ? "active" : ""}`}
+                onClick={() => handleMenuClick(menu)}
+              >
+                <span className="wf-nav-icon">{menu.icon}</span>
+                <span>{menu.label}</span>
+              </button>
+            ))}
         </nav>
 
 
@@ -254,7 +248,7 @@ function Header({ loginUser, onLogout }) {
                     마이페이지
                   </button>
 
-                   <button
+                  <button
                     type="button"
                     onClick={handleMyWorcation}
                   >

@@ -160,7 +160,8 @@ function App() {
 
         {/* 📌 업무 게시판 라우트 */}
         <Route path="/task/list" element={<TaskListComponent />} />
-        <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+        <Route path="/task/detail/:workcationNo" element={<TaskDetailComponent />}
+/>
 
         {/* 📌 워케이션 라우트 */}
         <Route path="/workcation/list" element={<WorkcationListComponent />} />

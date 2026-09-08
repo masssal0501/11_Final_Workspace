@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import { getWorkcationDetail, deleteWorkcation } from "../api/WorkcationApi";
 
+import { getStatusText } from "../utils/StatusBadge";
+
 import "../styles/WorkcationDetail.css";
 
 function WorkcationDetailComponent() {
@@ -34,6 +36,9 @@ function WorkcationDetailComponent() {
         workcationTitle = "",
         startDate = "",
         endDate = "",
+        approverState = "",
+        canUpdate = false,
+        canDelete = false,
         peopleCount = 1,
         purpose = "",
         mainRegion = "",
@@ -106,7 +111,9 @@ function WorkcationDetailComponent() {
                         <th>신청현황</th>
                         <td>
                             <div className="cell-box status-cell-box">
-                                <span className="status-badge">신청 완료</span>
+                                <span className="status-badge">
+                                    {getStatusText(approverState)}
+                                </span>
                             </div>
                         </td>
                     </tr>
@@ -270,16 +277,32 @@ function WorkcationDetailComponent() {
                 </div>
             </div>
 
-            <div className="detail-button-area">
-                <button type="button" onClick={handleUpdate}>
-                    수정
-                </button>
-                <button type="button" onClick={handleDelete}>
-                    삭제
-                </button>
-            </div>
+            {(canUpdate || canDelete) && (
+                <div className="detail-button-area">
+
+                    {canUpdate && (
+                        <button
+                            type="button"
+                            onClick={handleUpdate}
+                        >
+                            수정
+                        </button>
+                    )}
+
+                    {canDelete && (
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                        >
+                            삭제
+                        </button>
+                    )}
+
+                </div>
+
+            )}
         </div>
-    );
+    )
 }
 
 export default WorkcationDetailComponent;

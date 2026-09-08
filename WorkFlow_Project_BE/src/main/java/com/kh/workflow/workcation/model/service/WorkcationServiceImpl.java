@@ -67,13 +67,13 @@ public class WorkcationServiceImpl implements WorkcationService {
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
 		int empNo = (int) paramMap.get("empNo");
-		
+
 		// 1. 오라클 DB용 빈문자열 NULL 변환
 		String mainRegion = paramMap != null ? (String) paramMap.get("mainRegion") : null;
 		String subRegion = paramMap != null ? (String) paramMap.get("subRegion") : null;
 
 		Page<WorkcationInfo> workcationPage = workcationDao.findByEmployeeEmpNo(empNo, pageable);
-		
+
 		if (mainRegion != null && mainRegion.trim().isEmpty()) {
 			mainRegion = null;
 		}
@@ -93,40 +93,32 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("employee", workcation.getEmployee());
 
 			// 3. 람다식 내부 변수명 중복 해결 (hubMainRegion, hubSubRegion으로 변경)
-			List<Reservation> reservations = reservationDao.findByWorkcationNo(
-	                workcation.getWorkcationNo());
+			List<Reservation> reservations = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
 			String hubMainRegion = "";
 			String hubSubRegion = "";
 
 			if (reservations != null && !reservations.isEmpty()) {
 				for (Reservation r : reservations) {
 
-				    if (r.getHubNo() != null) {
+					if (r.getHubNo() != null) {
 
-				        Hub hub = hubDao.findById(r.getHubNo())
-				                .orElse(null);
+						Hub hub = hubDao.findById(r.getHubNo()).orElse(null);
 
-				        if (hub != null) {
+						if (hub != null) {
 
-				            int hubType = hub.getHubType();
-				            if (hubType == 1 || hubType == 2) {
-				            	
-				            }
-				                hubMainRegion =
-				                        hub.getMainRegion() != null
-				                                ? hub.getMainRegion()
-				                                : "";
+							int hubType = hub.getHubType();
+							if (hubType == 1 || hubType == 2) {
 
-				                hubSubRegion =
-				                        hub.getSubRegion() != null
-				                                ? hub.getSubRegion()
-				                                : "";
+							}
+							hubMainRegion = hub.getMainRegion() != null ? hub.getMainRegion() : "";
 
-				                break;
-				            }
-				        }
-				    }
+							hubSubRegion = hub.getSubRegion() != null ? hub.getSubRegion() : "";
+
+							break;
+						}
+					}
 				}
+			}
 
 			map.put("mainRegion", hubMainRegion);
 			map.put("subRegion", hubSubRegion);
@@ -312,8 +304,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
 		// 1. 해당 워케이션의 모든 예약(메인 거점 + 옵션 거점들) 조회
-		List<Reservation> reservationList = reservationDao.findByWorkcationNo(
-                workcation.getWorkcationNo());
+		List<Reservation> reservationList = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
 
 		Hub mainHub = null;
 		Reservation mainReservation = null;
@@ -322,15 +313,13 @@ public class WorkcationServiceImpl implements WorkcationService {
 		if (reservationList != null) {
 			for (Reservation reservation : reservationList) {
 
-			    Hub hub = null;
+				Hub hub = null;
 
-			    if (reservation.getHubNo() != null) {
-			        hub = hubDao.findById(
-			                reservation.getHubNo()
-			        ).orElse(null);
-			    }
+				if (reservation.getHubNo() != null) {
+					hub = hubDao.findById(reservation.getHubNo()).orElse(null);
+				}
 
-			    if (hub != null) {
+				if (hub != null) {
 					int hubType = hub.getHubType(); // 1: 오피스, 2: 숙소, 3: 체험, 4: 맛집, 5: 관광지
 					if (hubType == 1 || hubType == 2) {
 						mainHub = hub;
@@ -373,6 +362,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 		Map<String, Object> result = new HashMap<>();
 		result.put("workcationNo", workcation.getWorkcationNo());
 		result.put("workcationTitle", workcation.getWorkcationTitle());
+		result.put("writerEmpNo", workcation.getEmployee() != null ? workcation.getEmployee().getEmpNo() : null);
+
+		result.put("approverState", workcation.getApproverState());
 		result.put("startDate",
 				workcation.getStartAt() != null ? workcation.getStartAt().toLocalDate().toString() : "");
 		result.put("endDate", workcation.getEndAt() != null ? workcation.getEndAt().toLocalDate().toString() : "");
@@ -520,8 +512,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		workcationDao.save(workcation);
 
 		// 2. 예약(Reservation) 정보 수정 (기존 예약 삭제 후 메인+옵션 재등록)
-		List<Reservation> existingRsvs = reservationDao.findByWorkcationNo(
-                workcation.getWorkcationNo());
+		List<Reservation> existingRsvs = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
 		if (existingRsvs != null && !existingRsvs.isEmpty()) {
 			reservationDao.deleteAll(existingRsvs);
 		}
@@ -583,7 +574,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 						Reservation optionRsv = new Reservation();
 						optionRsv.setHubNo(optionHubNo);
-						optionRsv.setWorkcationNo(workcation.getWorkcationNo());						
+						optionRsv.setWorkcationNo(workcation.getWorkcationNo());
 						optionRsv.setUserCapacity(peopleCount);
 						optionRsv.setRsvStart(visitDate);
 						optionRsv.setRsvEnd(visitDate);
@@ -729,8 +720,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		WorkcationInfo workcation = workcationDao.findById(workcationNo)
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
-		List<Reservation> reservationList = reservationDao.findByWorkcationNo(
-                workcation.getWorkcationNo());
+		List<Reservation> reservationList = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
 		if (reservationList != null) {
 			reservationDao.deleteAll(reservationList);
 		}
@@ -776,43 +766,37 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("approverState", workcation.getApproverState());
 
 			// 지역 조회
-			List<Reservation> reservations =
-			        reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
+			List<Reservation> reservations = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
 
 			String main = "";
 			String sub = "";
 
 			if (reservations != null && !reservations.isEmpty()) {
 
-			    for (Reservation reservation : reservations) {
+				for (Reservation reservation : reservations) {
 
-			        if (reservation.getHubNo() == null) {
-			            continue;
-			        }
+					if (reservation.getHubNo() == null) {
+						continue;
+					}
 
-			        Hub hub = hubDao.findById(reservation.getHubNo())
-			                .orElse(null);
+					Hub hub = hubDao.findById(reservation.getHubNo()).orElse(null);
 
-			        if (hub == null) {
-			            continue;
-			        }
+					if (hub == null) {
+						continue;
+					}
 
-			        int hubType = hub.getHubType();
+					int hubType = hub.getHubType();
 
-			        // 메인 거점 또는 숙소
-			        if (hubType == 1 || hubType == 2) {
+					// 메인 거점 또는 숙소
+					if (hubType == 1 || hubType == 2) {
 
-			            main = hub.getMainRegion() != null
-			                    ? hub.getMainRegion()
-			                    : "";
+						main = hub.getMainRegion() != null ? hub.getMainRegion() : "";
 
-			            sub = hub.getSubRegion() != null
-			                    ? hub.getSubRegion()
-			                    : "";
+						sub = hub.getSubRegion() != null ? hub.getSubRegion() : "";
 
-			            break;
-			        }
-			    }
+						break;
+					}
+				}
 			}
 
 			map.put("mainRegion", main);
@@ -903,91 +887,54 @@ public class WorkcationServiceImpl implements WorkcationService {
 	}
 
 	@Override
-	public Map<String, Object> getWorkcationSchedule(
-	        LocalDate date,
-	        int empNo
-	) {
+	public Map<String, Object> getWorkcationSchedule(LocalDate date, int empNo) {
 
-	    LocalDateTime startOfDay =
-	            date.atStartOfDay();
+		LocalDateTime startOfDay = date.atStartOfDay();
 
-	    LocalDateTime endOfDay =
-	            date.plusDays(1)
-	                    .atStartOfDay()
-	                    .minusNanos(1);
+		LocalDateTime endOfDay = date.plusDays(1).atStartOfDay().minusNanos(1);
 
-	    List<WorkcationInfo> list =
-	            workcationDao.findWorkcationByDate(
-	                    startOfDay,
-	                    endOfDay
-	            );
+		List<WorkcationInfo> list = workcationDao.findWorkcationByDate(startOfDay, endOfDay);
 
-	    List<Map<String, Object>> mySchedule =
-	            new ArrayList<>();
+		List<Map<String, Object>> mySchedule = new ArrayList<>();
 
-	    List<Map<String, Object>> departmentSchedule =
-	            new ArrayList<>();
+		List<Map<String, Object>> departmentSchedule = new ArrayList<>();
 
-	    for (WorkcationInfo workcation : list) {
+		for (WorkcationInfo workcation : list) {
 
-	        Employee employee =
-	                workcation.getEmployee();
+			Employee employee = workcation.getEmployee();
 
-	        if (employee == null) {
-	            continue;
-	        }
+			if (employee == null) {
+				continue;
+			}
 
-	        Map<String, Object> schedule =
-	                new HashMap<>();
+			Map<String, Object> schedule = new HashMap<>();
 
-	        schedule.put(
-	                "workcationNo",
-	                workcation.getWorkcationNo()
-	        );
+			schedule.put("workcationNo", workcation.getWorkcationNo());
 
-	        schedule.put(
-	                "empNo",
-	                employee.getEmpNo()
-	        );
+			schedule.put("empNo", employee.getEmpNo());
 
-	        schedule.put(
-	                "empName",
-	                employee.getEmpName()
-	        );
+			schedule.put("empName", employee.getEmpName());
 
-	        schedule.put(
-	                "startAt",
-	                workcation.getStartAt()
-	        );
+			schedule.put("startAt", workcation.getStartAt());
 
-	        schedule.put(
-	                "endAt",
-	                workcation.getEndAt()
-	        );
+			schedule.put("endAt", workcation.getEndAt());
 
-	        if (employee.getEmpNo() == empNo) {
+			if (employee.getEmpNo() == empNo) {
 
-	            mySchedule.add(schedule);
+				mySchedule.add(schedule);
 
-	        } else {
+			} else {
 
-	            departmentSchedule.add(schedule);
-	        }
-	    }
+				departmentSchedule.add(schedule);
+			}
+		}
 
-	    Map<String, Object> result =
-	            new HashMap<>();
+		Map<String, Object> result = new HashMap<>();
 
-	    result.put(
-	            "mySchedule",
-	            mySchedule
-	    );
+		result.put("mySchedule", mySchedule);
 
-	    result.put(
-	            "departmentSchedule",
-	            departmentSchedule
-	    );
+		result.put("departmentSchedule", departmentSchedule);
 
-	    return result;
+		return result;
 	}
 }

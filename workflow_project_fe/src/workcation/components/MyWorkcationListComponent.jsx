@@ -320,6 +320,9 @@ function MyWorkcationListComponent() {
                     <option value="review">
                         검토
                     </option>
+                    <option value="waiting">
+                        대기
+                    </option>
 
                 </select>
 
@@ -387,7 +390,7 @@ function MyWorkcationListComponent() {
                                             </td>
                                         </tr>
                                     );
-                                }):
+                                }) :
 
                             <tr>
 
@@ -462,7 +465,7 @@ function MyWorkcationListComponent() {
                     disabled={
                         cpage === totalPages
                     }
-                    onClick={() =>changePage(cpage + 1)
+                    onClick={() => changePage(cpage + 1)
                     }
                 >
                     &gt;

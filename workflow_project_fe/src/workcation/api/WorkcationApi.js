@@ -97,10 +97,22 @@ export const getMyWorkcationDetail = async (workcationNo) => {
 };
 
 //수정
-export const updateWorkcation = async (workcationNo, updateData) => {
-    const response = await axios.put(`${BASE_URL}/workcation/update/${workcationNo}`, updateData);
-    return response;
-}
+export const updateWorkcation = async (workcationNo, data) => {
+
+    const token = localStorage.getItem("accessToken");
+
+    const response = await axios.put(
+        `${BASE_URL}/workcation/update/${workcationNo}`,
+        data,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    return response.data;
+};
 
 //삭제
 export const deleteWorkcation = async (workcationNo) => {
