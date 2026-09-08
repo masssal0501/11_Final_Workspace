@@ -823,21 +823,6 @@ public class AmountServiceImpl implements AmountService {
                     amountDao.getStatisticsSummary()
             );
 
-            result.put(
-                    "deptStatistics",
-                    amountDao.getDeptStatistics()
-            );
-
-            result.put(
-                    "monthlyStatistics",
-                    amountDao.getMonthlyStatistics()
-            );
-
-            result.put(
-                    "itemStatistics",
-                    amountDao.getItemStatistics()
-            );
-
             return result;
 
         } catch (Exception e) {
