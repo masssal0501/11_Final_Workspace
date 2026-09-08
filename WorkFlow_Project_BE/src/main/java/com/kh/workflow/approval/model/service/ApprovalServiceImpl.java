@@ -1,5 +1,8 @@
 package com.kh.workflow.approval.model.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,24 +14,72 @@ import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 @Service
 public class ApprovalServiceImpl implements ApprovalService {
 
-	@Autowired
-	private ApprovalDao approvalDao;
-	
-	@Override
-	public Page<WorkcationInfo> selectApprovalList(Pageable pageable) {
-		
-        // 승인 상태가 A인 데이터만 조회
-        return approvalDao.findByApproverState("A", pageable);
-	}
+    @Autowired
+    private ApprovalDao approvalDao;
 
-	public WorkcationInfo selectApproval(int workcationNo) {
+    // 승인 이력 목록 조회
+    @Override
+    public Page<WorkcationInfo> selectApprovalList(
+    		String authCode,
+    		Integer empNo,
+    		String depId,
+            String searchType,
+            String keyword,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable) {
 
-	    return approvalDao.findApprovalDetail(workcationNo);
-	}
+        return approvalDao.searchApprovalHistory(
+        		authCode,
+        		empNo,
+        		depId,
+                searchType,
+                keyword,
+                startDate,
+                endDate,
+                pageable
+        );
+    }
 
-	@Override
-	public WorkcationInfo rejectApproval(WorkcationInfo w) {
-		return approvalDao.save(w);
-	}
+    // 승인 이력 상세 조회
+    @Override
+    public WorkcationInfo selectApproval(int workcationNo) {
+
+        return approvalDao.findApprovalDetail(workcationNo);
+    }
+
+    // 반려 처리
+    @Override
+    public WorkcationInfo rejectApproval(WorkcationInfo w) {
+
+        return approvalDao.save(w);
+    }
+
+    // 승인 대기 목록 조회
+    @Override
+    public Page<WorkcationInfo> selectApprovalQueueList(
+    		String authCode,
+    		Integer empNo,
+    		String depId,    		
+            String status,
+            String searchType,
+            String keyword,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable) {
+
+        return approvalDao.searchApprovalQueue(
+        		authCode,
+        		empNo,
+        		depId,        		
+                List.of("A", "C", "J"),
+                status,
+                searchType,
+                keyword,
+                startDate,
+                endDate,
+                pageable
+        );
+    }
 
 }

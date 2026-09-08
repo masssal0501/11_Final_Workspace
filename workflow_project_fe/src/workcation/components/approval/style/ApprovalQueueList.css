@@ -1,4 +1,4 @@
-.historyList {
+.QueueList {
     width: 1500px;
     margin: 50px auto;
     padding: 35px 45px;
@@ -12,17 +12,13 @@
 }
 
 
-/* =========================
-   검색 / 날짜 필터 영역
-========================= */
-
+/* 검색 영역 */
 .filter-area {
     display: flex;
     align-items: center;
     justify-content: center;
 
     width: 100%;
-
     margin: 30px 0;
 
     gap: 8px;
@@ -31,10 +27,24 @@
 }
 
 
-/* =========================
-   제목 / 내용 선택
-========================= */
+/* 상태 필터 */
+.status-filter {
+    width: 85px;
+    height: 36px;
 
+    padding: 0 8px;
+
+    border: 1px solid #ddd;
+    border-radius: 5px;
+
+    background-color: #fff;
+
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+
+/* 검색 조건 */
 .search-type {
     width: 85px;
     height: 36px;
@@ -47,15 +57,11 @@
     background-color: #fff;
 
     box-sizing: border-box;
-
     cursor: pointer;
 }
 
 
-/* =========================
-   검색어
-========================= */
-
+/* 검색어 */
 .search-input {
     width: 250px;
     height: 36px;
@@ -66,7 +72,6 @@
     border-radius: 5px;
 
     box-sizing: border-box;
-
     outline: none;
 }
 
@@ -75,10 +80,7 @@
 }
 
 
-/* =========================
-   날짜
-========================= */
-
+/* 날짜 */
 .date-input {
     width: 145px;
     height: 36px;
@@ -89,13 +91,11 @@
     border-radius: 5px;
 
     box-sizing: border-box;
-
     cursor: pointer;
 }
 
 
 /* 날짜 사이 ~ */
-
 .date-separator {
     margin: 0 2px;
 
@@ -103,10 +103,7 @@
 }
 
 
-/* =========================
-   검색 버튼
-========================= */
-
+/* 검색 버튼 */
 .search-button {
     width: 60px;
     height: 36px;
@@ -118,11 +115,9 @@
 
     background-color: #f4fffe;
 
-    color: #333;
+    cursor: pointer;
 
     box-sizing: border-box;
-
-    cursor: pointer;
 }
 
 .search-button:hover {
@@ -131,78 +126,65 @@
 }
 
 
-/* =========================
-   테이블
-========================= */
-
-.historyList table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    table-layout: fixed;
-}
-
-
 /* 테이블 헤더 */
-
 .thead th {
     background-color: rgba(193, 245, 250, 0.44);
 }
 
 
-/* 번호 */
+/* 테이블 너비 */
+.QueueList table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
 
-.historyList th:nth-child(1),
-.historyList td:nth-child(1) {
+
+/* 번호 */
+.QueueList th:nth-child(1),
+.QueueList td:nth-child(1) {
     width: 8%;
 }
 
 
 /* 워케이션 제목 */
-
-.historyList th:nth-child(2),
-.historyList td:nth-child(2) {
+.QueueList th:nth-child(2),
+.QueueList td:nth-child(2) {
     width: 25%;
 }
 
 
 /* 신청자 */
-
-.historyList th:nth-child(3),
-.historyList td:nth-child(3) {
+.QueueList th:nth-child(3),
+.QueueList td:nth-child(3) {
     width: 12%;
 }
 
 
 /* 워케이션 기간 */
-
-.historyList th:nth-child(4),
-.historyList td:nth-child(4) {
+.QueueList th:nth-child(4),
+.QueueList td:nth-child(4) {
     width: 25%;
 }
 
 
-/* 승인자 */
-
-.historyList th:nth-child(5),
-.historyList td:nth-child(5) {
-    width: 12%;
-}
-
-
-/* 승인 일시 */
-
-.historyList th:nth-child(6),
-.historyList td:nth-child(6) {
+/* 신청 일시 */
+.QueueList th:nth-child(5),
+.QueueList td:nth-child(5) {
     width: 18%;
 }
 
 
-/* 셀 */
+/* 상태 */
+.QueueList th:nth-child(6),
+.QueueList td:nth-child(6) {
+    width: 12%;
+}
 
-.historyList th,
-.historyList td {
+
+/* 테이블 셀 */
+.QueueList th,
+.QueueList td {
     text-align: center;
     vertical-align: middle;
 
@@ -212,11 +194,8 @@
 }
 
 
-/* =========================
-   목록
-========================= */
-
-.historyList tbody tr {
+/* 목록 행 */
+.QueueList tbody tr {
     transition: background-color 0.2s ease;
 
     cursor: pointer;
@@ -224,19 +203,14 @@
 
 
 /* 마우스 오버 */
-
-.historyList tbody tr:hover {
+.QueueList tbody tr:hover {
     background-color: #f0f8ff;
 }
 
 
-/* =========================
-   페이징
-========================= */
-
+/* 페이지네이션 */
 .pagination {
     display: flex;
-
     justify-content: center;
     align-items: center;
 
@@ -248,13 +222,11 @@
 
 .pagination button {
     color: #0dcaf0 !important;
-
     background-color: white !important;
 }
 
 
 .pagination button:hover:not(:disabled) {
     color: white !important;
-
     background-color: #0dcaf0 !important;
 }

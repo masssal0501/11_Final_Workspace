@@ -168,6 +168,10 @@ function ApprovalReject() {
             return "반려";
         }
 
+        if (approvalState === "A") {
+            return "승인";
+        }
+
         return "알 수 없음";
 
     };
@@ -335,6 +339,11 @@ function ApprovalReject() {
                     <option value="J">
                         반려
                     </option>
+
+                    <option value="A">
+                        승인
+                    </option>
+
 
                 </select>
 

@@ -5,13 +5,51 @@ const BASE_URL = "/approval";
 export const ApprovalApi = {
 
     // 승인 이력 목록 조회
-    getApprovalList: async (cpage = 1) => {
+    getApprovalList: async (
+        cpage = 1,
+        startDate = "",
+        endDate = "",
+        searchType = "workcationTitle",
+        keyword = ""
+    ) => {
 
         const response = await axiosInstance.get(
             `${BASE_URL}/list`,
             {
                 params: {
-                    cpage
+                    cpage,
+                    startDate,
+                    endDate,
+                    searchType,
+                    keyword
+                }
+            }
+        );
+
+        return response.data;
+    },
+
+
+    // 승인 대기 목록 조회
+    getApprovalQueueList: async (
+        cpage = 1,
+        startDate = "",
+        endDate = "",
+        searchType = "workcationTitle",
+        keyword = "",
+        status = ""
+    ) => {
+
+        const response = await axiosInstance.get(
+            `${BASE_URL}/queue`,
+            {
+                params: {
+                    cpage,
+                    startDate,
+                    endDate,
+                    searchType,
+                    keyword,
+                    status
                 }
             }
         );
@@ -31,8 +69,11 @@ export const ApprovalApi = {
     },
 
 
-    // 승인 / 반려 상태 등록
-    rejectApproval: async (workcationNo, workcation) => {
+    // 반려 처리
+    rejectApproval: async (
+        workcationNo,
+        workcation
+    ) => {
 
         const formData = new FormData();
 
@@ -53,5 +94,4 @@ export const ApprovalApi = {
 
         return response.data;
     }
-
 };

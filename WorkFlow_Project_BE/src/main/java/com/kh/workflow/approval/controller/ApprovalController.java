@@ -1,5 +1,7 @@
 package com.kh.workflow.approval.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.workflow.approval.model.service.ApprovalService;
 import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.common.template.Pagination;
+import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.workcation.model.service.WorkcationService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import jakarta.servlet.http.HttpSession;
@@ -30,130 +36,164 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/approval")
 public class ApprovalController {
 
-    @Autowired
-    private ApprovalService approvalService;
+	@Autowired
+	private ApprovalService approvalService;
+	
+	@Autowired
+	private WorkcationService workcationService;
+	
+	@Autowired
+	private EmployeeDao employeeDao;
 
+	// 승인 이력 목록 조회
+	@GetMapping("/list")
+	public ResponseEntity<Map<String, Object>> selectApprovalList(
 
-    // 승인 이력 목록 조회
-    @GetMapping("/list")
-    public ResponseEntity<Map<String, Object>> selectApprovalList(
-            @RequestParam(
-                    value = "cpage",
-                    defaultValue = "1"
-            )
-            int currentPage) {
+			@RequestParam(value = "cpage", defaultValue = "1") int currentPage,
 
+			@RequestParam(value = "startDate", required = false) String startDate,
 
-        /*
-         * 한 페이지 게시글 수 : 10개
-         *
-         * PageRequest의 페이지 번호는 0부터 시작하기 때문에
-         * currentPage - 1
-         */
-        Pageable pageable =
-                PageRequest.of(
-                        currentPage - 1,
-                        10
-                );
+			@RequestParam(value = "endDate", required = false) String endDate,
 
+			@RequestParam(value = "searchType", required = false) String searchType,
 
-        // 승인 완료(A)된 데이터만 조회
-        Page<WorkcationInfo> pageResult =
-                approvalService.selectApprovalList(
-                        pageable
-                );
+			@RequestParam(value = "keyword", required = false) String keyword,
+			
+			Authentication authentication) {
+		
+		String empId = authentication.getName();
+		
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+		
+		String authCode = loginEmployee.getAuthCode();
+		Integer empNo = loginEmployee.getEmpNo();
+		String depId = loginEmployee.getDepId();
 
+		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 
-        /*
-         * 전체 승인 이력 개수
-         */
-        int listCount =
-                (int) pageResult.getTotalElements();
+		// 검색 날짜 변환
+		LocalDateTime startDateTime = null;
+		LocalDateTime endDateTime = null;
 
+		if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
 
-        /*
-         * 공통 Pagination 사용
-         *
-         * pageLimit = 5
-         * boardLimit = 10
-         */
-        PageInfo pageInfo =
-                Pagination.getPageInfo(
-                        listCount,
-                        currentPage,
-                        5,
-                        10
-                );
+			startDateTime = LocalDate.parse(startDate).atStartOfDay();
 
+			endDateTime = LocalDate.parse(endDate).plusDays(1).atStartOfDay();
+		}
 
-        /*
-         * 프론트에 전달할 데이터
-         */
-        Map<String, Object> map =
-                new HashMap<>();
+		// 승인 이력 조회
+		Page<WorkcationInfo> pageResult = approvalService.selectApprovalList(authCode, empNo, depId, searchType, keyword, startDateTime,
+				endDateTime, pageable);
 
+		int listCount = (int) pageResult.getTotalElements();
 
-        // 현재 페이지의 승인 이력 목록
-        map.put(
-                "list",
-                pageResult.getContent()
-        );
+		PageInfo pageInfo = Pagination.getPageInfo(listCount, currentPage, 5, 10);
 
+		Map<String, Object> map = new HashMap<>();
 
-        // 공통 페이지 정보
-        map.put(
-                "pageInfo",
-                pageInfo
-        );
+		map.put("list", pageResult.getContent());
 
+		map.put("pageInfo", pageInfo);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(map);
-    }
+		return ResponseEntity.status(HttpStatus.OK).body(map);
+	}
 
+	// 승인 이력 상세 조회
+	@GetMapping("/{workcationNo}")
+	public ResponseEntity<WorkcationInfo> selectApproval(@PathVariable int workcationNo) {
 
-    // 승인 이력 상세 조회
-    @GetMapping("/{workcationNo}")
-    public ResponseEntity<WorkcationInfo> selectApproval(
-            @PathVariable int workcationNo) {
+		WorkcationInfo w = approvalService.selectApproval(workcationNo);
 
-        WorkcationInfo w =
-                approvalService.selectApproval(
-                        workcationNo
-                );
+		return ResponseEntity.status(HttpStatus.OK).body(w);
+	}
 
+	// 승인 대기 목록 조회
+	@GetMapping("/queue")
+	public ResponseEntity<Map<String, Object>> selectApprovalQueueList(
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(w);
-    }
+			@RequestParam(value = "cpage", defaultValue = "1") int currentPage,
 
+			@RequestParam(value = "startDate", required = false) String startDate,
 
-    // 반려 기능
-    @PostMapping("/{workcationNo}")
-    public ResponseEntity<String> rejectApproval(
-            @PathVariable int workcationNo,
-            @RequestPart("workcation") WorkcationInfo w,
-            HttpSession session) {
+			@RequestParam(value = "endDate", required = false) String endDate,
 
+			@RequestParam(value = "searchType", required = false) String searchType,
 
-        w.setWorkcationNo(workcationNo);
+			@RequestParam(value = "keyword", required = false) String keyword,
 
+			@RequestParam(value = "status", required = false) String status,
+			
+			Authentication authentication) {
 
-        WorkcationInfo rejectApproval =
-                approvalService.rejectApproval(w);
+		String empId = authentication.getName();
+		
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+		
+		String authCode = loginEmployee.getAuthCode();
+		Integer empNo = loginEmployee.getEmpNo();
+		String depId = loginEmployee.getDepId();
+		
+		if ("STAFF".equals(authCode)) {
+			
+			return ResponseEntity
+					.status(HttpStatus.FORBIDDEN)
+					.build();
+		}
+		
+		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 
+		// 검색 날짜 변환
+		LocalDateTime startDateTime = null;
+		LocalDateTime endDateTime = null;
 
-        String message =
-                (rejectApproval != null)
-                ? "success"
-                : "fail";
+		if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
 
+			startDateTime = LocalDate.parse(startDate).atStartOfDay();
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(message);
-    }
+			endDateTime = LocalDate.parse(endDate).plusDays(1).atStartOfDay();
+		}
+
+		// 승인 대기 목록 조회
+		Page<WorkcationInfo> pageResult = approvalService.selectApprovalQueueList(authCode, empNo, depId, status, searchType, keyword,
+				startDateTime, endDateTime, pageable);
+
+		int listCount = (int) pageResult.getTotalElements();
+
+		PageInfo pageInfo = Pagination.getPageInfo(listCount, currentPage, 5, 10);
+
+		Map<String, Object> map = new HashMap<>();
+
+		map.put("list", pageResult.getContent());
+
+		map.put("pageInfo", pageInfo);
+
+		return ResponseEntity.status(HttpStatus.OK).body(map);
+	}
+
+	// 승인 대기 상세 조회
+	@GetMapping("/queue/{workcationNo}")
+	public ResponseEntity<Map<String, Object>> selectQueue(@PathVariable int workcationNo) {
+		
+		Map<String, Object> detail = workcationService.getWorkcationDetail(workcationNo);
+		
+		return ResponseEntity.ok(detail);
+	}
+
+	// 반려 기능
+	@PostMapping("/{workcationNo}")
+	public ResponseEntity<String> rejectApproval(@PathVariable int workcationNo,
+			@RequestPart("workcation") WorkcationInfo w, HttpSession session) {
+
+		w.setWorkcationNo(workcationNo);
+
+		WorkcationInfo rejectApproval = approvalService.rejectApproval(w);
+
+		String message = (rejectApproval != null) ? "success" : "fail";
+
+		return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
 
 }

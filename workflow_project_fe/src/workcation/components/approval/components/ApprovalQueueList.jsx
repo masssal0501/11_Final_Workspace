@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-import "../style/ApprovalHistoryList.css";
+import "../style/ApprovalQueueList.css";
 import { ApprovalApi } from "../api/ApprovalApi";
 
-function ApprovalHistoryList() {
+function ApprovalQueueList() {
 
     const [dataList, setDataList] = useState([]);
 
@@ -13,6 +13,7 @@ function ApprovalHistoryList() {
     const navigate = useNavigate();
 
     const [searchParams, setSearchParams] = useSearchParams();
+
 
     // 날짜
     const [startDate, setStartDate] = useState(
@@ -23,6 +24,7 @@ function ApprovalHistoryList() {
         searchParams.get("endDate") || ""
     );
 
+
     // 검색
     const [searchType, setSearchType] = useState(
         searchParams.get("searchType") || "workcationTitle"
@@ -32,24 +34,32 @@ function ApprovalHistoryList() {
         searchParams.get("keyword") || ""
     );
 
+
+    // 상태
+    const [approverState, setApproverState] = useState(
+        searchParams.get("status") || ""
+    );
+
+
     const cpage =
         parseInt(searchParams.get("cpage")) || 1;
 
 
-    // 승인 이력 목록 조회
+    // 승인 대기 목록 조회
     useEffect(() => {
 
-        ApprovalApi.getApprovalList(
+        ApprovalApi.getApprovalQueueList(
             cpage,
             startDate,
             endDate,
             searchType,
-            keyword
+            keyword,
+            approverState
         )
             .then((data) => {
 
                 console.log(
-                    "승인 이력 조회 결과:",
+                    "승인 대기 목록 조회 결과:",
                     data
                 );
 
@@ -66,7 +76,7 @@ function ApprovalHistoryList() {
             .catch((error) => {
 
                 console.error(
-                    "승인 이력 조회 실패:",
+                    "승인 대기 목록 조회 실패:",
                     error
                 );
 
@@ -81,14 +91,15 @@ function ApprovalHistoryList() {
         startDate,
         endDate,
         searchType,
-        keyword
+        keyword,
+        approverState
     ]);
 
 
     // 검색
     const handleSearch = () => {
 
-        // 날짜 둘 다 입력했을 때만 날짜 비교
+        // 날짜를 둘 다 입력했을 경우 날짜 확인
         if (
             startDate &&
             endDate &&
@@ -102,12 +113,35 @@ function ApprovalHistoryList() {
             return;
         }
 
+
+        // 검색 결과는 1페이지부터
         setSearchParams({
             cpage: 1,
             startDate: startDate,
             endDate: endDate,
             searchType: searchType,
-            keyword: keyword
+            keyword: keyword,
+            status: approverState
+        });
+
+    };
+
+
+    // 상태 변경
+    const handleStatusChange = (e) => {
+
+        const status = e.target.value;
+
+        setApproverState(status);
+
+        // 상태를 변경하면 1페이지부터 조회
+        setSearchParams({
+            cpage: 1,
+            startDate: startDate,
+            endDate: endDate,
+            searchType: searchType,
+            keyword: keyword,
+            status: status
         });
 
     };
@@ -121,7 +155,8 @@ function ApprovalHistoryList() {
             startDate: startDate,
             endDate: endDate,
             searchType: searchType,
-            keyword: keyword
+            keyword: keyword,
+            status: approverState
         });
 
     };
@@ -129,10 +164,10 @@ function ApprovalHistoryList() {
 
     return (
 
-        <div className="historyList">
+        <div className="QueueList">
 
             <h2 align="center">
-                승인 이력 조회
+                승인 대기 목록
             </h2>
 
             <hr />
@@ -140,6 +175,35 @@ function ApprovalHistoryList() {
 
             {/* 검색 영역 */}
             <div className="filter-area">
+
+
+                {/* 상태 필터 */}
+                <select
+                    name="approverState"
+                    value={approverState}
+                    onChange={handleStatusChange}
+                    className="status-filter"
+                    id="approverState"
+                >
+
+                    <option value="">
+                        전체
+                    </option>
+
+                    <option value="W">
+                        대기
+                    </option>
+
+                    <option value="H">
+                        보류
+                    </option>
+
+                    <option value="R">
+                        검토
+                    </option>
+
+                </select>
+
 
                 {/* 검색 조건 */}
                 <select
@@ -149,6 +213,7 @@ function ApprovalHistoryList() {
                         setSearchType(e.target.value)
                     }
                 >
+
                     <option value="workcationTitle">
                         제목
                     </option>
@@ -156,6 +221,7 @@ function ApprovalHistoryList() {
                     <option value="workPlan">
                         내용
                     </option>
+
                 </select>
 
 
@@ -209,7 +275,7 @@ function ApprovalHistoryList() {
             </div>
 
 
-            {/* 승인 이력 목록 */}
+            {/* 승인 대기 목록 */}
             <div>
 
                 <table>
@@ -222,8 +288,8 @@ function ApprovalHistoryList() {
                             <th>워케이션 제목</th>
                             <th>신청자</th>
                             <th>워케이션 기간</th>
-                            <th>승인자</th>
-                            <th>승인 일시</th>
+                            <th>신청 일시</th>
+                            <th>상태</th>
 
                         </tr>
 
@@ -240,7 +306,7 @@ function ApprovalHistoryList() {
                                     key={item.workcationNo}
                                     onClick={() =>
                                         navigate(
-                                            `/approval/history/detail/${item.workcationNo}`
+                                            `/workcation/detail/${item.workcationNo}`
                                         )
                                     }
                                     style={{
@@ -279,15 +345,15 @@ function ApprovalHistoryList() {
 
 
                                     <td>
-                                        {item.approver?.empName || "-"}
+                                        {item.createdAt?.replace(
+                                            "T",
+                                            " "
+                                        ) || "-"}
                                     </td>
 
 
                                     <td>
-                                        {item.approvetAt?.replace(
-                                            "T",
-                                            " "
-                                        ) || "-"}
+                                        {item.approverState}
                                     </td>
 
                                 </tr>
@@ -320,6 +386,7 @@ function ApprovalHistoryList() {
             {pageInfo && pageInfo.maxPage > 0 && (
 
                 <div className="pagination">
+
 
                     {/* 이전 */}
                     <button
@@ -391,4 +458,4 @@ function ApprovalHistoryList() {
     );
 }
 
-export default ApprovalHistoryList;
+export default ApprovalQueueList;
