@@ -65,11 +65,7 @@ function MyWorkcationDetailFormComponent() {
             alert("삭제 중 오류 발생");
         }
     };
-
-    const handleCloseModal = () => {
-        setSelectedTask(null);
-    };
-
+    
     const handleProgressChange = (e) => {
 
         const rect =
@@ -93,6 +89,13 @@ function MyWorkcationDetailFormComponent() {
 
         setTaskProgress(percent);
     };
+
+    const openTaskModal = (task) => {
+    setSelectedTask(task);
+    setTaskProgress(task.progress ?? 0);
+    setTaskReportTitle(task.taskTitle ?? "");
+    setTaskReportContent(task.taskContent ?? "");
+};
 
     const handleTaskSave = async () => {
 
