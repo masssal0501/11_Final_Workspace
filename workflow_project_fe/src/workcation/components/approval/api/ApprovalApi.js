@@ -62,36 +62,47 @@ export const ApprovalApi = {
     getApprovalDetail: async (workcationNo) => {
 
         const response = await axiosInstance.get(
-            `${BASE_URL}/${workcationNo}`
+            `${BASE_URL}/queue/${workcationNo}`
         );
+
+        console.log("ApprovalApi response :", response);
+        console.log("ApprovalApi response.data :", response.data);
 
         return response.data;
     },
 
 
-    // 반려 처리
-    rejectApproval: async (
-        workcationNo,
-        workcation
-    ) => {
+        // 승인 / 반려 처리
+        rejectApproval: async (
+            workcationNo,
+            workcation
+        ) => {
 
-        const formData = new FormData();
+            const formData = new FormData();
 
-        formData.append(
-            "workcation",
-            new Blob(
-                [JSON.stringify(workcation)],
+            formData.append(
+                "workcation",
+                new Blob(
+                    [JSON.stringify(workcation)],
+                    {
+                        type: "application/json"
+                    }
+                )
+            );
+
+            const response = await axiosInstance.post(
+                `${BASE_URL}/${workcationNo}`,
+                formData,
                 {
-                    type: "application/json"
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
                 }
-            )
-        );
+            );
 
-        const response = await axiosInstance.post(
-            `${BASE_URL}/${workcationNo}`,
-            formData
-        );
+            console.log("승인 / 반려 처리 응답 :", response);
+            console.log("승인 / 반려 처리 결과 :", response.data);
 
-        return response.data;
-    }
+            return response.data;
+        }
 };

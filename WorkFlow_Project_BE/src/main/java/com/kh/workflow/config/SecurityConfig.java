@@ -149,6 +149,10 @@ public class SecurityConfig {
 	                    .requestMatchers(	                    	    
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
+	                 // 승인 관련 API - 관리자 및 매니저만
+	                    .requestMatchers(
+	                            "/approval/**"
+	                    ).hasAnyRole("ADMIN", "MANAGER")
 
 	                    // swagger
 	                    .requestMatchers(

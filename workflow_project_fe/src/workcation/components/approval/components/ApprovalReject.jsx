@@ -31,10 +31,12 @@ function ApprovalReject() {
 
         try {
 
+            console.log("상세조회 요청 URL :", `/approval/${workcationNo}`);
+
             const response =
                 await ApprovalApi.getApprovalDetail(workcationNo);
 
-            console.log("상세조회 데이터 :", response);
+            console.log("상세조회 응답 :", response);
 
             setWorkcationInfo(response);
 
@@ -48,10 +50,9 @@ function ApprovalReject() {
 
         } catch (error) {
 
-            console.error(
-                "워케이션 신청 상세 내역 조회 실패 :",
-                error
-            );
+            console.error("상세조회 실패 :", error);
+            console.error("HTTP 상태 :", error.response?.status);
+            console.error("서버 응답 :", error.response?.data);
 
         }
 
@@ -135,6 +136,8 @@ function ApprovalReject() {
 
     // 상세 조회
     useEffect(() => {
+
+        console.log("현재 workcationNo :", workcationNo);
 
         selectApprovalDetail();
 

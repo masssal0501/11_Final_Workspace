@@ -52,6 +52,7 @@ import ApprovalReject from "./workcation/components/approval/components/Approval
 import ApprovalHistoryList from "./workcation/components/approval/components/ApprovalHistoryList";
 import ApprovalHistoryDetail from "./workcation/components/approval/components/ApprovalHistoryDetail";
 import ApprovalQueueList from "./workcation/components/approval/components/ApprovalQueueList";
+import ApprovalQueueDetail from "./workcation/components/approval/components/ApprovalQueueDetail";
 
 import ReservationListComponent from "./reservation/components/ReservationListComponent"; 
 import ReservationEnrollComponent from "./reservation/components/ReservationEnrollComponent"; 
@@ -338,6 +339,7 @@ function App() {
                         <Route path="/approval/history" element={<ApprovalHistoryList />}/>
                         <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
                         <Route path="/approval/queue/list" element={<ApprovalQueueList/>} />
+                        <Route path="/approval/queue/detail/:workcationNo" element={<ApprovalQueueDetail/>} />
                     </>
                 )}
 
