@@ -306,7 +306,7 @@ function ApprovalQueueList() {
                                     key={item.workcationNo}
                                     onClick={() =>
                                         navigate(
-                                            `/workcation/detail/${item.workcationNo}`
+                                            `/approval/reject/${item.workcationNo}`
                                         )
                                     }
                                     style={{

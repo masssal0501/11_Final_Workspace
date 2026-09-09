@@ -216,6 +216,14 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		amount.setApprovedAmount(approvedAmount);
 
+		// amount.requested_amount는 NOT NULL 컬럼인데 설정이 누락되어 있었음(BUG-003).
+		// 프론트가 신청 시점에 계산해 보내는 실제 지출 총액(totalCost)을 사용한다.
+		Integer requestedAmount = 0;
+		if (paramMap.get("totalCost") != null) {
+			requestedAmount = Integer.parseInt(paramMap.get("totalCost").toString());
+		}
+		amount.setRequestedAmount(requestedAmount);
+
 		amount.setRequestedAt(LocalDateTime.now());
 		amount.setCreatedAt(LocalDateTime.now());
 		amount.setStatus("W");
@@ -314,6 +322,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 		Map<String, Object> result = new HashMap<>();
 		result.put("workcationNo", workcation.getWorkcationNo());
 		result.put("workcationTitle", workcation.getWorkcationTitle());
+		// BUG-008: 상세 화면이 승인 상태를 표시하지 못해 항상 "신청 완료"로 고정 노출되던
+		// 문제의 근본 원인 - 이 맵에 approverState 자체가 빠져 있었음.
+		result.put("approverState", workcation.getApproverState());
 		result.put("startDate",
 				workcation.getStartAt() != null ? workcation.getStartAt().toLocalDate().toString() : "");
 		result.put("endDate", workcation.getEndAt() != null ? workcation.getEndAt().toLocalDate().toString() : "");

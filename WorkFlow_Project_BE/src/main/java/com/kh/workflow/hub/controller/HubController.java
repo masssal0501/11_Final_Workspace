@@ -49,8 +49,10 @@ public class HubController {
 
 	@Autowired
 	private HubService hubService;
-	
-	@Autowired
+
+	// GEMINI_API_KEY가 없는 환경(AIConfig 참조)에서는 이 빈이 아예 존재하지 않으므로
+	// required=false로 받아 null을 허용하고, sendMessage()에서 명시적으로 처리한다.
+	@Autowired(required = false)
 	private ChatClient chatClient;
 
 	/**
@@ -238,7 +240,12 @@ public class HubController {
 	@SecurityRequirement(name="JWT")
 	@PostMapping("/hubs/send")
 	public ResponseEntity<String> sendMessage(@RequestBody String message) {
-		
+
+		if (chatClient == null) {
+			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+					.body("AI 챗봇 기능을 사용할 수 없습니다. (GEMINI_API_KEY 미설정)");
+		}
+
 		Pageable pageable = Pageable.unpaged();
         Page<Hub> hubPage = hubService.selectHubList(pageable, List.of(1, 2)); // 예시 타입 목록
         List<Hub> hubList = hubPage.getContent();

@@ -32,7 +32,7 @@ function ApprovalReject() {
         try {
 
             const response =
-                await ApprovalApi.getApprovalDetail(workcationNo);
+                await ApprovalApi.getApprovalQueueDetail(workcationNo);
 
             console.log("상세조회 데이터 :", response);
 

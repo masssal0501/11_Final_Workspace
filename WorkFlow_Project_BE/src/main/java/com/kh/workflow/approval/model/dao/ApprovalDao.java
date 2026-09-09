@@ -119,4 +119,16 @@ public interface ApprovalDao extends JpaRepository<WorkcationInfo, Integer> {
 			""")
 	WorkcationInfo findApprovalDetail(@Param("workcationNo") Integer workcationNo);
 
+	// 승인 대기 상세 (BUG-005: findApprovalDetail은 approverState='A'로 제한되어 있어
+	// 대기(W)/보류(H)/검토(R) 상태인 건은 조회되지 않는다 - 승인/반려 처리 화면(ApprovalReject.jsx)은
+	// 상태와 무관하게 조회 가능해야 하므로 상태 제한이 없는 별도 쿼리를 사용한다.)
+	@Query("""
+			    SELECT w
+			    FROM WorkcationInfo w
+			    JOIN FETCH w.employee e
+			    LEFT JOIN FETCH w.approver a
+			    WHERE w.workcationNo = :workcationNo
+			""")
+	WorkcationInfo findApprovalQueueDetail(@Param("workcationNo") Integer workcationNo);
+
 }

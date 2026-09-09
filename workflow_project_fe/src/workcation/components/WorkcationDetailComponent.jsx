@@ -51,8 +51,23 @@ function WorkcationDetailComponent() {
         totalSupport = 0,
         personalCost = 0,
         planList = [],
-        option = []
+        option = [],
+        approverState = "W"
     } = detailData;
+
+    // BUG-008: 상태와 무관하게 "신청 완료"로 고정 표시되어 사용자가 승인 진행 상태를
+    // 알 수 없었음 - 실제 approverState를 기준으로 라벨을 표시한다.
+    const getStatusLabel = (state) => {
+        switch (state) {
+            case "W": return "승인 대기";
+            case "H": return "보류";
+            case "R": return "검토중";
+            case "J": return "반려";
+            case "A": return "승인 완료";
+            case "C": return "취소";
+            default: return "알 수 없음";
+        }
+    };
 
     const handleDelete = async () => {
         if (!window.confirm("정말 삭제하시겠습니까?")) return;
@@ -106,7 +121,7 @@ function WorkcationDetailComponent() {
                         <th>신청현황</th>
                         <td>
                             <div className="cell-box status-cell-box">
-                                <span className="status-badge">신청 완료</span>
+                                <span className="status-badge">{getStatusLabel(approverState)}</span>
                             </div>
                         </td>
                     </tr>

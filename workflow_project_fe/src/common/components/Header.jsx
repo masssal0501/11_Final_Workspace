@@ -181,13 +181,6 @@ function Header({ loginUser, onLogout }) {
       icon: "♢",
       path: "/notice",
     },
-    {
-      id: "hub",
-      label: "장소/거점",
-      icon: "⌖",
-      path: "/placeInfo/list",
-    },
-
   ];
 
 

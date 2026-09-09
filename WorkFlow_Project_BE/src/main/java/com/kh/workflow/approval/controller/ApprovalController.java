@@ -172,21 +172,29 @@ public class ApprovalController {
 		return ResponseEntity.status(HttpStatus.OK).body(map);
 	}
 
-	// 승인 대기 상세 조회
+	// 승인 대기 상세 조회 (BUG-005 수정: 상태 제한 없이 조회 - ApprovalReject.jsx의
+	// 승인/반려 처리 화면이 이 엔드포인트를 사용한다)
 	@GetMapping("/queue/{workcationNo}")
-	public ResponseEntity<Map<String, Object>> selectQueue(@PathVariable int workcationNo) {
-		
-		Map<String, Object> detail = workcationService.getWorkcationDetail(workcationNo);
-		
-		return ResponseEntity.ok(detail);
+	public ResponseEntity<WorkcationInfo> selectQueue(@PathVariable int workcationNo) {
+
+		WorkcationInfo w = approvalService.selectApprovalQueueDetail(workcationNo);
+
+		return ResponseEntity.status(HttpStatus.OK).body(w);
 	}
 
-	// 반려 기능
+	// 승인/반려 처리
 	@PostMapping("/{workcationNo}")
 	public ResponseEntity<String> rejectApproval(@PathVariable int workcationNo,
-			@RequestPart("workcation") WorkcationInfo w, HttpSession session) {
+			@RequestPart("workcation") WorkcationInfo w, HttpSession session, Authentication authentication) {
 
 		w.setWorkcationNo(workcationNo);
+
+		// BUG-007: 승인/반려 처리자와 처리 시각을 클라이언트가 보내는 값에 의존하지 않고
+		// 서버에서 인증된 사용자 기준으로 직접 기록한다(감사 이력 정확성 + 위변조 방지).
+		Employee approver = employeeDao.findByEmpId(authentication.getName())
+				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+		w.setApprover(approver);
+		w.setApprovetAt(LocalDateTime.now());
 
 		WorkcationInfo rejectApproval = approvalService.rejectApproval(w);
 
