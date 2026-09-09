@@ -14,8 +14,8 @@ function PlaceDetail() {
     const [place, setPlace] = useState(null);
 
     // 관리자 여부 확인
-    const role = localStorage.getItem("role");
-    const isAdmin = role === "ADMIN";
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isAdmin = user?.authCode === "ADMIN";
 
 
     useEffect(() => {
