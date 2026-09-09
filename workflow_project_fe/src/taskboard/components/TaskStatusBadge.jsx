@@ -1,3 +1,5 @@
+import "../styles/TaskStatusBadge.css";
+
 export const getStatusInfoByProgress = (progress, status) => {
     const num = Number(progress) || 0;
 

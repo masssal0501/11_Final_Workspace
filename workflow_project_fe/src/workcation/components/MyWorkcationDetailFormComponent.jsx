@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { getMyWorkcationDetail, deleteWorkcation, saveTaskProgress } from "../api/WorkcationApi";
+import { getMyWorkcationDetail, deleteWorkcation, saveTaskProgress, uploadWorkFile } from "../api/WorkcationApi";
 
 import "../styles/MyWorkcationDetail.css";
 
@@ -15,7 +15,7 @@ function MyWorkcationDetailFormComponent() {
 
     const [taskReportTitle, setTaskReportTitle] = useState("");
     const [taskReportContent, setTaskReportContent] = useState("");
-    const [taskFile, setTaskFile] = useState(null);
+    const [workFile, setWorkFile] = useState(null);
 
     const [isDragging, setIsDragging] = useState(false);
     const [activityList, setActivityList] = useState([]);
@@ -94,25 +94,6 @@ function MyWorkcationDetailFormComponent() {
         setTaskProgress(percent);
     };
 
-    const openTaskModal = (task) => {
-
-        setSelectedTask(task);
-
-        setTaskProgress(
-            task.progress ?? 0
-        );
-
-        setTaskReportTitle(
-            task.taskTitle ?? ""
-        );
-
-        setTaskReportContent(
-            task.taskContent ?? ""
-        );
-
-        setTaskFile(null);
-    };
-
     const handleTaskSave = async () => {
 
         if (!selectedTask?.taskNo) {
@@ -141,7 +122,7 @@ function MyWorkcationDetailFormComponent() {
 
         try {
 
-            await saveTaskProgress(requestData, taskFile);
+            await saveTaskProgress(requestData);
 
             alert("업무 진행 상황이 저장되었습니다.");
 
@@ -156,6 +137,31 @@ function MyWorkcationDetailFormComponent() {
             console.error(
                 "업무 저장 실패:", error);
             alert("업무 저장 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleWorkFileUpload = async () => {
+
+        if (!workFile) {
+            alert("첨부파일을 선택해주세요.");
+            return;
+        }
+
+        try {
+
+            await uploadWorkFile(
+                detailWorkcationNo,
+                workFile
+            );
+
+            alert("첨부파일이 등록되었습니다.");
+
+            setWorkFile(null);
+
+        } catch (error) {
+
+            console.error("첨부파일 등록 실패", error);
+            alert("첨부파일 등록에 실패했습니다.");
         }
     };
 
@@ -237,6 +243,21 @@ function MyWorkcationDetailFormComponent() {
                         );
                     })}
                 </ul>
+                <div className="work-file-area">
+                    <h4>첨부파일</h4>
+
+                    <input
+                        type="file"
+                        onChange={(e) => setWorkFile(e.target.files[0])}
+                    />
+
+                    <button
+                        type="button"
+                        onClick={handleWorkFileUpload}
+                    >
+                        등록
+                    </button>
+                </div>
             </div>
 
             <div className="detail-button-area">
@@ -321,20 +342,6 @@ function MyWorkcationDetailFormComponent() {
                                 </div>
                             )}
                         </div>
-
-
-                        {/* 첨부파일 */}
-                        <div className="task-modal-section">
-                            <h4>첨부파일</h4>
-
-                            <input
-                                type="file"
-                                onChange={(e) => {
-                                    setTaskFile(e.target.files[0]);
-                                }}
-                            />
-                        </div>
-
 
                         {/* 업무 리포트 */}
                         <div className="task-modal-section">

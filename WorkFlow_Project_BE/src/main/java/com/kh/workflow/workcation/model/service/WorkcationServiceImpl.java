@@ -1,11 +1,14 @@
 package com.kh.workflow.workcation.model.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,15 +25,17 @@ import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
+import com.kh.workflow.reservation.model.dao.ReservationDao;
+import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.task.model.dao.TaskHistoryDao;
 import com.kh.workflow.task.model.dao.WorkDao;
+import com.kh.workflow.task.model.dao.WorkFileDao;
 import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.TaskHistory;
 import com.kh.workflow.task.model.vo.Work;
+import com.kh.workflow.task.model.vo.WorkFile;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
-import com.kh.workflow.reservation.model.dao.ReservationDao;
-import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 @Service
@@ -62,6 +67,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Autowired
 	private WorkDao workDao;
+
+	@Autowired
+	private WorkFileDao workFileDao;
 
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
@@ -995,6 +1003,47 @@ public class WorkcationServiceImpl implements WorkcationService {
 		history.setProgress(progress);
 
 		taskHistoryDao.save(history);
+
+		// 첨부파일 저장
+		if (file != null && !file.isEmpty()) {
+
+			String originName = file.getOriginalFilename();
+
+			String extension = "";
+
+			if (originName != null && originName.contains(".")) {
+				extension = originName.substring(originName.lastIndexOf("."));
+			}
+
+			String changeName = UUID.randomUUID().toString() + extension;
+
+			String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
+
+			File dir = new File(uploadDir);
+
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+
+			try {
+				file.transferTo(new File(uploadDir + changeName));
+			} catch (IOException e) {
+				throw new RuntimeException("첨부파일 저장에 실패했습니다.", e);
+			}
+
+			WorkFile workFile = new WorkFile();
+
+			workFile.setOriginName(originName);
+			workFile.setChangeName(changeName);
+			workFile.setFilePath("/uploads/work/");
+			workFile.setFileSize(file.getSize());
+			workFile.setStatus("Y");
+
+			// task가 소속된 work 연결
+			workFile.setWork(task.getWork());
+
+			workFileDao.save(workFile);
+		}
 	}
 
 	@Override
@@ -1035,6 +1084,62 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("departmentSchedule", departmentSchedule);
 
 		return result;
+	}
+
+	@Transactional
+	@Override
+	public void uploadWorkFile(Integer workcationNo, MultipartFile file) {
+
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("첨부파일이 없습니다.");
+		}
+
+		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+
+		if (workList.isEmpty()) {
+			throw new RuntimeException("업무 정보를 찾을 수 없습니다.");
+		}
+
+		Work work = workList.get(0);
+
+		String originName = file.getOriginalFilename();
+
+		String extension = "";
+
+		if (originName != null && originName.contains(".")) {
+
+			extension = originName.substring(originName.lastIndexOf("."));
+		}
+
+		String changeName = UUID.randomUUID() + extension;
+
+		String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
+
+		File dir = new File(uploadDir);
+
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+
+		try {
+
+			file.transferTo(new File(uploadDir + changeName));
+
+		} catch (IOException e) {
+
+			throw new RuntimeException("파일 저장 실패", e);
+		}
+
+		WorkFile workFile = new WorkFile();
+
+		workFile.setWork(work);
+		workFile.setOriginName(originName);
+		workFile.setChangeName(changeName);
+		workFile.setFilePath("/uploads/work/");
+		workFile.setFileSize(file.getSize());
+		workFile.setStatus("Y");
+
+		workFileDao.save(workFile);
 	}
 
 }

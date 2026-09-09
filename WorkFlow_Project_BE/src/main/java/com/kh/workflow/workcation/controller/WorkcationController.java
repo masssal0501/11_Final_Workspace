@@ -1,14 +1,21 @@
 package com.kh.workflow.workcation.controller;
 
+import java.io.File;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.task.model.dao.WorkFileDao;
+import com.kh.workflow.task.model.vo.WorkFile;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 import com.kh.workflow.workcation.model.service.WorkcationService;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
@@ -44,6 +53,9 @@ public class WorkcationController {
 
 	@Autowired
 	private WorkcationDao workcationDao;
+
+	@Autowired
+	private WorkFileDao workFileDao;
 
 	// 워케이션 전체 목록 조회
 	// STAFF / MANAGER / ADMIN 모두 조회 가능
@@ -437,5 +449,33 @@ public class WorkcationController {
 		Map<String, Object> result = workcationService.getWorkcationSchedule(selectedDate, employee.getEmpNo());
 
 		return ResponseEntity.ok(result);
+	}
+
+	@GetMapping("/file/{taskFileNo}/download")
+	public ResponseEntity<Resource> downloadWorkFile(@PathVariable Integer taskFileNo) {
+
+		WorkFile workFile = workFileDao.findById(taskFileNo)
+				.orElseThrow(() -> new RuntimeException("첨부파일을 찾을 수 없습니다."));
+
+		File file = new File(System.getProperty("user.dir") + workFile.getFilePath() + workFile.getChangeName());
+
+		if (!file.exists()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		Resource resource = new FileSystemResource(file);
+
+		String encodedName = URLEncoder.encode(workFile.getOriginName(), StandardCharsets.UTF_8).replace("+", "%20");
+
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName).body(resource);
+	}
+
+	@PostMapping("/{workcationNo}/file")
+	public ResponseEntity<?> uploadWorkFile(@PathVariable Integer workcationNo, @RequestParam MultipartFile file) {
+
+		workcationService.uploadWorkFile(workcationNo, file);
+
+		return ResponseEntity.ok("첨부파일 등록 완료");
 	}
 }

@@ -7,14 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.kh.workflow.task.model.vo.Task;
-import com.kh.workflow.task.model.vo.TaskHistory;
+import com.kh.workflow.task.model.vo.WorkFile;
 
 public interface TaskDao extends JpaRepository<Task, Integer> {
 
-    List<Task> findByWorkWorkNo(Integer workNo);
+	List<Task> findByWorkWorkNo(Integer workNo);
 
-    Page<Task> findAllByOrderByTaskNoDesc(Pageable pageable);
+	Page<Task> findAllByOrderByTaskNoDesc(Pageable pageable);
 
-    Page<Task> findByTaskTitleContainingOrderByTaskNoDesc(String keyword, Pageable pageable);
-    
+	Page<Task> findByTaskTitleContainingOrderByTaskNoDesc(String keyword, Pageable pageable);
+
 }

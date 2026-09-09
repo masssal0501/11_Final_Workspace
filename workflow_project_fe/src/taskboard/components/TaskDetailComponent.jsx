@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { getWorkcationTasks, updateTaskStatus } from "../api/Task";
+import { downloadWorkFile } from "../../workcation/api/WorkcationApi";
+
 import TaskStatusBadge from "./TaskStatusBadge";
 
 import "../styles/TaskDetail.css";
@@ -95,6 +97,7 @@ function TaskDetailComponent() {
         }
     }
 
+    //업무 상세내역 첨부파일
     if (!data) {
         return (
             <div className="content-area">
@@ -102,6 +105,17 @@ function TaskDetailComponent() {
             </div>
         );
     }
+
+    const fileList = data.taskList
+        ?.flatMap(task => task.fileList || [])
+        .filter(
+            (file, index, arr) =>
+                arr.findIndex(
+                    item => item.taskFileNo === file.taskFileNo
+                ) === index
+        ) || [];
+
+
 
     return (
         <div className="content-area">
@@ -164,39 +178,42 @@ function TaskDetailComponent() {
                             </td>
                             {loginUser?.authCode === "ADMIN" && (
                                 <td>
-                                    {task.progress === 100 && (
-                                        <>
-                                            {(!task.status || task.status === "N") ? (
-                                                <div className="task-approval-buttons">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleTaskStatus(task.taskNo, "Y");
-                                                        }}>
-                                                        승인
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setRejectTask(task);
-                                                            setRejectContent("");
-                                                        }}>
-                                                        거부
-                                                    </button>
-                                                </div>
-                                            ) : (
+                                    {task.progress === 100 &&
+                                        (!task.status || task.status === "N") && (
+                                            <div className="task-approval-buttons">
                                                 <button
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleTaskStatus(task.taskNo, "N");
-                                                    }}>
-                                                    재검토
+                                                        handleTaskStatus(task.taskNo, "Y");
+                                                    }}
+                                                >
+                                                    승인
                                                 </button>
-                                            )}
-                                        </>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setRejectTask(task);
+                                                        setRejectContent("");
+                                                    }}
+                                                >
+                                                    거부
+                                                </button>
+                                            </div>
+                                        )}
+
+                                    {task.progress === 100 && task.status === "R" && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTaskStatus(task.taskNo, "N");
+                                            }}
+                                        >
+                                            재검토
+                                        </button>
                                     )}
                                 </td>
                             )}
@@ -205,6 +222,27 @@ function TaskDetailComponent() {
                 </tbody>
             </table>
 
+            {fileList.length > 0 && (
+                <div className="task-file-area">
+                    <strong>첨부파일</strong>
+
+                    {fileList.map((file) => (
+                        <div key={file.taskFileNo}>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    downloadWorkFile(
+                                        file.taskFileNo,
+                                        file.originName
+                                    )
+                                }
+                            >
+                                {file.originName}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
             {(!data.taskList || data.taskList.length === 0) && (
                 <div className="empty-message">
                     등록된 업무가 없습니다.

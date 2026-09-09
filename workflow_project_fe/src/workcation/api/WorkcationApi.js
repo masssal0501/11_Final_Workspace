@@ -202,3 +202,56 @@ export const getWorkcationSchedule = async (date) => {
     return response.data;
 }
 
+//내 워케이션 첨부파일업로드
+export const uploadWorkFile = async (workcationNo, file) => {
+
+    const token = localStorage.getItem("accessToken");
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await axios.post(
+        `${BASE_URL}/workcation/${workcationNo}/file`,
+        formData,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    return response.data;
+};
+
+//첨부 다운로드
+export const downloadWorkFile = async (taskFileNo, originName) => {
+
+    const token = localStorage.getItem("accessToken");
+
+    const response = await axios.get(
+        `${BASE_URL}/workcation/file/${taskFileNo}/download`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            responseType: "blob"
+        }
+    );
+
+    const url = window.URL.createObjectURL(
+        new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = originName;
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+};

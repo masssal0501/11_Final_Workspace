@@ -15,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.task.model.dao.TaskHistoryDao;
 import com.kh.workflow.task.model.dao.WorkDao;
+import com.kh.workflow.task.model.dao.WorkFileDao;
 import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.TaskHistory;
 import com.kh.workflow.task.model.vo.Work;
+import com.kh.workflow.task.model.vo.WorkFile;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
@@ -35,6 +37,9 @@ public class TaskServiceImpl implements TaskService {
 
 	@Autowired
 	private TaskHistoryDao taskHistoryDao;
+
+	@Autowired
+	private WorkFileDao workFileDao;
 
 	// 목록
 	@Override
@@ -171,6 +176,24 @@ public class TaskServiceImpl implements TaskService {
 				taskMap.put("status", task.getStatus());
 				taskMap.put("tasktimeAt", task.getTasktimeAt());
 				taskMap.put("taskendAt", task.getTaskendAt());
+
+				List<WorkFile> files = workFileDao.findByWorkWorkNo(task.getWork().getWorkNo());
+
+				List<Map<String, Object>> fileList = new ArrayList<>();
+
+				for (WorkFile file : files) {
+
+					Map<String, Object> fileMap = new HashMap<>();
+					
+					fileMap.put("taskFileNo", file.getTaskFileNo());
+					fileMap.put("originName", file.getOriginName());
+					fileMap.put("changeName", file.getChangeName());
+					fileMap.put("filePath", file.getFilePath());
+					fileMap.put("fileSize", file.getFileSize());
+					fileList.add(fileMap);
+				}
+
+				taskMap.put("fileList", fileList);
 
 				// 업무이력
 				List<TaskHistory> histories = taskHistoryDao.findByTaskTaskNoOrderByCreatedAtDesc(task.getTaskNo());
