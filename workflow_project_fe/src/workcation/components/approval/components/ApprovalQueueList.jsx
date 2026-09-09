@@ -262,16 +262,6 @@ function ApprovalQueueList() {
                         setEndDate(e.target.value)
                     }
                 />
-
-
-                {/* 검색 버튼 */}
-                <button
-                    className="search-button"
-                    onClick={handleSearch}
-                >
-                    검색
-                </button>
-
             </div>
 
 
@@ -306,7 +296,7 @@ function ApprovalQueueList() {
                                     key={item.workcationNo}
                                     onClick={() =>
                                         navigate(
-                                            `/workcation/detail/${item.workcationNo}`
+                                            `/approval/queue/detail/${item.workcationNo}`
                                         )
                                     }
                                     style={{
@@ -353,7 +343,14 @@ function ApprovalQueueList() {
 
 
                                     <td>
-                                        {item.approverState}
+                                        {item.approverState === "W"
+                                            ? "대기"
+                                            : item.approverState === "H"
+                                            ? "보류"
+                                            : item.approverState === "R"
+                                            ? "검토"
+                                            : item.approverState
+                                        }
                                     </td>
 
                                 </tr>

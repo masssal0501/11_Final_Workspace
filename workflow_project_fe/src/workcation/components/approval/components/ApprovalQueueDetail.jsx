@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { getWorkcationDetail, deleteWorkcation } from "../api/WorkcationApi";
+import { getWorkcationDetail} from "../../../api/WorkcationApi";
 
-import "../styles/WorkcationDetail.css";
+import "../../../styles/WorkcationDetail.css";
 
 function ApprovalQueueDetail() {
 
@@ -53,10 +53,6 @@ function ApprovalQueueDetail() {
         planList = [],
         option = []
     } = detailData;
-
-    const handleUpdate = async () => {
-        navigate(`/workcation/update/${workcationNo}`);
-    }
 
     return (
         <div className="workcation-detail-container">
@@ -258,10 +254,17 @@ function ApprovalQueueDetail() {
             </div>
 
             <div className="detail-button-area">
-                <button type="button" onClick={() => navigate("/approval/reject/workcationNo")}>
+                <button
+                    type="button"
+                    onClick={() => navigate(`/approval/reject/${workcationNo}`)}
+                >
                     상태 처리
                 </button>
-                <button type="button" onClick={() => navigate(-1)}>
+
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                >
                     이전으로
                 </button>
             </div>
