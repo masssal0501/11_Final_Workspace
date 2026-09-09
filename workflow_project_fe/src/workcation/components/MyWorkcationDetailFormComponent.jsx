@@ -9,6 +9,13 @@ import "../styles/MyWorkcationDetail.css";
 function MyWorkcationDetailFormComponent() {
     const navigate = useNavigate();
 
+    const openTaskModal = (task) => {
+        setSelectedTask(task);
+        setTaskProgress(task.progress ?? 0);
+        setTaskReportTitle(task.taskTitle ?? "");
+        setTaskReportContent(task.taskContent ?? "");
+    };
+
     const [detailData, setDetailData] = useState(null);
     const [selectedTask, setSelectedTask] = useState(null);
     const [taskProgress, setTaskProgress] = useState(0);
