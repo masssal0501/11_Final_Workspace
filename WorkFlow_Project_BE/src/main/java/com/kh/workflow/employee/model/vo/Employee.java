@@ -2,6 +2,8 @@ package com.kh.workflow.employee.model.vo;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -45,6 +47,12 @@ public class Employee {
     )
     private String empId;
 
+    // BUG-XXX 수정: ApprovalController(GET /approval/{workcationNo} 등)처럼
+    // WorkcationInfo에 중첩된 Employee 엔티티를 그대로 JSON으로 직렬화해 반환하는
+    // 응답에서 BCrypt로 암호화된 비밀번호 해시값이 그대로 노출되고 있었다.
+    // 로그인 인증 등 서버 내부 로직에서는 기존과 동일하게 이 필드를 사용하되,
+    // JSON 응답에는 절대 포함되지 않도록 처리(API 구조/DTO 자체는 변경하지 않음).
+    @JsonIgnore
     @Column(
         name = "emp_pwd",
         nullable = false,

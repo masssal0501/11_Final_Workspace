@@ -150,6 +150,16 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/place/**"
                         ).permitAll()
+
+                        // BUG-XXX 수정: 업로드된 비용 증빙(영수증) 이미지 정적 서빙 경로.
+                        // WebConfig에서 실제 파일 시스템 디렉터리(app.upload.receipts-dir)로
+                        // 매핑해준다. <img src="...">로 직접 요청되므로(Authorization 헤더를
+                        // 실을 수 없음) 기존 "/resources/**"(Hub 이미지)와 동일하게 인증 없이
+                        // 조회 가능하도록 허용한다 - 파일명이 업로드 시 UUID로 치환되어
+                        // 추측이 어렵다는 점도 기존 Hub 이미지 서빙과 동일한 전제.
+                        .requestMatchers(
+                                "/upload/receipts/**"
+                        ).permitAll()
                         
                         // 거점 조회 - 로그인 사용자면 누구나
                         .requestMatchers(
@@ -205,6 +215,22 @@ public class SecurityConfig {
                         	    HttpMethod.GET,
                         	    "/api/v1/amounts/**"
                         	).authenticated()
+
+                        // BUG-XXX 수정: AmountController의 결재/지원금 처리 API에는
+                        // 원래 MANAGER/ADMIN 등 결재 권한에 대한 별도 검증이 전혀 없어
+                        // (Swagger 설명에도 명시되어 있던 기존 알려진 문제) STAFF 계정이
+                        // 본인 정산 신청을 스스로 승인 처리할 수 있는 상태였다.
+                        // 최소 수정으로 결재 상태 변경/지원금 처리 API만 권한을 제한한다
+                        // (본인 신청 취소(/cancel) 등 다른 API는 기존 그대로 유지).
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/v1/amounts/*/approval"
+                        ).hasAnyRole("ADMIN", "MANAGER")
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/v1/amounts/*/approval/sponsor"
+                        ).hasRole("ADMIN")
 
                         // 워케이션 반려 - 관리자/부서장만 (GET /approval/queue와 동일 정책, STAFF 차단)
                         .requestMatchers(

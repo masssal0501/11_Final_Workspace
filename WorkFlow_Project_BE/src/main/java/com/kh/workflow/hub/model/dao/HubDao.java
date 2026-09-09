@@ -39,13 +39,18 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
      * @param keyword 거점 이름 검색 키워드
      * @return 검색 조건이 적용된 페이징 처리된 거점 목록
      */
+    // BUG-XXX 수정: mainRegion/subRegion/keyword 중 하나라도 null(파라미터 미지정)이면
+    // "h.xxx LIKE %:param%"이 JPQL/SQL 3치 논리(NULL 비교)에 의해 항상 UNKNOWN이 되어
+    // 결과가 무조건 0건이 되던 문제. 검색 조건 미지정을 "필터링 없음"으로 취급하도록
+    // (:param IS NULL OR :param = '' OR ...) 가드를 추가했다. 조건이 실제로 주어졌을 때의
+    // 매칭 동작(LIKE %값%)은 기존과 동일하다.
     @EntityGraph(attributePaths = {"hubFileList"})
     @Query("""
     		SELECT h FROM Hub h WHERE
-            h.mainRegion LIKE %:mainRegion% AND
-            h.subRegion LIKE %:subRegion% AND
+            (:mainRegion IS NULL OR :mainRegion = '' OR h.mainRegion LIKE %:mainRegion%) AND
+            (:subRegion IS NULL OR :subRegion = '' OR h.subRegion LIKE %:subRegion%) AND
             h.hubType IN :hubTypes AND
-            h.hubName LIKE %:keyword%
+            (:keyword IS NULL OR :keyword = '' OR h.hubName LIKE %:keyword%)
             ORDER BY h.hubNo DESC
             """)
      Page<Hub> searchHubList(

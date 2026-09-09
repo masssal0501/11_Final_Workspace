@@ -880,3 +880,54 @@ STEP 9에서 "낮은 우선순위, 원인 미조사"로 남겨둔 항목들을 �
 
 #### 사용자 확인 필요
 - **`localStorage.getItem("role")` 버그 수정 여부** — 권한 로직 변경이 필요해 이번 세션에서 임의로 고치지 않음. 수정을 원하면 `PlaceDetail.jsx`/`PlaceEdit.jsx`의 해당 라인을 `JSON.parse(localStorage.getItem('user'))?.authCode === 'ADMIN'`로 교체하는 별도 작업으로 진행 필요.
+
+## 2026-09-10 (17차 작업 — 실제 AWS 운영 서버(3.87.158.173) 종합 검증 + 발견된 P0/P1 버그 6건 수정)
+
+사용자 원본 지시: "WorkFlow ERP 프로젝트의 현재 개발 상태를 기준으로 실제 AWS 운영 서버에서 최종 검증을 수행하고, 시연/핵심 업무 흐름에 직접적인 영향을 주지 않는 미완성 기능을 분류하여 보고해줘." — main 브랜치 최신 커밋(`6743fc9`)이 Deploy 브랜치로 병합·재배포(GitHub Actions run `34411532625` SUCCESS)된 직후, 실제 운영 서버를 기준으로 21개 섹션 형식의 종합 검증 보고서를 작성하고 발견된 P0/P1 버그를 직접 수정하는 작업.
+
+### [작업 완료]
+
+#### 검증 방법
+- SSH/RDS 직접 접속 불가 전제하에, 실제 서버(`http://3.87.158.173`)를 대상으로 curl(실제 JWT 발급받아 사용)과 Claude Browser(실제 화면 조작)를 병행하여 검증.
+- 핵심 DEMO 시나리오(STEP1~9)를 실제로 수행: STAFF(staff01)로 신규 워케이션 신청(workcationNo=8) 생성 → MANAGER(manager01) 승인(브라우저로 실제 클릭, approverState W→A DB 반영 확인) → 출퇴근 체크(attendanceNo 15,16) → Task 진행률 변경(0%→100%) → 비용 신청+증빙파일 업로드(amountNo=6) → 지원금 처리(supportNo=2, PAID)까지 전부 실제 상태값 변화로 검증.
+- 권한 검증: STAFF/MANAGER 토큰으로 각 admin 전용 API(POST /hubs, PATCH /employees/*/role, POST /employees, DELETE /hubs/*, PATCH /api/v1/amounts/*/approval 등)에 직접 호출해 401/403 구분 확인. 브라우저로 STAFF 로그인 후 `/employee/list`, `/approval/queue/list` 직접 URL 접근 시 ErrorPage로 차단되는지 확인.
+- JWT 검증: 정상 로그인→API 호출, 로그아웃→localStorage 초기화, `localStorage.accessToken`을 강제로 무효값으로 바꾼 뒤 보호된 페이지 접근 시 401→Axios interceptor→localStorage 완전 초기화→로그인 페이지 이동까지 브라우저로 직접 확인.
+- 잘못된 URL(`/admin/invalid`, `/employee/invalid`, 임의 경로) 접근 시 Nginx가 200(SPA fallback)으로 index.html을 반환하고 React 라우터 catch-all이 ErrorPage로 처리하는지 curl+브라우저로 확인.
+
+#### 발견 및 수정한 버그 (전부 로컬 커밋, Deploy 브랜치 push 없음 — 재배포는 사용자 판단)
+1. **BUG-001(P0)**: 프로젝트 전체에 `@ControllerAdvice`가 하나도 없어 Service 계층의 `IllegalArgumentException`(대상 없음/입력값 오류 구분 없이 113곳에서 공용 사용)이 전부 HTTP 500으로 반환되던 문제. `GET /employees/999999999`가 404가 아닌 500을 반환하는 기존에 알려진 이슈(14차 작업 이후 계속 범위 밖으로 미뤄져 있던 것)의 근본 원인이 이것이었음을 확인. → `common/exception/GlobalExceptionHandler.java` 신규 작성, 메시지에 "존재하지 않는"/"찾을 수 없" 포함 시 404, 그 외 400으로 매핑.
+2. **BUG-002(P0)**: 예약 신청 화면(`ReservationEnrollComponent.jsx`)이 호출하는 `GET /reservations/hubs`가 백엔드에 아예 존재하지 않아 예약 신청 기능이 100% 실패하던 문제(실제 브라우저로 재현: "거점 선택" 단계가 항상 400 오류). → `ReservationController`에 해당 엔드포인트 신규 추가(`HubService.searchHubList` 재사용).
+3. **BUG-003(P1)**: `HubDao.searchHubList()`의 JPQL이 `h.hubName LIKE %:keyword%`로 되어 있어 `keyword`가 `null`이면(검색어 없이 지역만 필터링하는 가장 흔한 사용 패턴) SQL 3치 논리에 의해 결과가 항상 0건이던 문제. BUG-002 수정 시 재사용한 로직이라 함께 고치지 않으면 BUG-002 수정도 무의미했음. → mainRegion/subRegion/keyword 각각에 `IS NULL OR = '' OR LIKE` 가드 추가.
+4. **BUG-004(P0)**: `Employee` 엔티티가 여러 API 응답(`GET /approval/{workcationNo}` 등)에 DTO 변환 없이 그대로 중첩 직렬화되어 **BCrypt 비밀번호 해시가 그대로 노출**되던 문제(실제 curl로 확인). → `Employee.empPwd`에 `@JsonIgnore` 추가.
+5. **BUG-005(P1, 증빙파일만 부분 수정)**: 비용 증빙(영수증) 파일이 `POST /api/v1/amounts`로 업로드는 성공하지만, 이를 서빙하는 `ResourceHandler`가 프로젝트 어디에도 없어 업로드 후 조회가 항상 404이던 문제(실제로 파일 업로드 후 재조회로 확인). → `WebConfig.java` 신규 작성(`/upload/receipts/**` → `app.upload.receipts-dir` 매핑) + `SecurityConfig`에 permitAll 추가. Hub 이미지도 동일 증상(404)이나 `FileRenamePolicy.saveFile()`이 `getRealPath()`에 의존하는 별개 원인(SSH 없이 실제 저장 위치 확정 불가)이라 이번 세션에는 원인 규명만 하고 미수정(BUG-007로 기록).
+6. **BUG-006(P0, 가장 심각)**: `PATCH /api/v1/amounts/{amountNo}/approval`, `.../approval/sponsor`(정산 결재/지원금 처리)에 권한 검증이 전혀 없어(Swagger 설명에도 이미 "결재 권한에 대한 별도 검증 로직은 존재하지 않습니다"라고 명시되어 있던 상태) **STAFF가 본인이 신청한 정산 건을 스스로 승인 처리**할 수 있었던 문제(실제로 staff01 토큰으로 자가 승인 성공 후 DB 반영까지 확인). → `SecurityConfig`에 두 경로 각각 ADMIN/MANAGER, ADMIN 전용 매처 추가.
+
+#### 분류만 하고 수정하지 않은 항목 (사용자 지시에 따름)
+- **BUG-008**: `GET /employees`(전체 직원 목록)에 권한 제한이 없어 STAFF 토큰으로도 전 직원 PII(주소/전화/이메일) 조회 가능. `Header.jsx`/`App.jsx`가 이 메뉴·라우트를 ADMIN 전용으로 명확히 설계해 놓은 것과 불일치하므로 "의도된 설계"가 아니라 **백엔드 권한 검증 누락 버그**로 분류하고 보고서에만 기록, 코드는 수정하지 않음.
+
+#### 검증 결과 요약
+- `mvnw.cmd -o compile -DskipTests` 6개 파일 변경 후에도 **BUILD SUCCESS** 유지.
+- 6개 수정 사항은 로컬 브랜치(`docs/step1-6-project-audit`)에만 존재하며 **운영 서버에는 아직 반영되지 않음** — Deploy 브랜치 push는 수행하지 않았고, 재배포 후 재검증이 필요한 5개 체크리스트를 보고서에 명시.
+- 핵심 라이프사이클(신청→승인→출퇴근→업무진행→정산신청→정산승인/지원금)은 실제 서버에서 상태값 변화까지 포함해 정상 동작 확인. 최종 판정: **🟡 DEMO READY WITH CONDITIONS**(재배포 + 시연 스크립트 3곳(예약/ADMIN 확정/만족도조사) 조정 전제).
+
+#### 산출물
+- `AWS_PROD_VERIFICATION_REPORT.md` 신규 작성(21개 섹션, BUG/TODO/UI 목록, FINAL STATUS 포함)
+
+#### 변경 파일 (백엔드 6개, 전부 로컬 커밋만)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/common/exception/GlobalExceptionHandler.java`(신규)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/reservation/controller/ReservationController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/hub/model/dao/HubDao.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/employee/model/vo/Employee.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/WebConfig.java`(신규)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/SecurityConfig.java`
+
+#### 남은 문제 (TODO/BUG, 상세는 `AWS_PROD_VERIFICATION_REPORT.md` 참고)
+- ⚪ **BUG-007**: Hub 이미지 서빙 404 — SSH 접근 확보 후 근본 수정 필요.
+- ⚪ **BUG-008**: `GET /employees` 권한 제한 — 사용자 최종 판단 대기.
+- ⚪ **BUG-009**: Manager 승인대기 목록 `SELECT DISTINCT` 누락(14차 작업에서 이미 발견된 기존 이슈, 이번 세션 재확인만 하고 미수정).
+- ⚪ **TODO**: 시연 스크립트가 상정하는 "ADMIN 별도 최종확정" 단계는 현재 상태 모델(approverState 하나)에 존재하지 않음 — 시연 스크립트 조정 또는 향후 스키마 보완 필요.
+- ⚪ **TODO**: 만족도조사 신규 제출 흐름은 이번 세션에 조건에 맞는 데이터가 없어 재검증하지 못함(과거 이력상 정상 동작 확인된 바 있음).
+
+#### 사용자 확인 필요
+- 이번 세션의 6개 로컬 커밋을 Deploy 브랜치로 병합·재배포할지 여부.
+- BUG-008(`GET /employees` 권한 제한) 수정 여부.
