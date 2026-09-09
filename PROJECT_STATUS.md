@@ -1,5 +1,7 @@
 # PROJECT_STATUS.md
 
+> **문서 역할**: 이 문서는 "도메인별 상세 구현 상태"를 기록한다. 전체 요약(Executive Summary)/우선순위 로드맵/최종 시연 시나리오/TOP 10 문제는 `PROJECT_FINAL_STATUS.md`(2026-09-10, 14차 작업)를 참조할 것.
+
 마지막 갱신: 2026-09-09 (13차 작업 — Swagger/OpenAPI 문서화 전체 적용 완료: 12개 Controller 중 API가 실재하는 11개 전부 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/JWT `@SecurityRequirement` 문서화, 실제 기동 후 Swagger UI·API 문서·JWT 로그인·핵심 GET API end-to-end 검증 완료)
 
 ## 기술 스택 확정 상태

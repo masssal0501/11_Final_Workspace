@@ -1,5 +1,7 @@
 # DB_DESIGN.md
 
+> **문서 역할**: 이 문서는 "테이블별 Entity/Repository/Service/Controller/Frontend 매핑 및 정합성 상태"를 기록한다. 전체 요약/로드맵/시연 시나리오는 `PROJECT_FINAL_STATUS.md`(2026-09-10) 참조. 2026-09-10 재검증: `grep -c "^CREATE TABLE" SQL/WorkFlow_Script.sql` = 23개, 아래 테이블 목록과 정확히 일치 확인.
+
 DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 확정)
 > `SQL/WorkFlow_Script_Nam_ver.sql`은 기준이 아님. 충돌 시 `WorkFlow_Script.sql` → README → 현재 Java 코드 순으로 판단.
 
