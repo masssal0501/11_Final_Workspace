@@ -109,12 +109,18 @@ jobs:
 
           sed "s|__S3_BUCKET__|${S3_BUCKET}|g" deploy/scripts/remote-deploy.sh > /tmp/remote-deploy.sh
 
+          # --parameters를 shorthand(commands=[...])로 넘기면 스크립트 안의 개행이
+          # 문자 그대로 "\n" 텍스트로 깨져서 전달되는 문제가 있었다(원격에서
+          # "/usr/bin/env: 'bash\n# ...': No such file or directory" 발생).
+          # 순수 JSON을 --parameters에 통째로 넘겨 shorthand 파서를 우회한다.
+          PARAMS_JSON=$(jq -Rn --rawfile script /tmp/remote-deploy.sh '{"commands": [$script]}')
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "WorkFlow deploy (run ${{ github.run_id }})" \
             --timeout-seconds 300 \
-            --parameters commands="$(jq -Rs '[.]' < /tmp/remote-deploy.sh)" \
+            --parameters "${PARAMS_JSON}" \
             --query "Command.CommandId" --output text)
 
           echo "SSM Command ID: ${COMMAND_ID}"
