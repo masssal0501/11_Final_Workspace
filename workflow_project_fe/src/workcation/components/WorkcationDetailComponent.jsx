@@ -221,6 +221,22 @@ function WorkcationDetailComponent() {
                             ))}
                         </ul>
                     </div>
+
+                    {/* 업무 완료 확인(MANAGER/ADMIN)용 진행률/완료 여부 - task_no가 있는
+                        (실제 Task 레코드로 생성된) 업무에 대해서만 표시 가능하다 */}
+                    <div className="task-plan-box right-box">
+                        <ul className="task-plan-list">
+                            {planList.map((item, index) => (
+                                <li className="task-item-row" key={item.id || index}>
+                                    <span className="task-days">
+                                        {item.taskNo
+                                            ? `${item.status === "Y" ? "완료" : "진행중"} (${item.progress ?? 0}%)`
+                                            : "-"}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </div>
 

@@ -67,11 +67,13 @@ export const getHubList = async (params) => {
 };
 
 //진행률 저장
+// BUG-010: 백엔드(PUT /workcation/task/{taskNo})는 progress/title/content/file을
+// @RequestParam(멀티파트 폼 필드)으로 받는데, 기존 코드는 formData를 만들어놓고
+// 실제로는 JSON 바디로 보내고 있어 필수 파라미터 바인딩이 항상 실패했다(400).
 export const saveTaskProgress = async (data, file) => {
 
     const formData = new FormData();
 
-    formData.append("taskNo", data.taskNo);
     formData.append("progress", data.progress);
     formData.append("title", data.title);
     formData.append("content", data.content);
@@ -80,11 +82,11 @@ export const saveTaskProgress = async (data, file) => {
         formData.append("file", file);
     }
 
-    const response = await axiosInstance.put(`/workcation/task/${data.taskNo}`, {
-        progress: data.progress,
-        title: data.title,
-        content: data.content
-    });
+    const response = await axiosInstance.put(
+        `/workcation/task/${data.taskNo}`,
+        formData,
+        { headers: { "Content-Type": undefined } }
+    );
 
     return response.data;
 };

@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { amountApi } from '../api/amountApi';
 
 export default function AmountForm({
-  workcationNo,
+  workcationNo: workcationNoProp,
   onSuccess
 }) {
+
+  // BUG-012: UserAmountList의 "새 비용 신청" 버튼은
+  // /cost/apply?workcationNo=... 형태의 쿼리스트링으로 이동하지만
+  // App.jsx의 /cost/apply 라우트는 <AmountForm />을 prop 없이 렌더링해서
+  // workcationNo가 항상 undefined였다. 그 결과 STAFF가 실제 화면에서
+  // 비용 정산을 신청하면 항상 "워케이션 정보가 없습니다." 알림만 뜨고
+  // 제출이 막혀 있었다. prop이 없을 때는 쿼리스트링 값을 사용한다.
+  const [searchParams] = useSearchParams();
+  const workcationNo =
+    workcationNoProp ?? searchParams.get('workcationNo');
 
   // =========================================================
   // 1. 비용 상세 항목

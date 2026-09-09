@@ -111,31 +111,27 @@ const amountApi = {
         amountNo,
         status,
         approvedAmount,
-        amountComment,
-        sponsorName,
-        sponsorAmount,
-        sponsorStatus,
-        remark
+        amountComment
     ) => {
 
-        const data = {
+        // BUG-013: 백엔드 AmountController.updateApproval()은
+        // @RequestParam(status, approvedAmount, comment)로 값을 받는데
+        // 여기서는 axios.patch(url, data)로 JSON 바디를 보내고 있어
+        // @RequestParam이 절대 바인딩되지 않고 항상 400
+        // "Required parameter 'status' is not present"로 실패했다.
+        // ADMIN 승인/반려/보류 버튼이 전부 동작하지 않던 원인이므로
+        // 쿼리 파라미터로 전송하도록 수정한다. (comment 파라미터명도
+        // 프론트의 amountComment와 달라 함께 맞춘다)
+        const params = {
             status,
             approvedAmount,
-            amountComment,
-            sponsorName,
-            sponsorAmount,
-            sponsorStatus,
-            remark
+            comment: amountComment
         };
-
-        console.log("📌 승인 요청:", {
-            amountNo,
-            data
-        });
 
         const response = await axiosInstance.patch(
             `${API_BASE_URL}/${amountNo}/approval`,
-            data
+            null,
+            { params }
         );
 
         return response.data;

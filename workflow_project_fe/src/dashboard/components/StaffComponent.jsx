@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { selectStaffDashboardApi, selectStaffReservationListApi } from "../api/dashboardApi";
+import { checkAttendanceApi } from "../api/attendanceApi";
 import LocationCheckModal from "../../common/components/LocationCheckModal";
 
 /**
@@ -104,6 +105,9 @@ function StaffComponent(props) {
                 const response = await selectStaffDashboardApi(loginUser.empNo);
                 // API 응답 데이터로 대시보드 상태 값 업데이트
                 setData(response.data);
+                // 서버가 최근 근태 기록을 기준으로 계산한 실제 출근 상태로 초기화
+                // (기존에는 항상 false로 시작해 새로고침하면 출근 상태가 사라지는 문제가 있었음)
+                setIsCheckedIn(!!response.data.checkedIn);
             } catch(error) {
                 console.error(error);
             }
@@ -142,6 +146,11 @@ function StaffComponent(props) {
             }
         }
 
+        if (!data.currentWorkcationNo || !data.currentHubNo) {
+            alert("현재 진행 중인 워케이션 거점 정보를 확인할 수 없습니다.");
+            return;
+        }
+
         if (!kakao || !kakao.maps || !kakao.maps.services) {
             alert("지도 API가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.");
             return;
@@ -150,16 +159,19 @@ function StaffComponent(props) {
         // 거점 주소를 좌표로 변환
         const geocoder = new kakao.maps.services.Geocoder();
         geocoder.addressSearch(data.hubAddress, (result, status) => {
-            
+
             if (status === kakao.maps.services.Status.OK) {
-                // 모달에 넘겨줄 거점 정보 세팅
+                // 모달에 넘겨줄 거점 정보 세팅(출퇴근 처리 시 실제 API 호출에 필요한
+                // workcationNo/hubNo도 함께 담아둔다)
                 setHubInfo({
-                    hubName: data.hubAddress || "워케이션 거점", 
+                    hubName: data.hubAddress || "워케이션 거점",
                     latitude: parseFloat(result[0].y),
                     longitude: parseFloat(result[0].x),
-                    allowedRadius: 100 // 허용 반경 100m
+                    allowedRadius: 100, // 허용 반경 100m
+                    workcationNo: data.currentWorkcationNo,
+                    hubNo: data.currentHubNo
                 });
-                
+
                 // 모달 열기
                 setIsModalOpen(true);
             } else {
@@ -170,25 +182,34 @@ function StaffComponent(props) {
     }
 
     /**
-     * 모달에서 위치 인증 완료 후 실제 출근(API) 처리
+     * 모달에서 위치 인증 완료 후 실제 출근/퇴근 처리
+     * 기존에는 실제 API 호출 없이 alert만 띄우고 로컬 상태만 바꾸는 목업이었음 -
+     * 근태 기록이 DB에 전혀 저장되지 않는 문제(신규 attendance 테이블 도입)를 해결한다.
      */
     const handleCheckInModal = async (checkInData) => {
         try {
-            const now = new Date();
-            
+            const response = await checkAttendanceApi({
+                workcationNo: hubInfo.workcationNo,
+                hubNo: hubInfo.hubNo,
+                checkType: checkInData.attendanceType,
+                latitude: checkInData.latitude,
+                longitude: checkInData.longitude,
+                distanceM: checkInData.distance
+            });
+
             if (checkInData.attendanceType === "IN") {
-                const isLate = now.getHours() >= 9 && now.getMinutes() > 10;
-                alert(isLate ? "출근 성공 (지각)" : "출근 성공");
+                alert(response.data.isLate === "Y" ? "출근 성공 (지각)" : "출근 성공");
                 setIsCheckedIn(true); // 출근 완료 상태로 변경
             } else {
                 alert("퇴근 성공");
                 setIsCheckedIn(false); // 퇴근 완료 상태로 변경
             }
-            
+
             setIsModalOpen(false);
         } catch (error) {
             console.error(error);
-            alert("출퇴근 처리 중 오류가 발생했습니다.");
+            const message = error.response?.data?.message || error.response?.data || "출퇴근 처리 중 오류가 발생했습니다.";
+            alert(typeof message === "string" ? message : "출퇴근 처리 중 오류가 발생했습니다.");
         }
     };
 

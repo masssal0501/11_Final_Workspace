@@ -26,8 +26,10 @@ import com.kh.workflow.reservation.model.dao.ReservationDao;
 import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.task.model.dao.TaskHistoryDao;
+import com.kh.workflow.task.model.dao.WorkDao;
 import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.TaskHistory;
+import com.kh.workflow.task.model.vo.Work;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
@@ -57,6 +59,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Autowired
 	private TaskHistoryDao taskHistoryDao;
+
+	@Autowired
+	private WorkDao workDao;
 	
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
@@ -186,6 +191,33 @@ public class WorkcationServiceImpl implements WorkcationService {
 		info.setApproverState("W");// JPA가 인서트할때 W지정 등록
 
 		WorkcationInfo workcation = workcationDao.save(info);
+
+		// BUG-009: 업무계획을 workcation_info.work_plan 텍스트로만 저장하고 실제
+		// work/task 레코드를 만들지 않아, "내 워케이션" 화면의 업무 진행률 변경이
+		// 동작할 수 없었다(진행률을 저장할 실제 task_no가 존재하지 않았음). 신청 시점에
+		// 실제 Work 1건 + 업무계획 항목별 Task를 생성해 진행률 추적이 가능하도록 한다.
+		if (planList != null && !planList.isEmpty()) {
+
+			Work work = new Work();
+			work.setWorkcationInfo(workcation);
+			work = workDao.save(work);
+
+			for (Map<String, Object> planItem : planList) {
+				String taskName = (String) planItem.get("taskName");
+				Object daysObj = planItem.get("days");
+				int days = daysObj != null ? Integer.parseInt(daysObj.toString()) : 1;
+
+				Task task = new Task();
+				task.setWork(work);
+				task.setTaskTitle(taskName);
+				task.setTaskContent(taskName + " (" + days + "일)");
+				task.setTasktimeAt(startAt);
+				task.setTaskendAt(startAt.plusDays(days));
+				task.setProgress(0);
+				task.setStatus("N");
+				taskDao.save(task);
+			}
+		}
 
 		// Hub 객체 생성
 		Hub hub = new Hub();
@@ -376,46 +408,39 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("totalCost", totalCost);
 		result.put("personalCost", Math.max(0, totalCost - totalSupport));
 
-		// workPlan 파싱
+		// BUG-009 수정: workPlan 텍스트를 매 요청마다 파싱해 매번 새로운 임의 id를
+		// 부여하던 방식(진행률 저장이 원천적으로 불가능했음) 대신, 실제 Work/Task
+		// 레코드를 조회해 진짜 taskNo/progress를 반환한다. "[근무 목적] ..." 부분만
+		// 여전히 텍스트에서 추출한다(별도 컬럼이 없음).
 		List<Map<String, Object>> planList = new ArrayList<>();
 		String workPlan = workcation.getWorkPlan();
 		String actualPurpose = "";
 
-		if (workPlan != null && !workPlan.isEmpty()) {
-			String[] tokens = workPlan.split(" / ");
-			for (String token : tokens) {
-				token = token.trim();
-				if (token.startsWith("[근무 목적]")) {
-					actualPurpose = token.replace("[근무 목적]", "").trim();
-				} else {
-					int idxOpen = token.lastIndexOf("(");
-					int idxClose = token.lastIndexOf("일)");
-					if (idxOpen != -1 && idxClose != -1 && idxClose > idxOpen) {
-						String taskName = token.substring(0, idxOpen).trim();
-						try {
-							int days = Integer.parseInt(token.substring(idxOpen + 1, idxClose).trim());
-							Map<String, Object> planMap = new HashMap<>();
-							planMap.put("id", System.currentTimeMillis() + Math.random());
-							planMap.put("taskName", taskName);
-							planMap.put("days", days);
-							planList.add(planMap);
-						} catch (NumberFormatException e) {
-							Map<String, Object> planMap = new HashMap<>();
-							planMap.put("id", System.currentTimeMillis() + Math.random());
-							planMap.put("taskName", token);
-							planMap.put("days", 1);
-							planList.add(planMap);
-						}
-					} else if (!token.isEmpty()) {
-						Map<String, Object> planMap = new HashMap<>();
-						planMap.put("id", System.currentTimeMillis() + Math.random());
-						planMap.put("taskName", token);
-						planMap.put("days", 1);
-						planList.add(planMap);
-					}
-				}
-			}
+		if (workPlan != null && workPlan.startsWith("[근무 목적]")) {
+			int sepIdx = workPlan.indexOf(" / ");
+			String purposeToken = sepIdx != -1 ? workPlan.substring(0, sepIdx) : workPlan;
+			actualPurpose = purposeToken.replace("[근무 목적]", "").trim();
 		}
+
+		workDao.findByWorkcationInfo_WorkcationNo(workcation.getWorkcationNo()).ifPresent(work -> {
+			List<Task> taskList = taskDao.findByWork_WorkNo(work.getWorkNo());
+			for (Task task : taskList) {
+				long days = 1;
+				if (task.getTasktimeAt() != null && task.getTaskendAt() != null) {
+					days = java.time.temporal.ChronoUnit.DAYS.between(
+							task.getTasktimeAt().toLocalDate(), task.getTaskendAt().toLocalDate());
+				}
+				Map<String, Object> planMap = new HashMap<>();
+				planMap.put("id", task.getTaskNo());
+				planMap.put("taskNo", task.getTaskNo());
+				planMap.put("taskName", task.getTaskTitle());
+				planMap.put("taskContent", task.getTaskContent());
+				planMap.put("progress", task.getProgress());
+				planMap.put("status", task.getStatus());
+				planMap.put("days", days);
+				planList.add(planMap);
+			}
+		});
 
 		result.put("purpose", actualPurpose);
 		result.put("planList", planList);
@@ -846,6 +871,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 		task.setProgress(progress);
 		task.setTaskTitle(title);
 		task.setTaskContent(content);
+		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
+		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
+		task.setStatus(progress == 100 ? "Y" : "N");
 		
 		//최근 업무 이력 INSERT
 		TaskHistory history = new TaskHistory();

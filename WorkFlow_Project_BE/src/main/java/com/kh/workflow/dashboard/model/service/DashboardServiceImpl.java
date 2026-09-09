@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kh.workflow.amount.dao.AmountDao;
+import com.kh.workflow.attendance.model.dao.AttendanceDao;
 import com.kh.workflow.dashboard.model.dto.AdminDto;
+import com.kh.workflow.dashboard.model.dto.CurrentHubDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
 import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
@@ -45,6 +47,9 @@ public class DashboardServiceImpl implements DashboardService {
 
 	@Autowired
 	private TaskDao taskDao;
+
+	@Autowired
+	private AttendanceDao attendanceDao;
 
 	/**
 	 * [관리자] 전사 대시보드 데이터 조회
@@ -153,7 +158,17 @@ public class DashboardServiceImpl implements DashboardService {
 		staffDto.setWorkcationPlan(workcationDao.selectWorkcationPlan(empNo));
 		staffDto.setProgressRate(taskDao.selectProgressRate(empNo));
 		staffDto.setReservationList(workcationDao.selectReservationList(empNo));
-		staffDto.setHubAddress(hubDao.selectHubAddress(empNo));
+		List<CurrentHubDto> hubList = hubDao.selectHubAddress(empNo);
+		if (!hubList.isEmpty()) {
+			CurrentHubDto currentHub = hubList.get(0);
+			staffDto.setHubAddress(currentHub.getHubAddress());
+			staffDto.setCurrentWorkcationNo(currentHub.getWorkcationNo());
+			staffDto.setCurrentHubNo(currentHub.getHubNo());
+
+			// 현재 워케이션의 가장 최근 근태 기록으로 출근 상태 판단(새로고침해도 유지)
+			attendanceDao.findTopByWorkcation_WorkcationNoOrderByCheckedAtDesc(currentHub.getWorkcationNo())
+					.ifPresent(latest -> staffDto.setCheckedIn("IN".equals(latest.getCheckType())));
+		}
 		
 		/* --- [3] 공통 데이터 --- */
 		// 공지사항

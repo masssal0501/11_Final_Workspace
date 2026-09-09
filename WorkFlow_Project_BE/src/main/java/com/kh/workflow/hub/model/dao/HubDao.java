@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
+import com.kh.workflow.dashboard.model.dto.CurrentHubDto;
 import com.kh.workflow.hub.model.vo.Hub;
 
 /**
@@ -111,16 +112,23 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 	@Query("SELECT h.mainRegion FROM Hub h")
 	List<String> selectMainRegionList();
 
+    // BUG-011: 직원이 워케이션을 2건 이상 신청하면 이 쿼리가 여러 건을 반환해
+    // IncorrectResultSizeDataAccessException(500)이 발생했다. "오늘의 근태"에 쓰이는
+    // 값이므로 현재 진행 중(승인 + 오늘이 기간 내)인 워케이션 하나로 범위를 좁히고,
+    // 그래도 여러 건이 나오는 예외적인 경우를 대비해 List로 받아 서비스에서 첫 값만 사용한다.
+    // 근태(출근/퇴근) 체크 시 필요한 workcationNo/hubNo도 함께 반환한다.
     @Query("""
-    		SELECT h.hubAddress
+    		SELECT new com.kh.workflow.dashboard.model.dto.CurrentHubDto(w.workcationNo, h.hubNo, h.hubAddress)
     		  FROM Hub h
     		  JOIN Reservation r ON r.hub = h
     		  JOIN WorkcationInfo w ON r.workcation = w
     		  JOIN w.employee e
     		 WHERE e.empNo = :empNo
     		   AND h.hubType = 1
+    		   AND w.approverState = 'A'
+    		   AND CURRENT_TIMESTAMP BETWEEN w.startAt AND w.endAt
     		""")
-	String selectHubAddress(@Param("empNo") int empNo);
+	List<CurrentHubDto> selectHubAddress(@Param("empNo") int empNo);
 
     @Query("SELECT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
 	List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);

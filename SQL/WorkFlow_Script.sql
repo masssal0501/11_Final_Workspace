@@ -392,6 +392,54 @@ CREATE TABLE work_file (
         REFERENCES task (task_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+/* 근태(출근/퇴근) 기록 - 워케이션 거점 위치 인증 기반 */
+CREATE TABLE attendance (
+    attendance_no INT NOT NULL AUTO_INCREMENT
+        COMMENT '근태 PK',
+
+    check_type VARCHAR(3) NOT NULL
+        COMMENT 'IN 출근, OUT 퇴근',
+
+    checked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        COMMENT '출근/퇴근 처리 시각',
+
+    latitude DECIMAL(10,7) NOT NULL
+        COMMENT '체크 시점 위도',
+
+    longitude DECIMAL(10,7) NOT NULL
+        COMMENT '체크 시점 경도',
+
+    distance_m INT NOT NULL
+        COMMENT '거점과의 거리(m) - 인증 근거 기록',
+
+    is_late VARCHAR(1) NOT NULL DEFAULT 'N'
+        COMMENT 'Y 지각, N 정상 (출근 건에만 의미 있음)',
+
+    workcation_no INT NOT NULL
+        COMMENT '워케이션 PK',
+
+    emp_no INT NOT NULL
+        COMMENT '사원 PK',
+
+    hub_no INT NOT NULL
+        COMMENT '거점 PK',
+
+    CONSTRAINT pk_attendance
+        PRIMARY KEY (attendance_no),
+
+    CONSTRAINT fk_attendance_workcation
+        FOREIGN KEY (workcation_no)
+        REFERENCES workcation_info (workcation_no),
+
+    CONSTRAINT fk_attendance_employee
+        FOREIGN KEY (emp_no)
+        REFERENCES employee (emp_no),
+
+    CONSTRAINT fk_attendance_hub
+        FOREIGN KEY (hub_no)
+        REFERENCES hub (hub_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 /* =========================================================
    8. 비용 / 정산
