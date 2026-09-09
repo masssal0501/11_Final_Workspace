@@ -93,7 +93,7 @@ function ApprovalQueueDetail() {
                         <th>신청현황</th>
                         <td>
                             <div className="cell-box status-cell-box">
-                                <span className="status-badge">신청 완료</span>
+                                <span className="workcation-status-badge">신청 완료</span>
                             </div>
                         </td>
                     </tr>

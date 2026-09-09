@@ -34,7 +34,7 @@ function MyWorkcationDetailFormComponent() {
 
     if (!detailData) {
         return (
-            <div className="workcation-detail-container">
+            <div className="my-workcation-detail-container">
                 <h2 align="center">내 워케이션</h2>
                 <p align="center" style={{ marginTop: "30px", color: "#666" }}>
                     등록된 워케이션 내역이 없습니다.
@@ -166,7 +166,7 @@ function MyWorkcationDetailFormComponent() {
     const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     return (
-        <div className="workcation-detail-container">
+        <div className="my-workcation-detail-container">
             <div className="detail-top-nav">
                 <h2 align="center">내 워케이션 내용</h2>
                 <button className="back-list-btn" onClick={() => navigate('/workcation/mylist')}>
@@ -235,7 +235,7 @@ function MyWorkcationDetailFormComponent() {
                 </ul>
             </div>
 
-            <div className="detail-button-area">
+            <div className="my-detail-button-area">
                 {approverState === "A" && (
                     <button
                         type="button"

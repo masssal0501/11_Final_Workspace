@@ -147,7 +147,7 @@ function ManagerComponent(props) {
                                     </tr>
                                 ))
                             ) : (
-                                <tr>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">승인 대기 건이 없습니다.</td>
                                 </tr>
                             )}
@@ -168,7 +168,7 @@ function ManagerComponent(props) {
                 <table className="table table-hover">
                     <tbody>
                         { data.noticeData?.length === 0 ? (
-                                <tr style={ { cursor : "auto", backgroundColor: "white"} }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">
                                         등록된 공지사항이 없습니다.
                                     </td>
@@ -241,7 +241,7 @@ function ManagerComponent(props) {
                                     </tr>
                                 ))
                             ) : (
-                                <tr style={ { cursor : "auto" } }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">정산 대기 건이 없습니다.</td>
                                 </tr>
                             )}
@@ -296,7 +296,7 @@ function ManagerComponent(props) {
                                 </tr>
                             ))
                         ) : (
-                            <tr style={ { cursor : "auto", backgroundColor : "white" } }>
+                            <tr className="wf-empty-row">
                                 <td colSpan="6">워케이션 신청 건이 없습니다.</td>
                             </tr>
                         )}

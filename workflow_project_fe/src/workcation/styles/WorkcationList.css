@@ -1,6 +1,7 @@
 .workcation-btnSet,
-table {
-    width: 80%;
+.workcation-list {
+    width: 100%;
+    max-width: 900px;
     margin: 0 auto;
 }
 
@@ -9,13 +10,130 @@ table {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
+
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .drop-group,
 .apply-btn {
-    margin: 0;
+    margin: 0 auto 20px;
     display: flex;
+    justify-content: flex-end;
+
+    width: 100%;
+    max-width: 900px;
+
     gap: 12px;
+}
+
+/* 일정관리 버튼 */
+.skedule-btn {
+    height: 40px;
+
+    padding: 0 16px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: var(--wf-text-secondary);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.skedule-btn:hover {
+    background: var(--wf-gray-50);
+}
+
+/* 지역 / 상태 드롭다운 */
+.main-region,
+.sub-region,
+.status-drop {
+    height: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: var(--wf-text-primary);
+
+    font-size: 13px;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+.main-region:focus,
+.sub-region:focus,
+.status-drop:focus {
+    border-color: var(--wf-primary);
+}
+
+/* 신청 버튼 */
+.apply-btn button {
+    height: 40px;
+
+    padding: 0 20px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: var(--wf-primary);
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.apply-btn button:hover {
+    background: var(--wf-primary-dark);
+}
+
+/* 목록 테이블 */
+.workcation-list {
+    border-collapse: collapse;
+
+    background: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
+
+    overflow: hidden;
+
+    font-size: 14px;
+}
+
+.workcation-list thead th {
+    padding: 13px 16px;
+
+    background: var(--wf-table-header-bg);
+
+    border-bottom: 1px solid var(--wf-border);
+
+    color: var(--wf-text-secondary);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.workcation-list tbody td {
+    padding: 13px 16px;
+
+    border-bottom: 1px solid var(--wf-border);
+
+    color: var(--wf-text-primary);
 }
 
 .workcation-list tbody tr td {
@@ -24,5 +142,13 @@ table {
 
 .workcation-list tbody tr:hover td {
     cursor: pointer;
-    background-color: rgba(216, 215, 215, 0.979);
+    background-color: var(--wf-row-hover);
+}
+
+.paging-area {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+
+    margin-top: 20px;
 }

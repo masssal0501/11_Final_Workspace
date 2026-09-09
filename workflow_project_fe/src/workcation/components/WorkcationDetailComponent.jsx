@@ -121,7 +121,7 @@ function WorkcationDetailComponent() {
                         <th>신청현황</th>
                         <td>
                             <div className="cell-box status-cell-box">
-                                <span className="status-badge">{getStatusLabel(approverState)}</span>
+                                <span className="workcation-status-badge">{getStatusLabel(approverState)}</span>
                             </div>
                         </td>
                     </tr>

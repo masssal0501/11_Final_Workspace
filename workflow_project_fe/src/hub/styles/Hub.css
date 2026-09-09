@@ -6,14 +6,15 @@
 
 /** 허브 관련 화면의 메인 컨테이너 박스 디자인 (중앙 정렬, 둥근 테두리, 여백 설정) */
 .hub-content {
-  width : 1000px;
-  margin : auto;
-  margin-top : 50px;
-  margin-bottom : 50px;
-  background-color: white;
-  border: 1px solid gray;
-  border-radius: 50px;
-  padding: 35px 25px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 32px auto 48px;
+  background-color: var(--wf-white);
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius-lg);
+  box-shadow: var(--wf-shadow-sm);
+  padding: 36px 32px;
+  color: var(--wf-text-primary);
 }
 .hub-header {
     padding: 10px;
@@ -25,7 +26,8 @@
 /** 테이블 헤더(th) 배경색 지정 */
 .hub-table th {
     width: 110px !important;
-    background-color: #EAEAEA;
+    background-color: var(--wf-table-header-bg);
+    color: var(--wf-text-secondary);
 }
 
 /** 테이블 내부 모든 요소의 기본 정렬 및 패딩 설정 */
@@ -37,12 +39,13 @@
 
 /** 테이블 내 입력 폼(input, textarea, select) 공통 테두리 스타일 */
 .hub-table input, textarea, select{
-    border: 1px solid rgb(167, 167, 167) !important;
+    border: 1px solid var(--wf-gray-300) !important;
+    border-radius: 8px;
 }
 
 /** 테이블 첫 번째 행(tr) 상단 테두리 지정 */
 .hub-table tr:first-child{
-    border-top: 1px solid black;
+    border-top: 1px solid var(--wf-border);
 }
 
 /** 첫 번째 행의 마지막 셀(td) 내부 플렉스박스 배치 설정 */
@@ -75,7 +78,7 @@
 
 /** 테이블 행(tr) 하단 구분선 */
 .hub-table tr {
-    border-bottom: 1px solid #bcbcbc;
+    border-bottom: 1px solid var(--wf-border);
 }
 
 /** 숫자 타입 입력 필드의 스핀 버튼(Up/Down 화살표) 웹킷 브라우저 숨김 처리 */
@@ -111,28 +114,30 @@
 .hub-form>div {
     width: 180px;
     height: 130px;
-    border-radius: 6px;
+    border-radius: var(--wf-radius-sm);
     display: flex;
     flex-direction: column;
     cursor: pointer;
     position: relative;
-    background-color: #fafafa
+    background-color: var(--wf-gray-50);
+    border: 1px solid var(--wf-border);
 }
 
 /** 일반 확인/모달 버튼 스타일 */
 .confirm {
     padding: 8px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    font-size: 14px;
+    font-weight: 700;
+    background-color: var(--wf-primary);
+    color: #ffffff;
+    border: 1px solid var(--wf-primary);
     border-radius: 999px;
 }
 
 /** 확인 버튼 호버 효과 */
 .confirm:hover {
-    background-color: #f8f9fa;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: var(--wf-primary-dark);
+    border-color: var(--wf-primary-dark);
 }
 
 /** AI 연동 폼 레이아웃 (플렉스 중앙 정렬) */
@@ -161,7 +166,8 @@
 .title-area img {
     width: 50%;
     height: 250px;
-    border: 1px solid gray;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
 }
 
 /** 텍스트 정보 표시 영역 (그리드 레이아웃 및 글자 크기) */
@@ -169,27 +175,27 @@
     margin-left: 10px;
     margin-top: 15px;
     display: grid;
-    font-size: 19px !important;
+    font-size: 15px !important;
     row-gap: 10px !important;
-    row-gap: 1px;
     width: 400px;
     margin-right: 50px;
+    color: var(--wf-text-primary);
 }
 
 /** 상호작용 가능한 텍스트(예: 링크, 상세 주소) 스타일 */
-.span-area p { 
+.span-area p {
     display: inline;
-    color: aqua;
+    color: var(--wf-primary);
     cursor: pointer;
-    border-bottom: 1px solid aqua;
+    border-bottom: 1px solid var(--wf-primary);
 }
-.span-area p:hover { 
-    color: rgb(0, 245, 245);
-    border-bottom: 1px solid rgb(0, 245, 245);
+.span-area p:hover {
+    color: var(--wf-primary-dark);
+    border-bottom: 1px solid var(--wf-primary-dark);
 }
-.span-area p:active { 
-    color: rgb(0, 216, 216);
-    border-bottom: 1px solid rgb(0, 216, 216);
+.span-area p:active {
+    color: var(--wf-primary-dark);
+    border-bottom: 1px solid var(--wf-primary-dark);
 }
 
 /** 이미지 컨테이너 영역 */
@@ -202,7 +208,8 @@
 .img-area img {
     width: 50%;
     height: 100%;
-    border: 1px solid gray;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
 }
 
 /* ==========================================
@@ -224,17 +231,18 @@
 
 /** AI 추천/분석 메인 버튼 스타일 (그림자 및 포인트 컬러 적용) */
 #AI {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--wf-shadow);
     border-radius: 40px;
-    padding: 13.5px 25.5px;
-    background-color: #0091FF;
+    padding: 13px 26px;
+    background-color: var(--wf-primary);
     color: white;
     border: none;
-    font-size: 14.7px;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 #AI:hover {
-    background-color: #0084e9;
+    background-color: var(--wf-primary-dark);
 }
 
 /* ==========================================
@@ -266,7 +274,8 @@
 
 .list-area td img {
     width : 90%;
-    border: 1px solid rgb(187, 187, 187);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
 }
 
 /** 리스트 테이블 상단 간격 설정 */
@@ -304,13 +313,13 @@
 }
 
 .hub-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: var(--wf-primary);
+    border-color: var(--wf-primary);
     color: #ffffff;
 }
 
 .hub-primary:hover {
-    background-color: #0b5ed7; 
-    border-color: #0a58ca;
+    background-color: var(--wf-primary-dark);
+    border-color: var(--wf-primary-dark);
     color: #ffffff;
 }

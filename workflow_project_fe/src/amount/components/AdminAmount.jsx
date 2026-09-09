@@ -374,7 +374,7 @@ export default function AdminAmount() {
 
         return (
             <span
-                className={`status-badge status-${status}`}
+                className={`amount-status-badge status-${status}`}
             >
                 {
                     statusMap[status] ||

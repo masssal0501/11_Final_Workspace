@@ -42,7 +42,7 @@ function EmployeeDetail() {
 
 
     if (!employee) {
-        return <div>직원 정보를 불러오는 중...</div>;
+        return <div className="wf-state">직원 정보를 불러오는 중...</div>;
     }
 
 
@@ -116,7 +116,7 @@ function EmployeeDetail() {
                 onClick={() => navigate(-1)}>
                     돌아가기
                 </button>
-                <button type="button"
+                <button type="button" className="btnPrimary"
                 onClick={() => navigate(`/employee/edit/${empNo}`)}>
                     편집
                 </button>

@@ -25,10 +25,10 @@
 .reservation-schedule-header h2 {
     margin: 12px 0 8px;
 
-    font-size: 28px;
+    font-size: var(--wf-fs-page-title);
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-schedule-header p {
@@ -36,7 +36,7 @@
 
     font-size: 14px;
 
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 .reservation-schedule-back {
@@ -46,7 +46,7 @@
 
     background: none;
 
-    color: #666;
+    color: var(--wf-text-secondary);
 
     font-size: 13px;
 
@@ -54,7 +54,7 @@
 }
 
 .reservation-schedule-back:hover {
-    color: #2563eb;
+    color: var(--wf-primary);
 }
 
 
@@ -72,11 +72,11 @@
 
     margin-bottom: 20px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
 
     border-radius: 12px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 }
 
 .facility-icon {
@@ -90,9 +90,9 @@
 
     border-radius: 10px;
 
-    background-color: #eff6ff;
+    background-color: var(--wf-primary-light);
 
-    font-size: 28px;
+    font-size: var(--wf-fs-page-title);
 }
 
 .facility-info {
@@ -106,7 +106,7 @@
 .facility-label {
     font-size: 12px;
 
-    color: #999;
+    color: var(--wf-text-muted);
 }
 
 .facility-info h3 {
@@ -116,13 +116,13 @@
 
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .facility-number {
     font-size: 12px;
 
-    color: #999;
+    color: var(--wf-text-muted);
 }
 
 
@@ -135,11 +135,11 @@
 
     margin-bottom: 15px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
 
     border-radius: 12px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 }
 
 .reservation-date-header {
@@ -159,7 +159,7 @@
 
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-date-header span {
@@ -167,7 +167,7 @@
 
     font-weight: 600;
 
-    color: #2563eb;
+    color: var(--wf-primary);
 }
 
 .reservation-date-selector {
@@ -184,13 +184,13 @@
     width: 38px;
     height: 38px;
 
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
 
-    border-radius: 7px;
+    border-radius: 9px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 
-    color: #555;
+    color: var(--wf-text-secondary);
 
     font-size: 24px;
 
@@ -200,11 +200,11 @@
 }
 
 .reservation-date-selector button:hover {
-    background-color: #f8fafc;
+    background-color: var(--wf-gray-50);
 
-    border-color: #2563eb;
+    border-color: var(--wf-primary);
 
-    color: #2563eb;
+    color: var(--wf-primary);
 }
 
 .reservation-date-selector input {
@@ -212,9 +212,9 @@
 
     padding: 0 14px;
 
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
 
-    border-radius: 7px;
+    border-radius: 9px;
 
     font-size: 14px;
 
@@ -224,7 +224,7 @@
 }
 
 .reservation-date-selector input:focus {
-    border-color: #2563eb;
+    border-color: var(--wf-primary);
 
     box-shadow:
         0 0 0 3px
@@ -247,7 +247,7 @@
 
     font-size: 13px;
 
-    color: #666;
+    color: var(--wf-text-secondary);
 }
 
 .reservation-schedule-legend div {
@@ -268,13 +268,13 @@
 }
 
 .legend-dot.available {
-    border: 2px solid #2563eb;
+    border: 2px solid var(--wf-primary);
 
     box-sizing: border-box;
 }
 
 .legend-dot.reserved {
-    background-color: #d1d5db;
+    background-color: var(--wf-gray-300);
 }
 
 
@@ -285,11 +285,11 @@
 .reservation-schedule-section {
     padding: 24px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
 
     border-radius: 12px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 }
 
 .reservation-schedule-section-header {
@@ -309,13 +309,13 @@
 
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-schedule-section-header span {
     font-size: 12px;
 
-    color: #999;
+    color: var(--wf-text-muted);
 }
 
 
@@ -344,11 +344,11 @@
 
     padding: 0 20px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
 
     border-radius: 8px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 
     text-align: left;
 
@@ -364,9 +364,9 @@
 /* 가능 */
 
 .reservation-time-slot.available:hover {
-    border-color: #93c5fd;
+    border-color: #a9c8ed;
 
-    background-color: #eff6ff;
+    background-color: var(--wf-primary-light);
 
     transform: translateX(2px);
 }
@@ -375,18 +375,18 @@
 /* 선택 */
 
 .reservation-time-slot.selected {
-    border: 2px solid #2563eb;
+    border: 2px solid var(--wf-primary);
 
-    background-color: #eff6ff;
+    background-color: var(--wf-primary-light);
 }
 
 
 /* 예약됨 */
 
 .reservation-time-slot.reserved {
-    background-color: #f8fafc;
+    background-color: var(--wf-gray-50);
 
-    border-color: #e5e7eb;
+    border-color: var(--wf-border);
 
     cursor: not-allowed;
 
@@ -407,11 +407,11 @@
 .time-slot-time strong {
     font-size: 15px;
 
-    color: #333;
+    color: var(--wf-text-primary);
 }
 
 .time-slot-time span {
-    color: #aaa;
+    color: var(--wf-text-muted);
 
     font-size: 13px;
 }
@@ -437,17 +437,17 @@
 
 .reservation-time-slot.available
 .time-slot-status {
-    color: #2563eb;
+    color: var(--wf-primary);
 }
 
 .reservation-time-slot.reserved
 .time-slot-status {
-    color: #9ca3af;
+    color: var(--wf-text-muted);
 }
 
 .reservation-time-slot.selected
 .time-slot-status {
-    color: #2563eb;
+    color: var(--wf-primary);
 }
 
 
@@ -470,7 +470,7 @@
 
     border-radius: 12px;
 
-    background-color: #f8fafc;
+    background-color: var(--wf-gray-50);
 }
 
 .reservation-selected-section > div {
@@ -484,18 +484,18 @@
 .reservation-selected-section span {
     font-size: 12px;
 
-    color: #999;
+    color: var(--wf-text-muted);
 }
 
 .reservation-selected-section strong {
     font-size: 15px;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-selected-section
 strong.not-selected {
-    color: #999;
+    color: var(--wf-text-muted);
 
     font-weight: 500;
 }
@@ -514,11 +514,11 @@ strong.not-selected {
 
     border: none;
 
-    border-radius: 7px;
+    border-radius: 9px;
 
-    background-color: #2563eb;
+    background-color: var(--wf-primary);
 
-    color: #fff;
+    color: #ffffff;
 
     font-size: 14px;
 
@@ -530,11 +530,11 @@ strong.not-selected {
 }
 
 .reservation-next-button:hover {
-    background-color: #1d4ed8;
+    background-color: var(--wf-primary-dark);
 }
 
 .reservation-next-button:disabled {
-    background-color: #cbd5e1;
+    background-color: var(--wf-gray-300);
 
     cursor: not-allowed;
 }
@@ -563,16 +563,16 @@ strong.not-selected {
 
     font-size: 14px;
 
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 .loading-spinner {
     width: 28px;
     height: 28px;
 
-    border: 3px solid #e5e7eb;
+    border: 3px solid var(--wf-border);
 
-    border-top-color: #2563eb;
+    border-top-color: var(--wf-primary);
 
     border-radius: 50%;
 
@@ -605,7 +605,7 @@ strong.not-selected {
 
     text-align: center;
 
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 .reservation-schedule-error h2 {
@@ -613,7 +613,7 @@ strong.not-selected {
 
     font-size: 20px;
 
-    color: #333;
+    color: var(--wf-text-primary);
 }
 
 .reservation-schedule-error p {
@@ -625,21 +625,21 @@ strong.not-selected {
 .reservation-schedule-error button {
     padding: 10px 18px;
 
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
 
-    border-radius: 7px;
+    border-radius: 9px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 
-    color: #555;
+    color: var(--wf-text-secondary);
 
     cursor: pointer;
 }
 
 .reservation-schedule-error button:hover {
-    border-color: #2563eb;
+    border-color: var(--wf-primary);
 
-    color: #2563eb;
+    color: var(--wf-primary);
 }
 
 

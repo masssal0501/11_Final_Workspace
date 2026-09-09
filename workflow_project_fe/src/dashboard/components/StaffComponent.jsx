@@ -302,7 +302,7 @@ function StaffComponent(props) {
                 <table className="table table-hover">
                     <tbody>
                         { data.noticeData.length === 0 ? (
-                                <tr style={ { cursor : "auto", backgroundColor: "white"} }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="4" >
                                         등록된 공지사항이 없습니다.
                                     </td>
@@ -373,7 +373,7 @@ function StaffComponent(props) {
                                 </tr>
                             ))
                         ) : (
-                            <tr style={ { cursor : "auto", backgroundColor : "white" } }>
+                            <tr className="wf-empty-row">
                                 <td colSpan="6">예약 건이 없습니다.</td>
                             </tr>
                         )}

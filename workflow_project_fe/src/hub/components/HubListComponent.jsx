@@ -252,9 +252,9 @@ function HubListComponent(props) {
                 <tbody> 
                     {/* 서버로부터 받아와서 생성한 실제 아이템 컴포넌트들(HubItemComponent)이 이 자리에 뿌려집니다. */}
                     { dataList.length > 0 ? (dataList) : (
-                        <tr className="not-found">
+                        <tr className="not-found wf-empty-row">
                             <td>
-                                <h3><b><mark>조회된 거점이 존재하지 않습니다.</mark></b></h3>
+                                조회된 거점이 존재하지 않습니다.
                             </td>
                         </tr>
                     ) }

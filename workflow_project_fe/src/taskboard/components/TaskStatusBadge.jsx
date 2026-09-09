@@ -1,4 +1,5 @@
 import React from "react";
+import "../styles/TaskStatusBadge.css";
 
 //1. 상태 명칭기반 매핑 
 const statusConfigMap = {
@@ -54,7 +55,7 @@ function TaskStatusBadge({ status, progress }) {
     }
 
     return (
-        <span className={`status-badge ${badgeClass}`} >
+        <span className={`task-status-badge ${badgeClass}`} >
             {displayStatus}
         </span>
     );

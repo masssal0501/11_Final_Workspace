@@ -77,7 +77,7 @@ function TaskDetailComponent() {
 
     //return구문
     return (
-        <div style={{ width: "1000px" }}>
+        <div className="task-detail-page" style={{ width: "1000px" }}>
 
             <h2 align="center">업무</h2>
 
@@ -117,7 +117,7 @@ function TaskDetailComponent() {
                         <tr>
                             <td colSpan={4} style={{ height: "250px" }}>
                                 <textarea
-                                    className="content-area"
+                                    className="task-content-area"
                                     value={task.taskContent || ''}
                                     readOnly
                                 />

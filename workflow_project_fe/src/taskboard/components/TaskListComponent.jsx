@@ -213,7 +213,7 @@ function TaskListComponent() {
             </div>
             <br /><br />
             {/* 게시글 목록을 보여주는 리스트 영역 */}
-            <table className="list-area">
+            <table className="task-list-table">
                 <thead>
                     <tr>
                         <th width="150">번호</th>

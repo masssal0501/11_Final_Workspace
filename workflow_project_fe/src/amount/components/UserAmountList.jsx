@@ -246,7 +246,7 @@ export default function UserAmountList({
 
       <span
         className={
-          `status-badge status-${status || 'UNKNOWN'}`
+          `amount-status-badge status-${status || 'UNKNOWN'}`
         }
       >
 

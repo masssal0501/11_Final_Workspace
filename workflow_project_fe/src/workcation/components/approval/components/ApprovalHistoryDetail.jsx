@@ -48,7 +48,7 @@ function ApprovalHistoryDetail() {
 
 
     return (
-        <div className="rejectPage">
+        <div className="historyDetailPage">
 
             <h3>승인 이력 상세</h3>
 
@@ -162,7 +162,7 @@ function ApprovalHistoryDetail() {
                 <h5>업무 계획</h5>
 
 
-                <div className="planBox">
+                <div className="historyPlanBox">
                     {workcationInfo.workPlan || "-"}
 
                 </div>
@@ -180,7 +180,7 @@ function ApprovalHistoryDetail() {
 
                     <h5>반려 사유</h5>
 
-                    <div className="planBox">
+                    <div className="historyPlanBox">
                         {workcationInfo.approverComment}
                     </div>
 

@@ -179,7 +179,7 @@ function AdminComponent() {
                                     </tr>
                                 ))
                             ) : (
-                                <tr>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">승인 대기 건이 없습니다.</td>
                                 </tr>
                             )}
@@ -200,7 +200,7 @@ function AdminComponent() {
                 <table className="table table-hover">
                     <tbody>
                         { data.noticeData.length === 0 ? (
-                                <tr style={ { cursor : "auto", backgroundColor: "white"} }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5" >
                                         등록된 공지사항이 없습니다.
                                     </td>

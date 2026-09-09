@@ -1,11 +1,65 @@
 .content-area {
-    width: 1000px;
+    width: 100%;
+    max-width: 1000px;
+
+    margin: 32px auto 48px;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
+
+    box-shadow: var(--wf-shadow-sm);
+
+    padding: 32px;
+
+    box-sizing: border-box;
+}
+
+.content-area h2 {
+    color: var(--wf-text-primary);
+
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
 }
 
 /*정렬용 컨테이너*/
 .task-btnset {
     display: flex;
     justify-content: center;
+}
+
+.task-list-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+}
+
+.task-list-table thead th {
+    padding: 13px 12px;
+
+    background: var(--wf-table-header-bg);
+
+    border-bottom: 1px solid var(--wf-border);
+
+    color: var(--wf-text-secondary);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-align: center;
+}
+
+.task-list-table tbody td {
+    padding: 13px 12px;
+
+    border-bottom: 1px solid var(--wf-border);
+
+    color: var(--wf-text-primary);
+
+    text-align: center;
 }
 
 /*폼 내부 요소*/
@@ -17,70 +71,81 @@
 
 /*드롭다운 전체박스*/
 .list-drop {
-    height: 45px;
-    border-radius: 8px;
-    border: 1px solid #27C7B9;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 6px;
+    height: 42px;
+    border-radius: 9px;
+    border: 1px solid var(--wf-gray-300);
+    padding: 0 8px;
     min-width: 100px;
+
+    color: var(--wf-text-primary);
+
+    outline: none;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /*클릭시*/
 
 .list-drop:hover {
-    background-color: #27C7B9 !important;
-    border-color: #27C7B9 !important;
-    color: #010101 !important;
+    border-color: var(--wf-primary);
 }
 
 /*클릭후 스타일유지*/
 .list-drop:focus {
-    background-color: #f8fafa !important;
+    border-color: var(--wf-primary);
 
+    box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
 }
 
 /*검색창*/
 .search-input {
     border-radius: 9px;
-    background-color: #f1f3f5;
-    border: none;
-    height: 45px;
+    background-color: #ffffff;
+    border: 1px solid var(--wf-gray-300);
+    height: 42px;
     width: 400px;
     padding-left: 16px;
     padding-right: 16px;
+
+    outline: none;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /*검색창 활성화시 아웃라인 커스텀*/
 .search-input:focus {
-    outline: none;
-    border: 1.5px solid #27C7B9;
+    border-color: var(--wf-primary);
+
+    box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
 }
 
 .search-btn {
     /*검색버튼*/
     border: none;
-    background-color: #f1f3f5;
-    border-radius: 8px;
+    background-color: var(--wf-primary);
+    border-radius: 9px;
     padding: 0 10px;
-    font-size: 18px;
-    color: #333;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
     width: 80px;
-    height: 45px;
+    height: 42px;
+
+    transition: background-color 0.2s ease;
 }
 
-.list-area tbody tr {
+.task-list-table tbody tr {
     transition: background-color 0.2s ease-in-out;
+
+    cursor: pointer;
 }
 
-.list-area tbody tr:hover {
-    cursor: pointer;
-    background-color: rgba(204, 204, 204, 0.281);
+.task-list-table tbody tr:hover {
+    background-color: var(--wf-row-hover);
 }
 
 .search-btn:hover {
-    background-color: #27C7B9;
-    color: #ffffff;
-    transition: background-color 0.25s ease;
+    background-color: var(--wf-primary-dark);
 }
 
 .up-btn button {
@@ -90,15 +155,15 @@
 
 .page-btn {
     /*페이지버튼 박스*/
-    min-width: 45px;
-    height: 45px;
-    margin: 0 4px;
+    min-width: 34px;
+    height: 34px;
+    margin: 0 3px;
     border-radius: 8px;
-    border: none;
-    background-color: #f1f3f5;
-    color: #333333;
-    font-weight: 700;
-    font-size: 14px;
+    border: 1px solid var(--wf-gray-300);
+    background-color: #ffffff;
+    color: var(--wf-text-secondary);
+    font-weight: 600;
+    font-size: 13px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -106,55 +171,20 @@
 }
 
 .page-btn:hover {
-    background-color: #27C7B9;
-    color: #ffffff;
+    background-color: var(--wf-gray-50);
 }
 
 .page-btn.active {
     /*선택된 페이지 강조*/
-    background-color: #27C7B9;
+    background-color: var(--wf-primary);
+    border-color: var(--wf-primary);
     color: #ffffff;
 }
 
-page-btn:focus {
+.page-btn:focus {
     box-shadow: none !important;
     outline: none !important;
 }
 
 
-.status-badge {
-    /*진행도뱃지*/
-    margin: auto;
-    display: inline-flex;
-    padding: 6px 14px;
-    border-radius: 20px;
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-/*업무준비*/
-.status-gray {
-    background-color: rgb(117, 117, 117);
-}
-
-/*1~50*/
-.status-red {
-    background-color: red;
-}
-
-/*51-100*/
-.status-yellow {
-    background-color: rgb(255, 166, 0);
-}
-
-/*완료요청*/
-.status-blue {
-    background-color: rgb(31, 121, 255);
-}
-
-/*업무 완료*/
-.status-green {
-    background-color: rgb(1, 177, 39);
-}
+/* 진행도 뱃지 색상은 TaskStatusBadge.css에서 공통으로 관리한다 (중복 제거) */
