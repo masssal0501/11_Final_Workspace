@@ -142,8 +142,8 @@ function Header({ loginUser, onLogout }) {
 
       children: [ 
         { 
-          label: "장소 정보", 
-          path: "/hub/list" 
+          label: "장소 정보 등록", 
+          path: "/workflow/place/Form" 
         }, 
         { 
           label: "AI 여행 일정 추천", 
