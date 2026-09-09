@@ -34,12 +34,16 @@ function MyWorkcationDetailFormComponent() {
 
     if (!detailData) {
         return (
-            <div className="my-workcation-detail-container">
-                <h2 align="center">내 워케이션</h2>
-                <p align="center" style={{ marginTop: "30px", color: "#666" }}>
-                    등록된 워케이션 내역이 없습니다.
-                </p>
-            </div>
+            <main className="wf-container">
+                <section className="wf-page-header">
+                    <div>
+                        <h1 className="wf-page-title">내 워케이션</h1>
+                    </div>
+                </section>
+                <div className="wf-state">
+                    <span className="wf-state-title">등록된 워케이션 내역이 없습니다.</span>
+                </div>
+            </main>
         );
     }
 
@@ -166,13 +170,18 @@ function MyWorkcationDetailFormComponent() {
     const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     return (
-        <div className="my-workcation-detail-container">
-            <div className="detail-top-nav">
-                <h2 align="center">내 워케이션 내용</h2>
-                <button className="back-list-btn" onClick={() => navigate('/workcation/mylist')}>
-                    목록으로
-                </button>
-            </div>
+        <main className="wf-container my-workcation-detail-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">내 워케이션</h1>
+                    <p className="wf-page-description">업무 진행 상황을 기록하고 결과를 관리합니다.</p>
+                </div>
+                <div className="wf-page-actions">
+                    <button className="btn btn-secondary" onClick={() => navigate('/workcation/mylist')}>
+                        목록으로
+                    </button>
+                </div>
+            </section>
 
             <div className="workcation-info-card">
                 <div className="info-row-top">
@@ -239,13 +248,13 @@ function MyWorkcationDetailFormComponent() {
                 {approverState === "A" && (
                     <button
                         type="button"
-                        className="back-list-btn"
+                        className="btn btn-outline-primary"
                         onClick={() => navigate(`/survey/${detailWorkcationNo}`)}
                     >
                         만족도 조사 작성
                     </button>
                 )}
-                <button type="button" className="delete-workcation-btn" onClick={handleDelete}>
+                <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
                     워케이션 취소/삭제
                 </button>
             </div>
@@ -259,6 +268,7 @@ function MyWorkcationDetailFormComponent() {
 
                             <button
                                 type="button"
+                                aria-label="닫기"
                                 onClick={() => setSelectedTask(null)}
                             >
                                 ×
@@ -375,6 +385,7 @@ function MyWorkcationDetailFormComponent() {
                         <div className="task-modal-buttons">
                             <button
                                 type="button"
+                                className="btn btn-secondary"
                                 onClick={() => setSelectedTask(null)}
                             >
                                 취소
@@ -382,6 +393,7 @@ function MyWorkcationDetailFormComponent() {
 
                             <button
                                 type="button"
+                                className="btn btn-primary"
                                 onClick={handleTaskSave}
                             >
                                 저장
@@ -392,7 +404,7 @@ function MyWorkcationDetailFormComponent() {
                 </div>
             )}
 
-        </div >
+        </main>
     );
 }
 

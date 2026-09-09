@@ -729,93 +729,55 @@ export default function UserAmountList({
   // 로딩
   // =========================================================
 
-  if (loading) {
-
-    return (
-
-      <div className="amount-container">
-
-        <div className="amount-loading">
-
-          비용 정산 신청 내역을
-          불러오는 중입니다...
-
-        </div>
-
-      </div>
-
-    );
-
-  }
-
-
   // =========================================================
   // 화면
   // =========================================================
 
   return (
 
-    <div className="amount-container">
+    <main className="amount-container">
 
 
       {/* =====================================================
           헤더
       ====================================================== */}
 
-      <div className="amount-header">
+      <section className="wf-page-header">
 
-        <h2 className="amount-title">
+        <div>
+          <h1 className="wf-page-title">비용 정산</h1>
+          <p className="wf-page-description">
+            워케이션 번호 <strong>{workcationNo || '-'}</strong>의 비용 정산 신청 내역입니다.
+          </p>
+        </div>
 
-          내 비용 정산 신청 내역
+        <div className="wf-page-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleApply}
+          >
 
-        </h2>
+            + 비용 신청하기
 
+          </button>
+        </div>
 
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={handleApply}
-        >
+      </section>
 
-          + 비용 신청하기
-
-        </button>
-
-      </div>
-
-
-      {/* =====================================================
-          워케이션 번호
-      ====================================================== */}
-
-      <div
-        style={{
-          marginBottom: '15px',
-          fontSize: '14px',
-          color: '#666'
-        }}
-      >
-
-        워케이션 번호 :
-
-        <strong
-          style={{
-            marginLeft: '5px'
-          }}
-        >
-
-          {workcationNo || '-'}
-
-        </strong>
-
-      </div>
+      {loading && (
+        <div className="wf-state">
+          <div className="wf-spinner" />
+          <span className="wf-state-title">비용 정산 신청 내역을 불러오는 중입니다.</span>
+        </div>
+      )}
 
 
       {/* =====================================================
           비용 신청 목록
       ====================================================== */}
 
-      <table className="amount-table">
+      {!loading && <table className="amount-table">
 
         <thead>
 
@@ -859,12 +821,9 @@ export default function UserAmountList({
 
           {amounts.length === 0 ? (
 
-            <tr>
+            <tr className="wf-empty-row">
 
-              <td
-                colSpan="6"
-                className="text-center"
-              >
+              <td colSpan="6">
 
                 신청 내역이 없습니다.
 
@@ -982,7 +941,7 @@ export default function UserAmountList({
 
                         <button
                           type="button"
-                          className="btn btn-edit"
+                          className="btn btn-sm btn-outline-primary"
                           onClick={() =>
                             handleEdit(item)
                           }
@@ -995,7 +954,7 @@ export default function UserAmountList({
 
                         <button
                           type="button"
-                          className="btn btn-cancel"
+                          className="btn btn-sm btn-outline-danger"
                           onClick={() =>
                             handleCancel(item)
                           }
@@ -1029,28 +988,22 @@ export default function UserAmountList({
 
         </tbody>
 
-      </table>
+      </table>}
 
 
       {/* =====================================================
           안내
       ====================================================== */}
 
-      <div
-        style={{
-          marginTop: '12px',
-          fontSize: '13px',
-          color: '#777'
-        }}
-      >
-
-        ※ 검토중 또는 보류 상태의 신청만
-        수정 및 취소할 수 있습니다.
-
-      </div>
+      {!loading && (
+        <p className="wf-help-text" style={{ marginTop: '12px' }}>
+          ※ 검토중 또는 보류 상태의 신청만
+          수정 및 취소할 수 있습니다.
+        </p>
+      )}
 
 
-    </div>
+    </main>
 
   );
 

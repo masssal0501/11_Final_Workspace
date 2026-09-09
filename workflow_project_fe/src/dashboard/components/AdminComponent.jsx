@@ -135,7 +135,16 @@ function AdminComponent() {
     };
 
     return(
-        <div className="dashboard-content">
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">대시보드</h1>
+                    <p className="wf-page-description">전사 워케이션 현황, 승인 대기 및 예산 통계를 한눈에 확인합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="dashboard-content">
             {/* 대시보드 상단 타이틀 */}
             <div className="dashboard-1" align="center">이번달 워케이션 현황</div>
             <br />
@@ -175,7 +184,7 @@ function AdminComponent() {
                                         <td>{item.depTitle}</td>
                                         <td>{item.mainRegion}</td>
                                         <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
-                                        <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
+                                        <td>{ (item.approverState === "W") && <span className="badge bg-warning">대기</span>}</td>
                                     </tr>
                                 ))
                             ) : (
@@ -377,7 +386,9 @@ function AdminComponent() {
                 </div>
 
             </div>
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

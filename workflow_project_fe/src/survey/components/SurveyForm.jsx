@@ -77,31 +77,49 @@ function SurveyForm() {
 
     if (loading) {
         return (
-            <div className="survey-container">
-                <h2 align="center">워케이션 만족도 조사</h2>
-            </div>
+            <main className="wf-container">
+                <div className="survey-container">
+                    <div className="wf-state">
+                        <div className="wf-spinner" />
+                        <div className="wf-state-title">만족도 조사 정보를 불러오는 중입니다.</div>
+                    </div>
+                </div>
+            </main>
         );
     }
 
     if (!status?.available) {
         return (
-            <div className="survey-container">
-                <h2 align="center">워케이션 만족도 조사</h2>
-                <div className="survey-message-box">
-                    {status?.message || "지금은 만족도 조사를 작성할 수 없습니다."}
+            <main className="wf-container">
+                <div className="survey-container">
+                    <section className="wf-page-header">
+                        <div>
+                            <h1 className="wf-page-title">워케이션 만족도 조사</h1>
+                        </div>
+                    </section>
+                    <div className="survey-message-box">
+                        {status?.message || "지금은 만족도 조사를 작성할 수 없습니다."}
+                    </div>
+                    <div className="survey-btn-group">
+                        <button type="button" className="btn btn-secondary" onClick={() => navigate(`/workcation/mydetail/${workcationNo}`)}>
+                            돌아가기
+                        </button>
+                    </div>
                 </div>
-                <div className="survey-btn-group">
-                    <button type="button" onClick={() => navigate(`/workcation/mydetail/${workcationNo}`)}>
-                        돌아가기
-                    </button>
-                </div>
-            </div>
+            </main>
         );
     }
 
     return (
+        <main className="wf-container">
         <div className="survey-container">
-            <h2 align="center">워케이션 만족도 조사</h2>
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">워케이션 만족도 조사</h1>
+                    <p className="wf-page-description">워케이션 경험에 대한 의견을 남겨주세요.</p>
+                </div>
+            </section>
 
             {questions.map(question => (
                 <div className="survey-question-box" key={question.questionNo}>
@@ -135,14 +153,15 @@ function SurveyForm() {
             ))}
 
             <div className="survey-btn-group">
-                <button type="button" onClick={() => navigate(`/workcation/mydetail/${workcationNo}`)}>
+                <button type="button" className="btn btn-secondary" onClick={() => navigate(`/workcation/mydetail/${workcationNo}`)}>
                     취소
                 </button>
-                <button type="button" onClick={handleSubmit}>
+                <button type="button" className="btn btn-primary" onClick={handleSubmit}>
                     제출하기
                 </button>
             </div>
         </div>
+        </main>
     );
 }
 

@@ -818,3 +818,65 @@ STEP 9에서 "낮은 우선순위, 원인 미조사"로 남겨둔 항목들을 �
 
 #### 사용자 확인 필요
 - **없음** — 이번 작업은 전부 요구사항 27번(최소 변경) 원칙 내에서 처리 가능했고, DB/API 계약/JWT 구조 변경 없이 완료.
+
+## 2026-09-10 (16차 작업 — WorkFlow ERP 전체 화면 UI/UX 구조 개선, 이전 세션의 rate-limit 중단 작업 이어받아 완료)
+
+사용자 원본 지시: "WorkFlow ERP 프로젝트의 기존 화면을 전반적으로 점검하고, UI/UX 관점에서 사용하기 편하고 완성도 높은 화면이 되도록 HTML/JSX 구조를 개선해줘. 기능은 그대로 유지." — 이전 세션이 rate-limit로 중단되며 38개 파일(미커밋)을 남겼고, 이번 세션은 그 작업을 이어받아 나머지 미착수 도메인을 마무리했다.
+
+### [작업 완료]
+
+#### 시작 시점 상태 확인
+- `git status`/`git diff --stat`로 이전 세션이 남긴 38개 파일(amount/dashboard/employee/notice/reservation/workcation/approval 도메인, `common/styles/common.css`에 `--wf-*` 디자인 토큰 및 `wf-container`/`wf-page-header`/`wf-page-title`/`wf-page-description`/`wf-page-actions`/`wf-table-wrap`/`wf-badge`/`wf-state`/`wf-modal` 등 공용 클래스 확립)을 확인, `npm run build` PASS 재확인 후 시작
+- 기존 38개 파일 대비 아직 손대지 않은 도메인을 spec §19 체크리스트와 대조해 확인: `hub/`, `place/`, `survey/`, `taskboard/`(업무 관리), `pages/amount/StatisticsPage.jsx`(정산), `common/components/`(Header/Footer/ErrorPage/LocationCheckModal)
+
+#### 수정 내용 — 구조/스타일 개선 (기능 변경 없음)
+이미 확립된 `wf-container`/`wf-page-header`(`wf-page-title`+`wf-page-description`+`wf-page-actions`)/`wf-page-content` 시맨틱 구조 컨벤션을 그대로 따라 나머지 도메인에 적용:
+
+1. **`taskboard/`(업무 관리)** — `TaskListComponent.jsx`/`TaskDetailComponent.jsx`를 page-header 구조로 재정리, 빈 목록 상태 문구 추가, `TaskList.css`에 `.paging-area` 정렬 규칙 신규(기존엔 `align="center"` HTML 속성에만 의존하던 것을 CSS로 이관). `TaskStatusBadge`는 이미 배지 패턴이 완비되어 있어 무변경.
+2. **`hub/`(거점)** — `HubListComponent`/`HubDetailComponent`/`HubEnrollFormComponent`/`HubUpdateFormComponent`/`AIComponent` 5개 페이지 전부 page-header 구조 적용, 운영상태 텍스트를 `wf-badge`로 전환, 목록의 주요 액션(AI추천/지역정보로/거점등록)을 `wf-page-actions`로 통합.
+3. **`place/`(지역 정보)** — `PlaceList`/`PlaceDetail`/`PlaceForm`/`PlaceEdit` page-header 구조 적용, 운영상태 배지화, 빈 상태 UI(`wf-state`) 적용. `PlaceEdit.jsx`는 CSS import조차 없이 `<h4>`/무클래스 `<button>`으로만 되어 있던 것을 `wf-form-group`/`wf-label`/`wf-input`/`wf-select`/`wf-textarea`/`btn btn-primary`/`btn btn-secondary`로 전면 정리(라벨-인풋 연결 `htmlFor`/`id` 추가 포함).
+4. **`pages/amount/StatisticsPage.jsx`(정산, 1047줄)** — 로딩/에러/정상 3개 반환 분기 전부 page-header 구조 + `wf-state` 적용. 내부 KPI 카드/차트(recharts)는 기존 전용 CSS가 이미 `--wf-*` 토큰으로 잘 구성되어 있어 구조만 감싸고 내용은 무변경.
+5. **`survey/components/SurveyForm.jsx`(만족도 조사)** — page-header 구조 적용, 로딩 상태를 `wf-state`+스피너로 개선, 액션 버튼(`취소`/`제출하기`/`돌아가기`)이 클래스 없이 기본 브라우저 버튼으로 렌더링되던 것을 `btn btn-primary`/`btn btn-secondary`로 통일.
+6. **`common/components/`** — `Header.jsx`/`Footer.jsx`/`ErrorPage.jsx`/`LocationCheckModal.jsx`는 이전 CSS 통일 세션(`9970470`)에서 이미 `--wf-*` 토큰 기반으로 정리되어 있고 구조도 이미 spec에 부합(LocationCheckModal은 이미 modal-header/body/footer 패턴 완비)해 추가 구조 변경 불필요함을 확인. Header.jsx는 아래 버그 수정만 반영.
+
+#### 추가로 발견해 수정한 실제 버그 (구조 개선 작업 중 브라우저 검증으로 발견)
+로컬 백엔드(포트 8006, MySQL 로컬 DB) + 프론트 dev 서버를 실제로 기동해 Claude Browser로 새로 만진 페이지들을 하나씩 열어보며 검증하던 중, 이번 세션 작업과 무관한 기존 버그 3종을 발견해 함께 수정했다(전부 "화면이 깨지거나 기능을 쓸 수 없는" P0급 문제라 이번 작업 범위인 "화면이 깨지는 문제" 수정에 해당한다고 판단, JSX 구조/CSS 외의 최소한의 로직 수정만 포함):
+
+1. **`HubItemComponent.jsx` 크래시 버그**: 첨부 이미지가 없는 거점을 목록에서 렌더링할 때 `item.hubFileList[0].filePath`를 방어 코드 없이 접근해 `Cannot read properties of undefined (reading 'filePath')`로 React 트리 전체가 언마운트되며 **거점 목록 화면이 통째로 빈 화면이 되는 것을 실제 브라우저에서 재현**. `item.hubFileList && item.hubFileList.length > 0` 가드 추가로 해결(이미지 없으면 렌더링만 생략, 기능 변경 없음).
+2. **거점(`hub/`) ↔ 지역정보(`place/`) 간 `navigate()` 경로 불일치**: `App.jsx`의 실제 등록 라우트는 `/workflow/place/list`·`/workflow/place/detail/:hubNo`·`/workflow/place/edit/:hubNo`인데, `HubListComponent.jsx`(`"/place/list"`)·`HubDetailComponent.jsx`/`HubUpdateFormComponent.jsx`(`"/placeInfo/list"`)·`PlaceItem.jsx`(`/place/detail/...`)·`PlaceDetail.jsx`(`/place/.../edit`)·`PlaceForm.jsx`(`"/place"`)·`PlaceEdit.jsx`(`/place/...`) 전부가 존재하지 않는 경로 문자열을 쓰고 있어 클릭 시 전부 `ErrorPage`로 튕기던 것을 실제 클릭으로 재현(지역정보 카드 클릭 → 상세 진입 자체가 불가능했음). 각 파일의 `navigate()` 대상 문자열만 실제 등록된 라우트로 수정(라우터 구조 자체는 무변경).
+3. **`Header.jsx` 상단 네비 "거점 등록" 메뉴 경로 오류**: `path: "/placeInfo/enrollForm"`로 등록돼 있었으나 해당 라우트가 `App.jsx`에 존재하지 않아(`/hub/enrollForm`이 실제 라우트) ADMIN이 상단 메뉴로 거점 등록에 진입할 수 없었음 — `/hub/enrollForm`으로 수정.
+
+#### 발견했으나 이번 세션 범위 밖으로 판단해 수정하지 않은 버그 (TODO로 기록)
+- **`PlaceDetail.jsx`/`PlaceEdit.jsx`의 `localStorage.getItem("role")` 참조**: 저장소 전체를 grep한 결과 `localStorage.setItem("role", ...)`을 호출하는 코드가 단 한 곳도 없어(로그인 시 저장되는 키는 `accessToken`/`user`뿐, 다른 모든 컴포넌트는 `JSON.parse(localStorage.getItem('user'))?.authCode === 'ADMIN'` 패턴 사용) `role` 값이 항상 `null`이다. 그 결과 `isAdmin`이 항상 `false`가 되어 **`PlaceDetail.jsx`의 "수정하기" 버튼은 실제 ADMIN 계정으로 로그인해도 절대 노출되지 않고, `PlaceEdit.jsx`는 페이지 진입 즉시 `alert` 후 강제로 이전 페이지로 튕겨나가 항상 접근 불가능한 상태**임을 실제 admin 계정으로 로그인해 브라우저로 직접 재현·확인했다. 이번 세션은 "JSX 구조 + CSS만, 권한 처리 로직은 유지"가 명시적 범위라 권한 체크 로직 자체를 바꾸는 것은 범위를 벗어난다고 판단해 손대지 않고 TODO로만 기록.
+
+#### 검증
+- `npm run build`: 매 도메인 수정 직후 및 최종적으로 총 6회 **PASS** 확인(경고는 청크 크기 관련뿐, 기능과 무관)
+- 로컬 백엔드(포트 8006, MySQL) + 프론트 dev 서버(5173) 실제 기동, Claude Browser로 admin 계정 실제 로그인 후 검증:
+  - `/hub/list` — 새 page-header 구조 정상 렌더링, 크래시 버그 수정 후 목록/필터/페이징 전부 정상 동작 확인
+  - `/workflow/place/list` → 카드 클릭 → `/workflow/place/detail/:hubNo` — 신규 수정한 라우팅으로 실제 진입 확인, 빈 사진 상태(`wf-state`)/운영상태 배지(`wf-badge-success` "운영중") 정상 렌더링 확인. "수정하기" 버튼이 admin으로도 노출되지 않는 것을 확인해 위 TODO 항목 실증.
+  - `/task/list` — 신규 page-header 구조 정상 렌더링
+  - `/admin/statistics`(정산) — 신규 page-header 구조 + 기존 KPI 카드 정상 렌더링
+  - `/hub/enrollForm` — Header 메뉴 경로 수정 검증(신규 page-header 구조도 함께 확인)
+- 검증 후 로컬 백엔드 프로세스 종료, 프리뷰 서버 종료(포트 8006 재확인 결과 LISTENING 없음)
+
+#### 변경 파일 (이번 세션에서 추가/수정한 18개 파일, 이전 세션의 38개와 합쳐 총 56개)
+- `workflow_project_fe/src/taskboard/components/TaskListComponent.jsx`, `TaskDetailComponent.jsx`
+- `workflow_project_fe/src/taskboard/styles/TaskList.css`
+- `workflow_project_fe/src/hub/components/HubListComponent.jsx`, `HubDetailComponent.jsx`, `HubEnrollFormComponent.jsx`, `HubUpdateFormComponent.jsx`, `HubItemComponent.jsx`(크래시 버그 수정), `AIComponent.jsx`
+- `workflow_project_fe/src/hub/styles/Hub.css`
+- `workflow_project_fe/src/place/components/PlaceList.jsx`, `PlaceDetail.jsx`, `PlaceForm.jsx`, `PlaceEdit.jsx`, `PlaceItem.jsx`(navigate 경로 수정)
+- `workflow_project_fe/src/pages/amount/StatisticsPage.jsx`
+- `workflow_project_fe/src/survey/components/SurveyForm.jsx`
+- `workflow_project_fe/src/common/components/Header.jsx`(거점 등록 메뉴 경로 수정)
+
+#### 현재 상태
+- spec §19 체크리스트 도메인 전부 구조 개선 완료(공통/사용자/공지/워케이션/업무/예약/비용·정산/대시보드). `npm run build` 최종 PASS.
+- 구조 개선 과정에서 발견한 크래시 버그 1건 + 라우팅 경로 오류 3건은 함께 수정, 권한 로직 버그 1건은 범위 밖으로 판단해 TODO 기록.
+
+#### 남은 문제 (TODO)
+- ⚪ **`PlaceDetail.jsx`/`PlaceEdit.jsx`의 `localStorage.getItem("role")` 버그**: 위 상세 설명대로 지역 정보 수정 기능이 사실상 전원(ADMIN 포함) 접근 불가 상태. `JSON.parse(localStorage.getItem('user'))?.authCode === 'ADMIN'` 패턴으로 교체하는 별도 작업 필요(권한 로직 변경이라 이번 세션 범위 밖).
+- ⚪ P2/P3(타이포그래피 세부 조정, hover/focus 디테일, 반응형 브레이크포인트 전수 테스트)는 시간 관계상 전체 페이지에 균일하게 적용하지 못함 — 우선순위가 높은 P0/P1(구조/배지/빈상태/버튼 클래스) 위주로 처리.
+- ⚪ `pages/notice/*.jsx`(9줄짜리 래퍼 4개)는 내부적으로 이미 구조 개선된 `NoticeList`/`NoticeDetail`/`NoticeInsert`/`NoticeUpdate` 컴포넌트를 그대로 감싸기만 해서 별도 수정 불필요로 판단, 무변경.
+
+#### 사용자 확인 필요
+- **`localStorage.getItem("role")` 버그 수정 여부** — 권한 로직 변경이 필요해 이번 세션에서 임의로 고치지 않음. 수정을 원하면 `PlaceDetail.jsx`/`PlaceEdit.jsx`의 해당 라인을 `JSON.parse(localStorage.getItem('user'))?.authCode === 'ADMIN'`로 교체하는 별도 작업으로 진행 필요.

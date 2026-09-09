@@ -185,6 +185,13 @@ img {
 ======================================== */
 
 .wf-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 16px;
+
   margin-bottom: 28px;
 }
 
@@ -205,6 +212,52 @@ img {
   color: var(--wf-text-muted);
 
   font-size: 14px;
+}
+
+.wf-page-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 10px;
+}
+
+.wf-page-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 24px;
+}
+
+
+/* ========================================
+   Content Section
+   (page-content 내부의 개별 구획 — 목록/폼/상세 정보 등을
+   의미 단위로 나눌 때 사용. wf-card와 함께 써도 되고
+   단독으로 써도 된다.)
+======================================== */
+
+.wf-section {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+.wf-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 12px;
+}
+
+.wf-section-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
 }
 
 
@@ -614,6 +667,22 @@ img {
   margin-top: 4px;
 
   color: var(--wf-danger);
+
+  font-size: 12px;
+}
+
+.wf-required {
+  margin-left: 3px;
+
+  color: var(--wf-danger);
+
+  font-weight: 700;
+}
+
+.wf-help-text {
+  margin-top: 4px;
+
+  color: var(--wf-text-muted);
 
   font-size: 12px;
 }

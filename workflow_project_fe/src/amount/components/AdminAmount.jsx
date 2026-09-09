@@ -695,53 +695,35 @@ export default function AdminAmount() {
 
     return (
 
-        <div className="amount-container">
+        <main className="amount-container">
 
 
             {/* =================================================
                 제목 영역
             ================================================= */}
 
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '15px'
-                }}
-            >
+            <section className="wf-page-header">
 
-                <h2
-                    className="amount-title"
-                    style={{
-                        margin: 0
-                    }}
-                >
-                    비용 정산 결재 관리 (관리자)
-                </h2>
+                <div>
+                    <h1 className="wf-page-title">비용 정산 관리</h1>
+                    <p className="wf-page-description">전사 비용 정산 신청을 검토하고 승인/반려 처리합니다.</p>
+                </div>
 
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() =>
+                            navigate(
+                                '/admin/statistics'
+                            )
+                        }
+                    >
+                        정산 통계 보기
+                    </button>
+                </div>
 
-                <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() =>
-                        navigate(
-                            '/admin/statistics'
-                        )
-                    }
-                    style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#6c757d',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    📊 정산 통계 보기
-                </button>
-
-            </div>
+            </section>
 
 
             {/* =================================================
@@ -1089,7 +1071,7 @@ export default function AdminAmount() {
                 )
             }
 
-        </div>
+        </main>
     );
 }
 

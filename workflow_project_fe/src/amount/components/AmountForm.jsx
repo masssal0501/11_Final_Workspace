@@ -600,11 +600,14 @@ export default function AmountForm({
   // =========================================================
   return (
 
-    <div className="amount-container">
+    <main className="amount-container">
 
-      <h2 className="amount-title">
-        비용 정산 신청
-      </h2>
+      <section className="wf-page-header">
+        <div>
+          <h1 className="wf-page-title">비용 정산 신청</h1>
+          <p className="wf-page-description">지출 항목과 증빙을 입력하여 비용 정산을 신청합니다.</p>
+        </div>
+      </section>
 
 
       <form
@@ -1414,6 +1417,6 @@ export default function AmountForm({
         </div>
 
       </form>
-    </div>
+    </main>
   );
 }

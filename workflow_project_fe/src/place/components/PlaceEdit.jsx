@@ -123,7 +123,7 @@ function PlaceEdit() {
 
             alert("지역 정보가 수정되었습니다.");
 
-            navigate(`/place/${hubNo}`);
+            navigate(`/workflow/place/detail/${hubNo}`);
 
         } catch (error) {
 
@@ -136,21 +136,28 @@ function PlaceEdit() {
     };
 
 
-    if (!place) {
-
-        return <div>로딩중...</div>;
-
-    }
-
-
     return (
 
-        <div className="place-info">
+        <main className="wf-container">
 
-            <h2>지역 정보 수정</h2>
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">지역 정보 수정</h1>
+                    <p className="wf-page-description">등록된 지역 정보를 수정합니다.</p>
+                </div>
+            </section>
 
-            <hr />
+            <div className="wf-page-content">
+            <div className="place-info">
 
+            {!place ? (
+
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <div className="wf-state-title">지역 정보를 불러오는 중입니다.</div>
+                </div>
+
+            ) : (
 
             <form onSubmit={handleSubmit}>
 
@@ -158,13 +165,15 @@ function PlaceEdit() {
 
 
                     {/* 거점 이름 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>거점 이름 : </h4>
+                        <label className="wf-label" htmlFor="hubName">거점 이름</label>
 
                         <input
+                            id="hubName"
                             type="text"
                             name="hubName"
+                            className="wf-input"
                             value={place.hubName || ""}
                             onChange={handleChange}
                         />
@@ -173,12 +182,14 @@ function PlaceEdit() {
 
 
                     {/* 메인 지역 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>지역명 : </h4>
+                        <label className="wf-label" htmlFor="mainRegion">지역명</label>
 
                         <select
+                            id="mainRegion"
                             name="mainRegion"
+                            className="wf-select"
                             value={place.mainRegion || ""}
                             onChange={handleChange}
                         >
@@ -205,12 +216,14 @@ function PlaceEdit() {
 
 
                     {/* 하위 지역 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>상세지역명 : </h4>
+                        <label className="wf-label" htmlFor="subRegion">상세지역명</label>
 
                         <select
+                            id="subRegion"
                             name="subRegion"
+                            className="wf-select"
                             value={place.subRegion || ""}
                             onChange={handleChange}
                             disabled={!place.mainRegion}
@@ -242,12 +255,14 @@ function PlaceEdit() {
 
 
                     {/* 장소 유형 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>장소 유형 : </h4>
+                        <label className="wf-label" htmlFor="hubType">장소 유형</label>
 
                         <select
+                            id="hubType"
                             name="hubType"
+                            className="wf-select"
                             value={place.hubType || ""}
                             onChange={handleChange}
                         >
@@ -274,26 +289,28 @@ function PlaceEdit() {
 
 
                     {/* 운영 상태 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>운영 상태 : </h4>
+                        <label className="wf-label" htmlFor="hubStatus">운영 상태</label>
 
                         <select
+                            id="hubStatus"
                             name="hubStatus"
+                            className="wf-select"
                             value={place.hubStatus || ""}
                             onChange={handleChange}
                         >
 
                             <option value="OPEN">
-                                🟢
+                                🟢 운영중
                             </option>
 
                             <option value="PAUSED">
-                                🟠
+                                🟠 일시중단
                             </option>
 
                             <option value="CLOSED">
-                                🔴
+                                🔴 종료
                             </option>
 
                         </select>
@@ -302,13 +319,15 @@ function PlaceEdit() {
 
 
                     {/* 주소 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>주소 : </h4>
+                        <label className="wf-label" htmlFor="hubAddress">주소</label>
 
                         <input
+                            id="hubAddress"
                             type="text"
                             name="hubAddress"
+                            className="wf-input"
                             value={place.hubAddress || ""}
                             onChange={handleChange}
                         />
@@ -317,13 +336,15 @@ function PlaceEdit() {
 
 
                     {/* 전화번호 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>전화번호 : </h4>
+                        <label className="wf-label" htmlFor="phone">전화번호</label>
 
                         <input
+                            id="phone"
                             type="text"
                             name="phone"
+                            className="wf-input"
                             value={place.phone || ""}
                             onChange={handleChange}
                         />
@@ -332,12 +353,14 @@ function PlaceEdit() {
 
 
                     {/* 설명 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>지역 설명 : </h4>
+                        <label className="wf-label" htmlFor="description">지역 설명</label>
 
                         <textarea
+                            id="description"
                             name="description"
+                            className="wf-textarea"
                             value={place.description || ""}
                             onChange={handleChange}
                         />
@@ -345,11 +368,12 @@ function PlaceEdit() {
                     </div>
 
                     {/* 사진 첨부 */}
-                    <div>
+                    <div className="wf-form-group">
 
-                        <h4>사진 첨부 : </h4>
+                        <label className="wf-label" htmlFor="placeFile">사진 첨부</label>
 
                         <input
+                            id="placeFile"
                             type="file"
                             accept="image/*"
                             onChange={(e) => setFile(e.target.files[0])}
@@ -361,14 +385,15 @@ function PlaceEdit() {
                 </div>
 
 
-                <div>
+                <div className="wf-page-actions">
 
-                    <button type="submit">
+                    <button type="submit" className="btn btn-primary">
                         저장하기
                     </button>
 
                     <button
                         type="button"
+                        className="btn btn-secondary"
                         onClick={() => navigate(-1)}
                     >
                         뒤로가기
@@ -378,7 +403,11 @@ function PlaceEdit() {
 
             </form>
 
-        </div>
+            )}
+
+            </div>
+            </div>
+        </main>
 
     );
 

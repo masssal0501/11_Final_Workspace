@@ -253,59 +253,44 @@ export default function NoticeList() {
     // 로딩
     // =========================================================
 
-    if (loading) {
-
-        return (
-
-            <div className="notice-container">
-
-                <div className="notice-loading">
-
-                    공지사항을 불러오는 중입니다.
-
-                </div>
-
-            </div>
-
-        );
-
-    }
-
-
     // =========================================================
     // 화면
     // =========================================================
 
     return (
 
-        <div className="notice-container">
+        <main className="notice-container">
 
 
             {/* =================================================
                 헤더
             ================================================= */}
 
-            <div className="notice-header">
+            <section className="notice-header wf-page-header">
 
-                <h2>
-                    공지사항
-                </h2>
+                <div>
+                    <h1 className="wf-page-title">공지사항</h1>
+                    <p className="wf-page-description">전사 공지사항을 확인합니다.</p>
+                </div>
 
 
                 {isAdmin && (
 
-                    <button
-                        type="button"
-                        className="notice-btn primary"
-                        onClick={handleInsert}
-                    >
-                        공지사항 등록
-                    </button>
+                    <div className="wf-page-actions">
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleInsert}
+                        >
+                            + 공지사항 등록
+                        </button>
+                    </div>
 
                 )}
 
-            </div>
+            </section>
 
+            <div className="wf-page-content">
 
             {/* =================================================
                 검색창
@@ -318,18 +303,14 @@ export default function NoticeList() {
 
 
                 <select
+                    className="form-select"
+                    style={{ width: '140px' }}
                     value={condition}
                     onChange={(e) =>
                         setCondition(
                             e.target.value
                         )
                     }
-                    style={{
-                        height: '40px',
-                        padding: '0 8px',
-                        borderRadius: '4px',
-                        border: '1px solid #ddd'
-                    }}
                 >
 
                     <option value="title">
@@ -353,6 +334,8 @@ export default function NoticeList() {
 
                 <input
                     type="text"
+                    className="form-control"
+                    style={{ width: '350px' }}
                     placeholder="검색어를 입력해주세요."
                     value={keyword}
                     onChange={(e) =>
@@ -365,6 +348,7 @@ export default function NoticeList() {
 
                 <button
                     type="submit"
+                    className="btn btn-outline-primary"
                 >
                     검색
                 </button>
@@ -377,6 +361,7 @@ export default function NoticeList() {
                 목록
             ================================================= */}
 
+            <div className="notice-table-wrap">
             <table className="notice-table">
 
 
@@ -413,7 +398,19 @@ export default function NoticeList() {
 
 
                     {
-                        noticeList.length === 0
+                        loading
+
+                        ? (
+
+                            <tr>
+                                <td colSpan="5" className="notice-empty">
+                                    공지사항을 불러오는 중입니다.
+                                </td>
+                            </tr>
+
+                        )
+
+                        : noticeList.length === 0
 
                         ?
 
@@ -546,6 +543,7 @@ export default function NoticeList() {
 
 
             </table>
+            </div>
 
 
             {/* =================================================
@@ -699,8 +697,9 @@ export default function NoticeList() {
 
             }
 
+            </div>
 
-        </div>
+        </main>
 
     );
 

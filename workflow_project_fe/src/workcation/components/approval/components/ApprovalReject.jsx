@@ -144,7 +144,14 @@ function ApprovalReject() {
     // 로딩
     if (!workcationInfo) {
 
-        return <div>로딩중...</div>;
+        return (
+            <main className="wf-container">
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <span className="wf-state-title">신청 내역을 불러오는 중입니다.</span>
+                </div>
+            </main>
+        );
 
     }
 
@@ -176,31 +183,48 @@ function ApprovalReject() {
 
     };
 
+    // 상태 배지 색상(표시 전용)
+    const getStatusTone = (state) => {
+        switch (state) {
+            case "A": return "wf-badge-success";
+            case "J": return "wf-badge-danger";
+            case "H": return "wf-badge-neutral";
+            case "R": return "wf-badge-info";
+            case "W":
+            default: return "wf-badge-warning";
+        }
+    };
+
 
     return (
 
-        <div className="rejectPage">
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">승인 및 반려</h1>
+                    <p className="wf-page-description">{workcationInfo.workcationTitle}</p>
+                </div>
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="back-btn"
+                        onClick={() => navigate(-1)}
+                    >
+                        이전으로
+                    </button>
+                    <button
+                        type="button"
+                        className="submit-btn"
+                        onClick={handleSubmit}
+                    >
+                        등록하기
+                    </button>
+                </div>
+            </section>
 
-            <h3>승인 및 반려 페이지</h3>
+            <div className="rejectPage">
 
-            <hr />
-
-
-            {/* 워케이션 제목 */}
-            <div>
-
-                <h2 align="center">
-                    {workcationInfo.workcationTitle}
-                </h2>
-
-            </div>
-
-
-            <br />
-            <br />
-
-
-            {/* 신청자 */}
+            {/* 신청자 / 작성날짜 / 워케이션 기간 */}
             <div align="left">
 
                 <h6>신청자</h6>
@@ -222,9 +246,6 @@ function ApprovalReject() {
             </div>
 
 
-            <br />
-
-
             {/* 작성 날짜 */}
             <div align="left">
 
@@ -235,9 +256,6 @@ function ApprovalReject() {
                 </span>
 
             </div>
-
-
-            <br />
 
 
             {/* 워케이션 기간 */}
@@ -262,9 +280,6 @@ function ApprovalReject() {
             </div>
 
 
-            <br />
-
-
             {/* 워케이션 장소 */}
             <div align="left">
 
@@ -275,9 +290,6 @@ function ApprovalReject() {
                 </span>
 
             </div>
-
-
-            <br />
 
 
             {/* 주소 */}
@@ -292,9 +304,6 @@ function ApprovalReject() {
             </div>
 
 
-            <br />
-
-
             {/* 업무 계획 */}
             <div>
 
@@ -307,13 +316,10 @@ function ApprovalReject() {
             </div>
 
 
-            <br />
-
-
             {/* 상태 */}
             <div>
 
-                <h5>상태</h5>
+                <h5>상태 처리<span className="wf-required">*</span></h5>
 
                 <select
                     name="approverState"
@@ -347,16 +353,21 @@ function ApprovalReject() {
 
                 </select>
 
+                {" "}
+                <span className={`wf-badge ${getStatusTone(approverState)}`}>
+                    현재 선택: {getApprovalStatus(approverState)}
+                </span>
+
             </div>
-
-
-            <br />
 
 
             {/* 반려 사유 */}
             <div>
 
-                <h5>반려 사유</h5>
+                <h5>
+                    반려 사유
+                    {approverState === "J" && <span className="wf-required">*</span>}
+                </h5>
 
                 <textarea
                     className="rejectBox"
@@ -366,50 +377,15 @@ function ApprovalReject() {
                     }
                     placeholder="반려 사유를 입력해주세요."
                 />
+                {approverState === "J" && !approverComment.trim() && (
+                    <p className="wf-error-text">반려 처리 시 사유 입력은 필수입니다.</p>
+                )}
 
             </div>
 
-
-            <br />
-
-
-            {/* 현재 상태 */}
-            <div>
-
-                <h5>
-                    현재 승인 상태 :{" "}
-                    {getApprovalStatus(approverState)}
-                </h5>
-
             </div>
 
-
-            <br />
-
-
-            {/* 버튼 */}
-            <div className="button">
-
-                <button
-                    type="button"
-                    className="submit-btn"
-                    onClick={handleSubmit}
-                >
-                    등록하기
-                </button>
-
-
-                <button
-                    type="button"
-                    className="back-btn"
-                    onClick={() => navigate(-1)}
-                >
-                    이전으로
-                </button>
-
-            </div>
-
-        </div>
+        </main>
 
     );
 

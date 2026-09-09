@@ -2,7 +2,7 @@
 
 > **문서 역할**: 이 문서는 "도메인별 상세 구현 상태"를 기록한다. 전체 요약(Executive Summary)/우선순위 로드맵/최종 시연 시나리오/TOP 10 문제는 `PROJECT_FINAL_STATUS.md`(2026-09-10, 14차 작업)를 참조할 것.
 
-마지막 갱신: 2026-09-10 (15차 작업 — 잘못된 경로/권한없는 URL 직접 접근 시 Error Page 처리 + JWT 만료 자동 로그아웃 버그 수정 완료: `SecurityConfig`에 커스텀 `AuthenticationEntryPoint`(401)/`AccessDeniedHandler`(403) 신규 추가, `App.jsx`에 catch-all 라우트 추가, `axiosInstance.js`에 401/403 응답 인터셉터 + JWT 만료 주기적 선제 확인 추가)
+마지막 갱신: 2026-09-10 (16차 작업 — WorkFlow ERP 전체 화면 UI/UX 구조 개선 완료: `common.css`의 `wf-container`/`wf-page-header`/`wf-badge`/`wf-state` 등 디자인 시스템을 전 도메인(사용자/공지/워케이션/업무/예약/비용·정산/대시보드)에 일관 적용, 크래시 버그 1건(`HubItemComponent`)·라우팅 경로 오류 3건(hub↔place 간 `navigate()` 불일치) 추가 발견·수정)
 
 ## 기술 스택 확정 상태
 
@@ -66,6 +66,7 @@
 - 2026-09-09 (13차): Swagger/OpenAPI 문서화 전체 적용 완료 — 상세는 WORK_LOG.md 13차 작업 참조
 - 2026-09-10 (14차): WorkFlow ERP 종합 현황 문서(`PROJECT_FINAL_STATUS.md`) 신규 작성 — 상세는 WORK_LOG.md 14차 작업 참조
 - 2026-09-10 (15차): 잘못된 경로/권한없는 URL 직접 접근 처리 + JWT 만료 자동 로그아웃 버그 수정 — Backend에 커스텀 `AuthenticationEntryPoint`(401)/`AccessDeniedHandler`(403) 신규 추가로 인증 실패와 인가 실패를 상태코드로 구분, `App.jsx`에 catch-all Route(`path="*"`) 추가로 존재하지 않는 URL/권한없는 URL 직접 접근 시 기존 `ErrorPage`로 이동, `axiosInstance.js`에 401(자동 로그아웃)/403(에러 페이지 이동) 응답 인터셉터 + JWT `exp` 클레임 기반 15초 주기 선제 만료 확인 추가. 로컬 백엔드(JWT 만료시간을 테스트 동안만 20초로 단축, 종료 후 원복) + 실제 브라우저(Claude Browser)로 8개 필수 테스트 시나리오 전부 실제 재현·검증. 상세는 WORK_LOG.md 15차 작업 참조
+- 2026-09-10 (16차): WorkFlow ERP 전체 화면 UI/UX 구조 개선(이전 세션 rate-limit 중단 작업 이어받아 완료) — 이전 세션이 남긴 38개 파일(amount/dashboard/employee/notice/reservation/workcation/approval)에 이어 `taskboard`(업무 관리)/`hub`(거점)/`place`(지역 정보)/`pages/amount/StatisticsPage`(정산)/`survey`(만족도 조사) 5개 도메인 18개 파일에 `wf-container`/`wf-page-header`/`wf-badge`/`wf-state` 등 기확립된 디자인 시스템 컨벤션을 동일하게 적용. 구조 개선 중 실제 브라우저 검증으로 `HubItemComponent.jsx`의 화면 전체 크래시 버그(빈 이미지 배열 미방어)와 hub↔place 간 `navigate()` 경로 불일치 3건(`App.jsx`의 실제 라우트 `/workflow/place/**`와 불일치)을 발견해 함께 수정. `PlaceDetail.jsx`/`PlaceEdit.jsx`가 존재하지 않는 `localStorage.getItem("role")` 키를 참조해 지역 정보 수정 기능이 ADMIN 포함 전원 접근 불가 상태인 것도 발견했으나 권한 로직 변경은 범위 밖으로 판단해 TODO로만 기록. `npm run build` 최종 PASS. 상세는 WORK_LOG.md 16차 작업 참조
 
 ## 신규 확인 필요 항목 (이번 세션에서 새로 발견)
 
@@ -129,6 +130,7 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **STEP 13(Swagger/OpenAPI 문서화) 완료** — `SwaggerConfig`/`SecurityConfig`의 Swagger 관련 설정(JWT SecurityScheme, `/swagger-ui/**`·`/v3/api-docs/**` permitAll)이 이전 세션에서 이미 정상 완료되어 있음을 확인, 나머지 `NoticeController`/`PlaceController`/`ReservationController`/`WorkcationController`(총 29개 API)에 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/`@SecurityRequirement(name="JWT")` 문서화 완료. 실제 로컬 기동 후 `GET /workflow/swagger-ui/index.html`·`GET /workflow/v3/api-docs` 200 확인(59 paths/74 operations/11 태그), JWT 로그인 후 6개 핵심 도메인 GET API(직원/공지사항/거점/워케이션/승인/비용) 전부 200 확인. 남은 TODO였던 두 건(영문 태그 통일, 401/403 미분리)은 STEP 15에서 401/403 분리는 해결됨. 상세는 WORK_LOG.md 13차 작업 참조
 - **STEP 14(WorkFlow ERP 종합 현황 문서화) 완료** — `PROJECT_FINAL_STATUS.md` 신규 작성(Executive Summary/우선순위 로드맵/최종 시연 시나리오/TOP 10 문제 등). 상세는 WORK_LOG.md 14차 작업 참조
 - **STEP 15(잘못된 경로/권한없는 URL 접근 + JWT 만료 자동 로그아웃) 완료** — Frontend Route Guard(catch-all) + Backend Security(401/403 분리, `AuthenticationEntryPoint`/`AccessDeniedHandler` 신규) 양쪽 모두에서 방어, 실제 브라우저로 Test 1~8 전부 검증(+ 403은 로그아웃시키지 않고 에러 페이지로만 이동하는 것도 별도 확인). 상세는 WORK_LOG.md 15차 작업 참조
-- **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행. STEP 15에서 만든 Nginx 배포용 fallback/401·403 처리도 실배포 환경 재검증 필요(로컬에서는 확인 완료)
+- **STEP 16(WorkFlow ERP 전체 화면 UI/UX 구조 개선) 완료** — 이전 세션 rate-limit 중단분(38개 파일)을 이어받아 `taskboard`/`hub`/`place`/`StatisticsPage`/`survey` 5개 도메인 18개 파일에 기확립된 `wf-*` 디자인 시스템 적용. 구조 개선 중 크래시 버그(`HubItemComponent.jsx`)와 라우팅 경로 오류 3건을 실제 브라우저 검증으로 발견·수정. `localStorage.getItem("role")` 권한 버그는 범위 밖으로 판단해 TODO 기록. 상세는 WORK_LOG.md 16차 작업 참조
+- **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행. STEP 15에서 만든 Nginx 배포용 fallback/401·403 처리도 실배포 환경 재검증 필요(로컬에서는 확인 완료). 추가로 STEP 16에서 발견한 `PlaceDetail.jsx`/`PlaceEdit.jsx`의 `localStorage.getItem("role")` 권한 버그 수정 여부 결정 필요
 - 낮은 우선순위 미해결 버그(신규 발견, STEP 11에서 함께 손대지 않음): `WorkcationDao.managerSelectWaitingList()`에 `adminSelectWaitingList()`와 동일한 JOIN 중복 버그 존재(부서장 대시보드 승인대기목록도 예약 2건 이상인 워케이션은 중복 표시될 수 있음) — 이번 버그 리포트 범위 밖이라 미수정
 - 다음 작업 후보(우선순위 낮음): Kakao Maps JS 키 발급/적용, `WorkcationItemComponent.jsx` 지역 드롭다운 경로 버그 수정, `FileRenamePolicy.java`의 `getRealPath()` 리스크 해소, Gemini API 키 회전(git 히스토리 노출분)

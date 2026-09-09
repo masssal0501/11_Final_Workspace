@@ -287,10 +287,29 @@ function PlaceList() {
 
     return (
 
-        <div className="place-list">
+        <main className="wf-container">
 
-            <h2>지역 정보 목록</h2>
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">지역 정보 목록</h1>
+                    <p className="wf-page-description">거점 주변의 체험 프로그램, 맛집, 관광지 정보를 조회합니다.</p>
+                </div>
 
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="btn btn-outline-info"
+                        onClick={() =>
+                            navigate("/placeInfo/ai")
+                        }
+                    >
+                        AI에게 장소 및 일정 추천 받기
+                    </button>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="place-list">
 
             {/* 검색 영역 */}
             <div className="place-search">
@@ -397,17 +416,6 @@ function PlaceList() {
 
                 </div>
 
-
-                {/* AI 추천 */}
-                <button
-                    onClick={() =>
-                        navigate("/placeInfo/ai")
-                    }
-                    className="ai-button"
-                >
-                    AI에게 장소 및 일정 추천 받기
-                </button>
-
             </div>
 
 
@@ -419,15 +427,9 @@ function PlaceList() {
 
                 {placeList.length === 0 ? (
 
-                    <p
-                        style={{
-                            textAlign: "center",
-                            padding: "40px 0",
-                            color: "#777"
-                        }}
-                    >
-                        등록된 지역 정보가 없습니다.
-                    </p>
+                    <div className="wf-state">
+                        <div className="wf-state-title">등록된 지역 정보가 없습니다.</div>
+                    </div>
 
                 ) : (
 
@@ -518,7 +520,9 @@ function PlaceList() {
 
             )}
 
-        </div>
+            </div>
+            </div>
+        </main>
 
     );
 

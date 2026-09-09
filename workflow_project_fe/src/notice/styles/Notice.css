@@ -1,6 +1,15 @@
 .notice-container {
-    width: 1100px;
+    width: 100%;
+    max-width: 1100px;
     margin: 40px auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+/* 좁은 화면에서도 테이블이 잘리지 않고 가로 스크롤되도록 */
+.notice-table-wrap {
+    width: 100%;
+    overflow-x: auto;
 }
 
 

@@ -25,9 +25,14 @@ function WorkcationDetailComponent() {
     }, [workcationNo]);
 
     if (!detailData) {
-        return <div className="workcation-detail-container">
-            <h2 align="center">신청 내역</h2>
-        </div>;
+        return (
+            <main className="wf-container">
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <span className="wf-state-title">워케이션 상세 정보를 불러오는 중입니다.</span>
+                </div>
+            </main>
+        );
     }
 
     const {
@@ -69,6 +74,20 @@ function WorkcationDetailComponent() {
         }
     };
 
+    // 상태 배지 색상 - 기존에는 상태와 무관하게 항상 success(녹색)로 고정 표시되어
+    // 반려/취소 상태도 승인처럼 보이는 문제가 있었다(표시 전용 수정, 데이터/로직 변경 없음).
+    const getStatusTone = (state) => {
+        switch (state) {
+            case "A": return "wf-badge-success";
+            case "J": return "wf-badge-danger";
+            case "C": return "wf-badge-neutral";
+            case "H": return "wf-badge-neutral";
+            case "R": return "wf-badge-info";
+            case "W":
+            default: return "wf-badge-warning";
+        }
+    };
+
     const handleDelete = async () => {
         if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
@@ -87,17 +106,43 @@ function WorkcationDetailComponent() {
     }
 
     return (
-        <div className="workcation-detail-container">
-            <h2 align="center">워케이션 상세 조회</h2>
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">워케이션 상세</h1>
+                    <p className="wf-page-description">신청 정보와 진행 현황을 확인합니다.</p>
+                </div>
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate('/workcation/list')}>
+                        목록으로
+                    </button>
+                </div>
+            </section>
 
-            <div className="common-btn-group">
-                <button
-                    type="button"
-                    className="back-space"
-                    onClick={() => navigate('/workcation/list')}>
-                    뒤로가기
-                </button>
+            {/* 핵심 정보 요약: 상태 / 기간 / 지역 / 인원을 상단에서 바로 확인 */}
+            <div className="wf-card" style={{ padding: "20px 24px", marginBottom: "20px", display: "flex", flexWrap: "wrap", gap: "24px", alignItems: "center" }}>
+                <div>
+                    <div className="wf-desc">신청 상태</div>
+                    <span className={`wf-badge ${getStatusTone(approverState)}`} style={{ marginTop: "4px" }}>{getStatusLabel(approverState)}</span>
+                </div>
+                <div>
+                    <div className="wf-desc">신청기간</div>
+                    <div className="wf-body" style={{ fontWeight: 700 }}>{startDate} ~ {endDate}</div>
+                </div>
+                <div>
+                    <div className="wf-desc">지역</div>
+                    <div className="wf-body" style={{ fontWeight: 700 }}>{mainRegion} {subRegion}</div>
+                </div>
+                <div>
+                    <div className="wf-desc">신청인원</div>
+                    <div className="wf-body" style={{ fontWeight: 700 }}>{peopleCount}명</div>
+                </div>
             </div>
+
+            <div className="wf-page-content">
 
             <table className="workcation-form-table">
                 <tbody>
@@ -121,7 +166,7 @@ function WorkcationDetailComponent() {
                         <th>신청현황</th>
                         <td>
                             <div className="cell-box status-cell-box">
-                                <span className="workcation-status-badge">{getStatusLabel(approverState)}</span>
+                                <span className={`wf-badge ${getStatusTone(approverState)}`}>{getStatusLabel(approverState)}</span>
                             </div>
                         </td>
                     </tr>
@@ -302,14 +347,15 @@ function WorkcationDetailComponent() {
             </div>
 
             <div className="detail-button-area">
-                <button type="button" onClick={handleUpdate}>
+                <button type="button" className="btn btn-outline-primary" onClick={handleUpdate}>
                     수정
                 </button>
-                <button type="button" onClick={handleDelete}>
+                <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
                     삭제
                 </button>
             </div>
-        </div>
+            </div>
+        </main>
     );
 }
 

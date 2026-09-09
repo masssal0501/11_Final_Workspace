@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "../styles/EmployeeEnrollFormComponent.css";
 import {
     getEmployee,
     updateEmployee,
@@ -107,14 +108,28 @@ function EmployeeEdit() {
 
 
     if (!employee) {
-        return <div className="wf-state">직원 정보를 불러오는 중...</div>;
+        return (
+            <main className="wf-container">
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <span className="wf-state-title">직원 정보를 불러오는 중입니다.</span>
+                </div>
+            </main>
+        );
     }
 
 
     return(
-        <div className="enrollForm">
-            <h2>직원 정보 수정</h2>
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">직원 정보 수정</h1>
+                    <p className="wf-page-description">{employee.empName}님의 인사 정보를 수정합니다.</p>
+                </div>
+            </section>
 
+            <div className="wf-page-content">
+            <div className="enrollForm">
             <form onSubmit={handleSubmit}>
 
                 <table>
@@ -257,18 +272,18 @@ function EmployeeEdit() {
                         </tr>
                     </tbody>
                 </table>
-                <button type="button"
+                <button type="button" className="btn btn-secondary"
                 onClick={() => navigate(-1)}>
                     돌아가기
                 </button>
-                <button type="submit">
-                    확인
+                <button type="submit" className="btnPrimary">
+                    저장
                 </button>
 
             </form>
-
-
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

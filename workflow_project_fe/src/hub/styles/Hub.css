@@ -323,3 +323,12 @@
     border-color: var(--wf-primary-dark);
     color: #ffffff;
 }
+
+/** 페이징 버튼 영역 중앙 정렬 */
+.paging-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 24px;
+}

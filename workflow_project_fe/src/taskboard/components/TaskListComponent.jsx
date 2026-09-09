@@ -178,59 +178,79 @@ function TaskListComponent() {
 
     //return 구문
     return (
-        <div className="content-area">
-            <h2 align="center">업무 목록 조회</h2>
+        <main className="wf-container">
 
-            <div className="task-btnset">
+            {/* 페이지 상단 */}
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">업무 관리</h1>
+                    <p className="wf-page-description">등록된 업무 목록과 진행 현황을 확인합니다.</p>
+                </div>
+            </section>
 
-                <form className="search-form">
-                    {/*드롭다운*/}
-                    <select
-                        className="list-drop"
-                        value={searchType}
-                        onChange={(e) => setSearchType(e.target.value)}>
-                        <option value="all">전체</option>
-                        <option value="title">제목</option>
-                        <option value="writer">작성자</option>
-                        <option value="status">진행도</option>
-                    </select>
+            <div className="wf-page-content">
+                <div className="content-area">
 
-                    {/*검색창 */}
-                    <input className="search-input"
-                        type="text"
-                        name="keyword"
-                        placeholder="내용을 입력하세요"
-                        value={keyword}
-                        onChange={handleChange} />
+                    <div className="task-btnset">
 
-                    {/*검색버튼 */}
-                    <button className="search-btn"
-                        type="submit"
-                        onClick={handleClick}>검색
-                    </button>
-                </form>
+                        <form className="search-form">
+                            {/*드롭다운*/}
+                            <select
+                                className="list-drop"
+                                value={searchType}
+                                onChange={(e) => setSearchType(e.target.value)}>
+                                <option value="all">전체</option>
+                                <option value="title">제목</option>
+                                <option value="writer">작성자</option>
+                                <option value="status">진행도</option>
+                            </select>
 
+                            {/*검색창 */}
+                            <input className="search-input"
+                                type="text"
+                                name="keyword"
+                                placeholder="내용을 입력하세요"
+                                value={keyword}
+                                onChange={handleChange} />
+
+                            {/*검색버튼 */}
+                            <button className="search-btn"
+                                type="submit"
+                                onClick={handleClick}>검색
+                            </button>
+                        </form>
+
+                    </div>
+
+                    {/* 게시글 목록을 보여주는 리스트 영역 */}
+                    <div className="wf-table-wrap">
+                        <table className="task-list-table">
+                            <thead>
+                                <tr>
+                                    <th width="150">번호</th>
+                                    <th width="400">제목</th>
+                                    <th width="200">작성자</th>
+                                    <th width="150">진행도</th>
+                                    <th width="200">작성일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dataList.length > 0 ? dataList : (
+                                    <tr className="wf-empty-row">
+                                        <td colSpan={5}>조회된 업무가 없습니다.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* 페이징바 영역 */}
+                    <div className="paging-area">{pageList}</div>
+
+                </div>
             </div>
-            <br /><br />
-            {/* 게시글 목록을 보여주는 리스트 영역 */}
-            <table className="task-list-table">
-                <thead>
-                    <tr>
-                        <th width="150">번호</th>
-                        <th width="400">제목</th>
-                        <th width="200">작성자</th>
-                        <th width="150">진행도</th>
-                        <th width="200">작성일</th>
-                    </tr>
-                </thead>
-                <tbody>{dataList}</tbody>
-            </table>
 
-            {/* 페이징바 영역 */}
-            <div align="center" className="paging-area">{pageList}</div>
-            <br /><br />
-
-        </div>
+        </main>
 
     )
 }

@@ -77,12 +77,17 @@ function TaskDetailComponent() {
 
     //return구문
     return (
-        <div className="task-detail-page" style={{ width: "1000px" }}>
+        <main className="wf-container">
 
-            <h2 align="center">업무</h2>
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">업무 상세</h1>
+                    <p className="wf-page-description">업무의 상세 내용과 진행도를 확인합니다.</p>
+                </div>
+            </section>
 
-            <br /><br />
-            <div>
+            <div className="wf-page-content">
+            <div className="task-detail-page">
                 <table className="table content">
                     <tbody>
                         <tr>
@@ -148,7 +153,8 @@ function TaskDetailComponent() {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </main>
     )
 }
 

@@ -168,11 +168,11 @@ function Header({ loginUser, onLogout }) {
           label: "AI 여행 일정 추천", 
           path: "/placeInfo/ai" 
         },     
-        { 
-          label: "거점 등록", 
-          path: "/placeInfo/enrollForm",
+        {
+          label: "거점 등록",
+          path: "/hub/enrollForm",
           roles:["ADMIN"]
-        } 
+        }
       ]      
     },
     {

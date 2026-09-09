@@ -41,168 +41,111 @@ function ApprovalHistoryDetail() {
 
 
     if (!workcationInfo) {
-        return <div>로딩중...</div>;
+        return (
+            <main className="wf-container">
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <span className="wf-state-title">승인 이력을 불러오는 중입니다.</span>
+                </div>
+            </main>
+        );
     }
 
 
     return (
-        <div className="historyDetailPage">
-
-            <h3>승인 이력 상세</h3>
-
-            <hr />
-
-            <div>
-                <h2 align="center">
-                    {workcationInfo.workcationTitle}
-                </h2>
-            </div>
-            <br />
-
-            {/* 워케이션 기간 */}
-            <div className="workcation-period">
-
-                <h6>워케이션 기간</h6>
-
-                <div className="period-content">
-
-                    <span>
-                        {workcationInfo.startAt?.replace("T", " ") || "-"}
-                    </span>
-
-                    <span>~</span>
-
-                    <span>
-                        {workcationInfo.endAt?.replace("T", " ") || "-"}
-                    </span>
-
-                </div>
-
-            </div>
-
-            <br />
-
-
-
-            <br />
-
-
-            <div align="left">
-                <h6>신청자</h6>
-
-                <span>
-                    {workcationInfo.employee?.deptTitle ||
-                    workcationInfo.employee?.depId ||
-                    "-"}
-                </span>
-
-                &nbsp;-&nbsp;
-
-                <span>
-                    {workcationInfo.employee?.empName || "-"}
-                </span>
-            </div>
-
-            <br />
-
-
-            {/* 작성 날짜 */}
-            <div align="left">
-
-                <h6>작성 날짜</h6>
-
-                <span>
-                    {workcationInfo.createdAt?.replace("T", " ") || "-"}
-                </span>
-
-            </div>
-
-            <br />
-            <br />
-
-            <div align="left">
-                <h6>승인자</h6>
-
-                {workcationInfo.approver ? (
-                    <>
-                        <span>
-                            {workcationInfo.approver?.deptTitle ||
-                            workcationInfo.approver?.depId ||
-                            "-"}
-                        </span>
-
-                        &nbsp;-&nbsp;
-
-                        <span>
-                            {workcationInfo.approver?.empName || "-"}
-                        </span>
-                    </>
-                ) : (
-                    <span>승인자 없음</span>
-                )}
-            </div>
-
-
-            <br />
-
-            <div>
-                <h6>승인 일시</h6>
-                <span>
-                    {workcationInfo.approvetAt?.replace("T", " ") || "-"}
-                </span>
-            </div>
-
-            <br />
-
-            {/* 업무 계획 */}
-            <div>
-
-                <h5>업무 계획</h5>
-
-
-                <div className="historyPlanBox">
-                    {workcationInfo.workPlan || "-"}
-
-                </div>
-
-            </div>
-
-
-            <br />
-
-
-            {/* 반려 사유 */}
-            {workcationInfo.approverComment && (
-
+        <main className="wf-container">
+            <section className="wf-page-header">
                 <div>
+                    <h1 className="wf-page-title">승인 이력 상세</h1>
+                    <p className="wf-page-description">{workcationInfo.workcationTitle}</p>
+                </div>
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate(-1)}
+                    >
+                        이전으로
+                    </button>
+                </div>
+            </section>
 
-                    <h5>반려 사유</h5>
+            <div className="historyDetailPage">
 
-                    <div className="historyPlanBox">
-                        {workcationInfo.approverComment}
+                {/* 핵심 정보: 기간 / 신청자 / 승인자 / 승인 일시 */}
+                <div className="info-row-group">
+                    <div>
+                        <h6>워케이션 기간</h6>
+                        <span>
+                            {workcationInfo.startAt?.replace("T", " ") || "-"}
+                            {" ~ "}
+                            {workcationInfo.endAt?.replace("T", " ") || "-"}
+                        </span>
                     </div>
 
+                    <div>
+                        <h6>신청자</h6>
+                        <span>
+                            {workcationInfo.employee?.deptTitle ||
+                            workcationInfo.employee?.depId ||
+                            "-"}
+                            &nbsp;-&nbsp;
+                            {workcationInfo.employee?.empName || "-"}
+                        </span>
+                    </div>
+
+                    <div>
+                        <h6>작성 날짜</h6>
+                        <span>
+                            {workcationInfo.createdAt?.replace("T", " ") || "-"}
+                        </span>
+                    </div>
                 </div>
 
-            )}
+                <div className="info-row-group">
+                    <div>
+                        <h6>승인자</h6>
+                        {workcationInfo.approver ? (
+                            <span>
+                                {workcationInfo.approver?.deptTitle ||
+                                workcationInfo.approver?.depId ||
+                                "-"}
+                                &nbsp;-&nbsp;
+                                {workcationInfo.approver?.empName || "-"}
+                            </span>
+                        ) : (
+                            <span>승인자 없음</span>
+                        )}
+                    </div>
 
+                    <div>
+                        <h6>승인 일시</h6>
+                        <span>
+                            {workcationInfo.approvetAt?.replace("T", " ") || "-"}
+                        </span>
+                    </div>
+                </div>
 
-            <br />
+                {/* 업무 계획 */}
+                <div className="info-row">
+                    <h5>업무 계획</h5>
+                    <div className="historyPlanBox">
+                        {workcationInfo.workPlan || "-"}
+                    </div>
+                </div>
 
-
-            <div align="right">
-
-                <button
-                    type="button"
-                    className="back-btn"
-                    onClick={() => navigate(-1)}
-                >
-                    이전으로
-                </button>
+                {/* 반려 사유 */}
+                {workcationInfo.approverComment && (
+                    <div className="info-row">
+                        <h5>반려 사유</h5>
+                        <div className="historyPlanBox">
+                            {workcationInfo.approverComment}
+                        </div>
+                    </div>
+                )}
 
             </div>
-
-        </div>
+        </main>
     );
 }
 

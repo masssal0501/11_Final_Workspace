@@ -475,13 +475,16 @@ export default function Statistics() {
     if (loading) {
 
         return (
-            <div className="statistics-container">
+            <main className="wf-container">
+                <div className="statistics-container">
 
-                <div className="statistics-loading">
-                    통계 데이터를 불러오는 중입니다...
+                    <div className="wf-state">
+                        <div className="wf-spinner" />
+                        <div className="wf-state-title">통계 데이터를 불러오는 중입니다.</div>
+                    </div>
+
                 </div>
-
-            </div>
+            </main>
         );
     }
 
@@ -493,22 +496,25 @@ export default function Statistics() {
     if (error) {
 
         return (
-            <div className="statistics-container">
+            <main className="wf-container">
+                <div className="statistics-container">
 
-                <div className="statistics-error">
+                    <div className="statistics-error">
 
-                    <p>{error}</p>
+                        <p>{error}</p>
 
-                    <button
-                        type="button"
-                        onClick={fetchStatistics}
-                    >
-                        다시 시도
-                    </button>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={fetchStatistics}
+                        >
+                            다시 시도
+                        </button>
+
+                    </div>
 
                 </div>
-
-            </div>
+            </main>
         );
     }
 
@@ -549,34 +555,37 @@ export default function Statistics() {
 
     return (
 
+        <main className="wf-container">
+
         <div className="statistics-container">
 
             {/* =====================================================
                 헤더
             ===================================================== */}
 
-            <div className="statistics-header">
+            <section className="wf-page-header">
 
                 <div>
 
-                    <h2>비용 통계</h2>
+                    <h1 className="wf-page-title">비용 통계</h1>
 
-                    <p>
+                    <p className="wf-page-description">
                         전체 직원의 비용 신청 및 회사 지원금 통계입니다.
                     </p>
 
                 </div>
 
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="refresh-button"
+                        onClick={fetchStatistics}
+                    >
+                        새로고침
+                    </button>
+                </div>
 
-                <button
-                    type="button"
-                    className="refresh-button"
-                    onClick={fetchStatistics}
-                >
-                    새로고침
-                </button>
-
-            </div>
+            </section>
 
 
             {/* =====================================================
@@ -1035,5 +1044,7 @@ export default function Statistics() {
             </div>
 
         </div>
+
+        </main>
     );
 }

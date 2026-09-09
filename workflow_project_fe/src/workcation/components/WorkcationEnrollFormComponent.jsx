@@ -371,24 +371,28 @@ function WorkcationEnrollFormComponent() {
     };
 
     return (
-        <div className="workcatrion-enroll-container">
-            <h2 align="center">워케이션 신청</h2>
-
-            <div className="common-btn-group">
-                <button className="insert-btn" type="button" onClick={handleSubmit}>
-                    제출하기
-                </button>
-                <button
-                    type="button"
-                    className="back-space"
-                    onClick={() => navigate('/workcation/list')}>
-                    뒤로가기
-                </button>
-            </div>
+        <main className="wf-container workcatrion-enroll-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">워케이션 신청</h1>
+                    <p className="wf-page-description">기간, 거점, 업무 계획을 입력하여 워케이션을 신청합니다.</p>
+                </div>
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate('/workcation/list')}>
+                        취소
+                    </button>
+                    <button className="btn btn-primary" type="button" onClick={handleSubmit}>
+                        제출하기
+                    </button>
+                </div>
+            </section>
             <table className="workcation-form-table">
                 <tbody>
                     <tr>
-                        <th>워케이션 제목</th>
+                        <th>워케이션 제목<span className="wf-required">*</span></th>
                         <td colSpan={3}>
                             <input type="text"
                                 placeholder="제목을 입력해주세요."
@@ -623,7 +627,7 @@ function WorkcationEnrollFormComponent() {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     );
 }
 

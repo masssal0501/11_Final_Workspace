@@ -82,12 +82,28 @@ function WorkcationListComponent() {
         }
     };
 
+    // 상태값을 배지로 표시하기 위한 톤 매핑(표시 전용, 데이터 값 자체는 변경하지 않음)
+    const renderStatusBadge = (item) => {
+        const raw = item.approverState || item.workcationStatus || "대기";
+        const toneMap = {
+            "대기": "bg-warning", "W": "bg-warning",
+            "승인": "bg-success", "A": "bg-success",
+            "취소": "bg-secondary", "C": "bg-secondary",
+            "보류": "bg-secondary", "H": "bg-secondary",
+            "반려": "bg-danger", "J": "bg-danger",
+        };
+        const labelMap = { "W": "대기", "A": "승인", "C": "취소", "H": "보류", "J": "반려" };
+        const label = labelMap[raw] || raw;
+        const tone = toneMap[raw] || "bg-primary";
+        return <span className={`badge ${tone}`}>{label}</span>;
+    };
+
     // 응답 데이터 처리 후 공통 함수 (dataList, pageList)
     const handleResponse = (responseData) => {
         const items = Array.isArray(responseData) ? responseData
             : (responseData?.list || responseData?.content || []);
 
-        const trArr = items.map((item) => {            
+        const trArr = items.map((item) => {
             const main = item.mainRegion || "";
             const sub = item.subRegion || "";
             const regionText = (main || sub) ? `${main} ${sub}`.trim() : "-";
@@ -99,7 +115,7 @@ function WorkcationListComponent() {
                     <td>{regionText}</td>
                     <td>{item.employee?.empName || "-"}</td>
                     <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}</td>
-                    <td>{item.approverState || item.workcationStatus || "대기"}</td>
+                    <td>{renderStatusBadge(item)}</td>
                 </tr>
             )
         });
@@ -204,94 +220,100 @@ function WorkcationListComponent() {
     }
 
     return (
-        <div align="center" className="content-area">
-            <h2>워케이션 신청 목록</h2>
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">워케이션 신청 목록</h1>
+                    <p className="wf-page-description">워케이션 신청 내역을 조회하고 새 신청을 등록합니다.</p>
+                </div>
 
-            <div className="workcation-btnSet">
-                {/* 일정관리 버튼 */}
-                <button className="skedule-btn"
-                    onClick={() => setIsScheduleOpen(true)}>
-                    일정관리
-                </button>
-                {isScheduleOpen && (
-                    <WorkcationScheduleComponent onClose={() => setIsScheduleOpen(false)} />
-                )}
+                <div className="wf-page-actions">
+                    <button className="skedule-btn"
+                        onClick={() => setIsScheduleOpen(true)}>
+                        일정관리
+                    </button>
+                    <button className="btn btn-primary" onClick={() => { navigate("/workcation/enrollform"); }}>
+                        + 워케이션 신청
+                    </button>
+                </div>
+            </section>
 
-                {/* 지역 및 상세지역 드롭다운 (기존 WorkcationItemComponent 내용 병합) */}
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <div className="drop-group">
-                        <select className="main-region"
-                            value={mainRegion}
-                            onChange={handleMainRegionChange}>
-                            <option value="">지역명</option>
-                            {mainRegionList.map((main, index) => (
-                                <option key={index} value={typeof main === 'string' ? main : main.main_region}>
-                                    {typeof main === 'string' ? main : main.main_region}
-                                </option>
-                            ))}
-                        </select>
+            {isScheduleOpen && (
+                <WorkcationScheduleComponent onClose={() => setIsScheduleOpen(false)} />
+            )}
 
-                        <select
-                            className="sub-region"
-                            value={subRegion}
-                            onChange={handleSubRegionChange}
-                            disabled={!mainRegion}>
-                            <option value="">상세 지역명</option>
-                            {subRegionList.map((sub, index) => (
-                                <option key={index} value={typeof sub === 'string' ? sub : sub.sub_region}>
-                                    {typeof sub === 'string' ? sub : sub.sub_region}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </form>
+            <div className="wf-page-content">
+                <div className="workcation-btnSet">
+                    {/* 지역 및 상세지역 드롭다운 (기존 WorkcationItemComponent 내용 병합) */}
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <div className="drop-group">
+                            <select className="main-region"
+                                value={mainRegion}
+                                onChange={handleMainRegionChange}>
+                                <option value="">지역명</option>
+                                {mainRegionList.map((main, index) => (
+                                    <option key={index} value={typeof main === 'string' ? main : main.main_region}>
+                                        {typeof main === 'string' ? main : main.main_region}
+                                    </option>
+                                ))}
+                            </select>
 
-                {/* 상태 드롭다운 */}
-                <select className="status-drop"
-                    value={searchType}
-                    onChange={handleSearchTypeChange}>
-                    <option value="all">전체</option>
-                    <option value="approved">승인</option>
-                    <option value="canceled">취소</option>
-                    <option value="hold">보류</option>
-                    <option value="rejected">반려</option>
-                    <option value="review">검토</option>
-                </select>
-            </div>
+                            <select
+                                className="sub-region"
+                                value={subRegion}
+                                onChange={handleSubRegionChange}
+                                disabled={!mainRegion}>
+                                <option value="">상세 지역명</option>
+                                {subRegionList.map((sub, index) => (
+                                    <option key={index} value={typeof sub === 'string' ? sub : sub.sub_region}>
+                                        {typeof sub === 'string' ? sub : sub.sub_region}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </form>
 
-            {/* 신청하기 버튼 */}
-            <div className="apply-btn">
-                <button onClick={() => { navigate("/workcation/enrollform"); }}>신청</button>
-            </div>
+                    {/* 상태 드롭다운 */}
+                    <select className="status-drop"
+                        value={searchType}
+                        onChange={handleSearchTypeChange}>
+                        <option value="all">전체</option>
+                        <option value="approved">승인</option>
+                        <option value="canceled">취소</option>
+                        <option value="hold">보류</option>
+                        <option value="rejected">반려</option>
+                        <option value="review">검토</option>
+                    </select>
+                </div>
 
-            <table className="workcation-list">
-                <thead>
-                    <tr>
-                        <th>번호</th>
-                        <th>제목</th>
-                        <th>지역</th>
-                        <th>신청자</th>
-                        <th>신청일</th>
-                        <th>상태</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {dataList.length > 0 ? dataList : (
+                <table className="workcation-list">
+                    <thead>
                         <tr>
-                            <td colSpan={6} align="center">
-                                조회된 워케이션 내역이 없습니다.
-                            </td>
+                            <th>번호</th>
+                            <th>제목</th>
+                            <th>지역</th>
+                            <th>신청자</th>
+                            <th>신청일</th>
+                            <th>상태</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
-            <br /><br />
+                    </thead>
+                    <tbody>
+                        {dataList.length > 0 ? dataList : (
+                            <tr className="wf-empty-row">
+                                <td colSpan={6}>
+                                    조회된 워케이션 내역이 없습니다.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
 
-            {/* 페이징 영역 */}
-            <div align="center" className="paging-area">
-                {pageList}
+                {/* 페이징 영역 */}
+                <div align="center" className="paging-area">
+                    {pageList}
+                </div>
             </div>
-        </div>
+        </main>
     );
 }
 

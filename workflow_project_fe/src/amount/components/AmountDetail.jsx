@@ -990,18 +990,18 @@ export default function AmountDetail() {
 
     return (
 
-        <div className="amount-detail-container">
+        <main className="amount-detail-container">
 
 
             {/* =================================================
                 제목
             ================================================== */}
 
-            <div className="amount-detail-header">
+            <section className="wf-page-header">
 
-                <h2>
-                    비용 신청 상세
-                </h2>
+                <div>
+                    <h1 className="wf-page-title">비용 신청 상세</h1>
+                </div>
 
                 <span
                     className={`status status-${detail.status}`}
@@ -1014,7 +1014,7 @@ export default function AmountDetail() {
 
                 </span>
 
-            </div>
+            </section>
 
 
             {/* =================================================
@@ -1816,7 +1816,7 @@ export default function AmountDetail() {
 
             </div>
 
-        </div>
+        </main>
 
     );
 

@@ -94,14 +94,14 @@ function ReservationListComponent() {
 
     return (
 
-        <div className="reservation-page">
+        <main className="reservation-page">
 
-            <div className="reservation-header">
+            <section className="reservation-header wf-page-header">
 
                 <div>
-                    <h1>예약 관리</h1>
+                    <h1 className="wf-page-title">예약 관리</h1>
 
-                    <p>
+                    <p className="wf-page-description">
                         워케이션 시설 예약 내역을
                         확인할 수 있습니다.
                     </p>
@@ -114,7 +114,7 @@ function ReservationListComponent() {
                     + 예약 신청
                 </button>
 
-            </div>
+            </section>
 
 
             <div className="reservation-filter">
@@ -235,7 +235,7 @@ function ReservationListComponent() {
 
             )}
 
-        </div>
+        </main>
 
     );
 }

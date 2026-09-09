@@ -104,6 +104,18 @@
 }
 
 
+/* 상세 정보 행 간격 (기존에는 <br/> 태그로 여백을 만들던 것을 정리) */
+.historyDetailPage .info-row {
+    margin-bottom: 18px;
+}
+
+.historyDetailPage .info-row-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 18px;
+}
+
 /* 이전 버튼 */
 .back-btn {
     padding: 0 20px;

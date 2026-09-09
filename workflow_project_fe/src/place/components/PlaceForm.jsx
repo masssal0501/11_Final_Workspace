@@ -79,7 +79,7 @@ function PlaceForm() {
 
             alert("지역 정보가 등록되었습니다.");
 
-            navigate("/place");
+            navigate("/workflow/place/list");
 
         } catch (error) {
 
@@ -92,9 +92,17 @@ function PlaceForm() {
     };
 
     return (
-        <div className="formContainer">
-            <h2>지역 정보 등록</h2>
-            <hr />
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">지역 정보 등록</h1>
+                    <p className="wf-page-description">거점 주변의 체험 프로그램, 맛집, 관광지 정보를 등록합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="formContainer">
 
             <form onSubmit={handleSubmit}>
                 <div className="formGroup">
@@ -229,7 +237,9 @@ function PlaceForm() {
                     </button>
                 </div>
             </form>
-        </div>
+            </div>
+            </div>
+        </main>
     );
 }
 

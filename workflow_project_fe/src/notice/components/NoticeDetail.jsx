@@ -355,7 +355,7 @@ export default function NoticeDetail() {
 
                     <button
                         type="button"
-                        className="btn-list"
+                        className="btn btn-secondary"
                         onClick={() =>
                             navigate('/notice')
                         }
@@ -373,7 +373,7 @@ export default function NoticeDetail() {
 
                                 <button
                                     type="button"
-                                    className="btn-update"
+                                    className="btn btn-outline-primary"
                                     onClick={handleUpdate}
                                 >
                                     수정
@@ -382,7 +382,7 @@ export default function NoticeDetail() {
 
                                 <button
                                     type="button"
-                                    className="btn-delete"
+                                    className="btn btn-outline-danger"
                                     onClick={handleDelete}
                                 >
                                     삭제

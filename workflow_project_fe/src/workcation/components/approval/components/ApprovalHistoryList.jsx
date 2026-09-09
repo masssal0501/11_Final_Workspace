@@ -129,13 +129,14 @@ function ApprovalHistoryList() {
 
     return (
 
-        <div className="historyList">
+        <main className="wf-container historyList">
 
-            <h2 align="center">
-                승인 이력 조회
-            </h2>
-
-            <hr />
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">승인 이력</h1>
+                    <p className="wf-page-description">처리 완료된 워케이션 승인 이력을 조회합니다.</p>
+                </div>
+            </section>
 
 
             {/* 검색 영역 */}
@@ -296,12 +297,9 @@ function ApprovalHistoryList() {
 
                         ) : (
 
-                            <tr>
+                            <tr className="wf-empty-row">
 
-                                <td
-                                    colSpan={6}
-                                    align="center"
-                                >
+                                <td colSpan={6}>
                                     조회된 내역이 없습니다.
                                 </td>
 
@@ -387,7 +385,7 @@ function ApprovalHistoryList() {
 
             )}
 
-        </div>
+        </main>
     );
 }
 

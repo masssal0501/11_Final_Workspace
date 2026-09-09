@@ -247,148 +247,167 @@ function StaffComponent(props) {
     }
 
     return(
-        <div className="dashboard-content">
-            {/* 개인 워케이션 현황 및 근태, 업무 계획, 진행률 테이블 */}
-            <table className="table staff-table">
-                <tbody>
-                    {/* 나의 워케이션 현황 (횟수, 남은 지원금, 사용 비용) */}
-                    <tr>
-                        <th>나의 워케이션 현황</th>
-                        <td>
-                            <div>
-                                <span>워케이션 간 횟수 : {data.workcationCount}회</span>&nbsp;&nbsp;&nbsp;
-                                <span>사용한 지원금(지자체 지원금 제외) : {data.amountSupport}원</span>&nbsp;&nbsp;&nbsp;
-                                <span>사용 비용 : {data.useAmount}원</span>
-                            </div> 
-                        </td>
-                    </tr>
-                    {/* 오늘의 근태 (출근하기 버튼 및 현재 위치 표시) */}
-                    <tr>
-                        <th>오늘의 근태</th>
-                        <td>
-                            <div>
-                                <button className="btn btn-primary dashboard-primary" disabled={!data.WorkcationIsTrue} onClick={ commuteClicker }>
-                                    {isCheckedIn ? "퇴근하기" : "출근하기"}
-                                </button><br />
-                                <span>현재 위치 : { (isLoaded) ? address : ""}</span>
-                            </div>
-                        </td>
-                    </tr>
-                    {/* 나의 워케이션 업무계획 */}
-                    <tr>
-                        <th>나의 워케이션 업무계획</th>
-                        <td>
-                            <span>{(data.workcationPlan) ? data.workcationPlan : "등록된 워케이션 일정이 없습니다."}</span>
-                        </td>
-                    </tr>
-                    {/* 개인 업무 진행률 프로그레스 바 */}
-                    <tr>
-                        <th>업무 진행률</th>
-                        <td>
-                            <div className="progress dashboard-progress w-100">
-                                <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.progressRate}%` }}></div>
-                                <div className="d-flex dashboard-progress-text">
-                                    {data.progressRate}% / 100%
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <br /><br />
-            {/* 공지사항 섹션 타이틀 및 목록 테이블 */}
-            <div className="dashboard-1" align="center">공지사항</div>
-            <div className="dashboard-4">
-                <table className="table table-hover">
-                    <tbody>
-                        { data.noticeData.length === 0 ? (
-                                <tr className="wf-empty-row">
-                                    <td colSpan="4" >
-                                        등록된 공지사항이 없습니다.
-                                    </td>
-                                </tr>
-                            ) : data.noticeData.map(
-                                (notice) => (
-                                    // 공지사항 행 클릭 시 상세 페이지로 이동
-                                    <tr key={ notice.noticeNo } className="notice-row" onClick={ () => navigate(`/notice/${notice.noticeNo}`) }>
-                                        <td className="notice-title-cell">
-                                            {/* 중요 공지사항일 경우 '중요' 뱃지 표시 */}
-                                            { notice.noticeStatus ==='IMPORTANT' && (
-                                                    <span className="notice-important">중요</span>
-                                            )}
-                                            { notice.noticeTitle }
-                                        </td>
-                                        <td>
-                                            { notice.empName || '-' }
-                                        </td>
-                                        <td>
-                                            { formatDate(notice.createdAt)}
-                                        </td>
-                                        <td>
-                                            { notice.viewCount ?? 0 }
-                                        </td>
-                                    </tr>
-                                )
-                            )
-                        }
-                    </tbody>
-                </table>
-            </div>
-            <br /><br />
-            {/* 예약 리스트 섹션 타이틀 및 검색 필터 영역 */}
-            <div className="dashboard-1" align="center">예약 리스트</div>
-            <br />
-            {/* 검색 필터 바 (시작일~종료일 기간 선택 및 키워드 검색창) */}
-            <div className="d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2 w-40">
-                    <input type="date" className="form-control" name="startAt" onChange={ handleChange } value={ inputData.startAt } />
-                    <span className="text-nowpx">&nbsp;~~~&nbsp;</span>
-                    <input type="date" className="form-control" name="endAt" onChange={ handleChange } value={ inputData.endAt } />
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">대시보드</h1>
+                    <p className="wf-page-description">나의 워케이션 현황과 오늘의 근태를 확인합니다.</p>
                 </div>
-                <div className="input-group w-50">
-                    <input type="search" className="form-control" placeholder="이름을 입력해주세요." name="keyword" onChange={ handleChange } value={ inputData.keyword } />
-                    <button type="submit" className="btn btn-outline-secondary search-button" onClick={ handleSearch }>🔍</button>
-                </div>
-            </div>
-            <br />
-            {/* 개인 예약 리스트 테이블 */}
-            <div>
-                <table className="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>숙소명</th>
-                            <th>예약일자</th>
-                            <th>인원</th>
-                            <th>상태</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.reservationList?.length > 0 ? (
-                            data.reservationList.map((item, index) => (
-                                <tr key={index} onClick={ () => { navigate(`/reservations/${item.rsvNo}`) } }>
-                                    <td>{item.hubName}</td>
-                                    <td>{item.rsvStart?.substring(5, 10)}~{item.rsvEnd?.substring(5, 10)}</td>
-                                    <td>{item.userCapacity}</td>
-                                    <td>{ (item.rsvState === "Y") ? "예약완료" : ((item.rsvState === "C") ? "예약취소" : "예약대기")}</td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr className="wf-empty-row">
-                                <td colSpan="6">예약 건이 없습니다.</td>
+            </section>
+
+            <div className="wf-page-content">
+                <div className="dashboard-content">
+                    {/* 개인 워케이션 현황 및 근태, 업무 계획, 진행률 테이블 */}
+                    <table className="table staff-table">
+                        <tbody>
+                            {/* 나의 워케이션 현황 (횟수, 남은 지원금, 사용 비용) */}
+                            <tr>
+                                <th>나의 워케이션 현황</th>
+                                <td>
+                                    <div>
+                                        <span>워케이션 간 횟수 : {data.workcationCount}회</span>&nbsp;&nbsp;&nbsp;
+                                        <span>사용한 지원금(지자체 지원금 제외) : {data.amountSupport}원</span>&nbsp;&nbsp;&nbsp;
+                                        <span>사용 비용 : {data.useAmount}원</span>
+                                    </div>
+                                </td>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                            {/* 오늘의 근태 (출근하기 버튼 및 현재 위치 표시) */}
+                            <tr>
+                                <th>오늘의 근태</th>
+                                <td>
+                                    <div>
+                                        <button className="btn btn-primary dashboard-primary" disabled={!data.WorkcationIsTrue} onClick={ commuteClicker }>
+                                            {isCheckedIn ? "퇴근하기" : "출근하기"}
+                                        </button><br />
+                                        <span>현재 위치 : { (isLoaded) ? address : ""}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {/* 나의 워케이션 업무계획 */}
+                            <tr>
+                                <th>나의 워케이션 업무계획</th>
+                                <td>
+                                    <span>{(data.workcationPlan) ? data.workcationPlan : "등록된 워케이션 일정이 없습니다."}</span>
+                                </td>
+                            </tr>
+                            {/* 개인 업무 진행률 프로그레스 바 */}
+                            <tr>
+                                <th>업무 진행률</th>
+                                <td>
+                                    <div className="progress dashboard-progress w-100">
+                                        <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.progressRate}%` }}></div>
+                                        <div className="d-flex dashboard-progress-text">
+                                            {data.progressRate}% / 100%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br /><br />
+                    {/* 공지사항 섹션 타이틀 및 목록 테이블 */}
+                    <div className="dashboard-1" align="center">공지사항</div>
+                    <div className="dashboard-4">
+                        <table className="table table-hover">
+                            <tbody>
+                                { data.noticeData.length === 0 ? (
+                                        <tr className="wf-empty-row">
+                                            <td colSpan="4" >
+                                                등록된 공지사항이 없습니다.
+                                            </td>
+                                        </tr>
+                                    ) : data.noticeData.map(
+                                        (notice) => (
+                                            // 공지사항 행 클릭 시 상세 페이지로 이동
+                                            <tr key={ notice.noticeNo } className="notice-row" onClick={ () => navigate(`/notice/${notice.noticeNo}`) }>
+                                                <td className="notice-title-cell">
+                                                    {/* 중요 공지사항일 경우 '중요' 뱃지 표시 */}
+                                                    { notice.noticeStatus ==='IMPORTANT' && (
+                                                            <span className="notice-important">중요</span>
+                                                    )}
+                                                    { notice.noticeTitle }
+                                                </td>
+                                                <td>
+                                                    { notice.empName || '-' }
+                                                </td>
+                                                <td>
+                                                    { formatDate(notice.createdAt)}
+                                                </td>
+                                                <td>
+                                                    { notice.viewCount ?? 0 }
+                                                </td>
+                                            </tr>
+                                        )
+                                    )
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <br /><br />
+                    {/* 예약 리스트 섹션 타이틀 및 검색 필터 영역 */}
+                    <div className="dashboard-1" align="center">예약 리스트</div>
+                    <br />
+                    {/* 검색 필터 바 (시작일~종료일 기간 선택 및 키워드 검색창) */}
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center gap-2 w-40">
+                            <input type="date" className="form-control" name="startAt" onChange={ handleChange } value={ inputData.startAt } />
+                            <span className="text-nowpx">&nbsp;~~~&nbsp;</span>
+                            <input type="date" className="form-control" name="endAt" onChange={ handleChange } value={ inputData.endAt } />
+                        </div>
+                        <div className="input-group w-50">
+                            <input type="search" className="form-control" placeholder="이름을 입력해주세요." name="keyword" onChange={ handleChange } value={ inputData.keyword } />
+                            <button type="submit" className="btn btn-outline-secondary search-button" onClick={ handleSearch }>🔍</button>
+                        </div>
+                    </div>
+                    <br />
+                    {/* 개인 예약 리스트 테이블 */}
+                    <div>
+                        <table className="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>숙소명</th>
+                                    <th>예약일자</th>
+                                    <th>인원</th>
+                                    <th>상태</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.reservationList?.length > 0 ? (
+                                    data.reservationList.map((item, index) => (
+                                        <tr key={index} onClick={ () => { navigate(`/reservations/${item.rsvNo}`) } }>
+                                            <td>{item.hubName}</td>
+                                            <td>{item.rsvStart?.substring(5, 10)}~{item.rsvEnd?.substring(5, 10)}</td>
+                                            <td>{item.userCapacity}</td>
+                                            <td>
+                                                {item.rsvState === "Y" ? (
+                                                    <span className="badge bg-success">예약완료</span>
+                                                ) : item.rsvState === "C" ? (
+                                                    <span className="badge bg-secondary">예약취소</span>
+                                                ) : (
+                                                    <span className="badge bg-warning">예약대기</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr className="wf-empty-row">
+                                        <td colSpan="6">예약 건이 없습니다.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <LocationCheckModal 
+            <LocationCheckModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 hub={hubInfo}
                 onCheckIn={handleCheckInModal}
                 isCheckedIn={isCheckedIn}
             />
-        </div>
+        </main>
     )
 }
 

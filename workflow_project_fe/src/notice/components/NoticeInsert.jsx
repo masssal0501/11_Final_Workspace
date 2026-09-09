@@ -344,15 +344,14 @@ export default function NoticeInsert() {
 
     return (
 
-        <div className="notice-container">
+        <main className="notice-container">
 
-            <div className="notice-header">
-
-                <h2>
-                    공지사항 등록
-                </h2>
-
-            </div>
+            <section className="notice-header wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">공지사항 등록</h1>
+                    <p className="wf-page-description">전체 직원에게 노출될 공지사항을 작성합니다.</p>
+                </div>
+            </section>
 
 
             <form
@@ -368,7 +367,7 @@ export default function NoticeInsert() {
                 <div className="notice-form-row">
 
                     <label htmlFor="noticeTitle">
-                        제목
+                        제목<span className="wf-required">*</span>
                     </label>
 
                     <input
@@ -431,7 +430,7 @@ export default function NoticeInsert() {
                 >
 
                     <label htmlFor="noticeContent">
-                        내용
+                        내용<span className="wf-required">*</span>
                     </label>
 
                     <textarea
@@ -538,7 +537,6 @@ export default function NoticeInsert() {
 
                     <button
                         type="button"
-                        className="notice-btn"
                         onClick={
                             handleCancel
                         }
@@ -550,7 +548,7 @@ export default function NoticeInsert() {
 
                     <button
                         type="submit"
-                        className="notice-btn primary"
+                        className="primary"
                         disabled={loading}
                     >
 
@@ -566,7 +564,7 @@ export default function NoticeInsert() {
 
             </form>
 
-        </div>
+        </main>
 
     );
 

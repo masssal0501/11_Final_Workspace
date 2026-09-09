@@ -241,18 +241,20 @@ function ReservationEnrollComponent() {
 
     return (
 
-        <div className="reservation-enroll-page">
+        <main className="reservation-enroll-page">
 
-            <div className="reservation-page-title">
+            <section className="reservation-page-title wf-page-header">
 
-                <h1>예약 신청</h1>
+                <div>
+                    <h1 className="wf-page-title">예약 신청</h1>
 
-                <p>
-                    이용할 거점과 예약 일정을
-                    선택해주세요.
-                </p>
+                    <p className="wf-page-description">
+                        이용할 거점과 예약 일정을
+                        선택해주세요.
+                    </p>
+                </div>
 
-            </div>
+            </section>
 
 
             {/* 지역 선택 */}
@@ -564,7 +566,7 @@ function ReservationEnrollComponent() {
 
             </div>
 
-        </div>
+        </main>
 
     );
 }
