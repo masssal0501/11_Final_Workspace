@@ -147,11 +147,11 @@ function Header({ loginUser, onLogout }) {
         }, 
         { 
           label: "AI 여행 일정 추천", 
-          path: "/placeInfo/ai" 
+          path: "/hub/ai" 
         },     
         { 
           label: "거점 등록", 
-          path: "/placeInfo/enrollForm",
+          path: "/hub/enrollForm",
           roles:["ADMIN"]
         } 
       ]      
@@ -161,12 +161,6 @@ function Header({ loginUser, onLogout }) {
       label: "공지사항",
       icon: "♢",
       path: "/notice",
-    },
-    {
-      id: "hub",
-      label: "장소/거점",
-      icon: "⌖",
-      path: "/placeInfo/list",
     },
 
   ];
