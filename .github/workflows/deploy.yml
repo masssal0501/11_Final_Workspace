@@ -95,11 +95,6 @@ jobs:
         run: |
           aws s3 cp "${BACKEND_JAR}" "s3://${S3_BUCKET}/backend/workflow-backend.jar"
           aws s3 cp workflow_project_fe/frontend-dist.tar.gz "s3://${S3_BUCKET}/frontend/frontend-dist.tar.gz"
-          # 일회성: attendance 테이블 마이그레이션 + 시연용 더미 데이터를 RDS에
-          # 적용하기 위한 SQL도 함께 올린다 (아래 "Apply DB migration" 스텝에서 사용).
-          # 두 파일 모두 재실행해도 안전하게 작성되어 있다.
-          aws s3 cp SQL/migration_add_attendance.sql "s3://${S3_BUCKET}/sql/migration_add_attendance.sql"
-          aws s3 cp SQL/dummy_data.sql "s3://${S3_BUCKET}/sql/dummy_data.sql"
 
       # ----------------------------------------------------------------
       # 6. AWS SSM으로 EC2에 배포 스크립트 실행 (SSH 미사용)
@@ -166,69 +161,6 @@ jobs:
 
           if [ "${STATUS}" != "Success" ]; then
             echo "배포 실패 - 위 로그(특히 stderr)와 EC2의 journalctl -u workflow 를 확인할 것"
-            exit 1
-          fi
-
-      # ----------------------------------------------------------------
-      # [일회성 - 시연 데이터 준비용] attendance 테이블 마이그레이션 +
-      # 시연용 더미 데이터(SQL/dummy_data.sql, 약 2주치)를 RDS에 적용한다.
-      # 두 SQL 모두 재실행해도 안전(IF NOT EXISTS / ON DUPLICATE KEY UPDATE)
-      # 하지만, 시연 데이터를 서버에 1회 적용하는 목적이 끝나면 이 스텝은
-      # deploy.yml에서 제거해 평소 배포 흐름을 원래대로 되돌릴 예정이다.
-      # ----------------------------------------------------------------
-      - name: Apply DB migration + demo data via SSM
-        env:
-          S3_BUCKET: ${{ secrets.AWS_DEPLOY_BUCKET }}
-          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-        run: |
-          set -euo pipefail
-
-          sed "s|__S3_BUCKET__|${S3_BUCKET}|g" deploy/scripts/db-apply.sh > /tmp/db-apply.sh
-
-          PARAMS_JSON=$(jq -Rn --rawfile script /tmp/db-apply.sh '{"commands": [$script]}')
-
-          DB_COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${EC2_INSTANCE_ID}" \
-            --document-name "AWS-RunShellScript" \
-            --comment "WorkFlow DB migration + demo data (run ${{ github.run_id }})" \
-            --timeout-seconds 300 \
-            --parameters "${PARAMS_JSON}" \
-            --query "Command.CommandId" --output text)
-
-          echo "SSM Command ID: ${DB_COMMAND_ID}"
-          echo "db_command_id=${DB_COMMAND_ID}" >> "$GITHUB_ENV"
-
-          aws ssm wait command-executed \
-            --command-id "${DB_COMMAND_ID}" \
-            --instance-id "${EC2_INSTANCE_ID}" || true
-
-      - name: Verify DB migration result
-        env:
-          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-        run: |
-          set -euo pipefail
-
-          STATUS=$(aws ssm get-command-invocation \
-            --command-id "${db_command_id}" \
-            --instance-id "${EC2_INSTANCE_ID}" \
-            --query "Status" --output text)
-
-          echo "=== db-apply.sh stdout ==="
-          aws ssm get-command-invocation \
-            --command-id "${db_command_id}" \
-            --instance-id "${EC2_INSTANCE_ID}" \
-            --query "StandardOutputContent" --output text
-
-          echo "=== db-apply.sh stderr ==="
-          aws ssm get-command-invocation \
-            --command-id "${db_command_id}" \
-            --instance-id "${EC2_INSTANCE_ID}" \
-            --query "StandardErrorContent" --output text
-
-          echo "SSM command status: ${STATUS}"
-
-          if [ "${STATUS}" != "Success" ]; then
-            echo "DB 마이그레이션/더미데이터 적용 실패 - 위 로그 확인할 것"
             exit 1
           fi
 

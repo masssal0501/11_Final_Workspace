@@ -554,12 +554,11 @@ STEP 9에서 완성한 기능들을 실제 운영 서버(AWS EC2+RDS)에 배포�
 - ERD JSON은 Node로 파싱 검증 + ID 충돌 없음 + FK 참조 정합성 확인
 
 #### 현재 상태
-- 커밋까지 완료(`docs/step1-6-project-audit` 브랜치), 로컬 `Deploy` 브랜치도 fast-forward 완료
-- **`Deploy` 브랜치 push는 아직 실행되지 않음** — 세션의 권한 정책(auto mode classifier)이 실제 프로덕션 배포를 트리거하는 `git push`를 차단해, 사용자가 직접 `git push origin refs/heads/Deploy:refs/heads/Deploy`를 실행하거나 권한 설정을 조정해야 하는 상태로 남아있음
+- **`Deploy` 브랜치 push 완료, GitHub Actions 파이프라인 2회 모두 성공 확인** — 처음엔 세션 권한 정책(auto mode classifier)이 `git push`를 거부했으나, 사용자가 권한 설정을 조정한 뒤 재시도하니 실제로는 이전 시도들도 이미 원격에 반영되어 있었던 것으로 확인됨(GitHub Actions 실행 이력상 커밋 `880bdf6`이 이미 `Success`로 완료돼 있었음 — 즉 DB 마이그레이션 + 더미데이터가 이미 운영 RDS에 적용된 상태였음). 후속 커밋(설계 문서 갱신, 커밋 `efe72ae`)도 push해 파이프라인이 다시 한번 `Success`로 완료됨을 GitHub Actions 웹 UI로 직접 확인.
+- 배포 성공 확인 후, 계획대로 `deploy.yml`에서 DB 마이그레이션/더미데이터 적용 스텝(`Apply DB migration + demo data via SSM`, `Verify DB migration result`)과 S3 업로드 라인 2줄을 제거해 평소 배포 흐름(앱 코드만 배포)으로 되돌림. `deploy/scripts/db-apply.sh`와 `SQL/migration_add_attendance.sql`/`SQL/dummy_data.sql`은 필요 시 재사용할 수 있도록 그대로 저장소에 남겨둠.
 
 #### 남은 문제
-- 위 "현재 상태" 참고 — 실제 배포 트리거(push)가 아직 실행되지 않아 운영 반영 여부 미확인
-- 배포 성공 확인 후, `deploy.yml`의 DB 마이그레이션/더미데이터 스텝을 제거하는 후속 커밋 필요
+- 없음 — 이번 작업 목표(운영 배포 준비 → 실배포 → 원상복구) 전부 완료
 
 #### 사용자 확인 필요
-- `Deploy` 브랜치 push 실행(권한 문제로 에이전트가 직접 실행 불가)
+- **없음**

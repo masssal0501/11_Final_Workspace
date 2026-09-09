@@ -116,7 +116,7 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **신규 확인 필요**: 조회수 증가 미구현, 첨부파일 미구현(둘 다 이번 전환 이전부터 없던 기능, 그대로 포팅함) — 완성 여부 결정 필요
 - **STEP 8(AWS CI/CD 준비 + 실배포) 완료** — 설정 준비뿐 아니라 **AWS 리소스(EC2/RDS/S3/IAM)를 사용자가 실제로 생성**했고, RDS에 `SQL/WorkFlow_Script.sql` 초기화(22개 테이블 확인) 완료, EC2에 Nginx/systemd 구성 후 최초 수동 배포 성공, **GitHub Actions CI/CD 파이프라인을 실제로 여러 차례 구동해 발견된 4가지 버그(워크플로 `secrets`/`if:` 표현식 오류, `mvnw` 실행권한 누락, GitHub Secret에 예시 placeholder 값이 잘못 등록됨, SSM `--parameters` 인코딩으로 인한 개행 손상)를 모두 수정하고 `Deploy` 브랜치 push → 전체 파이프라인 자동 성공까지 확인**(상세: WORK_LOG.md 8차 작업). 최초 수동 배포 과정에서 `dashboardApi.js`/`hubApi.js`의 배포환경 API 경로 중복 버그(운영에서만 드러남)도 발견·수정(PR #13, 커밋 `9b71b7f`)
 - **STEP 9(전체 라이프사이클 실제 검증) 완료** — 로컬 환경에서 신청부터 만족도조사까지 전 구간을 실제 UI/API/DB로 검증, 그 과정에서 발견한 모든 버그(BUG-009~013 포함) 수정 완료. 상세는 WORK_LOG.md 9차 작업 참조
-- **STEP 10(운영 배포 준비) 완료** — SQL 마이그레이션/더미데이터/ERD 갱신까지 커밋 완료, `Deploy` 브랜치도 fast-forward 완료
-- **다음 최우선 작업**: `Deploy` 브랜치 push 실행(권한 정책상 사용자가 직접 실행하거나 권한 설정 조정 필요) → EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우 재검증 → 배포 성공 확인 후 `deploy.yml`의 DB 마이그레이션 스텝 제거(후속 커밋)
+- **STEP 10(운영 배포 준비 + 실배포) 완료** — `Deploy` 브랜치 push 완료, GitHub Actions 파이프라인 2회 연속 `Success` 확인(attendance 테이블 마이그레이션 + 2주치 더미데이터가 실제 운영 RDS에 반영됨). 배포 확인 후 `deploy.yml`의 DB 마이그레이션 스텝은 원상복구(제거) 완료
+- **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행
 - 낮은 우선순위 미해결 버그(STEP 9에서 발견, 원인 미조사): ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시(워케이션에 예약이 여러 건일 때), `ManagerComponent.jsx` 정산대기목록의 `item.approverState` 참조 오류, `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop
 - 다음 작업 후보(우선순위 낮음): Kakao Maps JS 키 발급/적용, `WorkcationItemComponent.jsx` 지역 드롭다운 경로 버그 수정, `FileRenamePolicy.java`의 `getRealPath()` 리스크 해소, Gemini API 키 회전(git 히스토리 노출분)
