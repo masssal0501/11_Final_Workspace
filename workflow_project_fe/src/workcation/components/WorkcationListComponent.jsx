@@ -15,7 +15,7 @@ export const OPTION_CONFIG = {
     tour: { label: "관광지", key: "tour", priceKey: "tourPrice", dateName: "tourDate" }
 };
 
-function WorkcationListComponent() {
+function WorkcationListComponent({ loginUser }) {
 
     const navigate = useNavigate(); // 페이지 이동 함수
 
@@ -298,12 +298,16 @@ function WorkcationListComponent() {
                 </select>
 
                 {/* 신청 */}
-                <div className="apply-btn">
-                    <button onClick={() => navigate("/workcation/enrollform")}>
-                        신청
-                    </button>
-                </div>
-
+                {["STAFF", "MANAGER"].includes(loginUser?.authCode) && (
+                    <div className="apply-btn">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/workcation/enrollform")}
+                        >
+                            신청
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* 목록 */}

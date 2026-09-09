@@ -161,12 +161,14 @@ function App() {
         {/* 📌 업무 게시판 라우트 */}
         <Route path="/task/list" element={<TaskListComponent />} />
         <Route path="/task/detail/:workcationNo" element={<TaskDetailComponent />}
-/>
+        />
 
         {/* 📌 워케이션 라우트 */}
-        <Route path="/workcation/list" element={<WorkcationListComponent />} />
+        <Route path="/workcation/list" element={<WorkcationListComponent loginUser={loginUser} />} />
         <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-        <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+        {loginUser.authCode !== "ADMIN" && (
+          <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+                                            )}
         <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
 
         {/* 📌 대시보드 및 기본 라우트 */}
@@ -177,8 +179,8 @@ function App() {
         <Route path="/myPage" element={<MyPageForm />} />
         <Route path="/myPage/update" element={<UpdateMyPageForm />} />
         <Route path="/changePW" element={<ChangePWForm />} />
-        <Route path="/workcation/mylist" element={<MyWorkcationListComponent/>} />
-        <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent/>} />
+        <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
+        <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
 
 
         {/* 📌 직원 관리 */}

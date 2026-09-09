@@ -108,7 +108,6 @@ function TaskListComponent() {
                         <th>번호</th>
                         <th>워케이션 제목</th>
                         <th>작성자</th>
-                        <th>업무 수</th>
                         <th>전체 진행도</th>
                         <th>작성일</th>
                     </tr>
@@ -124,7 +123,6 @@ function TaskListComponent() {
                             <td>{item.workcationNo}</td>
                             <td>{item.workcationTitle}</td>
                             <td>{item.writer}</td>
-                            <td>{item.taskCount}개</td>
                             <td>{item.overallProgress}%</td>
                             <td>{item.createdAt ? item.createdAt.substring(0, 10) : "-"}
                             </td>

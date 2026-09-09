@@ -14,4 +14,6 @@ public interface TaskService {
 	Page<Map<String, Object>> selectTaskBoardList(String keyword, Pageable pageable);
 
 	Map<String, Object> selectWorkcationTasks(Integer workcationNo);
+
+	void updateTaskStatus(Integer taskNo, String status, String content);
 }

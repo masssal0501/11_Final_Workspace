@@ -394,15 +394,10 @@ public class WorkcationController {
 		boolean isMine = workcation.getEmployee() != null
 				&& workcation.getEmployee().getEmpNo().equals(loginEmployee.getEmpNo());
 
-		// STAFF / MANAGER
-		// 본인 글만 삭제 가능
 		if ("STAFF".equals(authCode) || "MANAGER".equals(authCode)) {
-
 			return isMine;
 		}
 
-		// ADMIN
-		// 삭제 불가능
 		return false;
 	}
 
@@ -444,4 +439,3 @@ public class WorkcationController {
 		return ResponseEntity.ok(result);
 	}
 }
-

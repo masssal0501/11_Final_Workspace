@@ -511,6 +511,50 @@ public class WorkcationServiceImpl implements WorkcationService {
 		workcation.setEndAt(endAt);
 		workcationDao.save(workcation);
 
+		// 업무
+		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+
+		Work work;
+
+		if (workList.isEmpty()) {
+			work = new Work();
+			work.setWorkcation(workcation);
+			work.setSubmittedAt(LocalDateTime.now());
+			work = workDao.save(work);
+		} else {
+			work = workList.get(0);
+		}
+
+		List<Task> existingTasks = taskDao.findByWorkWorkNo(work.getWorkNo());
+
+		if (planList != null) {
+			for (Map<String, Object> planItem : planList) {
+
+				String taskName = (String) planItem.get("taskName");
+
+				if (taskName == null || taskName.trim().isEmpty()) {
+					continue;
+				}
+				boolean exists = existingTasks.stream().anyMatch(task -> taskName.equals(task.getTaskTitle()));
+
+				if (!exists) {
+
+					Task task = new Task();
+
+					task.setTaskTitle(taskName);
+					task.setTaskContent("");
+					task.setTasktimeAt(LocalDateTime.now());
+					task.setProgress(0);
+					task.setStatus("N");
+					task.setWork(work);
+
+					taskDao.save(task);
+					existingTasks.add(task);
+
+				}
+			}
+		}
+
 		// 2. 예약(Reservation) 정보 수정 (기존 예약 삭제 후 메인+옵션 재등록)
 		List<Reservation> existingRsvs = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
 		if (existingRsvs != null && !existingRsvs.isEmpty()) {
@@ -720,16 +764,41 @@ public class WorkcationServiceImpl implements WorkcationService {
 		WorkcationInfo workcation = workcationDao.findById(workcationNo)
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
-		List<Reservation> reservationList = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
-		if (reservationList != null) {
+		// 업무
+		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+
+		for (Work work : workList) {
+
+			List<Task> taskList = taskDao.findByWorkWorkNo(work.getWorkNo());
+
+			for (Task task : taskList) {
+
+				List<TaskHistory> historyList = taskHistoryDao.findByTaskTaskNoOrderByCreatedAtDesc(task.getTaskNo());
+
+				taskHistoryDao.deleteAll(historyList);
+			}
+
+			taskDao.deleteAll(taskList);
+		}
+
+		workDao.deleteAll(workList);
+
+		// 예약
+		List<Reservation> reservationList = reservationDao.findByWorkcationNo(workcationNo);
+
+		if (reservationList != null && !reservationList.isEmpty()) {
 			reservationDao.deleteAll(reservationList);
 		}
 
-		List<Amount> amountList = amountDao.findByWorkcationNo(workcation.getWorkcationNo());
+		// 비용
+		List<Amount> amountList = amountDao.findByWorkcationNo(workcationNo);
+
 		if (amountList != null && !amountList.isEmpty()) {
+
 			amountDao.deleteAll(amountList);
 		}
 
+		// 워케이션
 		workcationDao.delete(workcation);
 	}
 
@@ -870,10 +939,52 @@ public class WorkcationServiceImpl implements WorkcationService {
 			throw new IllegalArgumentException("진행률은 0~100 사이의 5단위 값");
 		}
 
-		// task 업데이트 최신 상태
+		// 기존 제목
+		String oldTitle = task.getTaskTitle();
+
+		// 업무
 		task.setProgress(progress);
 		task.setTaskTitle(title);
 		task.setTaskContent(content);
+
+		// 워케이션 업무계획 제목 동기화
+		Work work = task.getWork();
+
+		if (work != null && work.getWorkcation() != null) {
+			WorkcationInfo workcation = work.getWorkcation();
+
+			String workPlan = workcation.getWorkPlan();
+
+			if (workPlan != null && oldTitle != null && title != null && !oldTitle.equals(title)) {
+
+				String[] tokens = workPlan.split(" / ");
+				StringBuilder newPlan = new StringBuilder();
+
+				for (String token : tokens) {
+					String updatedToken = token;
+
+					if (!token.startsWith("[근무 목적]")) {
+						int idxOpen = token.lastIndexOf("(");
+
+						if (idxOpen > 0) {
+							String planTitle = token.substring(0, idxOpen).trim();
+
+							if (planTitle.equals(oldTitle)) {
+								updatedToken = title + token.substring(idxOpen);
+							}
+						}
+					}
+
+					if (newPlan.length() > 0) {
+						newPlan.append(" / ");
+					}
+
+					newPlan.append(updatedToken);
+				}
+
+				workcation.setWorkPlan(newPlan.toString());
+			}
+		}
 
 		// 최근 업무 이력 INSERT
 		TaskHistory history = new TaskHistory();
@@ -892,17 +1003,12 @@ public class WorkcationServiceImpl implements WorkcationService {
 		LocalDateTime startOfDay = date.atStartOfDay();
 
 		LocalDateTime endOfDay = date.plusDays(1).atStartOfDay().minusNanos(1);
-
 		List<WorkcationInfo> list = workcationDao.findWorkcationByDate(startOfDay, endOfDay);
-
 		List<Map<String, Object>> mySchedule = new ArrayList<>();
-
 		List<Map<String, Object>> departmentSchedule = new ArrayList<>();
-
 		for (WorkcationInfo workcation : list) {
 
 			Employee employee = workcation.getEmployee();
-
 			if (employee == null) {
 				continue;
 			}
@@ -910,15 +1016,10 @@ public class WorkcationServiceImpl implements WorkcationService {
 			Map<String, Object> schedule = new HashMap<>();
 
 			schedule.put("workcationNo", workcation.getWorkcationNo());
-
 			schedule.put("empNo", employee.getEmpNo());
-
 			schedule.put("empName", employee.getEmpName());
-
 			schedule.put("startAt", workcation.getStartAt());
-
 			schedule.put("endAt", workcation.getEndAt());
-
 			if (employee.getEmpNo() == empNo) {
 
 				mySchedule.add(schedule);
@@ -930,11 +1031,10 @@ public class WorkcationServiceImpl implements WorkcationService {
 		}
 
 		Map<String, Object> result = new HashMap<>();
-
 		result.put("mySchedule", mySchedule);
-
 		result.put("departmentSchedule", departmentSchedule);
 
 		return result;
 	}
+
 }

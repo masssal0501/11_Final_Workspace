@@ -206,25 +206,31 @@ function MyWorkcationDetailFormComponent() {
                 <ul className="my-task-list">
                     {planList.map((item, index) => {
                         const progress = item.progress || 0;
-                        const isCompleted = progress === 100;
+                        const isApproved = item.status === "Y";
+                        const isRejected = item.status === "R";
 
                         return (
                             <li
-                                className="my-task-item"
-                                key={item.id || index}
-                                onClick={() => openTaskModal(item)}
-                            >
+                                className={`my-task-item ${isApproved ? "approved-task" : ""}`}
+                                key={item.taskNo || index}
+                                onClick={() => openTaskModal(item)}>
                                 <div className="task-item-left">
                                     <input
                                         type="checkbox"
-                                        checked={isCompleted}
-                                        readOnly
-                                    />
-                                    <span className={isCompleted ? "completed-text" : ""}>{item.taskName}</span>
+                                        checked={isApproved}
+                                        readOnly />
+                                    <span>{item.taskName}</span>
                                 </div>
+
                                 <div className="task-item-right">
-                                    <span className="progress-label">
-                                        {progress}% {isCompleted ? "완료" : progress > 0 ? "진행" : "대기"}
+                                    <span className={`progress-label ${isRejected ? "rejected-task" : ""}`}>
+                                        {progress === 100
+                                            ? isRejected
+                                                ? "100% 거부"
+                                                : "100% 완료"
+                                            : progress > 0
+                                                ? `${progress}% 진행`
+                                                : "0% 대기"}
                                     </span>
                                 </div>
                             </li>

@@ -5,13 +5,18 @@
     font-weight: bold;
 }
 
+.task-status-red{
+   background-color: #d10000;
+    color: white; 
+}
+
 .task-status-gray {
     background-color: #9e9e9e;
     color: white;
 }
 
-.task-status-red {
-    background-color: #e74c3c;
+.task-status-orange {
+    background-color: #ff7b00;
     color: white;
 }
 
@@ -22,5 +27,10 @@
 
 .task-status-blue {
     background-color: #3498db;
+    color: white;
+}
+
+.task-status-green {
+    background-color: #20c767;
     color: white;
 }

@@ -167,9 +167,12 @@
     font-size: 14px;
 }
 
-.completed-text {
+.approved-task {
     text-decoration: line-through;
-    color: #888;
+}
+
+.rejected-task {
+    color: red;
 }
 
 

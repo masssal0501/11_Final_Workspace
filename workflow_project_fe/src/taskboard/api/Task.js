@@ -36,3 +36,15 @@ export const getWorkcationTasks = async (workcationNo) => {
 
     return response.data;
 };
+
+//업무상세 내역 승인
+export const updateTaskStatus = async (taskNo, status, content="") => {
+    const token = localStorage.getItem("accessToken");
+
+    const response = await axios.patch(
+        `${BASE_URL}/task/${taskNo}/status`,
+        {status, content},
+        {headers: {Authorization : `Bearer ${token}`}}
+    )
+    return response.data;
+}

@@ -118,6 +118,14 @@ public class SecurityConfig {
 	                    .requestMatchers(	                    	    
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
+	                    
+	                    .requestMatchers(
+	                    		HttpMethod.PATCH,
+	                    		"/task/*/status"
+	                    		).hasRole("ADMIN")
+	                    
+	                    .requestMatchers("/task/**")
+	                    .hasAnyRole("MANAGER", "ADMIN")
 
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()

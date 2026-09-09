@@ -1,0 +1,78 @@
+.task-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 30px;
+    margin-bottom: 15px;
+}
+
+.task-summary > div {
+    display: flex;
+    gap: 10px;
+}
+
+.task-summary > div span:first-child {
+    font-weight: bold;
+    min-width: 100px;
+}
+.task-history-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+}
+
+.task-history-panel {
+    position: fixed;
+    right: 50px;
+    width: 360px;
+    max-height: 400px;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #ccc;
+    overflow-y: auto;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+.task-history-header {
+    margin-bottom: 15px;
+}
+
+.task-history-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-history-content {
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    white-space: pre-wrap;
+}
+
+.task-approval-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.task-approval-buttons button {
+    min-width: 55px;
+}
+
+.reject-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.reject-modal {
+    width: 400px;
+    padding: 20px;
+    background: white;
+    box-sizing: border-box;
+}
