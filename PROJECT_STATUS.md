@@ -2,7 +2,7 @@
 
 > **문서 역할**: 이 문서는 "도메인별 상세 구현 상태"를 기록한다. 전체 요약(Executive Summary)/우선순위 로드맵/최종 시연 시나리오/TOP 10 문제는 `PROJECT_FINAL_STATUS.md`(2026-09-10, 14차 작업)를 참조할 것.
 
-마지막 갱신: 2026-09-09 (13차 작업 — Swagger/OpenAPI 문서화 전체 적용 완료: 12개 Controller 중 API가 실재하는 11개 전부 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/JWT `@SecurityRequirement` 문서화, 실제 기동 후 Swagger UI·API 문서·JWT 로그인·핵심 GET API end-to-end 검증 완료)
+마지막 갱신: 2026-09-10 (15차 작업 — 잘못된 경로/권한없는 URL 직접 접근 시 Error Page 처리 + JWT 만료 자동 로그아웃 버그 수정 완료: `SecurityConfig`에 커스텀 `AuthenticationEntryPoint`(401)/`AccessDeniedHandler`(403) 신규 추가, `App.jsx`에 catch-all 라우트 추가, `axiosInstance.js`에 401/403 응답 인터셉터 + JWT 만료 주기적 선제 확인 추가)
 
 ## 기술 스택 확정 상태
 
@@ -49,6 +49,7 @@
 | `POST /approval/{workcationNo}` (반려) | ✅ **(2026-09-09 수정 및 검증 완료)** `hasAnyRole("ADMIN","MANAGER")`로 전환, STAFF는 403 |
 | CORS | ✅ **(2026-09-09 정리 완료)** 중복·미사용이던 `WebConfig.java`(와일드카드 CORS, 다른 곳에서 참조 없음 확인 후 삭제) 제거, `SecurityConfig`의 CORS 설정만 유지. 실제 OPTIONS preflight/GET 요청으로 허용 오리진(`localhost:5173`)은 정상 통과, 비허용 오리진은 CORS 헤더 없이 차단됨을 확인 |
 | `/error` 경로 인증 | 🔴→✅ **(2026-09-09 발견 및 수정)** `/error`가 permitAll이 아니어서 컨트롤러 예외 발생 시 실제 상태코드/메시지 대신 항상 빈 본문의 403이 반환되던 버그. 애플리케이션 전역 에러 응답에 영향 — permitAll 추가로 해결 |
+| 인증 실패(401) vs 인가 실패(403) 구분 | 🔴→✅ **(2026-09-10 발견 및 수정)** 커스텀 `AuthenticationEntryPoint`/`AccessDeniedHandler`가 전혀 등록되어 있지 않아 Spring Security 기본 폴백(`Http403ForbiddenEntryPoint`)이 "JWT 없음/만료/위조"와 "권한 부족"을 구분 없이 전부 403으로 응답하던 버그. `JwtAuthenticationEntryPoint`(401)/`JwtAccessDeniedHandler`(403) 신규 추가 + `SecurityConfig.exceptionHandling()`에 연결해 해결. 실제 curl 요청으로 무토큰/위조토큰=401, STAFF의 ADMIN 전용 API 호출=403, 정상 인증=200을 각각 확인 |
 
 **실제 검증 방법**: 로컬 MySQL에 STAFF/MANAGER/ADMIN 역할별 테스트 계정을 직접 시드(SQL)한 뒤 각각 실제 로그인 → JWT 발급 → 위 5개 항목의 엔드포인트를 전부 무인증/STAFF/MANAGER/ADMIN 4가지 조합으로 실제 호출해 상태코드를 확인(무인증은 전부 403, STAFF는 관리자 전용 엔드포인트에서 전부 403, MANAGER는 승인/반려까지만 통과, ADMIN은 전부 보안 계층 통과). 검증 후 테스트 계정은 삭제.
 
@@ -62,6 +63,9 @@
 - 2026-09-09 (9차, STEP 9): 워케이션 전체 라이프사이클(신청→승인→업무수행→정산→만족도조사) 실제 UI/API/DB 검증. 업무 진행률 기능 근본 재구현(가짜 ID 문제), 출퇴근 위치인증(attendance) 신규 구현(+응답의 비밀번호 해시 노출 보안버그 즉시 수정), 만족도조사(TODO-001) 신규 구현, ADMIN 정산승인이 UI로는 한 번도 성공한 적 없었음을 발견해 수정(BUG-012/013), 대시보드 500 에러(직원이 워케이션 2건 이상 보유 시) 수정 — 상세는 WORK_LOG.md 9차 작업 참조
 - 2026-09-09 (10차): 운영 배포 준비 — `attendance` 테이블 DROP 누락 버그 수정, 운영 RDS용 별도 마이그레이션(`migration_add_attendance.sql`) + 시연용 2주치 더미데이터(`dummy_data.sql`) 작성 및 로컬 검증, `deploy.yml`에 DB 반영 스텝 임시 추가, ERD Cloud 스냅샷을 실제 export 형식(JSON)에 맞춰 재작성 — 상세는 WORK_LOG.md 10차 작업 참조. **`Deploy` 브랜치 push는 권한 정책으로 에이전트가 직접 실행하지 못해 사용자 실행 대기 중**
 - 2026-09-09 (11차): STEP 9에서 발견해 미뤄뒀던 낮은 우선순위 버그 4건 수정 — ADMIN 대시보드 `totalCost` 음수 계산(`AmountDao.selectTotalCost()`의 JOIN 카티션 곱 + 이중 차감 버그), `waitingList` 중복 표시(`WorkcationDao.adminSelectWaitingList()`에 DISTINCT 누락), `ManagerComponent.jsx` 정산대기목록이 존재하지 않는 `approverState` 필드를 참조하던 버그(`status === 'R'`로 수정), `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 제거 — 로컬 MySQL 실데이터 + 실제 API 호출로 수정 전/후 값을 직접 대조 검증. 상세는 WORK_LOG.md 11차 작업 참조
+- 2026-09-09 (13차): Swagger/OpenAPI 문서화 전체 적용 완료 — 상세는 WORK_LOG.md 13차 작업 참조
+- 2026-09-10 (14차): WorkFlow ERP 종합 현황 문서(`PROJECT_FINAL_STATUS.md`) 신규 작성 — 상세는 WORK_LOG.md 14차 작업 참조
+- 2026-09-10 (15차): 잘못된 경로/권한없는 URL 직접 접근 처리 + JWT 만료 자동 로그아웃 버그 수정 — Backend에 커스텀 `AuthenticationEntryPoint`(401)/`AccessDeniedHandler`(403) 신규 추가로 인증 실패와 인가 실패를 상태코드로 구분, `App.jsx`에 catch-all Route(`path="*"`) 추가로 존재하지 않는 URL/권한없는 URL 직접 접근 시 기존 `ErrorPage`로 이동, `axiosInstance.js`에 401(자동 로그아웃)/403(에러 페이지 이동) 응답 인터셉터 + JWT `exp` 클레임 기반 15초 주기 선제 만료 확인 추가. 로컬 백엔드(JWT 만료시간을 테스트 동안만 20초로 단축, 종료 후 원복) + 실제 브라우저(Claude Browser)로 8개 필수 테스트 시나리오 전부 실제 재현·검증. 상세는 WORK_LOG.md 15차 작업 참조
 
 ## 신규 확인 필요 항목 (이번 세션에서 새로 발견)
 
@@ -122,7 +126,9 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **STEP 10(운영 배포 준비 + 실배포) 완료** — `Deploy` 브랜치 push 완료, GitHub Actions 파이프라인 2회 연속 `Success` 확인(attendance 테이블 마이그레이션 + 2주치 더미데이터가 실제 운영 RDS에 반영됨). 배포 확인 후 `deploy.yml`의 DB 마이그레이션 스텝은 원상복구(제거) 완료
 - **STEP 11(STEP 9 발견 낮은 우선순위 버그 4건 수정) 완료** — ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시, `ManagerComponent.jsx` 정산대기목록 `approverState`→`status` 필드 오류, `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 전부 수정 및 로컬 MySQL 실데이터 + 실제 API 호출로 검증 완료. 상세는 WORK_LOG.md 11차 작업 참조
 - **STEP 12(CSS 통일 세션 미룬 버그 4건 + 신규 리포트 1건, 총 5건) 완료** — `PlaceList.jsx` `useNavigate` import 누락, `ApprovalHistoryDetail.jsx` 정의되지 않은 setter 호출, `TaskStatusBadge.jsx`의 `getStatusInfoByProgress` 전역 `window.status` 참조 버그 수정. 미사용 디렉터리/파일 3건(`src/login/`, `src/placeinfo/`, `ApprovalQueueDetail.css`) 재확인 후 삭제. **신규 리포트**: `EmployeeEdit.jsx`(관리자 직원 정보 수정 화면)가 데이터 조회/저장 로직이 아예 없는 미구현 스텁이었던 것을 `EmployeeDetail.jsx` 패턴대로 실제 구현(조회/수정/역할·상태 변경/연락처 3분할 처리, 부서·직위는 백엔드 API 부재로 조회전용 처리). 검증 중 `employeeApi.js`의 `updateEmployeeRole` 요청 포맷 불일치(쿼리파라미터→JSON 본문) 및 백엔드 `depId`/`jobCode` 강제 덮어쓰기 문제를 실제 API 응답으로 추가 발견해 프론트 쪽에서 우회 수정. 로컬 MySQL + 격리된 백엔드 인스턴스(포트 8007) + 실제 브라우저로 전체 플로우 end-to-end 검증. 상세는 WORK_LOG.md 12차 작업 참조
-- **STEP 13(Swagger/OpenAPI 문서화) 완료** — `SwaggerConfig`/`SecurityConfig`의 Swagger 관련 설정(JWT SecurityScheme, `/swagger-ui/**`·`/v3/api-docs/**` permitAll)이 이전 세션에서 이미 정상 완료되어 있음을 확인, 나머지 `NoticeController`/`PlaceController`/`ReservationController`/`WorkcationController`(총 29개 API)에 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/`@SecurityRequirement(name="JWT")` 문서화 완료. 실제 로컬 기동 후 `GET /workflow/swagger-ui/index.html`·`GET /workflow/v3/api-docs` 200 확인(59 paths/74 operations/11 태그), JWT 로그인 후 6개 핵심 도메인 GET API(직원/공지사항/거점/워케이션/승인/비용) 전부 200 확인. 남은 TODO: `HubController`/`DashboardController`/`AttendanceController`의 영문 태그를 한글 컨벤션으로 통일하는 건, 무인증/권한없음이 실제로는 둘 다 403으로 응답되는(401/403 미분리) Security 이슈 — 둘 다 이번 문서화 범위 밖이라 기록만 함. 상세는 WORK_LOG.md 13차 작업 참조
-- **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행
+- **STEP 13(Swagger/OpenAPI 문서화) 완료** — `SwaggerConfig`/`SecurityConfig`의 Swagger 관련 설정(JWT SecurityScheme, `/swagger-ui/**`·`/v3/api-docs/**` permitAll)이 이전 세션에서 이미 정상 완료되어 있음을 확인, 나머지 `NoticeController`/`PlaceController`/`ReservationController`/`WorkcationController`(총 29개 API)에 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/`@SecurityRequirement(name="JWT")` 문서화 완료. 실제 로컬 기동 후 `GET /workflow/swagger-ui/index.html`·`GET /workflow/v3/api-docs` 200 확인(59 paths/74 operations/11 태그), JWT 로그인 후 6개 핵심 도메인 GET API(직원/공지사항/거점/워케이션/승인/비용) 전부 200 확인. 남은 TODO였던 두 건(영문 태그 통일, 401/403 미분리)은 STEP 15에서 401/403 분리는 해결됨. 상세는 WORK_LOG.md 13차 작업 참조
+- **STEP 14(WorkFlow ERP 종합 현황 문서화) 완료** — `PROJECT_FINAL_STATUS.md` 신규 작성(Executive Summary/우선순위 로드맵/최종 시연 시나리오/TOP 10 문제 등). 상세는 WORK_LOG.md 14차 작업 참조
+- **STEP 15(잘못된 경로/권한없는 URL 접근 + JWT 만료 자동 로그아웃) 완료** — Frontend Route Guard(catch-all) + Backend Security(401/403 분리, `AuthenticationEntryPoint`/`AccessDeniedHandler` 신규) 양쪽 모두에서 방어, 실제 브라우저로 Test 1~8 전부 검증(+ 403은 로그아웃시키지 않고 에러 페이지로만 이동하는 것도 별도 확인). 상세는 WORK_LOG.md 15차 작업 참조
+- **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행. STEP 15에서 만든 Nginx 배포용 fallback/401·403 처리도 실배포 환경 재검증 필요(로컬에서는 확인 완료)
 - 낮은 우선순위 미해결 버그(신규 발견, STEP 11에서 함께 손대지 않음): `WorkcationDao.managerSelectWaitingList()`에 `adminSelectWaitingList()`와 동일한 JOIN 중복 버그 존재(부서장 대시보드 승인대기목록도 예약 2건 이상인 워케이션은 중복 표시될 수 있음) — 이번 버그 리포트 범위 밖이라 미수정
 - 다음 작업 후보(우선순위 낮음): Kakao Maps JS 키 발급/적용, `WorkcationItemComponent.jsx` 지역 드롭다운 경로 버그 수정, `FileRenamePolicy.java`의 `getRealPath()` 리스크 해소, Gemini API 키 회전(git 히스토리 노출분)

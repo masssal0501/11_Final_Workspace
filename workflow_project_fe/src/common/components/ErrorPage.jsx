@@ -11,8 +11,12 @@ function ErrorPage() {
     };
 
     // 대시보드로 이동
+    // BUG: "/dashboard" 라우트는 App.jsx에 존재하지 않는다(대시보드는 "/" 경로에서
+    // authCode에 따라 Admin/Manager/StaffComponent를 조건부 렌더링하는 구조).
+    // 기존 코드대로면 "홈으로" 버튼을 눌러도 다시 잘못된 경로("/dashboard")로 이동해
+    // 이 에러 페이지로 되돌아오는 루프가 발생했다.
     const handleGoDashboard = () => {
-        navigate("/dashboard");
+        navigate("/");
     };
 
     return (

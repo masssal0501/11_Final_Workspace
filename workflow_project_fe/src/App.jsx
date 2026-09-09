@@ -5,6 +5,7 @@ import "./common/styles/common.css";
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
+import ErrorPage from "./common/components/ErrorPage";
 
 import NoticeListPage from './pages/notice/NoticeListPage';
 import NoticeDetailPage from './pages/notice/NoticeDetailPage';
@@ -372,9 +373,19 @@ function App() {
 
                 {/* 그 외 페이지 접속 시 */}
                 <Route path="/login" element={ <Navigate to="/" replace />}/>
-                {/* <Route path="/error" element={ <ErrorPage /> }/> */}
-                {/* <Route path="*" element={ <Navigate to="/error" replace />}/> */}
-                
+
+                {/* 에러 페이지 - axios 401/403 인터셉터가 이동시키는 경로 */}
+                <Route path="/error" element={ <ErrorPage /> }/>
+
+                {/*
+                 * BUG: 이 catch-all이 없어서 (1) 존재하지 않는 URL과
+                 * (2) 로그인은 했지만 현재 authCode에서 등록되지 않은 Route(위의
+                 * ADMIN/MANAGER/STAFF 조건부 블록 밖의 경로 - 예: STAFF/MANAGER 계정으로
+                 * /employee/list 직접 접근)가 전부 아무 것도 렌더링하지 않는 빈 화면으로
+                 * 남아있었다. 메뉴에서 숨기는 것만으로는 URL 직접 입력을 막을 수 없으므로
+                 * (요구사항 8번), 매치되는 Route가 없으면 항상 에러 페이지로 보낸다.
+                 */}
+                <Route path="*" element={ <ErrorPage /> }/>
 
             </Routes>
 

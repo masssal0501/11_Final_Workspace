@@ -751,3 +751,70 @@ STEP 9에서 "낮은 우선순위, 원인 미조사"로 남겨둔 항목들을 �
 
 #### 사용자 확인 필요
 - **없음** — 문서화 작업 범위 내에서 완결, 위 2건은 TODO로 기록만 함
+
+## 2026-09-10 (15차 작업 — 잘못된 경로/권한없는 URL 직접 접근 처리 + JWT 만료 자동 로그아웃 버그 수정)
+
+사용자가 상세 스펙으로 요청한 작업: "사용자가 존재하지 않는 URL이나 접근 권한이 없는 페이지에 직접 접근했을 때 적절한 에러페이지로 이동하고, JWT 토큰이 만료되거나 인증이 무효화된 경우 자동으로 로그아웃되어 로그인 페이지로 이동하도록 구현한다." Frontend(React Router/Axios)부터 Backend(Spring Security/JWT)까지 전체 흐름을 분석하고, 코드 수정뿐 아니라 실제 브라우저로 8개 필수 시나리오를 전부 재현·검증했다.
+
+### [작업 완료]
+
+#### 사전 조사 (작업 전 상태)
+- **워크트리 불일치 재발**: 이전 세션들(11차/12차)과 동일하게 이번 세션의 워크트리도 `docs/step1-6-project-audit` 최신 커밋이 아닌 훨씬 오래된 히스토리(`feature/Approval-KGM` 병합 시점)로 체크아웃되어 있었음 — `WORK_LOG.md`/`PROJECT_STATUS.md` 자체가 없는 상태였음. `git reset --hard origin/docs/step1-6-project-audit`로 동기화 후 작업 시작. 동기화 과정에서 이전 세션들과 동일하게 `amount/components/AmountPage.jsx`가 워킹트리상 deleted로 나타난 것도 `git checkout --`으로 복구(커밋에는 항상 존재, 작업 트리 반영만 누락됐던 것).
+- **Frontend**: `App.jsx`가 로그인 상태(`loginUser`)에 따라 3갈래(비로그인/비밀번호변경필요/정상)로 완전히 다른 `<Routes>` 트리를 렌더링. 정상 로그인 분기는 ADMIN/MANAGER 전용 라우트를 `{loginUser.authCode === "ADMIN" && (...)}` 식으로 조건부 등록하고 있었으나, **매치되는 Route가 하나도 없을 때의 catch-all(`path="*"`)이 없어** (1) 존재하지 않는 URL과 (2) 로그인은 했지만 현재 권한에서 등록되지 않은 URL(예: STAFF가 `/employee/list` 직접 접근) 둘 다 헤더/푸터만 남고 본문이 완전히 빈 화면으로 남아있었음(React Router의 "No routes matched" 콘솔 경고와 함께). `ErrorPage.jsx`(요구 문구 "접속권한이 없거나 잘못된 경로입니다." + [이전 페이지]/[홈으로] 버튼)는 이미 존재했지만 `App.jsx`에서 import조차 되지 않고 라우트도 전부 주석 처리되어 있어 완전히 미사용 상태였음. `ProtectedRoute.jsx`도 존재하지만 어디서도 import되지 않는 죽은 컴포넌트였음(App.jsx의 조건부 라우트 등록 방식이 사실상 동일한 역할을 이미 하고 있어 그대로 두고 활용하지 않음).
+- **Backend**: `SecurityConfig.java`에 커스텀 `AuthenticationEntryPoint`/`AccessDeniedHandler`가 전혀 등록되어 있지 않음(레포 전체 grep으로 재확인, 0건). `JwtAuthenticationFilter`는 토큰이 없거나 `JwtUtil.validateToken()`이 실패해도 예외를 던지지 않고 그냥 `SecurityContext`를 비운 채 `filterChain.doFilter()`만 호출 — 즉 401/403 판단을 전적으로 Spring Security 기본 동작에 위임. `formLogin`/`httpBasic`을 쓰지 않는 상태에서 커스텀 EntryPoint가 없으면 Spring Security의 기본 폴백(`Http403ForbiddenEntryPoint`)이 "인증 자체가 안 됨(401이어야 함)"과 "인증은 됐지만 권한 부족(403)"을 구분 없이 전부 403으로 응답한다는 것을 실제 curl 요청으로 재확인(무토큰 요청도 403, 권한부족 요청도 403 — 동일).
+- **Axios**: `axiosInstance.js`에 request 인터셉터(Bearer 토큰 첨부)만 있고 **response 인터셉터가 아예 없어** 401을 받아도 아무 처리도 하지 않고 있었음 — 이것이 "JWT 만료돼도 화면에 그대로 남아있는" 버그의 직접 원인.
+- **Zustand 미사용 확인**: `package.json`엔 `zustand` 의존성이 있지만 실제 소스 전체(`workflow_project_fe/src`)에서 import하는 곳이 0건 — 인증 상태는 순수 React state(`useState`) + `localStorage`로만 관리되고 있음을 확인. 잘못된 가정(Zustand 스토어 초기화)으로 코드를 만들지 않도록 사전에 확인.
+- **`WorkcationApi.js`는 이미 공용 `axiosInstance`를 사용 중**(이전 세션 메모의 우려와 달리 문제 없음). 대신 실제로 raw `axios`(공용 인터셉터 미적용)를 쓰는 곳은 `workcation/components/WorkcationItemComponent.jsx` 1곳이었음(레포 전체 grep으로 확인).
+- **Header.jsx의 로그아웃 로직 확인**: `handleLogout`이 `App.jsx`의 `onLogout` prop(=`handleLogout`: `localStorage.removeItem("accessToken")` + `localStorage.removeItem("user")` + `setLoginUser(null)`)을 호출하는 구조. axios 인터셉터는 컴포넌트 트리 밖에서 실행되어 이 함수(React state setter)를 직접 재사용할 수 없으므로, 동일한 localStorage 키 정리 로직만 그대로 재사용하고 `window.location.href`로 페이지를 완전히 새로고침시켜 `App.jsx`가 처음부터 다시 마운트되며 자연스럽게 비로그인 상태가 되도록 처리(요구사항 14번의 "Hook을 못 쓰는 구조라면 프로젝트에 맞는 방법으로 처리" 조건에 해당).
+- **Nginx 설정 확인**: `deploy/nginx/workflow.conf`에 React Router SPA fallback(`try_files $uri $uri/ /index.html`)과 `/workflow/**` → Spring Boot 프록시가 이미 올바르게 분리되어 있어 별도 수정 불필요함을 확인(요구사항 17/18번).
+
+#### 수정 내용
+
+**Backend**
+1. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/jwt/JwtAuthenticationEntryPoint.java` (신규) — 인증 실패(토큰 없음/만료/위조) 시 401 + JSON 응답
+2. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/jwt/JwtAccessDeniedHandler.java` (신규) — 인가 실패(권한 부족) 시 403 + JSON 응답
+3. `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/SecurityConfig.java` — 위 두 Bean을 `.exceptionHandling(exception -> exception.authenticationEntryPoint(...).accessDeniedHandler(...))`로 연결. JWT 구조/필터 로직/Controller/Service는 전혀 건드리지 않은 additive 변경(요구사항 27번 준수).
+
+**Frontend**
+4. `workflow_project_fe/src/App.jsx` — `ErrorPage` import 추가, `/error` 명시적 라우트 추가, 정상 로그인 분기 `<Routes>` 최하단에 `<Route path="*" element={<ErrorPage />} />` 추가(존재하지 않는 URL + 권한없는 URL 직접 접근을 전부 에러 페이지로 유도)
+5. `workflow_project_fe/src/common/api/axiosInstance.js` — response 인터셉터 신규 추가: 401은 `accessToken`/`user` 삭제(Header.jsx/App.jsx의 로그아웃과 동일 키) 후 `/login`으로 이동(자동 로그아웃), 403은 로그아웃 없이 `/error`로 이동. `isRedirecting` 플래그로 동시다발 401(무한 요청 문제, 요구사항 15번) 시 중복 리다이렉트 방지. 추가로, "요청이 발생해야만 401을 받는" 구조의 한계(요구사항 10번 버그의 근본 원인)를 보강하기 위해 새 라이브러리 추가 없이 JWT `exp` 클레임을 직접 base64url 디코딩해 15초 주기로 만료 여부를 선제 확인하는 로직 추가 — 사용자가 아무 조작도 하지 않고 화면만 보고 있어도 만료 시점 이후 자동 로그아웃되도록 함.
+6. `workflow_project_fe/src/common/components/ErrorPage.jsx` — "홈으로" 버튼이 존재하지 않는 `/dashboard` 경로로 이동하려 하던 버그 수정(`App.jsx`엔 `/dashboard` 라우트가 없고 대시보드는 `/`에서 authCode별로 조건부 렌더링됨) → `/`로 수정. 기존 코드대로면 버튼을 눌러도 다시 에러 페이지로 되돌아오는 루프였음.
+7. `workflow_project_fe/src/workcation/components/WorkcationItemComponent.jsx` — 유일하게 공용 `axiosInstance` 대신 raw `axios` + 수동 조립 URL을 쓰던 곳을 `axiosInstance`로 교체(401/403 인터셉터 커버리지 통일). 이 컴포넌트가 호출하는 엔드포인트 경로 자체가 이미 깨져있는(404) 별도의 기존 버그는 코드 내 기존 주석대로 범위 밖이라 손대지 않음.
+
+#### 실제 테스트 (실제 브라우저 + 실제 로컬 백엔드로 재현·검증, 코드 리뷰만으로 끝내지 않음)
+
+로컬 백엔드(포트 8006, MySQL 로컬 DB)와 프론트 dev 서버(포트 5173)를 실제로 기동해 Claude Browser로 직접 조작하며 검증. JWT 만료 테스트를 위해 `application.properties`의 `jwt.expiration` 값 자체는 건드리지 않고, 백엔드 프로세스 기동 시 `JWT_EXPIRATION=20000`(20초) 환경변수만 임시로 주입(요구사항 22번 — 운영 설정 파일은 무변경, 테스트 종료 후 즉시 프로세스 종료로 원복).
+
+- **Test 1 (존재하지 않는 URL)**: 로그인 상태에서 `/no-such-page-xyz` 직접 접근 → ErrorPage 정상 렌더링 확인 (🟢)
+- **Test 2 (STAFF → ADMIN 페이지 직접 접근)**: `staff01`(STAFF)로 로그인 후 `/employee/list`(ADMIN 전용) 직접 접근 → ErrorPage 렌더링 확인. "홈으로" 버튼 클릭 시 정상적으로 `/`(대시보드)로 이동하는 것까지 확인 (🟢)
+- **Test 3 (MANAGER → ADMIN 페이지 직접 접근)**: `manager01`(MANAGER)로 로그인 후 `/admin/statistics`(ADMIN 전용) 직접 접근 → ErrorPage 렌더링 확인 (🟢)
+- **Test 4 (비로그인 → 보호 페이지)**: 로그아웃 상태에서 `/no-such-page` 직접 접근 → `window.location.pathname`이 `/login`으로 확인됨(로그인 페이지로 이동) (🟢)
+- **Test 5 (JWT 만료 → 자동 로그아웃)**: `staff01`로 로그인 후 아무 조작 없이 대기만 함(20초 만료 설정) → 사용자 인터랙션 없이도 신규 추가한 15초 주기 선제 만료 확인 로직이 감지해 `accessToken`/`user` 둘 다 `localStorage`에서 삭제되고 `/login`으로 자동 이동됨을 확인. 별도로 curl로도 백엔드 단에서 무토큰/위조토큰 요청이 정확히 401(과거엔 403)을 반환함을 확인 (🟢)
+- **Test 6 (JWT 만료 후 새로고침)**: `manager01`로 로그인 후 만료 시점 직후 강제 새로고침(F5 상당) → `/login`으로 이동, `accessToken`/`user` 모두 삭제 확인 (🟢)
+- **Test 7 (로그아웃 후 뒤로가기)**: 로그인 → Header 로그아웃 버튼 클릭(실제 UI 클릭, `Header.jsx`의 기존 로그아웃 로직 그대로 사용) → 브라우저 뒤로가기 → 보호된 화면이 재노출되지 않고 로그인 화면 유지됨을 확인(로그인 상태가 URL이 아니라 `App.jsx`의 React state에 묶여있어 히스토리 엔트리와 무관하게 항상 최신 인증 상태로 렌더링되는 구조 덕분) (🟢)
+- **Test 8 (ADMIN/MANAGER/STAFF 정상 접근)**: 세 계정 모두 실제 로그인 → 각자의 대시보드(Staff/Manager/AdminComponent) 정상 렌더링 확인, ADMIN 계정으로 `/employee/list` 정상 접근(직원 목록 6건 정상 표시)도 확인 (🟢)
+- **(추가) 403은 로그아웃시키지 않는 것 확인 (요구사항 16번)**: `staff01`로 로그인한 상태에서 브라우저 콘솔로 실제 `axiosInstance` 모듈을 동적 import해 ADMIN 전용 API(`PATCH /employees/2/role`)를 직접 호출 → 인터셉터가 403을 감지해 `/error`로 이동하면서도 `accessToken`/`user`는 그대로 유지됨(로그아웃되지 않음)을 확인 — 401(로그아웃)과 403(에러 페이지만, 세션 유지)의 실제 동작 차이를 코드가 아닌 살아있는 브라우저 요청으로 직접 검증 (🟢)
+- **Backend 401/403/404 구분(요구사항 5/16번)**: curl로 직접 확인 — 무토큰 보호 API=401, STAFF의 ADMIN 전용 API(`POST /employees`, `PATCH /employees/*/role`)=403(신규 JSON 바디 포함), 인증된 상태의 존재하지 않는 경로(`/invalid-api`)=404(Spring 표준), 존재하지 않는 리소스 조회(`GET /employees/999999999`)는 여전히 500(컨트롤러/서비스가 던지는 예외를 그대로 반환하는 기존 동작 — Service/Controller 변경은 요구사항 27번 범위 밖이라 손대지 않음, ⚪ 참고용으로만 기록)
+- **Frontend build (`npm run build`)**: PASS (경고만 있음, 청크 크기 관련 — 기능과 무관)
+- **Backend build (`mvn clean package -DskipTests`)**: PASS
+
+테스트 도중 `preview_start`(launch.json 기반)로 띄운 dev 서버가 이 에이전트의 격리된 워크트리가 아니라 공유 체크아웃 디렉터리를 대상으로 기동되어(경로 해석 문제로 추정) 처음엔 수정 전 코드가 그대로 서빙되는 현상을 발견 — `preview_stop` 후 워크트리 내부에서 직접 `npm run dev`를 실행해 올바른 코드가 서빙되는 것을 확인하고 이후 모든 브라우저 테스트를 그 인스턴스로 진행함.
+
+#### 변경 파일
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/jwt/JwtAuthenticationEntryPoint.java` (신규)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/jwt/JwtAccessDeniedHandler.java` (신규)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/config/SecurityConfig.java` (exceptionHandling 연결)
+- `workflow_project_fe/src/App.jsx` (ErrorPage import + `/error` 라우트 + catch-all 라우트)
+- `workflow_project_fe/src/common/api/axiosInstance.js` (401/403 response 인터셉터 + JWT 만료 선제 확인)
+- `workflow_project_fe/src/common/components/ErrorPage.jsx` ("홈으로" 버튼의 존재하지 않는 `/dashboard` 경로 버그 수정)
+- `workflow_project_fe/src/workcation/components/WorkcationItemComponent.jsx` (raw axios → 공용 axiosInstance 교체)
+
+#### 현재 상태
+- 필수 테스트 8종 + 401/403 실동작 검증 전부 완료(🟢). Frontend/Backend 빌드 모두 PASS. `application.properties`는 무변경(JWT 만료 테스트는 프로세스 기동 시 환경변수로만 임시 적용 후 프로세스 종료로 원복). 로컬에서 띄웠던 백엔드/프론트 dev 서버 전부 종료 완료.
+
+#### 남은 문제 / 확인 필요
+- ⚪ **TODO**: `GET /employees/999999999`(존재하지 않는 리소스 조회)가 404가 아니라 500을 반환하는 기존 동작은 이번 작업 범위(라우팅/인증) 밖이라 손대지 않음 — Resource Not Found를 404로 통일하려면 Service/Controller 변경이 필요해 별도 확인 필요 항목으로 남김.
+- ⚪ **TODO**: 배포 환경(AWS EC2 + Nginx)에서의 실제 재검증은 이번 세션에서 진행하지 못함(로컬 환경에서만 검증). Nginx 설정 자체는 SPA fallback이 이미 올바르게 되어 있음을 코드로 확인했으나, 실제 배포 환경에서 잘못된 URL 접근/401/403 흐름이 로컬과 동일하게 동작하는지는 별도 확인 필요.
+
+#### 사용자 확인 필요
+- **없음** — 이번 작업은 전부 요구사항 27번(최소 변경) 원칙 내에서 처리 가능했고, DB/API 계약/JWT 구조 변경 없이 완료.

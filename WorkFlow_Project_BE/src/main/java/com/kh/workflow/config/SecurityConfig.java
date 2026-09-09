@@ -18,6 +18,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.kh.workflow.config.jwt.JwtAccessDeniedHandler;
+import com.kh.workflow.config.jwt.JwtAuthenticationEntryPoint;
 import com.kh.workflow.config.jwt.JwtAuthenticationFilter;
 
 @Configuration
@@ -50,12 +52,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler
     ) throws Exception {
 
         return http
 
         		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+        		// BUG-XXX: 커스텀 AuthenticationEntryPoint/AccessDeniedHandler가 없어
+        		// formLogin/httpBasic 미사용 상태의 기본 폴백(Http403ForbiddenEntryPoint)이
+        		// 인증 실패(JWT 없음/만료)에도 그대로 쓰이며 항상 403만 내려가던 문제를 해결.
+        		// 인증 실패 -> 401(JwtAuthenticationEntryPoint), 인가 실패(권한 부족) -> 403(JwtAccessDeniedHandler)
+        		.exceptionHandling(exception -> exception
+        				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        				.accessDeniedHandler(jwtAccessDeniedHandler)
+        		)
 
 
                 .csrf(csrf -> csrf.disable())
