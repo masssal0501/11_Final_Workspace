@@ -59,7 +59,7 @@ function HubDetailComponent(props) {
             }
         }
         selectBoard();
-    }, [hub]);
+    }, [hubNo]);
 
     /**
      * 주소 데이터를 기반으로 카카오맵 좌표(위경도) 변환 처리
@@ -91,16 +91,16 @@ function HubDetailComponent(props) {
         };
 
         // 이미 로드된 경우 즉시 실행
-    if (executeAddressSearch()) return;
+        if (executeAddressSearch()) return;
 
-    // 아직 로드되지 않은 경우 100ms 간격으로 확인하여 로드 완료 시 실행
-    const timer = setInterval(() => {
-        if (executeAddressSearch()) {
-            clearInterval(timer);
-        }
-    }, 100);
+        // 아직 로드되지 않은 경우 100ms 간격으로 확인하여 로드 완료 시 실행
+        const timer = setInterval(() => {
+            if (executeAddressSearch()) {
+                clearInterval(timer);
+            }
+        }, 100);
 
-    return () => clearInterval(timer);
+        return () => clearInterval(timer);
     }, [hub.hubAddress]);
 
     /**
