@@ -29,7 +29,6 @@ import com.kh.workflow.place.model.service.PlaceService;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/place")
@@ -44,15 +43,7 @@ public class PlaceController {
     public ResponseEntity<String> insertPlace(
             @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
-            HttpSession session,
-            Authentication authentication) {
-    	
-    	if(!authentication.getAuthorities().stream()
-    			.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-    		return ResponseEntity
-    				.status(HttpStatus.FORBIDDEN)
-    				.body("관리자만 장소를 등록할 수 있습니다.");
-    	}
+            HttpSession session) {
 
         // 기본 상태 설정
         if (h.getHubStatus() == null || h.getHubStatus().isBlank()) {
@@ -153,16 +144,7 @@ public class PlaceController {
             @PathVariable int hubNo,
             @RequestPart("place") Hub h,
             @RequestPart(value = "file", required = false) MultipartFile file,
-            HttpSession session,
-            Authentication authentication) {
-    	
-    	if(!authentication.getAuthorities().stream()
-    			.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-    		
-    		return ResponseEntity
-    				.status(HttpStatus.FORBIDDEN)
-    				.body("관리자만 장소를 수정할 수 있습니다.");
-    	}
+            HttpSession session) {
 
         h.setHubNo(hubNo);
 
@@ -204,16 +186,8 @@ public class PlaceController {
     // 장소 종료
     @DeleteMapping("/{hubNo}")
     public ResponseEntity<String> deletePlace(
-            @PathVariable int hubNo,
-            Authentication authentication) {
+            @PathVariable int hubNo) {
 
-    	if(!authentication.getAuthorities().stream()
-    			.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-    		
-    		return ResponseEntity
-    				.status(HttpStatus.FORBIDDEN)
-    				.body("관리자만 장소를 삭제할 수 있습니다.");
-    	}
     	
         int result =
                 placeService.deletePlace(hubNo);

@@ -14,8 +14,8 @@ function PlaceDetail() {
     const [place, setPlace] = useState(null);
 
     // 관리자 여부 확인
-    const role = localStorage.getItem("role");
-    const isAdmin = role === "ADMIN";
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isAdmin = user?.authCode === "ADMIN";
 
 
     useEffect(() => {
@@ -23,7 +23,6 @@ function PlaceDetail() {
         selectPlaceDetail();
 
     }, [hubNo]);
-
 
     // 지역 정보 상세 조회
     const selectPlaceDetail = async () => {
@@ -49,6 +48,18 @@ function PlaceDetail() {
         return <div>로딩중...</div>;
 
     }
+
+    const mainFile = place?.hubFileList?.find(
+    file => file.status === "Y"
+    );
+
+    console.log("mainFile:", mainFile);
+    console.log(
+        "image URL:",
+        mainFile
+            ? `http://localhost:8006/workflow${mainFile.filePath}/${mainFile.changeName}`
+            : "없음"
+    );
 
 
     // 허브 상태 표시
@@ -82,29 +93,17 @@ function PlaceDetail() {
 
             <div>
 
+
                 {/* 사진 */}
                 <div className="place-image">
-
-                    {place.filePath ? (
-
+                    {mainFile ? (
                         <img
-                            src={`http://localhost:8080${place.filePath}`}
+                            src={`http://localhost:8006/workflow${mainFile.filePath}/${mainFile.changeName}`}
                             alt={place.hubName}
-                            style={{
-                                width: "400px",
-                                height: "300px",
-                                objectFit: "cover"
-                            }}
                         />
-
                     ) : (
-
-                        <div>
-                            등록된 사진이 없습니다.
-                        </div>
-
+                        <div>등록된 사진이 없습니다.</div>
                     )}
-
                 </div>
 
 
@@ -172,7 +171,7 @@ function PlaceDetail() {
                 {isAdmin && (
 
                     <button className="editButton"
-                        onClick={() => navigate(`/place/${hubNo}/edit`)}
+                        onClick={() => navigate(`/place/edit/${hubNo}`)}
                     >
                         수정하기
                     </button>

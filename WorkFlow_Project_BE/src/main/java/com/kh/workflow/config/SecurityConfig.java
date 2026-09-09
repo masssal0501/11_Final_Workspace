@@ -106,9 +106,29 @@ public class SecurityConfig {
                     	).permitAll()
                         
                         // 장소 관련 API
+                     // 장소 조회
                         .requestMatchers(
+                                HttpMethod.GET,
                                 "/place/**"
                         ).permitAll()
+
+                        // 장소 등록 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/place"
+                        ).hasRole("ADMIN")
+
+                        // 장소 수정 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/place/**"
+                        ).hasRole("ADMIN")
+
+                        // 장소 삭제 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/place/**"
+                        ).hasRole("ADMIN")
                         
                         .requestMatchers(
                         		"/hubs/**"
