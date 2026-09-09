@@ -11,7 +11,7 @@ const statusConfigMap = {
 };
 
 //2. 숫자로 된 진행도(예:35) 구간에 맞는 뱃지 정보로 변환 해주는 함수
-export const getStatusInfoByProgress = (progress) => {
+export const getStatusInfoByProgress = (progress, status) => {
 
     //관리자 승인 이후 업무완료 상태가 넘어온 경우 우선 처리
     if (status == "업무 완료") {

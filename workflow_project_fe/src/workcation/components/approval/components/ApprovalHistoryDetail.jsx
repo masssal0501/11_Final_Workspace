@@ -25,8 +25,6 @@ function ApprovalHistoryDetail() {
             console.log("상세조회 데이터 :", response);
 
             setWorkcationInfo(response);
-            setApproverState(response.approverState);
-            setApproverComment(response.approverComment || "");
 
         } catch (error) {
 

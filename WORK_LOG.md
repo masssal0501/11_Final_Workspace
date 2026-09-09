@@ -607,3 +607,66 @@ STEP 9에서 "낮은 우선순위, 원인 미조사"로 남겨둔 항목들을 �
 
 #### 사용자 확인 필요
 - **없음**
+
+## 2026-09-09 (12차 작업 — CSS 통일 세션이 미룬 버그 4건 + 신규 리포트(직원 정보 수정 미작동) 1건, 총 5건 수정)
+
+11차 작업 직후 진행된 프론트엔드 CSS 디자인 시스템 통일 세션(커밋 `9970470`)에서 범위 밖으로 판단해 손대지 않고 넘긴 버그 4건과, 사용자가 이번에 새로 제보한 "관리자가 직원 정보를 수정할 때 정보가 안 불러와지는 버그" 1건을 함께 수정했다.
+
+**1. (UI-001) `PlaceList.jsx`의 `useNavigate` import 누락**
+`react-router-dom`에서 `useSearchParams`만 import하면서 `useNavigate()`를 호출해 렌더링 시 `ReferenceError`로 페이지 전체가 크래시하던 버그. import에 `useNavigate` 추가로 해결.
+
+**2. (UI-002) `ApprovalHistoryDetail.jsx`의 정의되지 않은 setter 호출**
+`ApprovalReject.jsx`에서 복사해온 것으로 보이는 `setApproverState`/`setApproverComment` 호출이 이 컴포넌트에는 존재하지 않는 state setter라 매 조회마다 `ReferenceError`가 발생 → `catch` 블록으로 흡수되어 화면은 정상 렌더링되지만 콘솔에 에러가 계속 쌓이던 버그. `setWorkcationInfo(response)` 이후의 두 줄(죽은 코드)을 제거.
+
+**3. (UI-003) `TaskStatusBadge.jsx`의 `getStatusInfoByProgress`가 전역 `window.status`를 참조**
+함수가 `progress` 하나만 파라미터로 받으면서 내부에서 `status`를 참조 — 스코프에 없어 전역 `window.status`(항상 falsy)로 resolve되어 "업무 완료" 분기가 영구히 죽어있던 버그. 호출부(`TaskStatusBadge` 컴포넌트, 47번째 줄)는 이미 `getStatusInfoByProgress(progress, status)`로 두 번째 인자를 넘기고 있었으므로, 함수 시그니처를 `(progress, status)`로 맞춰 호출부와 일치시켜 해결(호출부 쪽 수정이 아니라 함수 정의 쪽 수정이 맞는 케이스로 판단).
+
+**4. (UI-004) 미사용 디렉터리/파일 3건 삭제 — 전부 재확인 후 실제로 죽은 코드였음을 확인**
+`workflow_project_fe/src` 전체에서 각 대상에 대한 import를 재검색(grep)해 재확인:
+- `src/login/`(`LoginForm.jsx`/`FindIDForm.jsx`/`FindPWForm.jsx`/`styles/LoginForm.css`) — `App.jsx`는 동일한 이름의 컴포넌트를 `src/employee/components/LoginForm.jsx` 등에서 import하고 있어, `src/login/`은 완전히 대체된 이전 버전의 죽은 사본이었음. 삭제.
+- `src/placeinfo/`(전체) — `App.jsx`가 `/hub/ai`, `/placeInfo/ai` 두 라우트 모두에서 `src/hub/components/AIComponent.jsx`(동일 이름의 다른 컴포넌트)만 import하고 있어, `src/placeinfo/`는 어디서도 import되지 않는 완전한 죽은 코드였음(라우트 경로 문자열에 "placeInfo"가 들어갈 뿐, 실제 임포트 경로는 전부 `hub/`). 삭제.
+- `workcation/components/approval/style/ApprovalQueueDetail.css` — 프로젝트 전체에서 import하는 곳이 없음을 확인. 삭제.
+
+**5. (신규 리포트) `EmployeeEdit.jsx`("관리자가 직원 정보를 수정할 때 정보가 안 불러와지는 버그") — 완전 미구현 스텁이었음**
+`getEmployee`를 import만 하고 호출하지 않고, `useState`/`useEffect` 없이 모든 input이 uncontrolled(`value` 없음)이며 `<form>`에 `onSubmit`조차 없는 완성되지 않은 컴포넌트였음. `EmployeeDetail.jsx`의 fetch 패턴(`useParams`/`useEffect`/`getEmployee(empNo)`/로딩 상태)을 그대로 따라 실제로 구현:
+- `updateEmployee(empNo, { empName, phone, email, address })` (`PUT /employees/{empNo}`)로 이름/연락처/이메일/주소 저장
+- `updateEmployeeRole`/`updateEmployeeStatus`(`PATCH .../role`, `PATCH .../status`) — 백엔드에는 이미 존재하지만 프론트 어디서도 호출하지 않던 두 API를 이 화면에서 처음으로 실제 사용. 상태 라디오의 플레이스홀더 값(`"apple"`/`"banana"`)을 실제 코드(`Y`/`N`)로 교체하고 조회된 현재 상태로 사전 선택되도록 처리
+- 부서(`depId`)/직위(`jobCode`)는 백엔드에 변경 API 자체가 없음(컨트롤러 전체 매핑 확인, `PUT/PATCH` 경로 중 depId/jobCode를 받는 엔드포인트 없음) — 새 백엔드 엔드포인트를 만들지 않는 대신(DB/API 계약 변경은 범위 밖) 조회된 현재 값으로 `<select>`를 채우되 `disabled` 처리(기존 `empId` input과 동일 패턴)하고, 저장되지 않는 이유를 한 줄 주석으로 명시
+- 연락처는 `employee.phone`(단일 문자열, 예: `"010-1234-5678"`)을 `-` 기준으로 분리해 3개 입력란에 채우고, 저장 시 다시 `-`로 합쳐서 전송
+- 제출 성공 시 `alert` 후 `EmployeeDetail.jsx`의 "돌아가기"와 일관되게 상세 페이지(`/employee/detail/${empNo}`)로 이동
+
+> **검증 중 추가로 발견한 실제 버그(프론트 `employeeApi.js`)**: `updateEmployeeRole`이 `authCode`를 쿼리 파라미터로 보내고 있었으나, 실제 백엔드(`EmployeeController.updateRole`)는 `@RequestBody EmployeeRoleUpdateRequest`(JSON 본문)를 요구함 — 이대로면 매번 "Required request body is missing" 400 오류. 쿼리 파라미터 대신 JSON 본문(`{ authCode, depId, jobCode }`)을 보내도록 수정.
+> 또한 **백엔드 `EmployeeServiceImpl.updateEmployeeRole()`이 요청 DTO의 `authCode`/`depId`/`jobCode` 세 필드를 무조건 엔티티에 그대로 덮어쓰는 것**을 실제 API 호출로 발견 — `authCode`만 보내면 `depId`/`jobCode`가 `null`이 되어 `dep_id` NOT NULL 제약조건 위반으로 500 에러. 백엔드 코드는 범위 밖이라 손대지 않고, 프론트에서 매번 조회된 현재 `depId`/`jobCode`를 함께 보내는 방식으로 우회(주석으로 이유 명시).
+
+#### 수정 이유
+1~4번은 CSS 통일 세션이 "범위 밖"으로 판단해 미뤄둔 버그로, 이번 세션에서 실제 코드 재확인 후(특히 4번은 삭제 전 grep으로 재검증) 확정 수정. 5번은 사용자가 이번에 새로 제보한 버그로, "관리자가 직원 정보를 수정할 때 정보가 안 불러와진다"는 증상의 원인이 실제로는 EmployeeEdit 컴포넌트가 애초에 데이터 조회/저장 로직 자체가 구현되지 않은 스텁이었음을 확인.
+
+#### 변경 파일
+- `workflow_project_fe/src/place/components/PlaceList.jsx` (import 수정)
+- `workflow_project_fe/src/workcation/components/approval/components/ApprovalHistoryDetail.jsx` (죽은 코드 2줄 제거)
+- `workflow_project_fe/src/taskboard/components/TaskStatusBadge.jsx` (`getStatusInfoByProgress` 시그니처 수정)
+- `workflow_project_fe/src/login/`, `workflow_project_fe/src/placeinfo/`, `workflow_project_fe/src/workcation/components/approval/style/ApprovalQueueDetail.css` (삭제)
+- `workflow_project_fe/src/employee/components/EmployeeEdit.jsx` (전체 구현)
+- `workflow_project_fe/src/employee/api/employeeApi.js` (`updateEmployeeRole`을 실제 백엔드 계약에 맞게 수정)
+
+#### 검증
+- Frontend build (`npm run build`): **PASS**
+- **버그 1~3**: 코드 리딩으로 원인 확정, 수정 후 빌드 통과로 회귀 없음 확인(런타임 재현 테스트는 별도로 하지 않음 — 원인이 명확한 단순 버그)
+- **버그 4**: 삭제 전 `workflow_project_fe/src` 전체에서 각 대상 경로에 대한 import를 재검색(grep)해 실제로 어디서도 참조되지 않음을 재확인 후 삭제(로그인/장소정보 라우트가 각각 `employee/`, `hub/`의 동일 이름 컴포넌트로 이미 대체되어 있었음을 `App.jsx` import 라인으로 직접 확인)
+- **버그 5**: 로컬 MySQL(`workflow` DB, 기존 더미데이터) + 실제 실행 중인 백엔드(격리를 위해 별도 포트 8007 인스턴스, CORS는 이 검증용 프론트 포트로 한정 설정) + 실제 브라우저로 end-to-end 검증
+  - `admin` 계정 비밀번호를 알 수 없어(메모리 기록의 `Staff01!`이 더 이상 유효하지 않음을 실제 로그인 시도로 확인) bcryptjs로 새 해시를 생성해 `emp_pwd`를 `Staff01!`로 재설정(로컬 전용 조치)
+  - admin으로 로그인 → 직원 관리 목록에서 staff02(이사원) 상세 → 편집 화면 진입 시 이름/연락처(3분할)/이메일/주소/부서(비활성)/직위(비활성)/상태(라디오 사전선택)가 실제 DB 값 그대로 채워짐을 스크린샷으로 확인(수정 전이었다면 전부 빈 입력란이었을 화면)
+  - 이름을 "이사원(UI테스트)", 연락처를 "010-5555-1111"로 실제 브라우저에서 수정 후 저장 → alert 확인 → 상세 페이지로 자동 이동, 변경값이 즉시 반영된 것을 확인
+  - 상세 페이지를 완전히 새로 고침(하드 네비게이션, SPA 상태가 아닌 서버 재조회)해도 변경값이 그대로 유지됨을 확인해 실제 DB 반영(단순 로컬 state 아님)을 검증
+  - 검증 후 staff02 데이터를 원래 값(이름 "이사원", 연락처 "010-4444-1111")으로 API 호출을 통해 복원
+  - 검증 과정에서 `updateEmployeeRole`의 쿼리파라미터/본문 불일치, 백엔드의 `depId`/`jobCode` 강제 덮어쓰기 문제를 실제 API 응답(400 → 500)으로 발견해 위 "추가로 발견한 실제 버그" 항목대로 수정 후 재검증(204 No Content 확인)
+- (부수적 발견) 이번에도 워크트리가 `docs/step1-6-project-audit` 최신 커밋(`9970470`, CSS 통일 세션 결과물)이 아닌 훨씬 오래된 히스토리(`feature/Approval-KGM`, `WORK_LOG.md` 자체가 없는 상태)로 체크아웃되어 있었음 — 작업 시작 전 `git reset --hard docs/step1-6-project-audit`로 동기화. 이 과정에서 이전 세션과 동일한 워킹트리 미반영 파일(`amount/components/AmountPage.jsx`)이 `git status`상 deleted로 나타난 것도 `git checkout --`으로 복구
+
+#### 현재 상태
+- 5개 버그 전부 수정 및 검증 완료
+
+#### 남은 문제
+- 없음 — 이번 버그 리포트 범위 전부 처리 완료
+
+#### 사용자 확인 필요
+- **없음** — 전부 명확한 버그 수정(스텁 미구현, import 누락, 죽은 코드, 확정된 미사용 파일)이며, 백엔드 API 계약을 바꾸지 않는 선에서 처리 가능했음

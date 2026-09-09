@@ -172,16 +172,18 @@ export const getEmployeeList = async () => {
  */
 export const updateEmployeeRole = async (
     empNo,
-    authCode
+    { authCode, depId, jobCode }
 ) => {
 
+    // 백엔드 EmployeeServiceImpl.updateEmployeeRole()가 요청 DTO의 세 필드를
+    // 무조건 그대로 엔티티에 덮어쓰므로, depId/jobCode를 빠뜨리면 NOT NULL
+    // 제약조건 위반으로 실패한다. 변경하지 않는 값도 항상 함께 보내야 한다.
     const response = await axiosInstance.patch(
         `/employees/${empNo}/role`,
-        null,
         {
-            params: {
-                authCode,
-            },
+            authCode,
+            depId,
+            jobCode,
         }
     );
 
