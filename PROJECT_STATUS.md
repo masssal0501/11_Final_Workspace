@@ -1,6 +1,6 @@
 # PROJECT_STATUS.md
 
-마지막 갱신: 2026-09-09 (11차 작업 — STEP 9에서 발견해 미뤄뒀던 낮은 우선순위 버그 4건 수정 완료: ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시, `ManagerComponent.jsx` 정산대기목록 필드 오류, `AdminAmountPage.jsx` 죽은 prop)
+마지막 갱신: 2026-09-09 (13차 작업 — Swagger/OpenAPI 문서화 전체 적용 완료: 12개 Controller 중 API가 실재하는 11개 전부 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/JWT `@SecurityRequirement` 문서화, 실제 기동 후 Swagger UI·API 문서·JWT 로그인·핵심 GET API end-to-end 검증 완료)
 
 ## 기술 스택 확정 상태
 
@@ -120,6 +120,7 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **STEP 10(운영 배포 준비 + 실배포) 완료** — `Deploy` 브랜치 push 완료, GitHub Actions 파이프라인 2회 연속 `Success` 확인(attendance 테이블 마이그레이션 + 2주치 더미데이터가 실제 운영 RDS에 반영됨). 배포 확인 후 `deploy.yml`의 DB 마이그레이션 스텝은 원상복구(제거) 완료
 - **STEP 11(STEP 9 발견 낮은 우선순위 버그 4건 수정) 완료** — ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시, `ManagerComponent.jsx` 정산대기목록 `approverState`→`status` 필드 오류, `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 전부 수정 및 로컬 MySQL 실데이터 + 실제 API 호출로 검증 완료. 상세는 WORK_LOG.md 11차 작업 참조
 - **STEP 12(CSS 통일 세션 미룬 버그 4건 + 신규 리포트 1건, 총 5건) 완료** — `PlaceList.jsx` `useNavigate` import 누락, `ApprovalHistoryDetail.jsx` 정의되지 않은 setter 호출, `TaskStatusBadge.jsx`의 `getStatusInfoByProgress` 전역 `window.status` 참조 버그 수정. 미사용 디렉터리/파일 3건(`src/login/`, `src/placeinfo/`, `ApprovalQueueDetail.css`) 재확인 후 삭제. **신규 리포트**: `EmployeeEdit.jsx`(관리자 직원 정보 수정 화면)가 데이터 조회/저장 로직이 아예 없는 미구현 스텁이었던 것을 `EmployeeDetail.jsx` 패턴대로 실제 구현(조회/수정/역할·상태 변경/연락처 3분할 처리, 부서·직위는 백엔드 API 부재로 조회전용 처리). 검증 중 `employeeApi.js`의 `updateEmployeeRole` 요청 포맷 불일치(쿼리파라미터→JSON 본문) 및 백엔드 `depId`/`jobCode` 강제 덮어쓰기 문제를 실제 API 응답으로 추가 발견해 프론트 쪽에서 우회 수정. 로컬 MySQL + 격리된 백엔드 인스턴스(포트 8007) + 실제 브라우저로 전체 플로우 end-to-end 검증. 상세는 WORK_LOG.md 12차 작업 참조
+- **STEP 13(Swagger/OpenAPI 문서화) 완료** — `SwaggerConfig`/`SecurityConfig`의 Swagger 관련 설정(JWT SecurityScheme, `/swagger-ui/**`·`/v3/api-docs/**` permitAll)이 이전 세션에서 이미 정상 완료되어 있음을 확인, 나머지 `NoticeController`/`PlaceController`/`ReservationController`/`WorkcationController`(총 29개 API)에 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/`@SecurityRequirement(name="JWT")` 문서화 완료. 실제 로컬 기동 후 `GET /workflow/swagger-ui/index.html`·`GET /workflow/v3/api-docs` 200 확인(59 paths/74 operations/11 태그), JWT 로그인 후 6개 핵심 도메인 GET API(직원/공지사항/거점/워케이션/승인/비용) 전부 200 확인. 남은 TODO: `HubController`/`DashboardController`/`AttendanceController`의 영문 태그를 한글 컨벤션으로 통일하는 건, 무인증/권한없음이 실제로는 둘 다 403으로 응답되는(401/403 미분리) Security 이슈 — 둘 다 이번 문서화 범위 밖이라 기록만 함. 상세는 WORK_LOG.md 13차 작업 참조
 - **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행
 - 낮은 우선순위 미해결 버그(신규 발견, STEP 11에서 함께 손대지 않음): `WorkcationDao.managerSelectWaitingList()`에 `adminSelectWaitingList()`와 동일한 JOIN 중복 버그 존재(부서장 대시보드 승인대기목록도 예약 2건 이상인 워케이션은 중복 표시될 수 있음) — 이번 버그 리포트 범위 밖이라 미수정
 - 다음 작업 후보(우선순위 낮음): Kakao Maps JS 키 발급/적용, `WorkcationItemComponent.jsx` 지역 드롭다운 경로 버그 수정, `FileRenamePolicy.java`의 `getRealPath()` 리스크 해소, Gemini API 키 회전(git 히스토리 노출분)

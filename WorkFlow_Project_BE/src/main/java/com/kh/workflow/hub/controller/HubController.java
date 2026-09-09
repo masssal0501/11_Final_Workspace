@@ -203,8 +203,11 @@ public class HubController {
 	@SecurityRequirement(name="JWT")
 	@GetMapping("/hubs/search")
 	public ResponseEntity<HashMap<String, Object>> searchHubList(
-			@RequestParam(value="cpage", defaultValue="1") int currentPage,
-			String mainRegion, String subRegion, String hubType, String keyword) {
+			@Parameter(description="검색할 페이지 번호", example="1") @RequestParam(value="cpage", defaultValue="1") int currentPage,
+			@Parameter(description="검색할 지역(대분류)", example="제주") String mainRegion,
+			@Parameter(description="검색할 상세 지역(소분류)", example="서귀포시") String subRegion,
+			@Parameter(description="거점 시설 유형 코드(숫자 문자열, 예: 1=숙소, 2=공유오피스). 숫자로 변환할 수 없으면 전체(1,2)로 검색", example="1") String hubType,
+			@Parameter(description="거점명/주소 등에 대한 검색 키워드", example="롯데호텔") String keyword) {
 		
 		int boardLimit = 10;
 		int pageLimit = 10;
@@ -235,11 +238,16 @@ public class HubController {
 	/**
      * AI 챗봇 메시지 전송 및 응답 처리
      */
-	@Operation(summary="AI 채팅 내역 조회", description="사용자가 작성한 내용에 해당하는 AI의 대답을 조회합니다.")
-	@ApiResponse(responseCode="200", description="body로 AI 채팅 내역 응답")
+	@Operation(summary="AI 여행 추천 챗봇 메시지 전송", description="사용자의 질문(메시지)을 DB에 등록된 실제 거점 데이터를 참고하는 Gemini 기반 AI에게 전달하고, 강원/제주/부산 워케이션 장소·일정 추천 답변을 받습니다.")
+	@ApiResponses({
+		@ApiResponse(responseCode="200", description="AI 응답 본문(text/plain) 반환"),
+		@ApiResponse(responseCode="503", description="GEMINI_API_KEY 미설정 등으로 AI 챗봇 기능을 사용할 수 없는 경우")
+	})
 	@SecurityRequirement(name="JWT")
 	@PostMapping("/hubs/send")
-	public ResponseEntity<String> sendMessage(@RequestBody String message) {
+	public ResponseEntity<String> sendMessage(
+			@Parameter(description="AI에게 보낼 사용자 메시지(순수 텍스트)", example="제주도 워케이션 일정 추천해줘", required=true)
+			@RequestBody String message) {
 
 		if (chatClient == null) {
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)

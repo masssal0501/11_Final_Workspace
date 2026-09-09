@@ -34,11 +34,24 @@ import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.SupportList;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 // CORS는 SecurityConfig에서 app.cors.allowed-origins 기준으로 중앙 관리한다
 // (기존 originPatterns="*" + allowCredentials="true" 조합은 사실상 모든 origin을
 //  자격증명 포함으로 허용하는 것과 같아 production 배포 기준에 맞지 않아 제거함)
 @RestController
 @RequestMapping("/api/v1/amounts")
+@Tag(
+        name = "비용/정산 관리",
+        description = "워케이션 참여에 따른 비용(정산) 신청 등록/조회/수정/취소, 결재 및 지원금 처리, 첨부파일 관리를 담당하는 API"
+)
 public class AmountController {
 
     private final AmountService amountService;
@@ -88,9 +101,30 @@ public class AmountController {
     // GET /api/v1/amounts?page=1
     // =========================================================
 
+    @Operation(
+            summary = "비용 신청 목록 조회",
+            description = "전체 비용 신청 내역을 등록일 최신순으로 페이지 단위로 조회합니다. "
+                    + "프론트엔드에서 1부터 시작하는 page 값을 전달하면 내부적으로 0부터 시작하는 "
+                    + "Spring Data Pageable로 변환하여 조회하며, 1 미만의 값이 전달되면 1로 보정합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "비용 신청 목록 조회 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "비용 목록 조회 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @GetMapping
     public ResponseEntity<?> getAmountList(
 
+            @Parameter(
+                    description = "조회할 페이지 번호(1부터 시작, 1 미만이면 1로 보정됨)",
+                    example = "1"
+            )
             @RequestParam(
                     value = "page",
                     defaultValue = "1"
@@ -149,11 +183,42 @@ public class AmountController {
     // multipart/form-data
     // =========================================================
 
+    @Operation(
+            summary = "비용 신청 등록",
+            description = "워케이션 참여자가 사용한 비용을 신청 등록합니다. multipart/form-data 형식으로 "
+                    + "비용 정보와 함께 증빙 이미지 파일(jpg, jpeg, png, gif, webp, 파일당 최대 10MB)을 "
+                    + "첨부할 수 있으며, 상태값을 지정하지 않으면 기본값 'R'(검토)로 등록되고 신청일/등록일도 "
+                    + "자동으로 채워집니다. 파일 저장 후 DB 저장에 실패하면 이미 저장된 파일을 삭제합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "비용 신청 등록 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = Amount.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "비용 신청 정보 누락, 첨부파일 형식/용량 오류 또는 등록 실패"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "비용 신청 처리 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @PostMapping
     public ResponseEntity<?> createAmount(
 
+            @Parameter(
+                    description = "등록할 비용 신청 정보(신청 금액, 워케이션 번호, 비용 항목 등)"
+            )
             @ModelAttribute Amount amount,
 
+            @Parameter(
+                    description = "증빙 첨부 파일 목록(jpg, jpeg, png, gif, webp, 파일당 최대 10MB)"
+            )
             @RequestParam(
                     value = "file",
                     required = false
@@ -361,9 +426,40 @@ public class AmountController {
     // GET /api/v1/amounts/{amountNo}
     // =========================================================
 
+    @Operation(
+            summary = "비용 신청 상세 조회",
+            description = "비용 신청 번호(amountNo)로 비용 항목, 지원금 내역, 첨부파일을 포함한 "
+                    + "비용 신청 상세 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "비용 신청 상세 조회 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = Amount.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 비용 신청 번호"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "해당 비용 정산 내역을 찾을 수 없음"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "상세 조회 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @GetMapping("/{amountNo}")
     public ResponseEntity<?> getAmountById(
 
+            @Parameter(
+                    description = "조회할 비용 신청 번호",
+                    example = "1001"
+            )
             @PathVariable("amountNo")
             int amountNo) {
 
@@ -422,12 +518,40 @@ public class AmountController {
     // GET /api/v1/amounts/workcation/{workcationNo}?page=1
     // =========================================================
 
+    @Operation(
+            summary = "워케이션별 비용 신청 목록 조회",
+            description = "특정 워케이션(workcationNo)에 속한 비용 신청 내역을 등록일 최신순으로 "
+                    + "페이지 단위로 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "워케이션별 비용 신청 목록 조회 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 워케이션 번호"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "비용 목록 조회 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @GetMapping("/workcation/{workcationNo}")
     public ResponseEntity<?> getAmountListByWorkcation(
 
+            @Parameter(
+                    description = "조회할 워케이션 번호",
+                    example = "1"
+            )
             @PathVariable("workcationNo")
             int workcationNo,
 
+            @Parameter(
+                    description = "조회할 페이지 번호(1부터 시작, 1 미만이면 1로 보정됨)",
+                    example = "1"
+            )
             @RequestParam(
                     value = "page",
                     defaultValue = "1"
@@ -496,14 +620,50 @@ public class AmountController {
     // PUT /api/v1/amounts/{amountNo}
     // =========================================================
 
+    @Operation(
+            summary = "비용 신청 수정",
+            description = "이미 등록된 비용 신청의 금액, 비용 항목, 지원금 내역을 수정하고 새 증빙 "
+                    + "파일(jpg, jpeg, png, gif, webp, 파일당 최대 10MB)을 기존 파일에 추가로 첨부할 수 "
+                    + "있습니다. 이미 승인(A)되었거나 취소(C)된 비용 신청은 수정할 수 없습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "비용 신청 수정 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 비용 신청 번호, 수정 정보 누락, 이미 승인/취소된 신청, "
+                            + "또는 첨부파일 형식/용량 오류"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "수정할 비용 신청을 찾을 수 없음"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "수정 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @PutMapping("/{amountNo}")
     public ResponseEntity<?> updateAmount(
 
+            @Parameter(
+                    description = "수정할 비용 신청 번호",
+                    example = "1001"
+            )
             @PathVariable("amountNo")
             int amountNo,
 
+            @Parameter(
+                    description = "수정할 비용 신청 정보"
+            )
             @ModelAttribute Amount amount,
 
+            @Parameter(
+                    description = "새로 추가할 증빙 첨부 파일 목록(jpg, jpeg, png, gif, webp, 파일당 최대 10MB)"
+            )
             @RequestParam(
                     value = "file",
                     required = false
@@ -616,9 +776,33 @@ public class AmountController {
     // PATCH /api/v1/amounts/{amountNo}/cancel
     // =========================================================
 
+    @Operation(
+            summary = "비용 신청 취소",
+            description = "비용 신청 번호(amountNo)에 해당하는 비용 신청의 상태를 취소('C')로 변경합니다. "
+                    + "이미 승인(A), 반려(J), 취소(C) 상태인 비용 신청은 취소할 수 없습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "비용 신청 취소 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 비용 신청 번호이거나, 이미 승인/반려/취소되어 취소할 수 없는 신청"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "취소 처리 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @PatchMapping("/{amountNo}/cancel")
     public ResponseEntity<?> cancelAmount(
 
+            @Parameter(
+                    description = "취소할 비용 신청 번호",
+                    example = "1001"
+            )
             @PathVariable("amountNo")
             int amountNo) {
 
@@ -684,21 +868,60 @@ public class AmountController {
     // PATCH /api/v1/amounts/{amountNo}/approval
     // =========================================================
 
+    @Operation(
+            summary = "비용 결재 상태 변경",
+            description = "비용 신청 번호(amountNo)의 결재 상태를 승인(A)/보류(H)/반려(J) 중 하나로 "
+                    + "변경하고 승인 금액과 결재 코멘트를 기록합니다. 취소(C)된 비용 신청은 결재할 수 "
+                    + "없습니다. 이 API는 로그인한 사용자라면 누구나 호출할 수 있으며, 컨트롤러/서비스 "
+                    + "어디에도 MANAGER/ADMIN 등 결재 권한에 대한 별도 검증 로직은 존재하지 않습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "결재 상태 변경 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 비용 신청 번호, 잘못된 결재 상태, 음수 승인 금액, "
+                            + "취소된 신청이거나 결재 처리 실패"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "결재 처리 중 서버 오류 발생"
+            )
+    })
+    @SecurityRequirement(name = "JWT")
     @PatchMapping("/{amountNo}/approval")
     public ResponseEntity<?> updateApproval(
 
+            @Parameter(
+                    description = "결재할 비용 신청 번호",
+                    example = "1001"
+            )
             @PathVariable("amountNo")
             int amountNo,
 
+            @Parameter(
+                    description = "변경할 결재 상태(A: 승인, H: 보류, J: 반려)",
+                    example = "A"
+            )
             @RequestParam("status")
             String status,
 
+            @Parameter(
+                    description = "승인 금액(0원 이상)",
+                    example = "50000"
+            )
             @RequestParam(
                     value = "approvedAmount",
                     defaultValue = "0"
             )
             int approvedAmount,
 
+            @Parameter(
+                    description = "결재 코멘트",
+                    example = "영수증 확인 후 승인 처리합니다."
+            )
             @RequestParam(
                     value = "comment",
                     required = false

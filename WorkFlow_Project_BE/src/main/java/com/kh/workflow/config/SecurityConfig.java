@@ -105,11 +105,17 @@ public class SecurityConfig {
                         ).hasRole("ADMIN")
                         
                         // Swagger UI 및 API 문서화 경로 허용
+                        // context-path(/workflow)는 DispatcherServlet 진입 전에 이미 제거된 상태로
+                        // Security 필터 체인에 도달하므로, matcher에는 context-path를 붙이지 않는다.
+                        // (실제 요청 http://localhost:8006/workflow/swagger-ui/index.html 이
+                        //  Security 관점에서는 "/swagger-ui/index.html"로 보임 - 실행 후 직접 검증 완료)
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs"
                             ).permitAll()
-                        
+
                         .requestMatchers(
                             "/employees/password"
                         ).authenticated()
@@ -172,16 +178,10 @@ public class SecurityConfig {
 	                            "/employees/*/role"
 	                    ).hasRole("ADMIN")
 	                    
-	                    .requestMatchers(	                    	    
+	                    .requestMatchers(
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
 
-	                    // swagger
-	                    .requestMatchers(
-                        		"/swagger-ui/**",
-	                    		"/v3/api-docs/**"
-                		).permitAll()
-	                    
                         .requestMatchers(
                             "/employees/password"
                         ).authenticated()

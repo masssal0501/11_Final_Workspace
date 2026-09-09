@@ -670,3 +670,46 @@ STEP 9에서 "낮은 우선순위, 원인 미조사"로 남겨둔 항목들을 �
 
 #### 사용자 확인 필요
 - **없음** — 전부 명확한 버그 수정(스텁 미구현, import 누락, 죽은 코드, 확정된 미사용 파일)이며, 백엔드 API 계약을 바꾸지 않는 선에서 처리 가능했음
+
+## 2026-09-09 (13차 작업 — Swagger/OpenAPI 문서화 전체 적용, 이전 세션의 rate-limit 중단 작업 이어받아 완료)
+
+### [작업 완료]
+
+#### 작업 내용
+이전 세션이 rate-limit로 중단되면서 남긴 미커밋 작업(`SwaggerConfig.java`, `SecurityConfig.java` 기반 설정 + `AmountController`/`ApprovalController`/`HubController`/`SurveyController` 4개 문서화)을 이어받아, 프로젝트 전체 12개 Controller 클래스(`find src/main/java -iname "*Controller.java"`로 실제 확인) 중 나머지를 마무리했다.
+
+1. **기반 설정 검증** — `SwaggerConfig.java`(OpenAPI 기본정보/Contact/License/Server, `JWT` Bearer SecurityScheme 등록)와 `SecurityConfig.java`(`/swagger-ui/**`, `/swagger-ui.html`, `/v3/api-docs/**`, `/v3/api-docs` permitAll, 기존 중복 matcher 블록 제거)가 이미 올바르게 완료되어 있음을 확인 — 수정 불필요
+2. **이미 완료된 상태였음을 추가로 확인** — `EmployeeController`(13개 API 전부), `DashboardController`(5개), `AttendanceController`(1개)는 더 이전 세션에서 이미 Swagger 문서화가 완료되어 커밋되어 있었음(현재 diff에는 안 잡힘). 실제 endpoint 수와 `@Operation` 개수를 일일이 대조해 확인
+3. **신규 문서화 4개 Controller** — `NoticeController`(5개), `PlaceController`(5개), `ReservationController`(7개), `WorkcationController`(12개) 총 29개 API에 `@Tag`/`@Operation`/`@Parameter`/`@ApiResponses`/`@SecurityRequirement(name="JWT")`를 기존 `SurveyController`(`"만족도조사 관리"` 태그) 스타일과 동일하게 적용. 각 API의 실제 권한 요구사항은 `SecurityConfig.java`의 matcher(예: `/reservations/**`, `/workcation/**` → `anyRequest().authenticated()`, `place`의 ADMIN 체크는 컨트롤러 내부 수동 검사)를 직접 대조해 문서에 반영
+4. **`AiController`는 문서화 대상에서 제외** — `find`로는 발견되지만 실제로는 빈 껍데기 클래스(`@RestController` 없음, 필드/메서드 없음, endpoint 0개)라 Swagger에 노출할 API 자체가 없음을 확인
+
+#### 수정 이유
+사용자 원본 지시(Swagger UI 적용 및 전체 API 문서화)를 이전 세션에서 이어받아 완료. 문서화 작업이므로 Controller/Service/Security 로직 자체는 변경하지 않고 Annotation과 `SwaggerConfig`/`SecurityConfig`의 Swagger 관련 matcher만 추가.
+
+#### 변경 파일
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/notice/controller/NoticeController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/place/controller/PlaceController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/reservation/controller/ReservationController.java`
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/workcation/controller/WorkcationController.java`
+- (이전 세션에서 이미 작성되어 있던 것을 함께 커밋) `SwaggerConfig.java`, `SecurityConfig.java`, `AmountController.java`, `ApprovalController.java`, `HubController.java`, `SurveyController.java`
+
+#### 검증
+- Backend 빌드: **PASS** (`./mvnw clean package -DskipTests`, BUILD SUCCESS, jar 생성 확인)
+- 로컬 MySQL(`workflow` DB, 기존 더미데이터) 기동 상태에서 실제 `java -jar`로 앱 실행 — 포트 8006에 이전 세션이 남겨둔 좀비 java 프로세스(구버전 jar, PID 33756)가 떠 있어 종료 후 새로 빌드한 jar로 재기동
+- `GET /workflow/swagger-ui/index.html` → **200** (403 아님, Security matcher 정상 동작)
+- `GET /workflow/v3/api-docs` → **200**, JSON 파싱 결과 **59 paths / 74 operations / 11개 도메인 태그**(비용/정산, Employee, Dashboard, 공지사항, 만족도조사, 승인, 거점(장소), 예약, Hub, 워케이션, Attendance) / `securitySchemes: ["JWT"]` 확인
+- Swagger UI를 실제 브라우저로 열어 제목/설명/Authorize 버튼/태그별 그룹 렌더링 스크린샷으로 확인
+- `POST /employees/login`(staff01/`Staff01!`, 요청 필드는 `empId`/`password`)으로 실제 JWT 발급 확인 → JWT로 `GET /employees`, `GET /api/v1/notice`, `GET /place`, `GET /workcation/list`, `GET /approval/list`, `GET /api/v1/amounts` 전부 **200** 확인(핵심 GET API가 Swagger UI → Security → Controller → Service → Repository → DB → Response까지 실제로 동작함을 curl로 직접 검증)
+- 무인증 `GET /employees` → 403, STAFF 계정으로 `DELETE /api/v1/notice/{no}`(ADMIN 전용) 호출 → 403 (권한 분리 정상 동작 확인)
+- 검증 후 로컬 java 프로세스는 종료(포트 8006 정리)
+
+#### 현재 상태
+- 12개 Controller 클래스 중 API가 실재하는 11개 전부 Swagger 문서화 완료(`AiController`는 빈 스텁이라 대상 제외)
+- Swagger UI/OpenAPI JSON 정상 노출, JWT Authorize 플로우 정상 동작
+
+#### 남은 문제 (TODO로 기록, 이번 작업 범위 밖이라 손대지 않음)
+- `HubController`/`DashboardController`/`AttendanceController`는 (이전 세션들에서 작성됨) `@Tag` 이름이 영문(`"Hub API"`, `"Dashboard API"`, `"Attendance API"`)으로, 이번에 통일한 한글 태그 컨벤션(`"거점(장소) 관리"`, `"워케이션 관리"` 등)과 표기가 다름. `EmployeeController`도 확인 필요. 기능에는 영향 없는 순수 표기 통일 이슈라 별도 후속 작업으로 남김
+- 인증 실패(JWT 없음, 401 문서화)와 권한 없음(403)이 실제 런타임에서는 커스텀 `AuthenticationEntryPoint` 부재로 둘 다 403으로 응답됨(무인증 `GET /employees` 테스트로 확인) — Swagger 문서에는 관례대로 401/403을 구분해 적었으나, 실제 동작과 문서가 다른 부분이므로 Security 로직 변경이 필요한 별도 이슈로 기록(이번 세션에서는 Security 로직을 변경하지 않는다는 지침에 따라 미수정)
+
+#### 사용자 확인 필요
+- **없음** — 문서화 작업 범위 내에서 완결, 위 2건은 TODO로 기록만 함
