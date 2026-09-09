@@ -260,10 +260,10 @@ function App() {
                 <Route path="/hub/ai" element={ <AIComponent/> }></Route>
 
                 {/* place */}
-                <Route path="/workflow/place/list" element={ <PlaceList /> } />
-                <Route path="/workflow/place/Form" element={ <PlaceForm /> } />
-                <Route path="/workflow/place/detail/:hubNo" element={ <PlaceDetail /> } />
-                <Route path="/workflow/place/edit/:hubNo" element={ <PlaceEdit /> } />
+                <Route path="/place/list" element={ <PlaceList /> } />
+                <Route path="/place/Form" element={ <PlaceForm /> } />
+                <Route path="/place/detail/:hubNo" element={ <PlaceDetail /> } />
+                <Route path="/place/edit/:hubNo" element={ <PlaceEdit /> } />
                 
                 {/* 업무 게시판 라우트 */}
                 <Route path="/task/list" element={<TaskListComponent />} />
