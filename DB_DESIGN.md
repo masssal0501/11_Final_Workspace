@@ -5,6 +5,8 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 
 **2026-09-09 (STEP 8)**: `SQL/WorkFlow_Script.sql`을 **AWS RDS(MySQL 8.4.6)에 실제로 실행해 스키마 초기화 완료** — `SHOW TABLES` 결과 아래 22개 테이블 전부 생성 확인: `amount`, `amount_file`, `amount_item`, `amount_list`, `authority`, `department`, `employee`, `hub`, `hub_file`, `job`, `notice`, `notice_file`, `reservation`, `survey_answer`, `survey_question`, `task`, `task_history`, `verification`, `work`, `work_file`, `workcation_info`, `workcation_survey`. 스크립트 실행 자체에는 문제가 없었음을 실제 클라우드 MySQL 환경으로 확인함. 이번 STEP에서 스키마 자체의 추가 변경은 없음(아래 [확인 필요] 항목 3·4의 facility 부분은 계속 보류). RDS에는 초기 공통데이터(job/department/authority)와 시드 관리자 계정 1건만 있고 실제 업무 데이터는 없는 상태.
 
+**2026-09-09 (STEP 9~10)**: 신규 테이블 `attendance`(23번째 테이블) 추가 — 아래 "attendance" 섹션 참조. `survey_question`/`survey_answer`의 [확인 필요] 항목도 이번에 해결(아래 해당 섹션 참조). 운영 RDS는 이미 실데이터가 있어 `WorkFlow_Script.sql` 전체 재실행이 불가능하므로, `attendance` 테이블만 추가하는 별도 마이그레이션 `SQL/migration_add_attendance.sql`(`CREATE TABLE IF NOT EXISTS`, 재실행 안전)을 만들어 운영에는 이 파일로만 반영한다. 시연용 더미데이터는 `SQL/dummy_data.sql` 참조.
+
 **2026-09-09 업데이트**: 아래 "[확인 필요] 목록"의 6개 항목에 대해 사용자 결정을 받아 반영 완료. 각 항목의 최종 처리 내용은 "[확인 필요] 목록 → 처리 결과"(하단)에 기록. 이 결정 과정에서 원래 6개 항목에 포함되지 않았던 `amount_item`(컬럼명/누락 필드)과 `amount_file`(PK/타임스탬프 컬럼명)의 정렬도 "SQL이 최종 기준"이라는 동일 원칙을 적용해 함께 정리했음 — 아래 표에 반영.
 
 이 문서는 테이블마다 `Entity / Repository / Service / Controller / Frontend API` 매핑과 정합성 상태를 기록한다.
@@ -46,7 +48,7 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 - `task` ↔ `Task.java` ✅ **완전 일치** (`progress INT NOT NULL DEFAULT 0` 포함 — 이전 조사에서 "progress 컬럼 없음"으로 잘못 보고되었던 부분, 재확인 결과 SQL에 존재함을 확정)
 - `task_history` ↔ `TaskHistory.java` ✅ **완전 일치** (이전 조사에서 "테이블 없음"으로 잘못 보고되었던 부분, 재확인 결과 SQL에 존재함을 확정)
 - `work_file` ↔ **대응 Entity 없음.** 대신 `TaskFile.java`가 `@Table(name="task_file")`로 **존재하지 않는 테이블**을 가리키고 있고, PK도 `taskfile_no`(SQL은 `workfile_no`), FK도 `task_no`가 아니라 엉뚱하게 `amount_no`(nullable=false)로 되어 있음(AmountFile 복붙 흔적으로 추정). 🔴 어느 DAO/Service도 `TaskFile`을 참조하지 않아 완전한 고아 엔티티. → **[확인 필요] 항목 3**
-- Repository: `TaskDao`(JPA, 통계 전용 커스텀 쿼리 다수), `TaskHistoryDao`(JPA, 커스텀 메서드 없음) / Controller: **없음** (`WorkcationController.updateTask()`가 `TaskDao`/`TaskHistoryDao`를 직접 주입받아 처리, `task` 패키지의 `TaskService`는 `@Service` 없는 빈 클래스로 죽은 코드) / Frontend: 없음(`TaskListComponent.jsx`가 더미데이터만 사용, `taskApi.js` 파일 자체가 없음)
+- Repository: `TaskDao`(JPA, 통계 전용 커스텀 쿼리 다수) + **`WorkDao`(신규, 2026-09-09)** `findByWorkcationInfo_WorkcationNo`, `TaskHistoryDao`(JPA, 커스텀 메서드 없음) / Controller: **없음** (`WorkcationController.updateTask()`가 `TaskDao`/`TaskHistoryDao`를 직접 주입받아 처리, `task` 패키지의 `TaskService`는 `@Service` 없는 빈 클래스로 죽은 코드) / Frontend: `TaskListComponent.jsx`는 여전히 더미데이터(별도 "업무 게시판" 화면, 미해결) — **단, "내 워케이션" 경로(`MyWorkcationDetailFormComponent.jsx` + `WorkcationApi.js`)는 2026-09-09(STEP 9)에 실제 `Work`/`Task` 데이터로 완전히 연동 완료**. 기존엔 `workcation_info.work_plan` 텍스트를 매 요청마다 파싱해 `System.currentTimeMillis()+Math.random()`이라는, 요청마다 바뀌는 가짜 ID를 만들고 있어 진행률 저장이 원천적으로 불가능한 구조였음 — 워케이션 신청 시점에 실제 `Work`/`Task` 로우를 생성하고 조회도 실제 테이블에서 읽도록 근본적으로 재작성해 해결. 실제 UI로 진행률 저장·완료 처리까지 검증됨.
 
 ## amount / amount_item / amount_list / amount_file
 
@@ -87,12 +89,23 @@ DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 
 - ⚠️ **[확인 필요] 신규 발견 — 첨부파일 기능 미구현**: `NoticeController`가 `files`(MultipartFile 목록)를 받고 `Notice.setFiles()`로 전달은 하지만, 기존 MyBatis 매퍼에는애초에 `notice_file` 테이블에 INSERT/조회하는 statement가 하나도 없어 파일이 실제로 저장된 적이 없었음(`NoticeFile` VO도 어디서도 채워지지 않는 죽은 코드였음). JPA 전환에서도 `NoticeFile` 엔티티/`Notice.fileList` 관계는 구조만 갖춰두고(향후 구현 대비) 실제 저장 로직은 추가하지 않아 기존과 동일하게 항상 빈 배열로 응답함 — 실제로 파일 업로드 기능을 완성할지는 별도 결정 필요.
 - ⚠️ **[확인 필요] 신규 발견 — Frontend 관리자 권한 체크 버그**: `NoticeDetail.jsx`/`NoticeInsert.jsx`가 앱 전역 로그인 저장 방식(`localStorage`의 `user.authCode`)이 아니라 어디서도 설정된 적 없는 `sessionStorage`의 `loginMember.role==='S'`를 참조하고 있어, **실제 관리자로 로그인해도 공지 등록/수정/삭제 버튼이 전혀 동작하지 않는 버그**였음(이번 STEP 7 검증 과정에서 발견). Notice 모듈 자체 파일이라 이번 작업 범위 내로 판단해 `localStorage`/`authCode==='ADMIN'` 기준으로 수정 완료(스키마/API 계약 변경 아님, 순수 프론트 버그 수정).
 
-## survey_question / workcation_survey / survey_answer
+## survey_question / workcation_survey / survey_answer — ✅ 해결 완료 (2026-09-09, STEP 9, TODO-001 신규 구현)
 
-- `survey_question` ↔ `SurveyQuestion.java` 🔴 두 가지 불일치:
-  1. SQL에 `question_order INT NOT NULL UNIQUE`가 있는데 Entity에 해당 필드가 **없음**
-  2. Entity `allowableValues={"S","T","M"}` — 실제 SQL 코멘트/시드 데이터는 `SCORE`/`TEXT`/`SCORE_TEXT`(문자열 전체), 완전히 다른 코드 체계
-- `workcation_survey` ↔ `WorkcationSurvey.java`, `survey_answer` ↔ `SurveyAnswer.java` — 개별 재확인 전이나 이전 조사에서 큰 구조적 문제는 없었음(경미한 `updated_at` 기본값 메타데이터 차이 정도로 추정, ddl-auto 미사용이라 런타임엔 영향 없음)
+- **[해결됨]** `survey_question` ↔ `SurveyQuestion.java` — 이전에 있던 두 불일치 모두 수정:
+  1. `question_order INT NOT NULL UNIQUE` 매핑 필드를 Entity에 신규 추가
+  2. `allowableValues`를 실제 SQL 시드 데이터(`SCORE`/`TEXT`)와 일치하도록 `{"SCORE","TEXT"}`로 수정
+- `workcation_survey` ↔ `WorkcationSurvey.java`, `survey_answer` ↔ `SurveyAnswer.java` — 구조적 문제 없음 확인. 단, **`SurveyAnswer.score`를 primitive `int`에서 `Integer`로 변경**: SQL은 `score INT NULL`인데 primitive를 쓰면 TEXT형 질문(평점 없음)까지 기본값 0이 저장되어, `WorkcationDao.selectAvgSatisfaction()`의 `AVG(s.score)` 통계가 왜곡될 위험이 있었음(`AVG()`는 NULL은 건너뛰지만 0은 그대로 평균에 반영).
+- **신규 구현**: `SurveyController`(`/survey`), `SurveyService`/`SurveyServiceImpl`, `SurveyQuestionDao`/`WorkcationSurveyDao`/`SurveyAnswerDao` — `com.kh.workflow.survey` 패키지 신규(VO는 기존 `workcation.model.vo`에 유지). 제출 시 워케이션 소유권, 승인 상태(`A`), 종료 여부(`NOW() >= end_at`), 중복 제출 여부를 서버에서 검증.
+- **기존에 이미 있던 통계 쿼리 2개가 서로 다른 컬럼을 참조하고 있었음을 발견**: `HubDao.selectAvgScore`(거점별 평균 평점, 대시보드용)는 `sa.answerValue`를 `CAST(... AS double)`로 캐스팅해 사용하고, `WorkcationDao.selectAvgSatisfaction`(전사 평균 만족도, 관리자 대시보드용)은 `s.score` 컬럼을 그대로 사용 — 즉 어느 한쪽 컬럼에만 값을 저장하면 나머지 통계가 항상 0이 된다. SCORE형 답변 제출 시 `score`(Integer)와 `answerValue`(String) 두 컬럼에 동시에 저장하도록 구현해 두 통계 모두 실데이터로 정상 작동함을 확인.
+- Repository: 위 3개 DAO(JPA) / Controller: `SurveyController`(`/survey`) / Frontend: `survey/api/surveyApi.js`, `survey/components/SurveyForm.jsx`
+
+## attendance — ✅ 신규 구현 (2026-09-09, STEP 9)
+
+- **신규 테이블** (23번째, `SQL/WorkFlow_Script.sql`에 추가): `attendance_no`(PK), `check_type`(`IN`/`OUT`), `checked_at`, `latitude`/`longitude`(`DECIMAL(10,7)`), `distance_m`(거점과의 거리, 인증 근거), `is_late`, `workcation_no`/`emp_no`/`hub_no`(FK 3개).
+- `attendance` ↔ [`Attendance.java`](WorkFlow_Project_BE/src/main/java/com/kh/workflow/attendance/model/vo/Attendance.java) ✅ 완전 일치. `workcation`/`employee`/`hub` 연관관계 전부 `@JsonIgnore` — 첫 실제 curl 테스트에서 `@JsonIgnore` 누락으로 응답에 사원 비밀번호 BCrypt 해시가 그대로 노출되는 것을 발견해 즉시 추가(프로젝트 전역 컨벤션과 동일 패턴).
+- 목적: `LocationCheckModal.jsx`(GPS 좌표·Haversine 거리 계산·Kakao 지도 표시는 이미 완성되어 있던 컴포넌트)를 실제 출퇴근 기록 저장에 연동하기 위함 — 기존에는 `StaffComponent.jsx`가 `alert()` + 로컬 state 변경만 하는 완전한 UI 목업이었음.
+- Repository: `AttendanceDao`(JPA) / Service: `AttendanceService`/`AttendanceServiceImpl`(소유권·승인상태·중복출퇴근 검증, 지각 여부(9:10 기준) 서버 계산) / Controller: `AttendanceController`(`POST /attendance/check`) / Frontend: `dashboard/api/attendanceApi.js`
+- 운영 RDS 반영은 `SQL/migration_add_attendance.sql`(`CREATE TABLE IF NOT EXISTS`, 재실행 안전)로 별도 처리 — 전체 스크립트 재실행 시 기존 실데이터가 DROP TABLE로 삭제되는 것을 피하기 위함.
 
 ## verification
 

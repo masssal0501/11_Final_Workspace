@@ -1,6 +1,6 @@
 # API_STATUS.md
 
-마지막 갱신: 2026-09-09 (STEP 8 실배포 검증 포함)
+마지막 갱신: 2026-09-09 (STEP 10 — 운영 배포 준비 시점. STEP 9에서 attendance/survey API 신규 검증 포함)
 
 상태 기호: ✅ 정상 동작 확인 / 🔴 확실히 실패 / ⚠️ 동작하나 이슈 있음 / ⛔ 미구현
 (2026-09-09부터 일부 항목은 코드 리뷰가 아니라 실제 로컬 MySQL + 격리된 백엔드 인스턴스에 대한 실제 HTTP 요청으로 검증됨 — 해당 항목에 "실제 테스트" 표기)
@@ -59,12 +59,12 @@
 | Method/Path | 상태 | 비고 |
 |---|---|---|
 | `GET /api/v1/amounts` | ✅ **(2026-09-09 수정 완료)** | 이전엔 `AmountServiceImpl.selectAmountList`가 스텁(`return null`) → NPE → 500이었음. `AmountDao.findAllByOrderByCreatedAtDescAmountNoDesc`에 연결해 해결 |
-| `POST /api/v1/amounts` | ✅ **(2026-09-09 수정 및 실제 테스트 완료)** | `AmountForm.jsx`를 FormData 조립 방식으로 재작성(`amountApi.insertAmount` 사용). 로컬 MySQL에 연결한 백엔드로 실제 multipart 요청을 보내 `201 Created` + `amount`/`amount_item`/`amount_list`/`amount_file` 4개 테이블 저장까지 직접 확인. 이 과정에서 Jackson 순환참조(`Amount`↔`AmountItem`/`AmountFile`/`SupportList`) 버그와 `SupportList` 테이블명 오류를 추가로 발견해 함께 수정 |
+| `POST /api/v1/amounts` | ✅ **(2026-09-09 수정 및 실제 테스트 완료)** | `AmountForm.jsx`를 FormData 조립 방식으로 재작성(`amountApi.insertAmount` 사용). 로컬 MySQL에 연결한 백엔드로 실제 multipart 요청을 보내 `201 Created` + `amount`/`amount_item`/`amount_list`/`amount_file` 4개 테이블 저장까지 직접 확인. 이 과정에서 Jackson 순환참조(`Amount`↔`AmountItem`/`AmountFile`/`SupportList`) 버그와 `SupportList` 테이블명 오류를 추가로 발견해 함께 수정. **⚠️→✅ STEP 9 추가 발견(BUG-012)**: 백엔드는 정상인데 프론트의 "새 비용 신청" 버튼이 `/cost/apply?workcationNo=...`로 이동해도 `AmountForm`이 그 쿼리스트링을 읽지 않아 `workcationNo`가 항상 `undefined` — STAFF가 실제 화면에서는 이 엔드포인트를 단 한 번도 성공적으로 호출할 수 없었음. `useSearchParams`로 읽도록 수정 |
 | `GET /api/v1/amounts/{no}` | ✅ **(2026-09-09 순환참조 버그 수정 확인)** | 실제 요청으로 재확인 — 수정 전에는 `Amount`↔자식 엔티티 간 Jackson 순환참조로 응답이 무한에 가깝게 폭주했음(`@JsonIgnore` 추가로 해결) |
 | `GET /api/v1/amounts/workcation/{no}` | ✅ **(2026-09-09 수정 완료)** | 동일한 스텁 문제, `findByWorkcationNoOrderByCreatedAtDescAmountNoDesc`에 연결해 해결 |
 | `PUT /api/v1/amounts/{no}` | 미확인 | |
 | `PATCH /api/v1/amounts/{no}/cancel` | ✅ | |
-| `PATCH /api/v1/amounts/{no}/approval` | ✅ | |
+| `PATCH /api/v1/amounts/{no}/approval` | ✅ **(2026-09-09 STEP 9, BUG-013 수정)** | ADMIN이 승인/반려/보류를 클릭해도 항상 400으로 실패하던 문제 — 프론트(`amountApi.js`)가 JSON 바디로 `axios.patch`를 보내는데 백엔드는 `@RequestParam`(쿼리 파라미터)만 받고 있었음(필드명도 `amountComment`↔`comment`로 불일치). 쿼리 파라미터 전송 + 필드명 일치로 수정, 실제 승인(150,000원)/반려 클릭 경로로 재검증 |
 | `PATCH /api/v1/amounts/{no}/approval/sponsor` | ⚠️ | DB_DESIGN.md [확인 필요] 항목 5(SupportList 구조) 영향권 |
 | `PATCH /api/v1/amounts/{no}/items/{itemNo}/company-support` | ✅ | |
 | `GET /api/v1/amounts/statistics` | ✅ | |
@@ -108,9 +108,27 @@ MyBatis(`NoticeDao`, `notice-mapper.xml`) 완전 제거, `NoticeController`/`not
 | `GET /reservations/facilities` | 🔴 | 항상 빈 리스트(스텁), `Facility` 개념 자체 미설계 — DB_DESIGN.md 확인 필요 항목 4 |
 | 나머지 CRUD | ✅ | |
 
-## task — Backend Controller 자체 없음, Frontend 더미데이터
+## task — Backend Controller 자체 없음(Workcation쪽에 붙어있음), "업무 게시판" Frontend는 더미데이터
 
-`taskApi.js` 파일 없음, `TaskListComponent.jsx`/`TaskDetailComponent.jsx` 전부 더미데이터. 실제 업무 관리는 `WorkcationApi.js`의 `saveTaskProgress`(`PUT /workcation/task/{taskNo}`) 하나로만 부분 연결.
+`taskApi.js` 파일 없음, `TaskListComponent.jsx`/`TaskDetailComponent.jsx`(독립된 "업무 게시판" 메뉴) 전부 더미데이터 — 미해결.
+
+**✅ (2026-09-09 STEP 9) "내 워케이션" 경로는 실제로 완전히 동작함**: `PUT /workcation/task/{taskNo}`(`WorkcationApi.js`의 `saveTaskProgress`) + `GET /workcation/mydetail/{no}`가 실제 `Work`/`Task` 데이터를 다룬다. 이전에는 `work_plan` 텍스트를 매 요청마다 파싱해 요청마다 바뀌는 가짜 ID를 만들어 저장 자체가 불가능했던 것을, 신청 시점에 실제 `Work`/`Task` 로우를 생성하도록 근본 수정. `saveTaskProgress`가 `FormData`를 만들어놓고 실제로는 JSON 전송하던 버그도 함께 수정. `/workcation/mylist`, `/workcation/mydetail/:no` 라우팅 자체가 `App.jsx`에 빠져있던 것도 추가(BUG-009). 실제 브라우저로 로그인→업무 등록→진행률 저장→완료 처리까지 검증.
+
+## attendance (`/attendance`) ↔ `dashboard/api/attendanceApi.js` — 신규 (2026-09-09 STEP 9)
+
+| Method/Path | 상태 | 비고 |
+|---|---|---|
+| `POST /attendance/check` | ✅ **신규 구현 및 실제 테스트 완료** | 출퇴근 위치 인증 기록 저장. 본인 소유 워케이션 여부, 승인 상태(`A`), IN 없이 OUT 시도(또는 중복 IN) 서버 검증, 지각 여부(9:10 기준) 서버 계산·저장. `LocationCheckModal.jsx`(GPS/Haversine 거리/Kakao 지도는 기존에 이미 완성)를 실제로 호출하도록 `StaffComponent.jsx` 재작성(기존엔 `alert()`만 하는 완전한 목업). 첫 실제 테스트에서 응답에 사원 비밀번호 해시가 노출되는 보안 버그(`@JsonIgnore` 누락)를 발견해 즉시 수정. 로그인→출근→중복출근 거부→퇴근→대시보드 상태 토글까지 실제 API로 검증 |
+
+## survey (`/survey`) ↔ `survey/api/surveyApi.js` — 신규 (2026-09-09 STEP 9, TODO-001)
+
+| Method/Path | 상태 | 비고 |
+|---|---|---|
+| `GET /survey/questions` | ✅ **신규 구현** | `question_order` 기준 정렬된 질문 목록(SCORE 4개 + TEXT 1개) |
+| `GET /survey/status/{workcationNo}` | ✅ **신규 구현** | 본인 소유 여부/승인 상태/워케이션 종료 여부/기작성 여부를 확인해 작성 가능 여부(`available`)와 안내 메시지 반환 |
+| `POST /survey` | ✅ **신규 구현 및 실제 테스트 완료** | 제출 시 위 4가지 조건 전부 재검증 + 모든 질문에 대한 답변 강제. 실제 제출 → DB 저장 확인 → 재조회 시 "이미 작성하셨습니다" 확인 → 중복 제출 서버 차단 확인 → ADMIN 대시보드 `avgSatisfaction` 통계 반영 확인 |
+
+`SurveyQuestion`의 `question_order` 매핑 누락, `SurveyAnswer.score`가 primitive `int`라 TEXT형 답변까지 0점으로 잡혀 평균 만족도 통계를 왜곡할 수 있었던 잠재 버그를 함께 수정(`Integer`로 변경). 기존에 이미 있던 두 통계 쿼리(`HubDao.selectAvgScore`는 `answerValue`, `WorkcationDao.selectAvgSatisfaction`은 `score` 컬럼 참조)가 서로 다른 컬럼을 쓰고 있어, SCORE형 제출 시 두 컬럼에 동시 저장하도록 구현.
 
 ## dashboard (`/dashboard`) ↔ `dashboardApi.js`
 

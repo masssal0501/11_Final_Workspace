@@ -456,3 +456,110 @@ Maven 빌드 → npm 빌드 → S3 업로드 → SSM으로 EC2 배포(JAR 교체
 
 #### 사용자 확인 필요
 - **없음** — 이번 작업분은 전부 배포 파이프라인 자체의 명확한 버그 수정. 다음 단계(워케이션 전체 플로우 통합 테스트)로 바로 진행 가능
+
+## 2026-09-09 (9차 작업 — STEP 9: 워케이션 전체 라이프사이클 실제 검증 + 출퇴근 인증/만족도조사 신규 구현)
+
+STEP 8에서 미뤄둔 "워케이션 신청→승인→업무 수행→정산 전체 플로우 통합 테스트"를 로컬 MySQL + 실제 브라우저 UI + API 호출로 순서대로 진행하며, 발견되는 버그를 즉시 수정했다. STAFF/MANAGER/ADMIN 3개 테스트 계정으로 신청→승인→업무 진행→비용 신청→업무완료확인→정산승인까지 전 구간을 실제로 시연 가능한 상태로 만드는 것이 목표.
+
+**1. 업무 진행률(Task) 기능 — 사실상 전혀 동작하지 않던 상태를 실제 구현으로 교체**
+- "내 워케이션" 화면(`MyWorkcationListComponent.jsx`, `MyWorkcationDetailFormComponent.jsx`) 자체가 `App.jsx`에 라우팅되어 있지 않아 클릭 시 빈 화면이었음 — `/workcation/mylist`, `/workcation/mydetail/:workcationNo` 라우트 신규 추가.
+- 더 근본적인 문제: `workcation_info.work_plan`을 매 GET 요청마다 텍스트 파싱해 `id: System.currentTimeMillis() + Math.random()`이라는 요청마다 바뀌는 가짜 ID를 만들고 있어서, 진행률을 저장하려 해도 매번 "업무를 찾을수 없습니다" 오류만 발생하는 구조였음. 워케이션 신청(`insertWorkcationEnrollForm`) 시점에 실제 `Work`/`Task` 로우를 생성하고, 조회(`getWorkcationDetail`)도 실제 `Task` 테이블에서 읽도록 재작성해 근본 해결.
+- `saveTaskProgress`(프론트)가 `FormData`를 만들어놓고 실제로는 JSON으로 전송하고 있었음(백엔드는 `@RequestParam` 기반 multipart 기대) — 실제로 `FormData`를 전송하도록 수정.
+- `updateTask`가 progress=100이 되어도 `task.status`를 갱신하지 않아 부서 평균 진행률 통계(`status='Y'` 기준 집계)가 항상 0으로 나오던 문제 — 100%일 때 `status='Y'`로 자동 갱신하도록 수정.
+- **실제 브라우저 UI로 검증**: 로그인 → 업무 등록 → 진행률 40%→100% 저장 → `task_history`에 실제 기록 저장 → 통계 반영까지 전부 실제 클릭으로 확인.
+
+**2. 대시보드 500 에러 — 직원이 워케이션을 2건 이상 갖는 순간 터지는 잠재 버그**
+`HubDao.selectHubAddress`가 날짜/상태 스코프 없이 `getSingleResult()`를 기대하는 구조라, 테스트 계정이 워케이션을 2건 이상 가지면 `IncorrectResultSizeDataAccessException`으로 대시보드 전체가 500이 되는 것을 발견(실제 시연 시나리오에서 충분히 발생 가능한 상황) — "현재 진행 중"(`approver_state='A' AND NOW() BETWEEN start_at AND end_at`) 기준으로 스코프를 좁히고 반환 타입을 `List`로 변경해 해결.
+
+**3. 출퇴근 위치 인증(attendance) — 신규 기능, UI 목업만 있던 것을 실제로 동작하게 구현**
+`LocationCheckModal.jsx`(GPS 좌표 계산·Haversine 거리 검증·Kakao 지도 표시까지 이미 완성되어 있던 컴포넌트)를 호출하는 `StaffComponent.jsx` 쪽이 실제로는 `alert()` + 로컬 state 변경만 하고 아무 것도 저장하지 않는 목업이었던 것을 실제 API 연동으로 교체.
+- **신규 테이블** `attendance`(근태 PK, IN/OUT 구분, 위경도, 거점과의 거리, 지각 여부, 워케이션/사원/거점 FK) — `SQL/WorkFlow_Script.sql`에 추가.
+- **신규 백엔드**: `Attendance` 엔티티/DAO/Service/Controller(`POST /attendance/check`) — 본인 소유 워케이션인지, 승인 상태(`A`)인지, 출근 없이 퇴근을 시도하는지(혹은 중복 출근) 등을 서버에서 검증. 지각 여부(9:10 기준)도 서버에서 계산해 저장 — 기존 프론트 로직(`getHours()>=9 && getMinutes()>10`)이 10시 출근도 "정상"으로 판정하던 버그를 서버 이전 과정에서 함께 바로잡음.
+- **보안 버그 발견/즉시 수정**: `Attendance` 엔티티의 연관관계(`workcation`/`employee`/`hub`)에 `@JsonIgnore`가 없어 첫 실제 curl 테스트에서 응답에 **사원 비밀번호 BCrypt 해시가 그대로 노출**되는 것을 발견 — 프로젝트 전역 컨벤션(자식→부모 역참조에 `@JsonIgnore`)대로 즉시 수정.
+- **Spring Boot 4.x 프로퍼티 키 이동 발견**: 컨트롤러 예외 메시지가 응답에 안 실리는 문제를 `server.error.include-message=always`로 고치려 했으나 효과가 없었음 — 소스 jar를 직접 열어 확인한 결과, Spring Boot 4.x부터 `ErrorProperties`가 `WebProperties` 하위로 이동해 실제 키는 `spring.web.error.include-message`임을 확인, 수정.
+- **실제 검증**: staff01로 로그인 → 출근 → 중복 출근 시도(서버가 거부, 메시지 확인) → 퇴근 → 대시보드의 출근 상태 토글까지 API/DB로 전부 확인.
+
+**4. MANAGER 업무완료확인 — 위 1번 수정으로 얻은 실제 진행률 데이터를 화면에 노출**
+`WorkcationDetailComponent.jsx`(MANAGER가 보는 상세 화면)에 업무별 진행률/완료 여부 컬럼을 추가하고, `approverState`를 기준으로 한 상태 배지(BUG-008, 이전엔 항상 "신청 완료"로 고정 표시)도 함께 정리. manager01로 로그인해 실제로 "완료 (100%)"/"승인 완료"가 표시되는 것을 확인.
+
+**5. ADMIN 정산승인 — UI로는 단 한 번도 성공한 적이 없던 상태였음을 발견**
+- **BUG-012**: STAFF가 "새 비용 신청" 버튼을 누르면 `/cost/apply?workcationNo=...`로 이동하는데, 그 라우트가 렌더링하는 `AmountForm`은 props로 `workcationNo`를 받지도, 쿼리스트링을 읽지도 않아 `workcationNo`가 항상 `undefined`였음 — 제출을 누르면 매번 "워케이션 정보가 없습니다"로 막혔던 것. `useSearchParams`로 쿼리스트링을 읽도록 수정.
+- **BUG-013**: ADMIN이 승인/반려/보류 버튼을 누르면 `amountApi.js`가 JSON 바디로 `axios.patch`를 보내는데, 백엔드 `AmountController.updateApproval`은 `@RequestParam`(쿼리 파라미터)으로만 값을 받아 항상 400("Required parameter 'status' is not present")으로 실패하고 있었음. 게다가 프론트가 보내는 필드명(`amountComment`)도 백엔드 파라미터명(`comment`)과 달랐음 — 쿼리 파라미터 전송 + 필드명 일치로 수정.
+- **실제 검증**: staff01로 실제 비용 신청 제출 → admin으로 로그인해 승인(150,000원 승인)/반려 각각 실제 클릭 경로로 처리 → 화면 재조회로 상태 반영 확인. (ADMIN 화면의 승인 프롬프트는 `window.prompt()`를 쓰는데, 이번 세션에서 쓴 브라우저 자동화 도구가 네이티브 dialog를 지원하지 않아 클릭 자체는 재현하지 못하고 동일한 요청을 curl로 대신 보내 백엔드 계약을 검증함 — 실제 사람이 쓰는 브라우저에서는 `window.prompt()`가 정상 동작하므로 이는 자동화 도구의 한계이지 앱의 문제는 아님)
+
+**6. STAFF 만족도조사(TODO-001) — Entity만 있고 완전히 미구현이던 기능을 신규 구현**
+- `SurveyQuestion`에 SQL에는 있는 `question_order` 컬럼 매핑이 아예 빠져 있었고, `SurveyAnswer.score`가 primitive `int`라 TEXT형 질문까지 평점 0점으로 잡혀 `WorkcationDao.selectAvgSatisfaction()`의 평균 만족도 통계를 왜곡시킬 수 있는 잠재 버그를 함께 발견 — `Integer`로 변경.
+- **신규 백엔드**: `SurveyController`(`GET /survey/questions`, `GET /survey/status/{workcationNo}`, `POST /survey`) + Service + DAO 3종. 제출 시 본인 소유/승인 상태/워케이션 종료 여부/중복 제출 여부를 검증하고 모든 질문에 대한 답변을 강제.
+- **기존 통계 쿼리 2개의 컬럼 참조가 서로 달랐던 것을 발견하고 양쪽 다 살림**: `HubDao.selectAvgScore`(거점별 평점)는 `answerValue`를 `double`로 캐스팅해서 쓰고, `WorkcationDao.selectAvgSatisfaction`(전사 평균 만족도)은 `score` 컬럼을 쓰는 서로 다른 설계였음 — SCORE형 답변 제출 시 두 컬럼에 동시에 저장하도록 구현해 두 통계 모두 신규 데이터로 정상 동작하도록 함.
+- **신규 프론트**: `surveyApi.js`, `SurveyForm.jsx`(평점 1~5 버튼 / 텍스트 입력 렌더링), `/survey/:workcationNo` 라우트, "내 워케이션" 상세 화면에 "만족도 조사 작성" 버튼(승인 완료 건에만 노출).
+- **실제 검증**: staff01로 실제 제출 → DB 저장 확인 → 재조회 시 "이미 작성하셨습니다" 정상 표시 → 중복 제출 서버 차단 확인 → ADMIN 대시보드 `avgSatisfaction`(4.5) 실제 반영 확인.
+
+#### 수정 이유
+STEP 8에서 "AWS 실배포는 됐지만 전체 업무 플로우 통합 테스트는 아직"으로 남겨둔 항목을 실제로 처리하는 과정에서, 코드 리뷰만으로는 드러나지 않았을 버그들(가짜 ID로 인한 저장 불가, 쿼리 파라미터/JSON 바디 불일치, N+1 상황에서의 500 등)이 실제 클릭·API 호출을 통해서만 발견되었다. 전부 "실제로 동작하지 않던 것을 동작하게 만드는" 성격의 수정이라 사용자 확인 없이 즉시 처리.
+
+#### 변경 파일
+**Backend (신규)**: `attendance/**`(Entity/DAO/Service/Controller), `survey/**`(Controller/Service/DAO 3종), `task/model/dao/WorkDao.java`, `dashboard/model/dto/CurrentHubDto.java`
+**Backend (수정)**: `WorkcationServiceImpl.java`(Work/Task 생성·조회 재작성), `HubDao.java`(대시보드 500 수정 + 거점 정보 조회), `TaskDao.java`, `DashboardServiceImpl.java`, `dashboard/model/dto/StaffDto.java`, `amount/controller/AmountController.java`(변경 없음, 계약 확인용), `workcation/model/vo/SurveyQuestion.java`/`SurveyAnswer.java`, `application.properties`(`spring.web.error.include-message`)
+**Frontend (수정)**: `App.jsx`(라우트 4건 추가), `StaffComponent.jsx`(출퇴근 실제 연동), `WorkcationDetailComponent.jsx`(진행률 표시 + 상태 배지), `MyWorkcationDetailFormComponent.jsx`(만족도조사 버튼), `WorkcationApi.js`(saveTaskProgress FormData 수정), `amount/api/amountApi.js`(BUG-013), `amount/components/AmountForm.jsx`(BUG-012)
+**Frontend (신규)**: `dashboard/api/attendanceApi.js`, `survey/api/surveyApi.js`, `survey/components/SurveyForm.jsx`, `survey/styles/Survey.css`
+**DB**: `SQL/WorkFlow_Script.sql`에 `attendance` 테이블 추가
+
+#### 검증
+- Backend compile / Frontend build: **PASS**
+- 로컬 MySQL + 실제 백엔드 인스턴스에 대해 STAFF/MANAGER/ADMIN 3개 계정으로 로그인 → 신청 → 승인 → 출근 인증 → 업무 진행률 저장 → 퇴근 인증 → 비용 신청 → 업무완료확인 → 정산 승인/반려 → 만족도조사 제출까지 전 구간을 실제 UI 클릭 또는 API 호출로 검증(위 1~6 각 항목 참고)
+
+#### 현재 상태
+- **STEP 9 목표(전체 라이프사이클 실제 검증) 완료.** 신청부터 만족도조사까지 전 구간이 실제로 동작함을 확인.
+
+#### 남은 문제(낮은 우선순위, 미수정)
+- ADMIN 대시보드 `totalCost`가 음수로 계산되는 통계 버그 발견(더미데이터 검증 중 발견, 원인 미조사)
+- ADMIN 대시보드 `waitingList`가 워케이션에 예약이 여러 건이면 중복 표시되는 것으로 추정되는 버그 발견(JOIN 중복 의심, 원인 미조사)
+- `ManagerComponent.jsx`의 정산대기목록이 `item.approverState`를 참조하는데 `Amount`에는 해당 필드가 없어 보이는 표시 버그(원인 미조사)
+- `AdminAmountPage.jsx`의 `workcationNo={1}` 하드코딩 prop이 실제로는 사용되지 않는 죽은 코드(무해하나 정리 대상)
+
+#### 사용자 확인 필요
+- **없음** — 전부 "이미 만들어졌어야 했는데 실제로는 동작하지 않던 것"을 고치는 성격의 버그 수정 및 이미 승인된 기능(TODO-001)의 구현.
+
+## 2026-09-09 (10차 작업 — 운영 배포 준비: SQL 마이그레이션/시연용 더미데이터/ERD Cloud 갱신)
+
+STEP 9에서 완성한 기능들을 실제 운영 서버(AWS EC2+RDS)에 배포하고, 시연 가능한 상태로 만들기 위한 준비 작업.
+
+**1. `SQL/WorkFlow_Script.sql`의 attendance DROP 누락 버그 발견/수정**
+9차 작업에서 `attendance` 테이블을 추가하면서 상단 `DROP TABLE IF EXISTS` 목록에 넣는 것을 빠뜨렸음 — 이미 `attendance`가 있는 DB에 스크립트를 재실행하면 `Table 'attendance' already exists`로 실패. 로컬 재검증 중 이 버그로 실제로 로컬 `workflow` DB가 일부 손상되는 사고가 있었음(아래 참고) — 즉시 DROP 목록에 추가해 수정.
+
+> **사고 기록**: 스크립트가 내부적으로 `USE workflow;`를 하드코딩하고 있다는 것을 모른 채, 별도로 만든 스크래치 DB(`workflow_dummy_test`)에 연결해서 실행하면 격리된 채로 테스트될 것으로 생각하고 실행했으나, 실제로는 로컬 `workflow`(이번 세션 내내 써온 개발 DB)를 대상으로 DROP TABLE부터 순서대로 실행되다 `attendance` 테이블에서 에러로 중단되어, 로컬 개발 DB의 상당수 테이블이 빈 상태로 재생성되는 사고가 있었음. 로컬 전용 데이터라 실질적 피해는 없었고, 버그 수정 후 스크립트를 재실행 + 더미데이터를 적용해 즉시 복구함.
+
+**2. `SQL/migration_add_attendance.sql`(신규)** — 운영 RDS는 이미 초기화되어 실데이터가 있어 전체 스크립트를 재실행할 수 없으므로(DROP TABLE로 기존 데이터가 전부 삭제됨), `attendance` 테이블만 추가하는 별도 마이그레이션(`CREATE TABLE IF NOT EXISTS`, 재실행 안전).
+
+**3. `SQL/dummy_data.sql`(신규)** — 시연용 약 2주치 더미 데이터. 사원 5명(STAFF 3, MANAGER 2, 부서 상이), 거점 6곳(강릉/제주 오피스·숙소·체험·맛집), 워케이션 6건을 승인대기(W)/승인+진행중(A)/승인+완료(A)/반려(J)/보류(H) 상태별로 구성. 완료 건 2개는 출퇴근 기록·업무 진행률 100%·비용 정산 승인·만족도 조사 응답까지 채워 전체 시나리오를 한 번에 시연할 수 있게 했다. 모든 날짜는 `NOW()` 기준 상대값(`DATE_SUB`/`DATE_ADD`)이라 실행 시점과 무관하게 항상 "최근 2주" 데이터로 보인다. `INSERT ... ON DUPLICATE KEY UPDATE`로 재실행해도 안전. 로컬 MySQL(스크립트 재실행 후 깨끗한 상태)에 실제로 적용해 에러 없음과 대시보드 통계 반영을 확인 후 운영에도 동일 파일을 적용하기로 함.
+
+**4. `deploy/scripts/db-apply.sh`(신규) + `.github/workflows/deploy.yml` 임시 확장** — `Deploy` 브랜치 push 시 기존 앱 배포(SSM)와 같은 방식으로, 위 마이그레이션/더미데이터 SQL을 S3 경유로 EC2에 내려받아 `/etc/workflow/workflow.env`의 DB 접속정보로 RDS에 직접 적용하는 스텝을 추가. 운영 DB에 시연 데이터를 1회 반영하는 목적이 끝나면 이 스텝은 후속 커밋에서 제거해 평소 배포 흐름(앱 코드만 배포)으로 되돌릴 예정 — 즉, `dummy_data.sql`/`migration_add_attendance.sql`을 매 배포마다 자동으로 재실행하는 것은 의도가 아님.
+
+**5. ERD Cloud 스냅샷을 SQL 형식에서 JSON 형식으로 교체**
+이전 세션에서 "SQL 가져오기(Import SQL)"용으로 만들어둔 `SQL/ERD_attendance_snapshot.sql`이 실제로는 erdcloud.com이 기대하는 가져오기 형식이 아니었음(사용자가 실제 프로젝트를 JSON으로 export해서 공유해줘서 확인) — 실제 export 파일(`entityData`/`domainData` 배열 구조, 필드별 `_id`/`relEntity`/`relFieldId`/`relType`/`relGroupId`로 관계를 표현하는 형식)을 그대로 분석해 `attendance` 엔티티(9개 필드 + PK, `workcation_info`/`employee`/`hub` 3개 테이블과의 FK 관계 포함)를 동일한 스키마로 작성, 기존 22개 엔티티에 추가한 전체 프로젝트 스냅샷을 `SQL/ERD_snapshot_with_attendance.json`으로 저장. 기존 `ERD_attendance_snapshot.sql`은 삭제. Node로 JSON 파싱 검증 + 신규 ID가 기존 ID와 충돌하지 않는지, FK가 참조하는 대상 엔티티/PK의 `_id`가 정확히 일치하는지 확인 완료.
+
+#### 수정 이유
+9차 작업으로 완성한 기능들을 실제로 시연 가능하게 만들려면 (1) 운영 DB에 신규 테이블이 반영되어야 하고, (2) 빈 DB로는 시연이 안 되므로 그럴듯한 데이터가 있어야 하며, (3) ERD 문서도 최신 스키마를 반영해야 한다는 사용자 요청에 따름.
+
+#### 변경 파일
+**DB (신규)**: `SQL/migration_add_attendance.sql`, `SQL/dummy_data.sql`, `SQL/ERD_snapshot_with_attendance.json`
+**DB (수정)**: `SQL/WorkFlow_Script.sql`(DROP 목록에 `attendance` 추가)
+**DB (삭제)**: `SQL/ERD_attendance_snapshot.sql`(형식이 틀려서 대체)
+**배포 (신규)**: `deploy/scripts/db-apply.sh`
+**배포 (수정, 임시)**: `.github/workflows/deploy.yml`(DB 마이그레이션/더미데이터 적용 스텝 2개 추가 — 1회성, 추후 제거 예정)
+
+#### 검증
+- `migration_add_attendance.sql`/`dummy_data.sql` 둘 다 로컬 MySQL에 실제로 적용해 에러 없음 확인, 재실행(idempotency)도 확인
+- `deploy.yml`은 `js-yaml`로 문법 검증(단, 이전 STEP 8에서 학습했듯 이것만으로는 GitHub Actions 표현식 제약까지 검증되지 않으므로, 실제 검증은 `Deploy` 브랜치 push 후 Actions 로그로 확인 필요)
+- ERD JSON은 Node로 파싱 검증 + ID 충돌 없음 + FK 참조 정합성 확인
+
+#### 현재 상태
+- 커밋까지 완료(`docs/step1-6-project-audit` 브랜치), 로컬 `Deploy` 브랜치도 fast-forward 완료
+- **`Deploy` 브랜치 push는 아직 실행되지 않음** — 세션의 권한 정책(auto mode classifier)이 실제 프로덕션 배포를 트리거하는 `git push`를 차단해, 사용자가 직접 `git push origin refs/heads/Deploy:refs/heads/Deploy`를 실행하거나 권한 설정을 조정해야 하는 상태로 남아있음
+
+#### 남은 문제
+- 위 "현재 상태" 참고 — 실제 배포 트리거(push)가 아직 실행되지 않아 운영 반영 여부 미확인
+- 배포 성공 확인 후, `deploy.yml`의 DB 마이그레이션/더미데이터 스텝을 제거하는 후속 커밋 필요
+
+#### 사용자 확인 필요
+- `Deploy` 브랜치 push 실행(권한 문제로 에이전트가 직접 실행 불가)
