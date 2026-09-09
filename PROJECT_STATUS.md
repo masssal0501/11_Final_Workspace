@@ -1,6 +1,6 @@
 # PROJECT_STATUS.md
 
-마지막 갱신: 2026-09-09 (STEP 10 — 운영 배포 준비: SQL 마이그레이션/더미데이터/ERD 갱신 완료, `Deploy` 브랜치 push는 권한 문제로 사용자 실행 대기 중)
+마지막 갱신: 2026-09-09 (11차 작업 — STEP 9에서 발견해 미뤄뒀던 낮은 우선순위 버그 4건 수정 완료: ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시, `ManagerComponent.jsx` 정산대기목록 필드 오류, `AdminAmountPage.jsx` 죽은 prop)
 
 ## 기술 스택 확정 상태
 
@@ -29,10 +29,10 @@
 | 장소(Place) | ✅ 동작 (Hub 엔티티 재사용, ROLE_ADMIN 체크 있음) | ✅ 동작 | ✅ | `hub`와 중복 설계, 정리 필요성은 낮은 우선순위 |
 | AI 추천 챗봇 | ✅ **(2026-09-09 수정 완료)** 전역 `chatHistory` 필드를 요청 단위 지역 변수로 변경 — 사용자 간 대화 혼입 버그 해결(단, 이번 대화 내에서의 멀티턴 문맥 기억 기능은 없음. 필요하면 별도 세션 저장 설계 필요) | ✅ 동작 | N/A | |
 | 예약(Reservation) | ⚠️ 대부분 동작, `getAvailableFacilities`만 스텁 | ✅ 동작 | **[확인 필요] 항목 4** | |
-| 비용 신청/승인/정산 | ✅ **(2026-09-09)** 목록조회 스텁 해결 + Entity를 SQL에 정렬 + `/error` 보안 버그 수정 + Jackson 순환참조 버그 수정, **실제 로컬 DB로 전체 흐름 end-to-end 검증 완료** | ✅ **(2026-09-09)** `AmountForm.jsx` FormData 방식으로 재작성, 실제 API 테스트로 정상 저장/파일첨부/itemList/supportList 바인딩 전부 확인 | ✅ 완료 | 4순위 — **완료**. ⚠️ **STEP 9 추가 발견**: BUG-012(`AmountForm`이 `?workcationNo=` 쿼리스트링을 안 읽어 STAFF가 실제 화면에서 비용신청 자체를 제출 못했음)/BUG-013(ADMIN 승인·반려·보류가 JSON 바디로 전송되는데 백엔드는 `@RequestParam`만 받아 항상 400) 둘 다 수정 완료, 실제 승인/반려 클릭 경로로 재검증 |
+| 비용 신청/승인/정산 | ✅ **(2026-09-09)** 목록조회 스텁 해결 + Entity를 SQL에 정렬 + `/error` 보안 버그 수정 + Jackson 순환참조 버그 수정, **실제 로컬 DB로 전체 흐름 end-to-end 검증 완료**. **(STEP 11)** `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 제거 | ✅ **(2026-09-09)** `AmountForm.jsx` FormData 방식으로 재작성, 실제 API 테스트로 정상 저장/파일첨부/itemList/supportList 바인딩 전부 확인 | ✅ 완료 | 4순위 — **완료**. ⚠️ **STEP 9 추가 발견**: BUG-012(`AmountForm`이 `?workcationNo=` 쿼리스트링을 안 읽어 STAFF가 실제 화면에서 비용신청 자체를 제출 못했음)/BUG-013(ADMIN 승인·반려·보류가 JSON 바디로 전송되는데 백엔드는 `@RequestParam`만 받아 항상 400) 둘 다 수정 완료, 실제 승인/반려 클릭 경로로 재검증 |
 | 지원금(지자체) | ✅ **(2026-09-09)** 여러 지원처(1:N) 구조로 확정, `amount_list` SQL 재설계 완료(Java 코드는 원래도 1:N 구조라 무변경) | ✅ UI는 있음 | ✅ 완료 | |
 | 공지사항 | ✅ **(2026-09-09 STEP 7 완료)** MyBatis→JPA 전환, isAdmin 버그 근본 해결, 대시보드 연동 포함 실제 DB로 전체 흐름 검증 | ✅ **(2026-09-09)** 관리자 등록/수정/삭제 버튼이 잘못된 로그인 정보 저장소를 참조해 실제 관리자도 클릭 불가였던 버그 발견·수정 | ✅ 완료 | 5순위 — **완료**. 조회수 증가·첨부파일은 원래도 미구현이었고 이번에도 그대로 포팅(결정 대기) |
-| 대시보드(관리자/부서장/사원) | ✅ 동작 (Notice 조회 위해 MyBatis 의존 — Notice 전환 시 영향받음) | ✅ 동작 | ✅ | 6순위 |
+| 대시보드(관리자/부서장/사원) | ✅ 동작 (Notice 조회 위해 MyBatis 의존 — Notice 전환 시 영향받음). **(STEP 11)** ADMIN `totalCost` 음수 계산 버그, `waitingList` 중복 표시 버그 수정 | ✅ 동작. **(STEP 11)** `ManagerComponent.jsx` 정산대기목록 `approverState`→`status` 필드 오류 수정 | ✅ | 6순위 |
 | 설문(Survey) | ✅ **(2026-09-09 STEP 9, TODO-001 신규 구현)** `SurveyController`(`/survey/questions`, `/survey/status/{no}`, `POST /survey`) + Service/DAO 3종 신규. `question_order` 매핑 누락 수정, `SurveyAnswer.score`를 `Integer`로 변경(TEXT형 답변이 평균 만족도 통계를 왜곡하던 문제 예방) | ✅ **(2026-09-09 STEP 9)** `surveyApi.js`, `SurveyForm.jsx`, `/survey/:workcationNo` 라우트, 만족도조사 작성 버튼 신규 | ✅ 완료 | **완료** — Entity만 있고 Controller/Service/DAO/Frontend가 전혀 없던 상태에서 신규 구현, 실제 제출→통계 반영까지 검증 |
 
 ## 보안 점검 상태 (지침 10번)
@@ -59,6 +59,7 @@
 - 2026-09-09 (8차, STEP 8 실행): AWS 리소스 실제 생성(사용자) + RDS 초기화(22개 테이블 확인) + EC2 최초 수동 배포 + GitHub Actions CI/CD 파이프라인 4가지 버그 수정 후 실가동 검증 완료 — 상세는 WORK_LOG.md 참조
 - 2026-09-09 (9차, STEP 9): 워케이션 전체 라이프사이클(신청→승인→업무수행→정산→만족도조사) 실제 UI/API/DB 검증. 업무 진행률 기능 근본 재구현(가짜 ID 문제), 출퇴근 위치인증(attendance) 신규 구현(+응답의 비밀번호 해시 노출 보안버그 즉시 수정), 만족도조사(TODO-001) 신규 구현, ADMIN 정산승인이 UI로는 한 번도 성공한 적 없었음을 발견해 수정(BUG-012/013), 대시보드 500 에러(직원이 워케이션 2건 이상 보유 시) 수정 — 상세는 WORK_LOG.md 9차 작업 참조
 - 2026-09-09 (10차): 운영 배포 준비 — `attendance` 테이블 DROP 누락 버그 수정, 운영 RDS용 별도 마이그레이션(`migration_add_attendance.sql`) + 시연용 2주치 더미데이터(`dummy_data.sql`) 작성 및 로컬 검증, `deploy.yml`에 DB 반영 스텝 임시 추가, ERD Cloud 스냅샷을 실제 export 형식(JSON)에 맞춰 재작성 — 상세는 WORK_LOG.md 10차 작업 참조. **`Deploy` 브랜치 push는 권한 정책으로 에이전트가 직접 실행하지 못해 사용자 실행 대기 중**
+- 2026-09-09 (11차): STEP 9에서 발견해 미뤄뒀던 낮은 우선순위 버그 4건 수정 — ADMIN 대시보드 `totalCost` 음수 계산(`AmountDao.selectTotalCost()`의 JOIN 카티션 곱 + 이중 차감 버그), `waitingList` 중복 표시(`WorkcationDao.adminSelectWaitingList()`에 DISTINCT 누락), `ManagerComponent.jsx` 정산대기목록이 존재하지 않는 `approverState` 필드를 참조하던 버그(`status === 'R'`로 수정), `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 제거 — 로컬 MySQL 실데이터 + 실제 API 호출로 수정 전/후 값을 직접 대조 검증. 상세는 WORK_LOG.md 11차 작업 참조
 
 ## 신규 확인 필요 항목 (이번 세션에서 새로 발견)
 
@@ -117,6 +118,7 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **STEP 8(AWS CI/CD 준비 + 실배포) 완료** — 설정 준비뿐 아니라 **AWS 리소스(EC2/RDS/S3/IAM)를 사용자가 실제로 생성**했고, RDS에 `SQL/WorkFlow_Script.sql` 초기화(22개 테이블 확인) 완료, EC2에 Nginx/systemd 구성 후 최초 수동 배포 성공, **GitHub Actions CI/CD 파이프라인을 실제로 여러 차례 구동해 발견된 4가지 버그(워크플로 `secrets`/`if:` 표현식 오류, `mvnw` 실행권한 누락, GitHub Secret에 예시 placeholder 값이 잘못 등록됨, SSM `--parameters` 인코딩으로 인한 개행 손상)를 모두 수정하고 `Deploy` 브랜치 push → 전체 파이프라인 자동 성공까지 확인**(상세: WORK_LOG.md 8차 작업). 최초 수동 배포 과정에서 `dashboardApi.js`/`hubApi.js`의 배포환경 API 경로 중복 버그(운영에서만 드러남)도 발견·수정(PR #13, 커밋 `9b71b7f`)
 - **STEP 9(전체 라이프사이클 실제 검증) 완료** — 로컬 환경에서 신청부터 만족도조사까지 전 구간을 실제 UI/API/DB로 검증, 그 과정에서 발견한 모든 버그(BUG-009~013 포함) 수정 완료. 상세는 WORK_LOG.md 9차 작업 참조
 - **STEP 10(운영 배포 준비 + 실배포) 완료** — `Deploy` 브랜치 push 완료, GitHub Actions 파이프라인 2회 연속 `Success` 확인(attendance 테이블 마이그레이션 + 2주치 더미데이터가 실제 운영 RDS에 반영됨). 배포 확인 후 `deploy.yml`의 DB 마이그레이션 스텝은 원상복구(제거) 완료
+- **STEP 11(STEP 9 발견 낮은 우선순위 버그 4건 수정) 완료** — ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시, `ManagerComponent.jsx` 정산대기목록 `approverState`→`status` 필드 오류, `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 전부 수정 및 로컬 MySQL 실데이터 + 실제 API 호출로 검증 완료. 상세는 WORK_LOG.md 11차 작업 참조
 - **다음 최우선 작업**: EC2/RDS 실배포 환경에서 위에서 로컬로 검증한 전체 플로우(신청→승인→업무수행→정산→만족도조사)를 실제 배포된 화면으로 재검증 — 아직 미실행
-- 낮은 우선순위 미해결 버그(STEP 9에서 발견, 원인 미조사): ADMIN 대시보드 `totalCost` 음수 계산, `waitingList` 중복 표시(워케이션에 예약이 여러 건일 때), `ManagerComponent.jsx` 정산대기목록의 `item.approverState` 참조 오류, `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop
+- 낮은 우선순위 미해결 버그(신규 발견, STEP 11에서 함께 손대지 않음): `WorkcationDao.managerSelectWaitingList()`에 `adminSelectWaitingList()`와 동일한 JOIN 중복 버그 존재(부서장 대시보드 승인대기목록도 예약 2건 이상인 워케이션은 중복 표시될 수 있음) — 이번 버그 리포트 범위 밖이라 미수정
 - 다음 작업 후보(우선순위 낮음): Kakao Maps JS 키 발급/적용, `WorkcationItemComponent.jsx` 지역 드롭다운 경로 버그 수정, `FileRenamePolicy.java`의 `getRealPath()` 리스크 해소, Gemini API 키 회전(git 히스토리 노출분)

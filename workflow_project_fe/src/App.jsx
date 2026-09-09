@@ -328,7 +328,7 @@ function App() {
                         <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
 
                         {/* 관리자용 정산 페이지 */}
-                        <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+                        <Route path="/admin/cost/list" element={<AdminAmountPage />} />
 
                         {/* 공지사항 */}
                         {/* <Route path="/admin/notice" element={<NoticeAdminListPage />} /> */}

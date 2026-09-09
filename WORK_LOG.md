@@ -562,3 +562,48 @@ STEP 9에서 완성한 기능들을 실제 운영 서버(AWS EC2+RDS)에 배포�
 
 #### 사용자 확인 필요
 - **없음**
+
+## 2026-09-09 (11차 작업 — STEP 9에서 발견해 미뤄뒀던 낮은 우선순위 버그 4건 수정)
+
+STEP 9(더미데이터 검증) 중 발견했지만 원인 미조사 상태로 남겨뒀던 낮은 우선순위 버그 4건을 로컬 MySQL(`workflow` DB, 더미데이터 적용 상태) + 실제 API 호출로 원인을 특정하고 수정했다.
+
+**1. ADMIN 대시보드 `totalCost` 음수 계산 버그**
+`AmountDao.selectTotalCost()`가 `AmountItem`과 `SupportList`를 각각 JOIN하고 있었는데, 워케이션 1건의 비용 신청에 항목(item)이 여러 개이고 지원처(support)도 있는 경우 JOIN이 항목 수 × 지원처 수만큼 행을 곱해서(카티션 곱) 만들어낸다. 그 위에서 `ai.itemAmount - sl.approvedAmount - a.approvedAmount`를 행마다 계산해 합산하다 보니 `a.approvedAmount`(비용 신청 1건당 값)가 행 개수만큼 중복 차감되었다. 실제 더미데이터(비용신청 2건 중 1건이 항목 3개+지원처 1개 구성)로 재현한 결과 API가 정확히 버그 리포트와 동일한 `-530000`을 반환함을 확인. 게다가 `SupportList`와의 INNER JOIN 때문에 지원처가 하나도 없는 승인 건(비용신청 1건, 150,000원)은 아예 합계에서 누락되는 문제도 있었다. "발생한 총 비용"은 비용 신청 1건당 최종 승인된 금액(`amount.approved_amount`, 스키마 주석상 "최종 승인된 비용")의 합이면 충분하므로 JOIN 자체를 제거하고 `SUM(a.approvedAmount) WHERE a.status = 'A'`로 재작성.
+
+**2. ADMIN 대시보드 `waitingList` 중복 표시 버그**
+`WorkcationDao.adminSelectWaitingList()`가 `Reservation`을 JOIN하면서 DISTINCT 없이 워케이션 1건에 연결된 예약(reservation) 건수만큼 행을 그대로 반환하고 있었다. 더미데이터의 승인대기('W') 워케이션(workcation_no=5, staff01)이 거점 예약을 2건(제주 스마트오피스+서귀포 힐링 숙소) 가지고 있어 실제로 API가 완전히 동일한 행을 2번 반환하는 것을 직접 확인. `SELECT DISTINCT`를 추가해 해결했는데, MySQL은 `DISTINCT` 사용 시 `ORDER BY` 표현식이 SELECT 목록에 포함되어야 하므로(`Expression #1 of ORDER BY clause is not in SELECT list ... incompatible with DISTINCT`), 기존 `ORDER BY w.workcationNo DESC`(SELECT 목록에 없음)를 이미 프로젝션에 포함된 `w.startAt DESC`로 변경.
+> 참고: 부서장 대시보드의 동일 목적 쿼리(`WorkcationDao.managerSelectWaitingList()`)에도 완전히 동일한 JOIN 구조의 잠재 버그가 남아 있음을 확인했으나, 이번 버그 리포트 범위(`GET /dashboard/admin`)에 포함되지 않아 손대지 않고 별도 후속 작업으로 남겨둠(세션 내 background task로 등록).
+
+**3. `ManagerComponent.jsx` 정산대기목록 위젯의 잘못된 필드 참조**
+정산대기목록(`data.balanceList`) 렌더링에서 `item.approverState === "W"`로 "대기" 배지를 표시하려 했으나, 이 위젯이 쓰는 `BalanceListDto`(`AmountDao.selectBalanceList`)에는 `approverState` 필드 자체가 없다(필드: `empName`/`empNo`/`approvedAmount`/`status`) — `approverState`는 `WorkcationInfo`(워케이션 승인 상태 W/A/J/H/C)에만 있는 필드이고, `Amount`의 검토 상태는 `status`(A/C/H/J/R, `SQL/WorkFlow_Script.sql` 주석 "A 승인, C 취소, H 보류, J 반려, R 검토")다. 실제 `GET /api/v1/amounts` 응답을 직접 확인해 `Amount` 계열 객체에 `approverState` 필드가 전혀 없고 `status`만 있음을 재확인했고, `AdminAmount.jsx`가 이미 `status === 'R'`을 "검토중"(=결재 대기)으로 취급하는 것과 일관되게 `item.status === "R"`로 수정. 더미데이터의 검토 대기 건(amount_no=3, D5부서, 80,000원, status='R')을 대상으로 부서 정산대기목록 쿼리를 직접 재현해 수정 후 정상적으로 "대기" 배지가 뜰 조건임을 확인.
+
+**4. `AdminAmountPage.jsx`의 죽은 `workcationNo={1}` prop 제거**
+`App.jsx`의 `/admin/cost/list` 라우트가 `<AdminAmountPage workcationNo={1} />`로 하드코딩된 prop을 넘기고 있었는데, 확인 결과 `AdminAmountPage.jsx`는 이 prop을 받기만 하고(`console.log`용) 실제 자식 `<AdminAmount />`에는 전달조차 하지 않았고, `AdminAmount.jsx`는 애초에 어떤 prop도 받지 않는(`export default function AdminAmount()`) 컴포넌트로 `amountApi.getAmountList(currentPage)`를 통해 전체 목록을 독립적으로 조회하고 있어 완전히 죽은 코드임을 확인. `App.jsx`의 `workcationNo={1}` prop과 `AdminAmountPage.jsx`의 관련 prop 구조분해/로그 3줄을 함께 제거.
+
+#### 수정 이유
+STEP 9에서 "낮은 우선순위, 원인 미조사"로 남겨둔 항목들을 이번 세션에서 실제 로컬 DB/API로 원인을 규명하고 수정 완료. 모두 명확한 계산/쿼리/필드참조 버그이거나 확인된 죽은 코드라 사용자 확인 없이 즉시 처리.
+
+#### 변경 파일
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/amount/dao/AmountDao.java` (`selectTotalCost()` 쿼리 재작성)
+- `WorkFlow_Project_BE/src/main/java/com/kh/workflow/workcation/model/dao/WorkcationDao.java` (`adminSelectWaitingList()`에 DISTINCT 추가 + ORDER BY 컬럼 변경)
+- `workflow_project_fe/src/dashboard/components/ManagerComponent.jsx` (정산대기목록 배지 조건을 `item.status === "R"`로 수정)
+- `workflow_project_fe/src/App.jsx` (`/admin/cost/list` 라우트의 `workcationNo={1}` prop 제거)
+- `workflow_project_fe/src/pages/amount/AdminAmountPage.jsx` (미사용 `workcationNo` prop 구조분해 및 디버그 로그 제거)
+
+#### 검증
+- Backend compile (`mvnw clean compile`): **PASS**
+- Frontend build (`npm run build`): **PASS**
+- **버그 1**: 로컬 MySQL에 직접 `SELECT SUM(approved_amount) FROM amount WHERE status='A'` 실행해 기대값 `350000` 확보 → 수정 전 `GET /dashboard/admin`이 `totalCost: -530000`(버그 리포트와 정확히 일치) 반환하는 것을 재현 → 수정 후 재기동해 동일 엔드포인트가 `totalCost: 350000`을 반환함을 실제 API 호출로 확인
+- **버그 2**: 수정 전 원본 쿼리를 로컬 MySQL에 직접 실행해 workcation_no=5(예약 2건) 건이 완전히 동일한 행으로 2번 반환됨을 확인 → 수정 후 `GET /dashboard/admin`의 `waitingList`가 해당 워케이션을 정확히 1건만 반환함을 실제 API 호출로 확인
+- **버그 3**: `GET /api/v1/amounts` 실제 응답을 확인해 `Amount` 계열 객체에 `approverState` 필드가 없고 `status`만 있음을 재확인, 더미데이터의 검토중(R) 건을 대상으로 부서 정산대기 쿼리를 로컬 MySQL에 직접 실행해 수정된 필드/값 조건이 실제로 매칭됨을 확인
+- **버그 4**: 코드 추적으로 `AdminAmountPage`→`AdminAmount` 어디에서도 `workcationNo`를 사용하지 않는 완전한 죽은 코드임을 확인 후 제거, 프론트 빌드로 회귀 없음 확인
+- (부수적으로 발견) 로컬 워크트리가 `docs/step1-6-project-audit` 브랜치 최신 커밋과 히스토리가 다른 상태(오래된 `feature/Approval-KGM` 기준)로 체크아웃되어 있어 `WORK_LOG.md`/`SQL/dummy_data.sql` 등이 아예 없는 상태였음 — 작업 시작 전 `git reset --hard origin/docs/step1-6-project-audit`로 동기화. 이 과정에서 `amount/components/AdminAmount.jsx` 등 6개 파일이 working tree에 반영되지 않은 상태(`git status`상 deleted)였던 것도 함께 발견해 `git checkout --`으로 복구(커밋 없이 워킹트리만 원상복구, 실제 저장소 히스토리에는 항상 존재했음)
+
+#### 현재 상태
+- STEP 9에서 남겨뒀던 낮은 우선순위 버그 4건 전부 수정 완료 및 실제 DB/API로 검증 완료
+
+#### 남은 문제
+- `WorkcationDao.managerSelectWaitingList()`에 `adminSelectWaitingList()`와 동일한 JOIN 중복 버그가 남아있음(이번 버그 리포트 범위 밖이라 미수정, 별도 후속 작업으로 등록)
+
+#### 사용자 확인 필요
+- **없음**

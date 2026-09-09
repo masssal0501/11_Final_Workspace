@@ -237,7 +237,7 @@ function ManagerComponent(props) {
                                         <td>{item.empName}</td>
                                         <td>{item.empId}</td>
                                         <td>{item.amount?.toLocaleString('ko-KR')}원</td>
-                                        <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
+                                        <td>[{ (item.status === "R") ? "대기" : ""}]</td>
                                     </tr>
                                 ))
                             ) : (
