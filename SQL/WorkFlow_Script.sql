@@ -23,6 +23,7 @@ USE workflow;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS verification;
+DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS notice_file;
 DROP TABLE IF EXISTS survey_answer;
 DROP TABLE IF EXISTS workcation_survey;
