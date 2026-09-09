@@ -1,6 +1,6 @@
 # API_STATUS.md
 
-마지막 갱신: 2026-09-09
+마지막 갱신: 2026-09-09 (STEP 8 실배포 검증 포함)
 
 상태 기호: ✅ 정상 동작 확인 / 🔴 확실히 실패 / ⚠️ 동작하나 이슈 있음 / ⛔ 미구현
 (2026-09-09부터 일부 항목은 코드 리뷰가 아니라 실제 로컬 MySQL + 격리된 백엔드 인스턴스에 대한 실제 HTTP 요청으로 검증됨 — 해당 항목에 "실제 테스트" 표기)
@@ -93,6 +93,8 @@ MyBatis(`NoticeDao`, `notice-mapper.xml`) 완전 제거, `NoticeController`/`not
 | `POST /hubs`, `PUT /hubs/{no}`, `DELETE /hubs/{no}` | ✅ **(2026-09-09 수정 완료)** `hasRole("ADMIN")`로 전환, 실제 STAFF/MANAGER/ADMIN 토큰으로 테스트해 정상 차단/허용 확인 |
 | `GET /hubs/{no}` | ✅ | |
 
+**🔴→✅ [2026-09-09, STEP 8 배포 중 발견] 배포환경 전용 API 경로 중복 버그**: `dashboard` 섹션과 동일한 원인(`hubApi.js`의 자체 `BASE_URL`을 axios 요청에도 그대로 사용)으로 프로덕션에서 `/workflow/workflow/hubs/...` 형태의 404가 발생. `<img src>` 조립용 절대경로 `BASE_URL`(export 유지)과 axios 요청 전용 상대경로 `RELATIVE_PATH`(신규)를 분리해 해결, EC2 재배포 후 실제 로그(`journalctl`)로 `/workflow/hubs/{no}` 정상 인증·응답 확인(PR #13, 커밋 `9b71b7f`).
+
 ## place (`/place`) ↔ `placeApi.js`
 
 | Method/Path | 상태 | 비고 |
@@ -112,7 +114,9 @@ MyBatis(`NoticeDao`, `notice-mapper.xml`) 완전 제거, `NoticeController`/`not
 
 ## dashboard (`/dashboard`) ↔ `dashboardApi.js`
 
-전 구간 ✅ 정상 동작 확인(코드 리뷰 기준). 단, Notice 관련 위젯이 MyBatis(`NoticeDao.selectNoticeList`)에 의존하므로 STEP 7 진행 시 회귀테스트 필요.
+전 구간 ✅ 정상 동작 확인. Notice 관련 위젯은 STEP 7에서 JPA 기반 `NoticeService`로 교체 완료(회귀 없음, 실제 `/dashboard/admin` 호출로 확인).
+
+- **🔴→✅ [2026-09-09, STEP 8 배포 중 발견] 배포환경 전용 API 경로 중복 버그**: `dashboardApi.js`가 자체 `BASE_URL`을 `${API_BASE_URL}/dashboard`(절대/상대경로 모두 가능한 형태)로 만들어 `axiosInstance`(이미 `baseURL`을 가짐)에 전달 — 로컬 개발 기본값이 항상 절대 URL(`http://localhost:8006/workflow`)이라 axios가 그대로 이 URL을 우선 사용해 로컬에서는 드러나지 않았으나, 프로덕션 빌드에서 `VITE_API_BASE_URL=/workflow`(상대경로)를 쓰자 axios가 `baseURL`과 요청 URL을 그대로 이어붙여 `GET /workflow/workflow/dashboard/admin`(404)이 발생함. 실제 EC2 배포본에 로그인해 대시보드 로딩 실패로 재현·발견. `BASE_URL`을 상대경로(`/dashboard`)로 단순화해 해결, EC2 재배포 후 정상 로딩 확인(PR #13, 커밋 `9b71b7f`).
 
 ---
 

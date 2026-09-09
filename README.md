@@ -596,9 +596,9 @@ AWS EC2
 * [ ] 업무 관리
 * [ ] 비용 및 정산
 * [ ] 관리자 대시보드
-* [x] CI/CD 구축 (GitHub Actions 워크플로우/설정 파일 준비 완료 - 아래 참조, AWS 리소스 연결 및 실배포는 대기 중)
-* [ ] AWS 배포 (설정 준비 완료, 실제 AWS 리소스 생성/최초 배포는 대기 중)
-* [ ] 테스트 및 안정화
+* [x] CI/CD 구축 (GitHub Actions 워크플로우 실제 가동 검증 완료 — `Deploy` 브랜치 push → 자동 빌드/배포 성공, 2026-09-09)
+* [x] AWS 배포 (EC2+RDS 실제 리소스 생성 및 최초 배포 완료, 2026-09-09 — 아래 "AWS 배포 가이드" 참조)
+* [ ] 테스트 및 안정화 (워케이션 신청→승인→업무→정산 전체 플로우의 배포환경 통합 테스트 남음)
 
 ---
 
@@ -657,13 +657,15 @@ Repository Settings → Secrets and variables → Actions 에 아래 항목을 �
 |---|---|
 | `AWS_ACCESS_KEY_ID` | CI/CD 전용 IAM 사용자의 Access Key (Root 계정 키 사용 금지) |
 | `AWS_SECRET_ACCESS_KEY` | 위 IAM 사용자의 Secret Key |
-| `AWS_REGION` | 예: `ap-northeast-2` |
+| `AWS_REGION` | 실제 리소스를 생성한 리전 (예: `us-east-1`) |
 | `AWS_DEPLOY_BUCKET` | 빌드 산출물(JAR, 프론트 빌드)을 임시로 올려둘 S3 버킷 이름 |
-| `EC2_INSTANCE_ID` | 배포 대상 EC2 인스턴스 ID (예: `i-0123456789abcdef0`) |
+| `EC2_INSTANCE_ID` | 배포 대상 EC2의 **실제** 인스턴스 ID (⚠️ 아래 참고) |
 | `KAKAO_APP_KEY` | Kakao Maps JavaScript SDK 키 (프론트 빌드 시 주입) |
 | `EC2_PUBLIC_URL` | (선택) 배포 후 외부 스모크 테스트용, 예: `http://<EC2_공인IP>` |
 
 > AWS Access Key/Secret Key는 GitHub Secrets에만 저장하며 코드에 절대 직접 적지 않는다. GitHub OIDC는 사용하지 않는다(이번 프로젝트의 결정).
+
+> ⚠️ **`EC2_INSTANCE_ID`에 이 문서의 예시 문자열(`i-0123456789abcdef0` 형태)을 그대로 등록하지 말 것.** 실제로 이 실수 때문에 IAM 정책이 정확히 구성돼 있었음에도 `ssm:SendCommand`가 계속 `AccessDeniedException`으로 실패한 사례가 있었다(2026-09-09). GitHub Actions 로그는 시크릿 값을 자동 마스킹하므로 이런 실수는 로그만으로는 발견하기 어렵고, AWS CloudTrail의 이벤트 원문(마스킹 없음)을 확인해야 드러난다 — 아래 "장애 발생 시 확인 방법" 표 참고.
 
 ### 4. EC2에서 준비해야 할 것 (최초 1회, 아래 "AWS에서 직접 해야 할 작업" 참조)
 
@@ -676,11 +678,13 @@ Repository Settings → Secrets and variables → Actions 에 아래 항목을 �
 
 ### 5. 최초 배포 절차
 
-1. AWS에서 EC2(Ubuntu, Java 21 설치), RDS(MySQL), S3 버킷을 직접 생성한다 (Claude가 자동 생성하지 않음).
+> **2026-09-09 기준: 이 절차가 실제로 완료되어 EC2+RDS 배포가 살아있고, `Deploy` 브랜치 push → GitHub Actions 자동 배포까지 실가동 검증됨.** 재배포는 6번 절차만 반복하면 된다.
+
+1. AWS에서 EC2(Java 21 설치), RDS(MySQL), S3 버킷을 직접 생성한다 (Claude가 자동 생성하지 않음). ⚠️ EC2가 **Amazon Linux**라면 Nginx가 Ubuntu식 `sites-available`/`sites-enabled` 구조가 아니라 `conf.d/*.conf` 구조를 쓰고, `nginx.conf`에 기본 `server{}` 블록이 내장되어 있어 그대로 두면 포트 80을 선점한다 — 이 경우 `deploy/nginx/workflow.conf`를 `/etc/nginx/conf.d/workflow.conf`에 직접 두고, `nginx.conf`의 내장 기본 서버 블록을 주석 처리한 뒤 우리 설정에 `listen 80 default_server;`를 명시해야 한다.
 2. EC2에 Java 21, Nginx 설치 후 위 "4. EC2에서 준비해야 할 것" 항목을 전부 설정한다.
 3. RDS에 `SQL/WorkFlow_Script.sql`을 실행해 스키마를 구축한다.
 4. `/etc/workflow/workflow.env`에 RDS 접속정보 등 실제 값을 채운다.
-5. GitHub repository에 위 "3. 필요한 GitHub Secrets"를 전부 등록한다.
+5. GitHub repository에 위 "3. 필요한 GitHub Secrets"를 전부 등록한다. IAM 정책은 `s3:PutObject`(버킷) + `ssm:SendCommand`(document ARN과 EC2 instance ARN 둘 다 Resource에 명시) + `ssm:GetCommandInvocation`/`ssm:ListCommands`가 필요하며, EC2 인스턴스에는 `AmazonSSMManagedInstanceCore` + S3 읽기 권한을 가진 인스턴스 프로필을 연결해야 SSM 배포가 동작한다.
 6. `Deploy` 브랜치를 생성하고 `main`을 병합해 push한다 → GitHub Actions가 자동으로 빌드·배포한다.
 7. Actions 탭에서 워크플로우 로그를 확인하고, 완료 후 `http://<EC2_공인IP>` 로 접속해 로그인 화면이 뜨는지 확인한다.
 
@@ -718,6 +722,11 @@ ls -la /usr/share/nginx/html
 | 증상 | 확인할 것 |
 |---|---|
 | GitHub Actions에서 실패 | Actions 탭 로그 확인. `Verify deployment result` 스텝이 SSM 명령의 stdout/stderr를 그대로 출력하므로 대부분 원인이 바로 보임 |
+| GitHub Actions 실행이 **job 0개로 즉시 실패**(브랜치 무관하게 항상 실패) | 워크플로 YAML 자체가 무효(Invalid workflow file)인 경우. Actions 탭에서 해당 run을 열면 "Annotations" 섹션에 정확한 라인/사유가 뜬다. **스텝의 `if:` 조건에서 `secrets.*`를 직접 참조하면 안 된다**(`Unrecognized named-value: 'secrets'`) — `env:`로 한 번 거친 뒤 `env.*`로 참조할 것(2026-09-09 실제 발생 사례, `deploy.yml` 참고) |
+| `./mvnw: Permission denied` (exit 126) | `mvnw` 파일이 git에 실행권한 없이(`100644`) 커밋된 경우. `git ls-files -s WorkFlow_Project_BE/mvnw`로 확인 후 `git update-index --chmod=+x WorkFlow_Project_BE/mvnw`로 수정(2026-09-09 실제 발생 사례 — Windows에서 커밋하면 흔히 발생) |
+| `ssm:SendCommand`가 `AccessDeniedException` (IAM 정책은 봐도 맞는데 계속 거부됨) | ① IAM 정책 시뮬레이터(사용자 페이지 → 시뮬레이션)로 `document`+`instance` 리소스 둘 다 실제 ARN을 넣고 확인. ② 그래도 안 되면 **GitHub Secret `EC2_INSTANCE_ID`에 실제 값이 아니라 예시 placeholder가 등록됐을 가능성**을 의심할 것 — GitHub Actions 로그는 시크릿 값을 자동 마스킹해서 로그만으로는 안 보이니, **AWS CloudTrail → 이벤트 기록에서 해당 `SendCommand` 이벤트를 찾아 마스킹 없는 원문 오류 메시지의 실제 인스턴스 ARN을 확인**할 것(2026-09-09 실제 발생 사례) |
+| SSM으로 실행한 `remote-deploy.sh`가 `/usr/bin/env: 'bash\n# ...': No such file or directory`(exit 127)로 실패 | `aws ssm send-command`의 `--parameters`를 `commands="$(jq -Rs '[.]' < script)"`처럼 shorthand와 JSON을 섞어 넘기면 다중 줄 스크립트의 개행이 실제 줄바꿈이 아니라 문자 그대로 `\n` 텍스트로 전달되는 경우가 있다. `PARAMS_JSON=$(jq -Rn --rawfile script <파일> '{"commands":[$script]}')`로 만든 순수 JSON을 `--parameters`에 통째로 넘기는 방식으로 우회(2026-09-09 실제 발생 사례, `deploy.yml` 참고) |
+| 로그인 성공했는데 대시보드/거점 등 특정 화면만 404 | 프론트 `api/*.js` 파일이 `axiosInstance`(이미 `baseURL` 보유)에 넘기는 요청 URL에 `API_BASE_URL`을 다시 붙이고 있지 않은지 확인 — 로컬 개발 기본값이 절대 URL이라 로컬에서는 안 드러나고 배포 환경(상대경로 baseURL)에서만 `/workflow/workflow/...` 형태로 터진다(2026-09-09 `dashboardApi.js`/`hubApi.js` 실제 발생 사례) |
 | 백엔드가 재시작 후 응답 없음 | `sudo journalctl -u workflow -n 100` — DB 연결 실패(`workflow.env`의 `DB_URL`/비밀번호), JWT_SECRET 누락 등이 흔한 원인 |
 | 502/504 (Nginx) | 백엔드(`:8006`)가 떠 있는지 먼저 확인, `sudo nginx -t`로 설정 문법 확인 |
 | 새로고침 시 흰 화면/404 | `deploy/nginx/workflow.conf`의 `try_files ... /index.html` 폴백이 실제로 적용됐는지 확인 |

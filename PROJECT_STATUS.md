@@ -1,16 +1,16 @@
 # PROJECT_STATUS.md
 
-마지막 갱신: 2026-09-09 (STEP 1~6 완료 시점)
+마지막 갱신: 2026-09-09 (STEP 8 실배포 + CI/CD 실가동 검증 완료 시점)
 
 ## 기술 스택 확정 상태
 
 | 영역 | 현재 | 목표 |
 |---|---|---|
-| Backend Persistence | JPA(대부분) + MyBatis(Notice만) | **JPA 통일** — Notice만 전환하면 완료 |
-| Backend 컴파일 | ✅ `mvn compile` BUILD SUCCESS (98 source files) | 유지 |
-| DB 기준 | `SQL/WorkFlow_Script.sql` (사용자 확정) | Entity를 이 기준에 맞춤 (진행 중, DB_DESIGN.md 참조) |
-| Frontend | React 19 + Vite 8 + Axios + React Router 7 | `npm install` 미실행 상태 — 빌드 검증 아직 안 함 |
-| 배포/CI-CD | 없음 (`.github/workflows` 없음) | GitHub Actions → AWS (착수 전) |
+| Backend Persistence | **JPA 통일 완료** (MyBatis 실사용 코드 0건, STEP 7 참조) | 완료 |
+| Backend 컴파일 | ✅ `mvn compile`/`mvn package` BUILD SUCCESS (로컬 + GitHub Actions 러너 양쪽 확인) | 유지 |
+| DB 기준 | `SQL/WorkFlow_Script.sql` (사용자 확정) | ✅ Entity 정렬 완료 + **AWS RDS에 실제 스키마 초기화 완료(22개 테이블)** |
+| Frontend | React 19 + Vite 8 + Axios + React Router 7 | ✅ `npm run build` 로컬/CI 양쪽 정상 |
+| 배포/CI-CD | ✅ **AWS EC2+RDS 실배포 완료, GitHub Actions CI/CD 파이프라인 실가동 검증 완료**(`Deploy` 브랜치 push → 자동 빌드·배포 성공, 2026-09-09) | 완료 — 다음은 기능 검증 |
 
 ## 도메인별 구현 상태
 
@@ -55,6 +55,7 @@
 
 - 2026-09-09 (1차): `WorkcationServiceImpl.taskHistoryDao` `@Autowired` 누락 수정 → `PUT /workcation/task/{taskNo}` NPE 해결
 - 2026-09-09 (2차, STEP 6 나머지): DB_DESIGN.md [확인 필요] 항목 1,2,5,6 결정 반영(SQL+Entity), `AmountServiceImpl` 목록조회 스텁 2건 구현, `HubController` 전역 chatHistory 버그 수정, `verification` 기반 아이디/비밀번호 찾기 기능 신규 구현(백엔드+프론트), `employeeApi.js`의 `findEmployeeId` 오류 수정 — 매 단계 `mvn compile` BUILD SUCCESS 확인
+- 2026-09-09 (8차, STEP 8 실행): AWS 리소스 실제 생성(사용자) + RDS 초기화(22개 테이블 확인) + EC2 최초 수동 배포 + GitHub Actions CI/CD 파이프라인 4가지 버그 수정 후 실가동 검증 완료 — 상세는 WORK_LOG.md 참조
 
 ## 신규 확인 필요 항목 (이번 세션에서 새로 발견)
 
@@ -101,7 +102,7 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 
 `/hubs/**`, `POST /employees`, `POST /approval/{workcationNo}`, `/api/v1/amounts/**` GET, `WebConfig` CORS 중복 — 5개 항목 전부 A안 채택, `SecurityConfig.java` 수정 및 `WebConfig.java` 삭제로 반영. 상세 내용은 "보안 점검 상태" 표 및 `WORK_LOG.md` 5차 작업 참조. **로컬 MySQL에 STAFF/MANAGER/ADMIN 역할별 테스트 계정을 직접 시드해 4가지 인증 조합(무인증/STAFF/MANAGER/ADMIN) × 8개 엔드포인트를 실제로 호출해 전부 의도한 상태코드가 나오는지 확인**했고, CORS(허용/비허용 오리진) 및 Frontend build도 함께 검증함.
 
-## 다음 단계 (사용자 확인 대기 중)
+## 다음 단계
 
 - DB_DESIGN.md [확인 필요] 항목 1,2,5,6 → 처리 완료
 - **신규 항목 7**(AmountForm 요청 포맷) → ✅ 처리 완료 (A안, 실제 API 테스트로 검증)
@@ -110,5 +111,6 @@ B. 백엔드를 프론트에 맞춤 — `AmountController.createAmount`를 JSON 
 - **STEP 6 전체 완료**
 - **STEP 7(Notice MyBatis→JPA 전환) 완료** — 실제 DB로 목록/상세/검색/등록/수정/삭제/권한/대시보드 연동까지 전부 검증, MyBatis 파일(`NoticeDao.java`, `notice-mapper.xml`) 삭제 완료. `mybatis-spring-boot-starter` 의존성/`mybatis.*` 설정 자체는 아직 pom.xml/application.properties에 남아있음(요청 범위 밖이라 유지, 필요 시 별도 정리 가능)
 - **신규 확인 필요**: 조회수 증가 미구현, 첨부파일 미구현(둘 다 이번 전환 이전부터 없던 기능, 그대로 포팅함) — 완성 여부 결정 필요
-- **STEP 8(AWS CI/CD 준비) 완료** — `.github/workflows/deploy.yml`, Nginx/systemd/env 템플릿, 백엔드·프론트 환경변수 분리(local/prod), CORS/파일업로드 경로 배포환경 대응까지 준비 완료. **AWS 리소스는 아직 생성되지 않았고 실제 배포도 아직 수행하지 않음** — README "AWS 배포 가이드" 섹션의 체크리스트대로 사용자가 AWS 측 작업을 완료해야 최초 배포 가능
-- 다음 작업 후보: AWS 리소스 실제 생성(EC2/RDS/S3/IAM) 및 최초 배포 실행 — 전부 사용자 승인/직접 수행 필요
+- **STEP 8(AWS CI/CD 준비 + 실배포) 완료** — 설정 준비뿐 아니라 **AWS 리소스(EC2/RDS/S3/IAM)를 사용자가 실제로 생성**했고, RDS에 `SQL/WorkFlow_Script.sql` 초기화(22개 테이블 확인) 완료, EC2에 Nginx/systemd 구성 후 최초 수동 배포 성공, **GitHub Actions CI/CD 파이프라인을 실제로 여러 차례 구동해 발견된 4가지 버그(워크플로 `secrets`/`if:` 표현식 오류, `mvnw` 실행권한 누락, GitHub Secret에 예시 placeholder 값이 잘못 등록됨, SSM `--parameters` 인코딩으로 인한 개행 손상)를 모두 수정하고 `Deploy` 브랜치 push → 전체 파이프라인 자동 성공까지 확인**(상세: WORK_LOG.md 8차 작업). 최초 수동 배포 과정에서 `dashboardApi.js`/`hubApi.js`의 배포환경 API 경로 중복 버그(운영에서만 드러남)도 발견·수정(PR #13, 커밋 `9b71b7f`)
+- **다음 최우선 작업**: 워케이션 신청→승인→업무 수행→정산 전체 플로우를 EC2/RDS 실배포 환경에서 통합 테스트 — 아직 미실행
+- 다음 작업 후보(우선순위 낮음): Kakao Maps JS 키 발급/적용, `WorkcationItemComponent.jsx` 지역 드롭다운 경로 버그 수정, `FileRenamePolicy.java`의 `getRealPath()` 리스크 해소, Gemini API 키 회전(git 히스토리 노출분)

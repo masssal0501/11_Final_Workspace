@@ -384,3 +384,75 @@ AWS 리소스는 생성하지 않고, 배포 가능한 상태를 만들기 위�
 
 #### 사용자 확인 필요
 - **있음** — 아래 [AWS CI/CD 준비 결과] 보고의 "AWS에서 직접 해야 할 작업"/"GitHub에서 직접 해야 할 작업"을 완료해야 실제 배포가 가능함
+
+---
+
+## 2026-09-09 (8차 작업 — STEP 8 실행: AWS 리소스 생성, RDS 초기화, 최초 수동 배포, CI/CD 파이프라인 실가동 검증)
+
+### [작업 완료]
+
+#### 작업 내용
+사용자가 AWS 콘솔에서 직접 EC2(Amazon Linux, Java21+Nginx)/RDS(MySQL)/보안그룹/`Deploy` 브랜치/S3 버킷/IAM(CI/CD 사용자+EC2 인스턴스 역할)을 생성했고, 이를 바탕으로 (1) RDS 초기화, (2) 최초 수동 배포, (3) GitHub Actions CI/CD 파이프라인 디버깅 및 실가동 검증을 진행했다.
+
+**1. RDS 초기화 — 완료**
+- `SQL/WorkFlow_Script.sql`을 EC2 경유로 RDS(MySQL 8.4.6)에 실행, `SHOW TABLES`로 22개 테이블 전부 생성 확인.
+
+**2. 최초 수동 배포 (CI/CD 완성 전 임시 경로) — 완료, 과정에서 버그 3건 발견/수정**
+- 로컬에서 백엔드 JAR(`mvn package`)/프론트 `dist`(`npm run build`)를 빌드해 `scp`로 EC2에 전송, `systemd`(`workflow.service`)/Nginx 설정을 EC2에 직접 구성.
+- **[환경 차이 발견]** EC2가 Amazon Linux라 README/`deploy/nginx/workflow.conf`가 전제하던 Ubuntu식 `sites-available`/`sites-enabled` 구조가 없음 — Amazon Linux는 `conf.d/*.conf` 구조를 쓰고, `nginx.conf`에 기본 `server{}` 블록이 내장되어 있어 그대로 두면 포트 80을 우리 설정보다 먼저 점유함. `nginx.conf`의 내장 기본 블록을 주석 처리하고 `conf.d/workflow.conf`에 `default_server`를 명시해 해결(코드 변경 아님, EC2 서버 설정).
+- **[버그 발견/수정] MSYS 경로 자동변환으로 인한 빌드 오염**: Git Bash에서 `VITE_API_BASE_URL=/workflow npm run build`를 실행하면 MSYS가 `/workflow`를 Windows 경로로 변환해 번들에 `C:/...`가 박혀 브라우저에서 `AxiosError: Unsupported protocol C:` 발생. `MSYS_NO_PATHCONV=1`로 재빌드해 해결(코드 변경 아님, 빌드 명령 문제).
+- **[버그 발견/수정] `dashboardApi.js`/`hubApi.js`의 배포환경 API 경로 중복**: `axiosInstance`가 이미 `baseURL=/workflow`를 갖고 있는데 두 파일이 요청 URL에도 `${API_BASE_URL}/...`를 붙여, 프로덕션에서 axios가 둘을 합쳐 `/workflow/workflow/dashboard/admin`처럼 404를 유발(로컬 개발 기본값이 절대 URL(`http://localhost:8006/workflow`)이라 로컬에서는 드러나지 않던 버그). 실제 EC2 배포본에 로그인해 대시보드/거점 화면에서 404를 재현·발견. `hubApi.js`는 `<img src>` 조립용 절대경로 `BASE_URL`(export 유지)과 axios 요청용 상대경로 `RELATIVE_PATH`(신규)를 분리, `dashboardApi.js`는 `BASE_URL`을 상대경로(`/dashboard`)로 단순화. PR #13에 커밋으로 반영.
+- **[운영 조치]** DB에 이미 시드되어 있던 관리자 계정(`emp_id=admin`)의 비밀번호 평문을 알 수 없어(해시만 존재), 앱이 사용하는 것과 동일한 `BCryptPasswordEncoder`로 새 해시를 생성해 해당 계정의 `emp_pwd`를 SQL `UPDATE`로 교체 — 실제 EC2 배포본에 로그인 성공까지 확인.
+
+**3. GitHub Actions CI/CD 파이프라인 디버깅 — 완료, 4가지 독립적 원인을 순차적으로 발견/수정**
+
+`docs/step1-6-project-audit` → `Deploy` 브랜치로 fast-forward 병합 후 push하는 방식으로 실제 파이프라인을 여러 차례 구동하며 실패마다 GitHub Actions API/CloudTrail로 원인을 특정했다:
+
+1. **워크플로 파일 자체가 무효(Invalid workflow file)** — `External smoke test` 스텝의 `if: ${{ secrets.EC2_PUBLIC_URL != '' }}`가 원인. GitHub Actions는 스텝의 `if:` 조건에서 `secrets` 컨텍스트를 직접 참조할 수 없음(`Unrecognized named-value: 'secrets'`). 이 때문에 **어떤 브랜치로 push해도 job이 0개인 채 즉시 실패**하고 있었음(이전 세션에서 `js-yaml`로 검증한 것은 YAML 문법만 확인한 것이라 이 GitHub Actions 표현식 제약은 잡아내지 못했음). `env:`로 한 번 거쳐 참조하도록 수정.
+2. **`mvnw` 실행 권한 누락** — git에 `100644`(비실행)로 커밋되어 있어 Linux 러너에서 `./mvnw: Permission denied`(exit 126) 발생. `git update-index --chmod=+x`로 `100755`로 수정.
+3. **GitHub Secret `EC2_INSTANCE_ID`에 예시 placeholder 값이 그대로 등록됨** — IAM 정책은 실제 인스턴스 ARN에 대해 정확히 구성되어 있었는데도(IAM 정책 시뮬레이터로 Allow 확인) 계속 `AccessDeniedException`이 발생해 원인 불명이었으나, **CloudTrail 이벤트 기록의 마스킹되지 않은 원문 오류 메시지**에서 실제 호출에 사용된 인스턴스 ARN이 README/가이드 문서에 적어둔 "예시" 인스턴스 ID(`i-0123456789abcdef0` 형태)와 정확히 일치하는 것을 발견 — 사용자가 GitHub Secret에 실제 값이 아니라 문서의 예시 문자열을 그대로 등록했던 것. 실제 인스턴스 ID로 재등록해 해결. (GitHub Actions 로그 자체는 시크릿 값을 자동 마스킹하므로, 시크릿 값 자체가 잘못된 경우 로그만으로는 발견 불가 — CloudTrail 원문 대조가 결정적이었음)
+4. **`aws ssm send-command`의 `--parameters` shorthand 표기가 다중 줄 스크립트의 개행을 깨뜨림** — `--parameters commands="$(jq -Rs '[.]' < script)"`처럼 shorthand 키(`commands=`)에 JSON 배열 값을 섞어 넘기면, SSM 문서가 실제로 받는 문자열에서 개행이 실제 줄바꿈이 아니라 문자 그대로 `\n` 텍스트로 전달되어 EC2에서 `/usr/bin/env: 'bash\n# ...': No such file or directory`(exit 127)로 실패. `PARAMS_JSON=$(jq -Rn --rawfile script <파일> '{"commands":[$script]}')`로 만든 순수 JSON 객체를 `--parameters`에 통째로 넘기는 방식으로 교체해 shorthand 파서를 우회, 해결.
+
+각 수정 후 GitHub Actions API(`/actions/runs`, `/actions/jobs/{id}/logs`)로 실제 실행 로그를 직접 조회해 다음 실패 지점을 확인하는 방식으로 순차 디버깅했고, IAM 관련 문제는 AWS IAM 정책 시뮬레이터와 CloudTrail 이벤트 기록까지 함께 활용해 교차 검증했다.
+
+**4. 최종 검증 — Deploy 브랜치 push 1건으로 전체 파이프라인 성공**
+Maven 빌드 → npm 빌드 → S3 업로드 → SSM으로 EC2 배포(JAR 교체+systemd 재시작+프론트 정적파일 교체+Nginx reload) → 배포 결과 검증까지 전 스텝 성공(`conclusion: success`) 확인. `External smoke test`는 `EC2_PUBLIC_URL` 시크릿을 등록하지 않아 정상적으로 skip됨(선택 사항).
+
+#### 수정 이유
+"CI/CD를 구축해서 Deploy 브랜치 push만으로 서버에 자동 빌드·배포되게 한다"는 목표를 실제로 검증 가능한 상태까지 만들기 위해, 발견되는 각 실패를 코드/설정 레벨 원인까지 추적해 수정했다. 모두 인프라/배포 파이프라인 자체의 명확한 버그이며 API 계약·DB 스키마·비즈니스 로직과는 무관해 사용자 확인 없이 즉시 수정.
+
+#### 변경 파일
+**배포 설정 (수정)**
+- `.github/workflows/deploy.yml` (3개 커밋에 걸쳐 수정 — secrets/if: 수정, SSM `--parameters` JSON 인코딩 수정)
+- `WorkFlow_Project_BE/mvnw` (파일 모드만 `100644`→`100755` 변경, 내용 변경 없음)
+
+**Frontend (수정, 최초 수동 배포 과정에서 발견)**
+- `workflow_project_fe/src/dashboard/api/dashboardApi.js`
+- `workflow_project_fe/src/hub/api/hubApi.js`
+
+**운영 환경 (git 추적 대상 아님)**
+- RDS: `SQL/WorkFlow_Script.sql` 실행(신규 구축)
+- EC2: Nginx `conf.d/workflow.conf` 구성, `nginx.conf` 기본 블록 비활성화, `systemd` 서비스 설치, `/etc/workflow/workflow.env` 구성
+- GitHub Secrets: `EC2_INSTANCE_ID` 값 정정(잘못된 예시값 → 실제 인스턴스 ID)
+- DB: 시드된 관리자 계정의 비밀번호 해시를 새로 생성해 교체(테스트 로그인 가능하도록)
+
+#### 검증
+- Backend/Frontend build: **PASS** (GitHub Actions 러너 상에서 `mvnw clean package`, `npm ci && npm run build` 모두 성공)
+- SSM 배포: **PASS** — IAM 정책 시뮬레이터로 `ssm:SendCommand`(document+instance 리소스 양쪽) 허용 확인, CloudTrail로 실제 API 호출의 정확한 파라미터 확인
+- 전체 파이프라인: **PASS** — `Deploy` 브랜치 push → GitHub Actions 전 스텝 성공 → EC2에 최신 코드 반영 확인
+- 실제 EC2 배포본에서 로그인(`admin` 계정) → 대시보드/거점/비용/승인/워케이션 목록 등 주요 API 호출이 정상 인증·응답되는 것을 `journalctl -u workflow` 로그로 확인
+
+#### 현재 상태
+- **STEP 8 목표(AWS 실배포 + CI/CD 자동화)가 실제로 동작하는 상태로 완료됨.** `Deploy` 브랜치에 push하면 별도 수동 작업 없이 EC2까지 자동 반영됨.
+- RDS는 초기 공통데이터(job/department/authority)와 시드 관리자 계정 1건만 존재 — 실제 업무 데이터(워케이션 신청/승인 이력/비용 등)는 없는 상태
+
+#### 남은 문제
+- 워케이션 신청→승인→업무→정산 전체 플로우의 EC2/RDS 환경 통합 테스트는 아직 미실행 — 다음 최우선 작업
+- Kakao Maps JavaScript 키 미발급/미적용 — 지도 관련 화면 미작동
+- `WorkcationItemComponent.jsx`의 지역 드롭다운 API 경로 버그(기존부터 있던 문제) — 미수정
+- `FileRenamePolicy.java`의 `getRealPath()` 의존 — Hub 이미지 업로드가 EC2 fat-jar 환경에서 실패할 위험, 미검증
+- GitHub Actions `External smoke test`용 `EC2_PUBLIC_URL` 시크릿 미등록(선택 사항, 필요 시 추가 가능)
+- 워크플로 파일이 경로(path) 필터 없이 모든 push에 대해 FE+BE 전체를 재빌드함 — 지금 규모에선 문제없으나 프로젝트가 커지면 `paths:` 필터 분리를 고려할 수 있음(현재는 불필요한 최적화로 판단해 보류)
+
+#### 사용자 확인 필요
+- **없음** — 이번 작업분은 전부 배포 파이프라인 자체의 명확한 버그 수정. 다음 단계(워케이션 전체 플로우 통합 테스트)로 바로 진행 가능

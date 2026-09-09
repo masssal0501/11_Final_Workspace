@@ -3,6 +3,8 @@
 DB 기준 스키마(Source of Truth): **`SQL/WorkFlow_Script.sql`** (2026-09-09 확정)
 > `SQL/WorkFlow_Script_Nam_ver.sql`은 기준이 아님. 충돌 시 `WorkFlow_Script.sql` → README → 현재 Java 코드 순으로 판단.
 
+**2026-09-09 (STEP 8)**: `SQL/WorkFlow_Script.sql`을 **AWS RDS(MySQL 8.4.6)에 실제로 실행해 스키마 초기화 완료** — `SHOW TABLES` 결과 아래 22개 테이블 전부 생성 확인: `amount`, `amount_file`, `amount_item`, `amount_list`, `authority`, `department`, `employee`, `hub`, `hub_file`, `job`, `notice`, `notice_file`, `reservation`, `survey_answer`, `survey_question`, `task`, `task_history`, `verification`, `work`, `work_file`, `workcation_info`, `workcation_survey`. 스크립트 실행 자체에는 문제가 없었음을 실제 클라우드 MySQL 환경으로 확인함. 이번 STEP에서 스키마 자체의 추가 변경은 없음(아래 [확인 필요] 항목 3·4의 facility 부분은 계속 보류). RDS에는 초기 공통데이터(job/department/authority)와 시드 관리자 계정 1건만 있고 실제 업무 데이터는 없는 상태.
+
 **2026-09-09 업데이트**: 아래 "[확인 필요] 목록"의 6개 항목에 대해 사용자 결정을 받아 반영 완료. 각 항목의 최종 처리 내용은 "[확인 필요] 목록 → 처리 결과"(하단)에 기록. 이 결정 과정에서 원래 6개 항목에 포함되지 않았던 `amount_item`(컬럼명/누락 필드)과 `amount_file`(PK/타임스탬프 컬럼명)의 정렬도 "SQL이 최종 기준"이라는 동일 원칙을 적용해 함께 정리했음 — 아래 표에 반영.
 
 이 문서는 테이블마다 `Entity / Repository / Service / Controller / Frontend API` 매핑과 정합성 상태를 기록한다.
