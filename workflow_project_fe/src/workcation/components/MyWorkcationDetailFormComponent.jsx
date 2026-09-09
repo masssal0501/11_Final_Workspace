@@ -50,7 +50,8 @@ function MyWorkcationDetailFormComponent() {
         endDate = "",
         mainRegion = "",
         subRegion = "",
-        planList = []
+        planList = [],
+        approverState = ""
     } = detailData;
 
     const handleDelete = async () => {
@@ -235,6 +236,15 @@ function MyWorkcationDetailFormComponent() {
             </div>
 
             <div className="detail-button-area">
+                {approverState === "A" && (
+                    <button
+                        type="button"
+                        className="back-list-btn"
+                        onClick={() => navigate(`/survey/${detailWorkcationNo}`)}
+                    >
+                        만족도 조사 작성
+                    </button>
+                )}
                 <button type="button" className="delete-workcation-btn" onClick={handleDelete}>
                     워케이션 취소/삭제
                 </button>

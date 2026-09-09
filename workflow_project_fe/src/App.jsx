@@ -37,6 +37,7 @@ import WorkcationDetailComponent from './workcation/components/WorkcationDetailC
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
 import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
 import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
+import SurveyForm from './survey/components/SurveyForm';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -278,6 +279,7 @@ function App() {
                 {/* BUG-009: "내 워케이션"(업무 진행률 관리) 화면이 라우팅되지 않아 접근 불가였음 */}
                 <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
                 <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
+                <Route path="/survey/:workcationNo" element={<SurveyForm />} />
 
 
 
