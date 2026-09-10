@@ -11,7 +11,7 @@
   height: 76px;
 
   background: #ffffff;
-  border-bottom: 1px solid #e8edf3;
+  border-bottom: 1px solid var(--wf-border);
 }
 
 .wf-header-inner {
@@ -78,7 +78,7 @@
 }
 
 .wf-logo-text {
-  color: #122d55;
+  color: var(--wf-text-primary);
 
   font-size: 28px;
   font-weight: 800;
@@ -117,7 +117,7 @@
   border: none;
   background: transparent;
 
-  color: #34445b;
+  color: var(--wf-text-secondary);
 
   font-size: 15px;
   font-weight: 600;
@@ -132,11 +132,11 @@
 }
 
 .wf-nav-item:hover {
-  color: #1769d5;
+  color: var(--wf-primary);
 }
 
 .wf-nav-item.active {
-  color: #1769d5;
+  color: var(--wf-primary);
 }
 
 .wf-nav-item.active::after {
@@ -150,7 +150,7 @@
 
   height: 3px;
 
-  background: #1769d5;
+  background: var(--wf-primary);
 
   border-radius: 3px 3px 0 0;
 }
@@ -165,11 +165,11 @@
 
   font-size: 19px;
 
-  color: #193b69;
+  color: var(--wf-text-primary);
 }
 
 .wf-nav-item.active .wf-nav-icon {
-  color: #1769d5;
+  color: var(--wf-primary);
 }
 
 
@@ -217,7 +217,7 @@
 
 .notification-icon {
   font-size: 25px;
-  color: #19395f;
+  color: var(--wf-text-primary);
 }
 
 .notification-badge {
@@ -237,7 +237,7 @@
 
   border-radius: 10px;
 
-  background: #1769d5;
+  background: var(--wf-primary);
   color: #ffffff;
 
   font-size: 10px;
@@ -281,7 +281,7 @@
     #c8e8df
   );
 
-  color: #173963;
+  color: var(--wf-text-primary);
 
   font-size: 16px;
   font-weight: 700;
@@ -292,7 +292,7 @@
 }
 
 .wf-profile-name {
-  color: #142d50;
+  color: var(--wf-text-primary);
 
   font-size: 14px;
   font-weight: 700;
@@ -303,7 +303,7 @@
 .wf-profile-name span {
   margin-left: 3px;
 
-  color: #67758a;
+  color: var(--wf-gray-600);
 
   font-size: 12px;
   font-weight: 500;
@@ -312,7 +312,7 @@
 .wf-profile-department {
   margin-top: 3px;
 
-  color: #7b8798;
+  color: var(--wf-text-muted);
 
   font-size: 11px;
 }
@@ -320,7 +320,7 @@
 .wf-profile-arrow {
   margin-left: 2px;
 
-  color: #52627a;
+  color: var(--wf-text-secondary);
 
   font-size: 17px;
 }
@@ -415,13 +415,12 @@
 
     width: 180px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
 
-    box-shadow:
-        0 8px 20px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--wf-shadow);
 
     padding: 6px 0;
 
@@ -444,7 +443,7 @@
     background: transparent;
 
     font-size: 14px;
-    color: #333;
+    color: var(--wf-text-primary);
 
     text-align: left;
 
@@ -454,13 +453,13 @@
 
 /* hover */
 .wf-profile-dropdown button:hover {
-    background: #f5f7fa;
+    background: var(--wf-gray-50);
 }
 
 
 /* 로그아웃 */
 .wf-profile-dropdown .logout-button {
-    color: #e53935;
+    color: var(--wf-danger);
 }
 
 
@@ -470,7 +469,7 @@
 
     margin: 5px 0;
 
-    background: #eeeeee;
+    background: var(--wf-gray-200);
 }
 
 /* ========================================
@@ -513,7 +512,7 @@
 /* 상위 메뉴 hover */
 
 .wf-nav-item:hover {
-    background-color: #f5f7fa;
+    background-color: var(--wf-gray-50);
 }
 
 
@@ -541,7 +540,7 @@
 
     background: white;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
 
     border-radius: 8px;
 
@@ -615,5 +614,5 @@
 
 .wf-submenu button:hover {
 
-    background-color: #f5f7fa;
+    background-color: var(--wf-gray-50);
 }

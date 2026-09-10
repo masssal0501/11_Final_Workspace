@@ -149,8 +149,11 @@ public class TaskServiceImpl implements TaskService {
 	@Transactional(readOnly = true)
 	public Map<String, Object> selectWorkcationTasks(Integer workcationNo) {
 
+		// BUG: 존재하지 않는 workcationNo 요청이 RuntimeException으로 던져져
+		// GlobalExceptionHandler(IllegalArgumentException만 처리)를 못 타고
+		// 500으로 응답되던 문제 - IllegalArgumentException으로 변경해 404로 매핑되게 한다.
 		WorkcationInfo workcation = workcationDao.findById(workcationNo)
-				.orElseThrow(() -> new RuntimeException("워케이션 정보를 찾을 수 없습니다."));
+				.orElseThrow(() -> new IllegalArgumentException("워케이션 정보를 찾을 수 없습니다."));
 
 		Map<String, Object> result = new HashMap<>();
 		List<Map<String, Object>> taskList = new ArrayList<>();
@@ -177,7 +180,7 @@ public class TaskServiceImpl implements TaskService {
 				taskMap.put("tasktimeAt", task.getTasktimeAt());
 				taskMap.put("taskendAt", task.getTaskendAt());
 
-				List<WorkFile> files = workFileDao.findByWorkWorkNo(task.getWork().getWorkNo());
+				List<WorkFile> files = workFileDao.findByTaskTaskNo(task.getTaskNo());
 
 				List<Map<String, Object>> fileList = new ArrayList<>();
 

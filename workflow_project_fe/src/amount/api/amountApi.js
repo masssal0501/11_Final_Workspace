@@ -62,12 +62,17 @@ const amountApi = {
     // =========================================================
     insertAmount: async (formData) => {
 
+        // Content-Type을 명시하지 않아야 axiosInstance의 기본값(application/json)이
+        // 덮어써지지 않고, 브라우저가 FormData를 보고 boundary가 포함된
+        // multipart/form-data Content-Type을 자동으로 설정한다.
+        // (여기서 "multipart/form-data"를 직접 지정하면 boundary가 빠져 서버가
+        //  파트를 구분하지 못해 요청이 깨진다)
         const response = await axiosInstance.post(
             API_BASE_URL,
             formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": undefined
                 }
             }
         );
@@ -84,12 +89,13 @@ const amountApi = {
         formData
     ) => {
 
+        // insertAmount와 동일한 이유로 Content-Type을 직접 지정하지 않는다.
         const response = await axiosInstance.put(
             `${API_BASE_URL}/${amountNo}`,
             formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": undefined
                 }
             }
         );
@@ -105,31 +111,27 @@ const amountApi = {
         amountNo,
         status,
         approvedAmount,
-        amountComment,
-        sponsorName,
-        sponsorAmount,
-        sponsorStatus,
-        remark
+        amountComment
     ) => {
 
-        const data = {
+        // BUG-013: 백엔드 AmountController.updateApproval()은
+        // @RequestParam(status, approvedAmount, comment)로 값을 받는데
+        // 여기서는 axios.patch(url, data)로 JSON 바디를 보내고 있어
+        // @RequestParam이 절대 바인딩되지 않고 항상 400
+        // "Required parameter 'status' is not present"로 실패했다.
+        // ADMIN 승인/반려/보류 버튼이 전부 동작하지 않던 원인이므로
+        // 쿼리 파라미터로 전송하도록 수정한다. (comment 파라미터명도
+        // 프론트의 amountComment와 달라 함께 맞춘다)
+        const params = {
             status,
             approvedAmount,
-            amountComment,
-            sponsorName,
-            sponsorAmount,
-            sponsorStatus,
-            remark
+            comment: amountComment
         };
-
-        console.log("📌 승인 요청:", {
-            amountNo,
-            data
-        });
 
         const response = await axiosInstance.patch(
             `${API_BASE_URL}/${amountNo}/approval`,
-            data
+            null,
+            { params }
         );
 
         return response.data;

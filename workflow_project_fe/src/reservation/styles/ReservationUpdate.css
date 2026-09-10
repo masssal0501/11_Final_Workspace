@@ -24,17 +24,17 @@
 .reservation-update-header h2 {
     margin: 0 0 8px;
 
-    font-size: 28px;
+    font-size: var(--wf-fs-page-title);
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-update-header p {
     margin: 0;
 
     font-size: 14px;
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 
@@ -45,10 +45,10 @@
 .reservation-update-card {
     padding: 30px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
     border-radius: 12px;
 
-    background-color: white;
+    background-color: var(--wf-white);
 }
 
 
@@ -62,27 +62,27 @@
 
     border-radius: 8px;
 
-    background-color: #f8fafc;
+    background-color: var(--wf-gray-50);
 }
 
 .reservation-update-hub-label {
     margin-bottom: 7px;
 
     font-size: 12px;
-    color: #999;
+    color: var(--wf-text-muted);
 }
 
 .reservation-update-hub-name {
     font-size: 17px;
     font-weight: 700;
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-update-hub-number {
     margin-top: 5px;
 
     font-size: 12px;
-    color: #999;
+    color: var(--wf-text-muted);
 }
 
 
@@ -105,7 +105,7 @@
 .reservation-update-form-group label {
     font-size: 13px;
     font-weight: 600;
-    color: #555;
+    color: var(--wf-text-secondary);
 }
 
 .reservation-update-form-group input {
@@ -116,8 +116,8 @@
 
     box-sizing: border-box;
 
-    border: 1px solid #d9dee7;
-    border-radius: 7px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     font-size: 14px;
 
@@ -125,7 +125,7 @@
 }
 
 .reservation-update-form-group input:focus {
-    border-color: #2563eb;
+    border-color: var(--wf-primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
@@ -155,10 +155,10 @@
     width: 34px;
     height: 34px;
 
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 6px;
 
-    background-color: white;
+    background-color: var(--wf-white);
 
     font-size: 18px;
 
@@ -166,7 +166,7 @@
 }
 
 .reservation-update-capacity button:hover {
-    background-color: #f3f4f6;
+    background-color: var(--wf-gray-100);
 }
 
 .reservation-update-capacity span {
@@ -194,7 +194,7 @@
 .reservation-update-actions button {
     padding: 11px 25px;
 
-    border-radius: 7px;
+    border-radius: 9px;
 
     font-size: 14px;
     font-weight: 600;
@@ -203,23 +203,23 @@
 }
 
 .reservation-update-back-button {
-    border: 1px solid #d9dee7;
-    background-color: white;
-    color: #555;
+    border: 1px solid var(--wf-gray-300);
+    background-color: var(--wf-white);
+    color: var(--wf-text-secondary);
 }
 
 .reservation-update-submit-button {
     border: none;
-    background-color: #2563eb;
+    background-color: var(--wf-primary);
     color: white;
 }
 
 .reservation-update-submit-button:hover {
-    background-color: #1d4ed8;
+    background-color: var(--wf-primary-dark);
 }
 
 .reservation-update-submit-button:disabled {
-    background-color: #cbd5e1;
+    background-color: var(--wf-gray-300);
     cursor: not-allowed;
 }
 

@@ -1,5 +1,7 @@
 package com.kh.workflow.employee.model.service;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.workflow.config.jwt.JwtUtil;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.dao.VerificationDao;
 import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
@@ -19,7 +22,10 @@ import com.kh.workflow.employee.model.dto.FindIdRequest;
 import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
+import com.kh.workflow.employee.model.dto.PasswordResetRequest;
+import com.kh.workflow.employee.model.dto.PasswordResetVerifyRequest;
 import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.employee.model.vo.Verification;
 import com.kh.workflow.mail.MailService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,15 +37,22 @@ public class EmployeeServiceImpl implements EmployeeService{
 
 	@Autowired
 	private EmployeeDao employeeDao;
-	
+
+	@Autowired
+	private VerificationDao verificationDao;
+
 	private final PasswordEncoder passwordEncoder;
 
     private final TemporaryPasswordGenerator passwordGenerator;
 
     private final MailService mailService;
-	
+
     private final JwtUtil jwtUtil;
-    
+
+    private static final int VERIFICATION_CODE_VALID_MINUTES = 5;
+
+    private final SecureRandom secureRandom = new SecureRandom();
+
     // =========================================================
     // USR-001
     // 계정 등록
@@ -629,6 +642,138 @@ public class EmployeeServiceImpl implements EmployeeService{
         employee.setAuthCode(request.getAuthCode());
         employee.setDepId(request.getDepId());
         employee.setJobCode(request.getJobCode());
+    }
+
+
+    // =========================================================
+    // 비밀번호 찾기 - 1단계
+    // 인증번호 발송
+    // =========================================================
+
+    @Override
+    @Transactional
+    public void requestPasswordReset(
+            PasswordResetRequest request
+    ) {
+
+        Employee employee =
+                employeeDao.findByEmpIdAndEmail(
+                        request.getEmpId(),
+                        request.getEmail()
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "입력하신 정보와 일치하는 계정을 찾을 수 없습니다."
+                        )
+                );
+
+        if (!"Y".equals(employee.getStatus())) {
+
+            throw new IllegalStateException(
+                    "현재 사용할 수 없는 계정입니다."
+            );
+        }
+
+        String verificationCode =
+                generateVerificationCode();
+
+        Verification verification =
+                new Verification();
+
+        verification.setVerificationCode(verificationCode);
+        verification.setExpiresAt(
+                LocalDateTime.now()
+                        .plusMinutes(VERIFICATION_CODE_VALID_MINUTES)
+        );
+        verification.setCreatedAt(LocalDateTime.now());
+        verification.setEmployee(employee);
+
+        verificationDao.save(verification);
+
+        mailService.sendVerificationCode(
+                employee.getEmail(),
+                employee.getEmpName(),
+                verificationCode
+        );
+    }
+
+
+    // =========================================================
+    // 비밀번호 찾기 - 2단계
+    // 인증번호 확인 후 임시 비밀번호 발급
+    // =========================================================
+
+    @Override
+    @Transactional
+    public void verifyPasswordResetCode(
+            PasswordResetVerifyRequest request
+    ) {
+
+        Employee employee =
+                employeeDao.findByEmpId(request.getEmpId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "존재하지 않는 계정입니다."
+                                )
+                        );
+
+        Verification verification =
+                verificationDao
+                        .findTopByEmployee_EmpNoAndVerificationCodeOrderByCreatedAtDesc(
+                                employee.getEmpNo(),
+                                request.getVerificationCode()
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "인증번호가 올바르지 않습니다."
+                                )
+                        );
+
+        if (verification.getVerifiedAt() != null) {
+
+            throw new IllegalArgumentException(
+                    "이미 사용된 인증번호입니다."
+            );
+        }
+
+        if (verification.getExpiresAt()
+                .isBefore(LocalDateTime.now())) {
+
+            throw new IllegalArgumentException(
+                    "인증번호가 만료되었습니다. 다시 요청해주세요."
+            );
+        }
+
+        verification.setVerifiedAt(LocalDateTime.now());
+        verificationDao.save(verification);
+
+        String temporaryPassword =
+                passwordGenerator.generate(10);
+
+        String encodedPassword =
+                passwordEncoder.encode(temporaryPassword);
+
+        employee.setEmpPwd(encodedPassword);
+        employee.setPwChgRequired(true);
+
+        employeeDao.save(employee);
+
+        mailService.sendTemporaryPassword(
+                employee.getEmail(),
+                employee.getEmpName(),
+                employee.getEmpId(),
+                temporaryPassword
+        );
+    }
+
+
+    // 6자리 숫자 인증번호 생성
+    private String generateVerificationCode() {
+
+        int code =
+                secureRandom.nextInt(900000) + 100000;
+
+        return String.valueOf(code);
     }
 
 

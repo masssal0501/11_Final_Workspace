@@ -21,10 +21,11 @@
 .price-box-sync {
     flex: 1;
     max-width: 430px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--wf-border);
     padding: 20px;
-    border-radius: 8px;
-    background-color: #fff;
+    border-radius: var(--wf-radius);
+    background-color: var(--wf-white);
+    box-shadow: var(--wf-shadow-sm);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -35,6 +36,11 @@
     text-align: center;
     margin-top: 0;
     margin-bottom: 20px;
+
+    color: var(--wf-text-primary);
+
+    font-size: var(--wf-fs-card-title);
+    font-weight: 700;
 }
 
 .box-bottom-area {
@@ -57,13 +63,13 @@
 .price-divider {
     width: 100%;
     border: none;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--wf-border);
     margin: 15px 0;
 }
 
 .notice-text-sync {
-    font-size: 0.85em;
-    color: #666;
+    font-size: 12px;
+    color: var(--wf-text-muted);
     margin-top: 8px;
     margin-bottom: 0;
     line-height: 1.4;
@@ -94,13 +100,26 @@
 .workcation-form-table td {
     padding: 6px;
     background-color: transparent;
-    border: none; 
+    border: none;
+}
+
+/* 텍스트 박스 크기 고정 - td 안의 input이 브라우저 기본 폭(약 20자)으로
+   줄어들어 칸을 벗어나 보이던 문제를 막는다 */
+.workcation-form-table td input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--wf-gray-50);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--wf-text-primary);
 }
 
 .cell-box {
-    background-color: #f8f9fa; 
-    border: 1px solid #e9ecef;
-    border-radius: 6px;        
+    background-color: var(--wf-gray-50);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
     padding: 8px 12px;
     display: flex;
     align-items: center;
@@ -115,13 +134,13 @@
     padding: 0;
 }
 
-.status-badge {
-    background-color: #22c55e;
-    color: #fff;
-    padding: 6px 16px;
+.workcation-status-badge {
+    background-color: var(--wf-success-bg);
+    color: var(--wf-success);
+    padding: 5px 14px;
     border-radius: 20px;
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 700;
+    font-size: 12px;
     display: inline-block;
     text-align: center;
     white-space: nowrap;
@@ -151,8 +170,9 @@
 .task-plan-title {
     text-align: center;
     margin-bottom: 15px;
-    font-size: 28px;
-    color: #333;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
+    color: var(--wf-text-primary);
 }
 
 .task-plan-split-container {
@@ -168,9 +188,10 @@
 .task-plan-box {
     flex: 3;
     max-width: 660px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
+    background-color: var(--wf-white);
+    box-shadow: var(--wf-shadow-sm);
     padding: 10px 20px;
     box-sizing: border-box;
 }
@@ -191,8 +212,8 @@
     display: flex;
     align-items: center;
     height: 44px;
-    border-bottom: 1px solid #eee;
-    font-size: 16px;
+    border-bottom: 1px solid var(--wf-border);
+    font-size: 14px;
     box-sizing: border-box;
 }
 
@@ -209,12 +230,12 @@
 }
 
 .task-name {
-    color: #333;
+    color: var(--wf-text-primary);
 }
 
 .task-days {
     font-weight: bold;
-    color: #333;
+    color: var(--wf-text-primary);
 }
 
 .common-btn-group {
@@ -228,13 +249,14 @@
 
 .back-space,
 .detail-button-area button {
-    background-color: #1b65dc;
+    background-color: var(--wf-primary);
     color: #fff;
     border: none;
-    border-radius: 6px;       
-    padding: 10px 24px;
-    font-size: 15px;
-    font-weight: 500;
+    border-radius: 9px;
+    padding: 0 24px;
+    height: 42px;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
     box-sizing: border-box;
     transition: background-color 0.2s;
@@ -242,7 +264,7 @@
 
 .back-space:hover,
 .detail-button-area button:hover {
-    background-color: #1552b5;
+    background-color: var(--wf-primary-dark);
 }
 
 .detail-button-area {

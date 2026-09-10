@@ -643,7 +643,7 @@ export default function AmountList({ workcationNo }) {
 
                     <span
                       className={
-                        `status-badge ${
+                        `amount-status-badge ${
                           getStatusClass(item.status)
                         }`
                       }

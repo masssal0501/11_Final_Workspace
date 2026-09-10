@@ -4,10 +4,11 @@
     margin: 50px auto;
     padding: 35px 45px;
 
-    background-color: #ffffff;
-    border-radius: 12px;
+    background-color: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
 }
@@ -16,16 +17,16 @@
 .formContainer h2 {
     margin: 0 0 20px;
 
-    font-size: 26px;
-    font-weight: 700;
-    color: #222;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
+    color: var(--wf-text-primary);
 }
 
 /* 구분선 */
 .formContainer hr {
     margin-bottom: 30px;
     border: none;
-    border-top: 1px solid #e5e5e5;
+    border-top: 1px solid var(--wf-border);
 }
 
 /* 각각의 입력 영역 */
@@ -37,9 +38,9 @@
 .formGroup h4 {
     margin: 0 0 9px;
 
-    font-size: 15px;
-    font-weight: 600;
-    color: #333;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--wf-text-primary);
 }
 
 /* input, select, textarea 공통 */
@@ -47,15 +48,16 @@
 .formGroup select,
 .formGroup textarea {
     width: 100%;
-    padding: 12px 14px;
+    padding: 0 14px;
+    height: 42px;
 
-    border: 1px solid #d9d9d9;
-    border-radius: 7px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     background-color: #fff;
 
     font-size: 14px;
-    color: #333;
+    color: var(--wf-text-primary);
 
     box-sizing: border-box;
 
@@ -65,19 +67,24 @@
                 box-shadow 0.2s ease;
 }
 
+.formGroup textarea {
+    height: auto;
+    padding: 12px 14px;
+}
+
 /* input / select 포커스 */
 .formGroup input[type="text"]:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
-    border-color: #4a90e2;
+    border-color: var(--wf-primary);
 
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.12);
+    box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
 }
 
 /* placeholder */
 .formGroup input::placeholder,
 .formGroup textarea::placeholder {
-    color: #aaa;
+    color: var(--wf-text-muted);
 }
 
 /* select */
@@ -87,8 +94,8 @@
 
 /* 비활성화된 select */
 .formGroup select:disabled {
-    background-color: #f5f5f5;
-    color: #aaa;
+    background-color: var(--wf-gray-50);
+    color: var(--wf-text-muted);
     cursor: not-allowed;
 }
 
@@ -96,7 +103,7 @@
 .formGroup textarea {
     min-height: 150px;
 
-    resize: vertical;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 
     line-height: 1.6;
 }
@@ -106,15 +113,15 @@
     width: 100%;
     padding: 10px;
 
-    border: 1px solid #d9d9d9;
-    border-radius: 7px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
-    background-color: #fafafa;
+    background-color: var(--wf-gray-50);
 
     box-sizing: border-box;
 
     font-size: 14px;
-    color: #555;
+    color: var(--wf-text-secondary);
 
     cursor: pointer;
 }
@@ -125,10 +132,10 @@
     padding: 8px 14px;
 
     border: none;
-    border-radius: 6px;
+    border-radius: 7px;
 
-    background-color: #eeeeee;
-    color: #333;
+    background-color: var(--wf-gray-200);
+    color: var(--wf-text-primary);
 
     font-size: 13px;
     cursor: pointer;
@@ -137,7 +144,7 @@
 }
 
 .formGroup input[type="file"]::file-selector-button:hover {
-    background-color: #dddddd;
+    background-color: var(--wf-gray-300);
 }
 
 /* 버튼 영역 */
@@ -152,13 +159,14 @@
 /* 버튼 공통 */
 .buttonGroup button {
     min-width: 130px;
-    padding: 12px 25px;
+    height: 44px;
+    padding: 0 25px;
 
-    border: none;
-    border-radius: 7px;
+    border: 1px solid transparent;
+    border-radius: 9px;
 
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -167,28 +175,24 @@
 
 /* 등록하기 */
 .submitBtn {
-    background-color: #4a90e2;
+    background-color: var(--wf-primary);
     color: white;
 }
 
 .submitBtn:hover {
-    background-color: #357abd;
-    transform: translateY(-1px);
-}
-
-.submitBtn:active {
-    transform: translateY(0);
+    background-color: var(--wf-primary-dark);
 }
 
 /* 뒤로가기 */
 .backBtn {
-    background-color: #eeeeee;
-    color: #555;
+    background-color: #ffffff;
+    border-color: var(--wf-gray-300);
+    color: var(--wf-text-secondary);
 }
 
 .backBtn:hover {
-    background-color: #dddddd;
-    color: #333;
+    background-color: var(--wf-gray-50);
+    color: var(--wf-text-primary);
 }
 
 /* 모바일 대응 */

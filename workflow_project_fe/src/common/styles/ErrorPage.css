@@ -6,7 +6,7 @@
     justify-content: center;
     align-items: center;
 
-    background-color: #f8f9fa;
+    background-color: var(--wf-bg);
 }
 
 .error-container {
@@ -15,10 +15,11 @@
 
     text-align: center;
 
-    background-color: #ffffff;
-    border-radius: 16px;
+    background-color: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow);
 }
 
 /* 경고 아이콘 */
@@ -34,8 +35,8 @@
 
     border-radius: 50%;
 
-    background-color: #f1f3f5;
-    color: #495057;
+    background-color: var(--wf-danger-bg);
+    color: var(--wf-danger);
 
     font-size: 40px;
     font-weight: bold;
@@ -44,17 +45,17 @@
 .error-container h1 {
     margin: 0 0 15px;
 
-    font-size: 26px;
-    font-weight: 700;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
 
-    color: #212529;
+    color: var(--wf-text-primary);
 }
 
 .error-container p {
     margin: 0 0 35px;
 
-    font-size: 16px;
-    color: #6c757d;
+    font-size: 15px;
+    color: var(--wf-text-muted);
 
     line-height: 1.6;
 }
@@ -68,13 +69,13 @@
 
 .error-buttons button {
     width: 140px;
-    height: 45px;
+    height: 44px;
 
-    border: none;
-    border-radius: 8px;
+    border: 1px solid transparent;
+    border-radius: 9px;
 
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -83,22 +84,23 @@
 
 /* 전 페이지 */
 .error-back-btn {
-    background-color: #e9ecef;
-    color: #495057;
+    background-color: #ffffff;
+    border-color: var(--wf-gray-300);
+    color: var(--wf-text-secondary);
 }
 
 .error-back-btn:hover {
-    background-color: #dee2e6;
+    background-color: var(--wf-gray-50);
 }
 
 /* 대시보드 */
 .error-dashboard-btn {
-    background-color: #343a40;
+    background-color: var(--wf-primary);
     color: #ffffff;
 }
 
 .error-dashboard-btn:hover {
-    background-color: #212529;
+    background-color: var(--wf-primary-dark);
 }
 
 /* 반응형 */

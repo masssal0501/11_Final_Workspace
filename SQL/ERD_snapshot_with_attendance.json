@@ -1,0 +1,3038 @@
+{
+  "entityData": [
+    {
+      "_id": "3w9wZ8k7YGMM5gxpW",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2300,
+        "y": 1810
+      },
+      "name": "최근 업무 이력",
+      "pName": "task_history",
+      "fields": [
+        {
+          "_id": "fWgAk2SJgTvfEEapL",
+          "name": "이력 제목",
+          "pName": "history_title",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "hGZwm97fnBQkoE7cn",
+          "name": "이력 내용",
+          "pName": "history_content",
+          "domain": "",
+          "type": "VARCHAR(1000)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Fjm2puMp283cvF2bX",
+          "name": "진행도",
+          "pName": "progress",
+          "domain": "5단위",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "기본값 '0'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "vTkHJiT2eQG7NEuDW",
+          "name": "등록시간",
+          "pName": "created_at",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "업무 시작시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "mteYSJzNnkx4cKN9t",
+          "name": "업무 번호",
+          "pName": "task_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "FK",
+          "relEntity": "ysbY5P2wNCxZxbYGT",
+          "relFieldId": "Yv82bB2FyRqjhKz5h",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "GXfgdC2Bmb9Yuj84W"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "Yv82bB2FyRqjhKz5h",
+            "name": "이력 번호",
+            "pName": "history_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(177, 178, 0, 0.5)"
+    },
+    {
+      "_id": "4SiFo4thPSgJgW5gj",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 530,
+        "y": 900
+      },
+      "name": "공지사항 첨부파일",
+      "pName": "notice_file",
+      "fields": [
+        {
+          "_id": "yzxMhtTpSHiYZQ5FQ",
+          "name": "파일 경로",
+          "pName": "file_path",
+          "domain": "",
+          "type": "VARCHAR(500)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "6Fx3yhrmMNQNwGmLz",
+          "name": "원본파일이름",
+          "pName": "origin_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "u8yn9kTAsah2EFDWP",
+          "name": "수정파일이름",
+          "pName": "change_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fZRsxNisK5qYfSXzM",
+          "name": "첨부파일 등록",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "53W6PLmjM6hJaFwxX",
+          "name": "파일 용량",
+          "pName": "file_size",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "bSq8xCDczYuc7DHjn",
+          "name": "상태",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "기본 'Y'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "yKK7SfFmJhm6sTbHd",
+          "name": "공지사항 번호",
+          "pName": "notice_no",
+          "domain": "1자리 정수갑",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "공지사항 PK",
+          "relEntity": "nKuoExKeXAJRN7Kqj",
+          "relFieldId": "7AgRnPYLEeBicgBHd",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "oJcNdmmTHRzhRLcDe"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "jkmEgubkWfLw3ARds",
+            "name": "첨부파일 번호",
+            "pName": "noticefile_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 0, 120, 0.5)"
+    },
+    {
+      "_id": "6ZPwenLrNxktkRmB9",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2990,
+        "y": 970
+      },
+      "name": "비용 상세",
+      "pName": "amount_item",
+      "fields": [
+        {
+          "_id": "ptthXhtX6nR5kpH6c",
+          "name": "비용 종류",
+          "pName": "item_type",
+          "domain": "",
+          "type": "VARCHAR(15)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "S숙박, T교통, E체험, F식비, V차량, O기타",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "2MJpp98q84uRJmCoD",
+          "name": "신청비용",
+          "pName": "item_amount",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "기본 값 0",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "5yJ2Nu388HqWa9P5R",
+          "name": "회사상세비용",
+          "pName": "item_approved_amount",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "기본 값 0",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Qso5hKGc8FTjh3CXu",
+          "name": "사용 날짜",
+          "pName": "item_date",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "지원사용 날짜",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "XcnxYjNKDSEFs3dmg",
+          "name": "비용 상세 설명",
+          "pName": "item_description",
+          "domain": "",
+          "type": "VARCHAR(500)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "특이사항",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "8Byc5Cw3tCxSDNJ4a",
+          "name": "비용 번호",
+          "pName": "amount_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": "rzFGRy9CEkJxZyouv",
+          "relFieldId": "QzmKYKcksLt4ZzvkQ",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "Aef6wxy5QJqr4rhjK"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "pLrwZKe2AyDpYK3cK",
+            "name": "비용 상세 번호",
+            "pName": "item_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 106, 178, 0.5)"
+    },
+    {
+      "_id": "7bicAW98RYuJSSJTZ",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2060,
+        "y": 570
+      },
+      "name": "직급",
+      "pName": "job",
+      "fields": [
+        {
+          "_id": "Px5AZZnu36RXiZ6Qq",
+          "name": "직급명",
+          "pName": "job_name",
+          "domain": "명칭",
+          "type": "VARCHAR(35)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "사원, 대리, 과장, 차장, 부장",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "YomBAgik2SCvJfjXg",
+            "name": "직급",
+            "pName": "job_code",
+            "domain": "직급코드",
+            "type": "VARCHAR(20)",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "J1,J2, J3, J4, J5",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 172, 178, 0.5)"
+    },
+    {
+      "_id": "8j2aS78vXhdaMvDJu",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1270,
+        "y": 570
+      },
+      "name": "사원",
+      "pName": "employee",
+      "fields": [
+        {
+          "_id": "cvJMDq8bTuiG9tSXt",
+          "name": "사원 아이디",
+          "pName": "emp_id",
+          "domain": "8~16자리 영문/숫자",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "로그인 아이디, UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "73hk7CH4HSWEM95pD",
+          "name": "사원비밀번호",
+          "pName": "emp_pwd",
+          "domain": "8~20자리영문/숫자/특문",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "암호화 비번",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "N5brvwDmSbW9hWxHC",
+          "name": "사원이름",
+          "pName": "emp_name",
+          "domain": "한글2~17",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자 이름",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "4kan2Fed2Ker9sS8Z",
+          "name": "휴대폰",
+          "pName": "phone",
+          "domain": "연락처",
+          "type": "VARCHAR(13)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "(-) 포함",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "ERiJgdeL9u2Jgmjju",
+          "name": "이메일",
+          "pName": "email",
+          "domain": "이메일 형식",
+          "type": "VARCHAR(50)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "mi23z7vxWcc6KPjk3",
+          "name": "주소",
+          "pName": "address",
+          "domain": "300자이하",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "CdLavXDMdoKMkT7EQ",
+          "name": "입사일",
+          "pName": "join_at",
+          "domain": "0000-00-00",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "e2XirahjqcQC5Kurb",
+          "name": "퇴사일",
+          "pName": "end_at",
+          "domain": "0000-00-00",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "yCRrCmLSDSsGupw38",
+          "name": "재직상태",
+          "pName": "status",
+          "domain": "Y, N, R, V",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "Y재직, N퇴사, R휴직, V휴가",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EnnAYHRTvMPey6xK3",
+          "name": "비밀번호 변경요구",
+          "pName": "pw_chg_required",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "최초 생성시 변경 필수 요구",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "nbDmDp46gR3GB4tKb",
+          "name": "부서",
+          "pName": "dep_id",
+          "domain": "부서코드",
+          "type": "VARCHAR(2)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "D1~D6",
+          "relEntity": "9uCRyACHiMs7domDQ",
+          "relFieldId": "5jDoZzmMoMZXEYJRw",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "rKib7LwM7d2JDGcTM"
+        },
+        {
+          "_id": "SxQZZoiEWiCWWc2S8",
+          "name": "권한",
+          "pName": "auth_code",
+          "domain": "권한코드",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "ADMIN, MANAGER, STAFF",
+          "relEntity": "AGkjAPMFAJ5Dvv5q8",
+          "relFieldId": "wNKkr3k4h7Gq6S88L",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "Aer75zpw3gMfjgrQD"
+        },
+        {
+          "_id": "B6QuKNTRMhCe7v38X",
+          "name": "직급",
+          "pName": "job_code",
+          "domain": "직급코드",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "J1,J2, J3, J4, J5",
+          "relEntity": "7bicAW98RYuJSSJTZ",
+          "relFieldId": "YomBAgik2SCvJfjXg",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "JQBhmkfqZovGHvNMJ"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "eERueFcyDwkJFWq7Q",
+            "name": "사번",
+            "pName": "emp_no",
+            "domain": "1자리 정수값",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "회원PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 172, 178, 0.5)"
+    },
+    {
+      "_id": "9uCRyACHiMs7domDQ",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2060,
+        "y": 350
+      },
+      "name": "부서",
+      "pName": "department",
+      "fields": [
+        {
+          "_id": "f7uHPh3Ck3yFKhrRw",
+          "name": "부서명",
+          "pName": "dep_title",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "D1기획부, D2디자인부, D3FE 개발부, D4 BE 개발부, D5 데이터부, D6QA부서",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "5jDoZzmMoMZXEYJRw",
+            "name": "부서",
+            "pName": "dep_id",
+            "domain": "부서코드",
+            "type": "CHAR(2)",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "D1~D6",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 172, 178, 0.5)"
+    },
+    {
+      "_id": "AGkjAPMFAJ5Dvv5q8",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2060,
+        "y": 450
+      },
+      "name": "권한",
+      "pName": "authority",
+      "fields": [
+        {
+          "_id": "dKY8m9rgJH2ph9B6D",
+          "name": "권한이름",
+          "pName": "auth_name",
+          "domain": "명칭",
+          "type": "VARCHAR(35)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "관리자, 부서장, 사원",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "wNKkr3k4h7Gq6S88L",
+            "name": "권한",
+            "pName": "auth_code",
+            "domain": "권한코드",
+            "type": "VARCHAR(20)",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "ADMIN, MANAGER, STAFF",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 172, 178, 0.5)"
+    },
+    {
+      "_id": "H4s48an62vCAj6FL4",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1270,
+        "y": 300
+      },
+      "name": "인증",
+      "pName": "verification",
+      "fields": [
+        {
+          "_id": "NmWbEdDKSNy52YBGi",
+          "name": "인증코드",
+          "pName": "verification_code",
+          "domain": "6자리 정수값",
+          "type": "VARCHAR(10)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "랜덤 정수 6자리",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "nPgKNboQ4qfd7f3i4",
+          "name": "만료시간",
+          "pName": "expires_at",
+          "domain": "0000-00-00/00:00:00",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "제한 시간 10분",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "yTBFJMhNComeDXgPX",
+          "name": "인증시간",
+          "pName": "verified_at",
+          "domain": "0000-00-00/00:00:00",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "인증한 시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "2ZRRcvwcWDpcWQR68",
+          "name": "생성시간",
+          "pName": "created_at",
+          "domain": "0000-00-00/00:00:00",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "생성한 시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "DeTESrwhfnPLAKbaR",
+          "name": "사번",
+          "pName": "emp_no",
+          "domain": "1자리 정수값",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "회원PK",
+          "relEntity": "8j2aS78vXhdaMvDJu",
+          "relFieldId": "eERueFcyDwkJFWq7Q",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "KJta35oqHm22GZxMJ"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "Rwr8WGeDjNSyKipGq",
+            "name": "인증번호",
+            "pName": "verifivation_no",
+            "domain": "정수값",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "AUTO_INCREMENT",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 172, 178, 0.5)"
+    },
+    {
+      "_id": "KPYgiJrg7mHwTG9uf",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2940,
+        "y": 380
+      },
+      "name": "거점 첨부파일",
+      "pName": "Hub_file",
+      "fields": [
+        {
+          "_id": "yzxMhtTpSHiYZQ5FQ",
+          "name": "파일 경로",
+          "pName": "file_path",
+          "domain": "",
+          "type": "VARCHAR(500)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "6Fx3yhrmMNQNwGmLz",
+          "name": "원본파일이름",
+          "pName": "origin_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "u8yn9kTAsah2EFDWP",
+          "name": "수정파일이름",
+          "pName": "change_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fZRsxNisK5qYfSXzM",
+          "name": "첨부파일 등록",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "53W6PLmjM6hJaFwxX",
+          "name": "파일 용량",
+          "pName": "file_size",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "bSq8xCDczYuc7DHjn",
+          "name": "상태",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "기본 'Y'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "LLnrrGPXgcYhyzaEF",
+          "name": "거점 번호",
+          "pName": "hub_no",
+          "domain": "1자리 정수값",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "거점 PK",
+          "relEntity": "MJnNfBQ9M7vjM4RDC",
+          "relFieldId": "M5AexWZKfHy6qN65B",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "biF8PRzDpPcSM2zHn"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "jkmEgubkWfLw3ARds",
+            "name": "거점 첨부파일 번호",
+            "pName": "hubfile_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "MJnNfBQ9M7vjM4RDC",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2740,
+        "y": 670
+      },
+      "name": "거점",
+      "pName": "Hub",
+      "fields": [
+        {
+          "_id": "R8hF2LAkPGccvEhT2",
+          "name": "지역",
+          "pName": "main_region",
+          "domain": "지역명",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "부산, 제주도, 강원도",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "PEeRxxcPLbC2ugGzz",
+          "name": "상세지역",
+          "pName": "sub_region",
+          "domain": "상세지역명",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "강릉시, 속초시, 양양군, 춘천시, 평창군/해운대구,, 영도구, 수영구, 부산진구, 중구/서귀포시, 제주시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "tgyoYqk3EafaHLmc2",
+          "name": "거점 이름",
+          "pName": "hub_name",
+          "domain": "숙소이름",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "숙소명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "nxGjBE8oPhBByRb6d",
+          "name": "거점 주소",
+          "pName": "hub_address",
+          "domain": "주소명",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "카카오  우편번호 서비스  사용 예정",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "zc8NdsWZJfn7YpqHT",
+          "name": "전화번호",
+          "pName": "phone",
+          "domain": "연락처(-)",
+          "type": "VARCHAR(13)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "- 포함",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "uQrFgBBTzcPBBvMev",
+          "name": "상세설명",
+          "pName": "description",
+          "domain": "300자 이하",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "거점의 모든 상세정보",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "M5ifXGoMpLoWKTczx",
+          "name": "시설 유형",
+          "pName": "hub_type",
+          "domain": "1자리 숫자",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "1:공유오피스 2:숙소 3:체험프로그램 4: 맛집 5: 관광지",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "TzuX3EHDgZy5JSDT2",
+          "name": "최대수용인원",
+          "pName": "max_capacity",
+          "domain": "인원수",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "(명)",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "f389Z78sbPpK6GMPe",
+          "name": "기본 이용요금",
+          "pName": "price",
+          "domain": "금액",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "1박 또는 1회 기준 이용 금액(원)",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "5XSZbWef8bYkvk74E",
+          "name": "운용 상태",
+          "pName": "hub_status",
+          "domain": "코멘트 참조",
+          "type": "VARCHAR(10)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "OPEN윤영중, PAUSED일시중단, CLOSED종료",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "M5AexWZKfHy6qN65B",
+            "name": "거점 번호",
+            "pName": "hub_no",
+            "domain": "1자리 정수값",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "거점 PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "MQ3hL2tvsiWXuwxka",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2180,
+        "y": 1220
+      },
+      "name": "비용 첨부파일",
+      "pName": "amount_file",
+      "fields": [
+        {
+          "_id": "yzxMhtTpSHiYZQ5FQ",
+          "name": "파일 경로",
+          "pName": "file_path",
+          "domain": "",
+          "type": "VARCHAR(500)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "6Fx3yhrmMNQNwGmLz",
+          "name": "원본파일이름",
+          "pName": "origin_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "u8yn9kTAsah2EFDWP",
+          "name": "수정파일이름",
+          "pName": "change_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fZRsxNisK5qYfSXzM",
+          "name": "첨부파일 등록",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "53W6PLmjM6hJaFwxX",
+          "name": "파일 용량",
+          "pName": "file_size",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "bSq8xCDczYuc7DHjn",
+          "name": "상태",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "기본 'Y'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "pK2gZuCP892s6dyB3",
+          "name": "비용 번호",
+          "pName": "amount_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": "rzFGRy9CEkJxZyouv",
+          "relFieldId": "QzmKYKcksLt4ZzvkQ",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "N6S8g7GdhftZvaX8w"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "jkmEgubkWfLw3ARds",
+            "name": "비용 첨부파일 번호",
+            "pName": "amountfile_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 106, 178, 0.5)"
+    },
+    {
+      "_id": "Pf8kwiMt6tNpTfes6",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1240,
+        "y": 960
+      },
+      "name": "워케이션 내역",
+      "pName": "workcation_info",
+      "fields": [
+        {
+          "_id": "v3Jn6XKrJ2q3pefKn",
+          "name": "워케이션 제목",
+          "pName": "workcation_title",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "mXQ5boLY3nYQnJGhS",
+          "name": "업무계획",
+          "pName": "work_plan",
+          "domain": "",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "NfiKFLstDZq4mqYYc",
+          "name": "작성 일시",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "wjBJSJ6cMndL5Qzfp",
+          "name": "수정일시",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "S7w9ExfuBmMjHD8bj",
+          "name": "워케이션 시작일",
+          "pName": "start_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "L6mCEgJsFuzor5Qn9",
+          "name": "워케이션 종료일",
+          "pName": "end_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "tXnDeotKN5ZFDGLMD",
+          "name": "결재일시",
+          "pName": "approver_at",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "ex)0000-00-00/ 00:00:00",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "qKmzk9WgikPxWDvRv",
+          "name": "반려 사유",
+          "pName": "approver_comment",
+          "domain": "300자이하",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "육하원칙",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "66FcfsurcqfaBwL4J",
+          "name": "신청 상태",
+          "pName": "approver_state",
+          "domain": "신청현황",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "A승인, C취소, H보류, J반려, R검토,W대기",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "xBrDhwTs4R5nC5qAb",
+          "name": "신청자 사번",
+          "pName": "emp_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "회원PK(신청자)",
+          "relEntity": "8j2aS78vXhdaMvDJu",
+          "relFieldId": "eERueFcyDwkJFWq7Q",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "Pt7sgmQMCQNzH2C37"
+        },
+        {
+          "_id": "yt6nag2uNPkJrTLFN",
+          "name": "결재자 사번",
+          "pName": "approver_no",
+          "domain": "1자리 정수값",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "회원PK(결재자)",
+          "relEntity": "8j2aS78vXhdaMvDJu",
+          "relFieldId": "eERueFcyDwkJFWq7Q",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "vh6moErjHpjDBgYot"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "RyCNatLvcggEgSfWe",
+            "name": "워케이션  번호",
+            "pName": "workcation_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "워케이션 PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "R5JkfZZTA86u9qpBE",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 940,
+        "y": 1490
+      },
+      "name": "설문 답변",
+      "pName": "survey_answer",
+      "fields": [
+        {
+          "_id": "NgrbsTtspc38Hmhf2",
+          "name": "응답 내용",
+          "pName": "answer_value",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "리뷰내용에 강제성은 없어도 될 듯",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "snWc6mFd7ggvMtGGF",
+          "name": "평점",
+          "pName": "score",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "평점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "KCWicZs8fuzZ9uX2P",
+          "name": "설문번호",
+          "pName": "survey_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "설문PK",
+          "relEntity": "fxzwqLAmFLk6eBgxy",
+          "relFieldId": "34BRkFHq6oEQtvtkJ",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "PuTJzCSHDYPijBMWP"
+        },
+        {
+          "_id": "adckpRxcvcDKYZjJc",
+          "name": "질문번호",
+          "pName": "question_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "질문PK",
+          "relEntity": "Zogjox4rEGzkxms9i",
+          "relFieldId": "34BRkFHq6oEQtvtkJ",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "fNmhBCkfQaLQfuEWX"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "s3nnRSbDtBoJqmQuk",
+            "name": "답변 번호",
+            "pName": "answer_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "자동증가",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "RXhqTqHNcX98gxFko",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2030,
+        "y": 710
+      },
+      "name": "예약",
+      "pName": "Reservation",
+      "fields": [
+        {
+          "_id": "DrRKAxRjSpfGW43zm",
+          "name": "예약시작일",
+          "pName": "rsv_start",
+          "domain": "날짜와 시간",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "00-00-00/00:00",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "hS9CerN9adY5JodXq",
+          "name": "예약종료일",
+          "pName": "rsv_end",
+          "domain": "날짜와 시간",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "00-00-00/00:00",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "avsJoPqWhGBPqdRbP",
+          "name": "예약상태",
+          "pName": "rsv_status",
+          "domain": "",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "기본값 N",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fWyQkw9SQdMjsi3EX",
+          "name": "이용인원",
+          "pName": "user_capacity",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "znf24TXE8PkDj5ZZw",
+          "name": "워케이션  번호",
+          "pName": "workcation_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "워케이션 PK",
+          "relEntity": "Pf8kwiMt6tNpTfes6",
+          "relFieldId": "RyCNatLvcggEgSfWe",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "bCCKbF7HaHod7c5aT"
+        },
+        {
+          "_id": "3NagMnxthCiyqKgE2",
+          "name": "거점 번호",
+          "pName": "hub_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "거점 PK",
+          "relEntity": "MJnNfBQ9M7vjM4RDC",
+          "relFieldId": "M5AexWZKfHy6qN65B",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "6Dgku4fbxXJ5CHxEE"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "L3eqDhXtGka8jvqnG",
+            "name": "예약번호",
+            "pName": "rsv_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "Zogjox4rEGzkxms9i",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 940,
+        "y": 1680
+      },
+      "name": "문항",
+      "pName": "survey_question",
+      "fields": [
+        {
+          "_id": "baSm6b8YbzTEAprsG",
+          "name": "질문",
+          "pName": "question_content",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "CL4RnTbnnYC8CdYCM",
+          "name": "질문 유형",
+          "pName": "question_type",
+          "domain": "S, T, M",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "SCORE, TEXT, SCORE+TEXT",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "34BRkFHq6oEQtvtkJ",
+            "name": "질문번호",
+            "pName": "question_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "질문PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "ear86zT2biz4Xi3dh",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1600,
+        "y": 1520
+      },
+      "name": "근무 첨부파일",
+      "pName": "work_file",
+      "fields": [
+        {
+          "_id": "yzxMhtTpSHiYZQ5FQ",
+          "name": "파일 경로",
+          "pName": "file_path",
+          "domain": "",
+          "type": "VARCHAR(500)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "6Fx3yhrmMNQNwGmLz",
+          "name": "원본파일이름",
+          "pName": "origin_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "u8yn9kTAsah2EFDWP",
+          "name": "수정파일이름",
+          "pName": "change_name",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fZRsxNisK5qYfSXzM",
+          "name": "첨부파일 등록",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "53W6PLmjM6hJaFwxX",
+          "name": "파일 용량",
+          "pName": "file_size",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "bSq8xCDczYuc7DHjn",
+          "name": "상태",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "기본 'Y'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "QW3HGteTDQ7qT6Tse",
+          "name": "근무 번호",
+          "pName": "work_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "업무 PK",
+          "relEntity": "yzNQopho99MMRFWAx",
+          "relFieldId": "Yv82bB2FyRqjhKz5h",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "rZMmYMw6jcP55PFYo"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "jkmEgubkWfLw3ARds",
+            "name": "업무 첨부파일 번호",
+            "pName": "taskfile_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(177, 178, 0, 0.5)"
+    },
+    {
+      "_id": "fxzwqLAmFLk6eBgxy",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1010,
+        "y": 1310
+      },
+      "name": "만족도조사",
+      "pName": "workcation_survey",
+      "fields": [
+        {
+          "_id": "dNYH59sERuievvhZ9",
+          "name": "작성일시",
+          "pName": "created_at",
+          "domain": "0000-00-00",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "hCZgZmjeH7Fy6pZfp",
+          "name": "수정일시",
+          "pName": "updated_at",
+          "domain": "0000-00-00",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "수정일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "peJdzd6sLTHHRg7HS",
+          "name": "워케이션  번호",
+          "pName": "workcation_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "워케이션 PK",
+          "relEntity": "Pf8kwiMt6tNpTfes6",
+          "relFieldId": "RyCNatLvcggEgSfWe",
+          "relType": "ONE",
+          "relGroupId": "EZ5mq3GQ83fwF6k78"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "34BRkFHq6oEQtvtkJ",
+            "name": "설문번호",
+            "pName": "survey_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "자동증가",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    },
+    {
+      "_id": "i8JR4AteKtDQFvv6m",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2890,
+        "y": 1260
+      },
+      "name": "지원금목록",
+      "pName": "support_list",
+      "fields": [
+        {
+          "_id": "4qzhd83nH4QzhXqrS",
+          "name": "후원자",
+          "pName": "sponsor_name",
+          "domain": "",
+          "type": "VARCHAR(50)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "익명가능성",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "jgzDMXW46g7JRsZJs",
+          "name": "예상 지원금",
+          "pName": "request_amount",
+          "domain": "금액",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "거점+시설유형+교통+기타=예상지원금",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "jZiKS4JLxizPdEedt",
+          "name": "최종 승인 지원금",
+          "pName": "approved_amount",
+          "domain": "금액",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "거점+시설유형+교통+기타=최종 승인 지원금",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "vuAi37E3kYckJcgn7",
+          "name": "지급일시",
+          "pName": "payment_date",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "0000-00-00/00:00:00",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "enLsmq6P77u5jue5i",
+          "name": "지급상태",
+          "pName": "status",
+          "domain": "상태",
+          "type": "VARCHAR(10)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "PAID지급, UNPAID미지급, HOLD보류",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "BdzdWsF8FHzG5eQbs",
+          "name": "비고",
+          "pName": "remark",
+          "domain": "",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "특이사항",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "WxL6BsXKJYxdbAavP",
+          "name": "교통비 지원여부",
+          "pName": "transport_supported",
+          "domain": "Y,N",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "지자체별로 상이한 지원여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "5z8MTfAzkD3anuqiz",
+          "name": "기타 이용료 지원여부",
+          "pName": "other_supported",
+          "domain": "Y,N",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "지자체별로 상이한 지원여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "4X4s9puDWyrPLKkSZ",
+          "name": "비용 번호",
+          "pName": "amount_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": "rzFGRy9CEkJxZyouv",
+          "relFieldId": "QzmKYKcksLt4ZzvkQ",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "HKdfPSsHK6z3nqkpB"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "gsDzYXdGK273YexTT",
+            "name": "지원금 후원",
+            "pName": "support_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 106, 178, 0.5)"
+    },
+    {
+      "_id": "nKuoExKeXAJRN7Kqj",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 530,
+        "y": 640
+      },
+      "name": "공지사항",
+      "pName": "notice",
+      "fields": [
+        {
+          "_id": "wKA8EnP7m3oe6NXBc",
+          "name": "공지사항 제목",
+          "pName": "notice_title",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Evj6vFxTLRGyrTWdW",
+          "name": "공지사항 내용",
+          "pName": "notice_content",
+          "domain": "",
+          "type": "TEXT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EsXeLgNT4tEH9Y8nD",
+          "name": "공지사항 작성 일시",
+          "pName": "created_at",
+          "domain": "날짜와 시간기록",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "작성시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "6Peonn5SH6wp5TC5w",
+          "name": "공지사항 상태",
+          "pName": "notice_status",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "VISIBLE, IMPORTANT,  UNVISIBLE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "7c8g62fmuANRt362z",
+          "name": "조회수",
+          "pName": "count",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "gN2r3DF6sDL8RpASo",
+          "name": "사원번호",
+          "pName": "emp_no",
+          "domain": "1자리 정수값",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "회원PK",
+          "relEntity": "8j2aS78vXhdaMvDJu",
+          "relFieldId": "eERueFcyDwkJFWq7Q",
+          "relType": "MANY",
+          "relGroupId": "FmuoNQJ6JufsWH2Bb"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "7AgRnPYLEeBicgBHd",
+            "name": "공지사항 번호",
+            "pName": "notice_no",
+            "domain": "1자리 정수갑",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "공지사항 PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 0, 120, 0.5)"
+    },
+    {
+      "_id": "rzFGRy9CEkJxZyouv",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2180,
+        "y": 960
+      },
+      "name": "비용 지원",
+      "pName": "amount_support",
+      "fields": [
+        {
+          "_id": "tZS5CxwFxekC2H2k5",
+          "name": "사내 복지비용",
+          "pName": "approved_amount",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "회사 자체의 지원금",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "tvo85H9vGffWP47eR",
+          "name": "신청 일시",
+          "pName": "requested_at",
+          "domain": "0000-00-00",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "비용검토 신청일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Z9PMQxWYYnMz4KLTi",
+          "name": "승인 일시",
+          "pName": "approved_at",
+          "domain": "0000-00-00",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "결재자 최종 승인일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "LTM5fq3asDxtNm2dW",
+          "name": "비용신청 작성일",
+          "pName": "created_at",
+          "domain": "0000-00-00",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "신청자의 작성일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "sjo8gNqk8WNEAyr3E",
+          "name": "비용신청 수정일",
+          "pName": "updated_at",
+          "domain": "0000-00-00",
+          "type": "DATETIME",
+          "defaultValue": "",
+          "isAllowNull": "true",
+          "comment": "신청자의 수정일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "MhdB5CYsGnNA4zf2P",
+          "name": "비용 상태",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(10)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "A승인, C취소, H보류, J반려, R검토,W대기",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "TjEdAuXW257f3SsLF",
+          "name": "반려 사유",
+          "pName": "amount_comment",
+          "domain": "",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "NNuvGcQ3dmrnPYrAr",
+          "name": "워케이션  번호",
+          "pName": "workcation_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "워케이션 PK",
+          "relEntity": "Pf8kwiMt6tNpTfes6",
+          "relFieldId": "RyCNatLvcggEgSfWe",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "sDvjsG6qJXKgvJKyp"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "QzmKYKcksLt4ZzvkQ",
+            "name": "비용 번호",
+            "pName": "amount_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 106, 178, 0.5)"
+    },
+    {
+      "_id": "ysbY5P2wNCxZxbYGT",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 2180,
+        "y": 1520
+      },
+      "name": "업무",
+      "pName": "task",
+      "fields": [
+        {
+          "_id": "fWgAk2SJgTvfEEapL",
+          "name": "업무 제목",
+          "pName": "task_title",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "hGZwm97fnBQkoE7cn",
+          "name": "업무 내용",
+          "pName": "task_content",
+          "domain": "",
+          "type": "VARCHAR(300)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "vTkHJiT2eQG7NEuDW",
+          "name": "업무 시간",
+          "pName": "tasktime_at",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "업무 시작시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "jysATRgv7Kjojguxo",
+          "name": "업무 종료",
+          "pName": "taskend_at",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "업무 종료시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Fjm2puMp283cvF2bX",
+          "name": "진행도",
+          "pName": "progress",
+          "domain": "5단위",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "기본값 '0'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "4xJjfcAdPzjZgD7yz",
+          "name": "업무상태",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "default 'N'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "JhmQj6jDHPDj82YBo",
+          "name": "근무 번호",
+          "pName": "work_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "업무 PK",
+          "relEntity": "yzNQopho99MMRFWAx",
+          "relFieldId": "Yv82bB2FyRqjhKz5h",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "gm46FqWawxyqcAXZ5"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "Yv82bB2FyRqjhKz5h",
+            "name": "업무 번호",
+            "pName": "task_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(177, 178, 0, 0.5)"
+    },
+    {
+      "_id": "yzNQopho99MMRFWAx",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1600,
+        "y": 1320
+      },
+      "name": "근무",
+      "pName": "work",
+      "fields": [
+        {
+          "_id": "vTkHJiT2eQG7NEuDW",
+          "name": "근무 제출 시간",
+          "pName": "submitted_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "근무 작성일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "jysATRgv7Kjojguxo",
+          "name": "근무 수정 시간",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "v7YiDbZ4QRxZXaMvx",
+          "name": "워케이션  번호",
+          "pName": "workcation_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "워케이션 PK",
+          "relEntity": "Pf8kwiMt6tNpTfes6",
+          "relFieldId": "RyCNatLvcggEgSfWe",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "TSAipgTF9A3xWwN2g"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "Yv82bB2FyRqjhKz5h",
+            "name": "근무 번호",
+            "pName": "work_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "업무 PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(177, 178, 0, 0.5)"
+    },
+    {
+      "_id": "Eo2vwXOAW25cvu9Vu",
+      "_diagramId": "pd5A7fButXbcYBF7c",
+      "position": {
+        "x": 1600,
+        "y": 900
+      },
+      "name": "출퇴근 인증",
+      "pName": "attendance",
+      "fields": [
+        {
+          "_id": "H0d0PZ8QrGwwB60w2",
+          "name": "출퇴근 구분",
+          "pName": "check_type",
+          "domain": "",
+          "type": "VARCHAR(3)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "IN 출근, OUT 퇴근",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "dAWwKOkRzKevpmVUO",
+          "name": "처리 시각",
+          "pName": "checked_at",
+          "domain": "날짜와 시간",
+          "type": "TIMESTAMP",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "출근/퇴근 처리 시각, 기본값 CURRENT_TIMESTAMP",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "UvnMiHQlukdc11zaq",
+          "name": "위도",
+          "pName": "latitude",
+          "domain": "",
+          "type": "DECIMAL(10,7)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "체크 시점 위도",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "xY1B4x1gvGnJH1BuQ",
+          "name": "경도",
+          "pName": "longitude",
+          "domain": "",
+          "type": "DECIMAL(10,7)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "체크 시점 경도",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "TZnn17xAPLTbLQB5W",
+          "name": "거점과의 거리",
+          "pName": "distance_m",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "거점과의 거리(m) - 인증 근거 기록",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "hhlyGUSbxMq2YbBWf",
+          "name": "지각 여부",
+          "pName": "is_late",
+          "domain": "Y,N",
+          "type": "VARCHAR(1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "Y 지각, N 정상 (출근 건에만 의미 있음), 기본값 'N'",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "XhlCQSNogc5goD7lN",
+          "name": "워케이션  번호",
+          "pName": "workcation_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "워케이션 PK",
+          "relEntity": "Pf8kwiMt6tNpTfes6",
+          "relFieldId": "RyCNatLvcggEgSfWe",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "wt9jwqGNIswnbg6px"
+        },
+        {
+          "_id": "OLdseZXzRF9YAFr4X",
+          "name": "사번",
+          "pName": "emp_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "회원PK",
+          "relEntity": "8j2aS78vXhdaMvDJu",
+          "relFieldId": "eERueFcyDwkJFWq7Q",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "vlDFkqStbj9Yq0eeB"
+        },
+        {
+          "_id": "TqU4IR7qC3xcne3G9",
+          "name": "거점 번호",
+          "pName": "hub_no",
+          "domain": "",
+          "type": "INT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "거점 PK",
+          "relEntity": "MJnNfBQ9M7vjM4RDC",
+          "relFieldId": "M5AexWZKfHy6qN65B",
+          "relType": "ONE_OR_MANY",
+          "relGroupId": "B6N9amaDgLegAxvPv"
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "AuPkozhKM7A6x5WnC",
+            "name": "근태 번호",
+            "pName": "attendance_no",
+            "domain": "",
+            "type": "INT",
+            "defaultValue": "",
+            "isAllowNull": false,
+            "comment": "근태 PK",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(178, 117, 0, 0.5)"
+    }
+  ],
+  "memoData": [],
+  "domainData": [
+    {
+      "name": "5단위",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "Y,N",
+      "type": "VARCHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "상태",
+      "type": "VARCHAR(10)",
+      "defaultValue": ""
+    },
+    {
+      "name": "금액",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "인원수",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "코멘트 참조",
+      "type": "VARCHAR(10)",
+      "defaultValue": ""
+    },
+    {
+      "name": "OPEN, PAUSED, CLOSED",
+      "type": "VARCHAR(10)",
+      "defaultValue": ""
+    },
+    {
+      "name": "상세지역명",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "지역",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "시/도",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "구/군",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "Y, N, R, V",
+      "type": "VARCHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "일시",
+      "type": "",
+      "defaultValue": ""
+    },
+    {
+      "name": "정수값",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "300자 이하",
+      "type": "VARCHAR(300)",
+      "defaultValue": ""
+    },
+    {
+      "name": "주소명",
+      "type": "VARCHAR(100)",
+      "defaultValue": ""
+    },
+    {
+      "name": "00-00-00",
+      "type": "TIMESTAMP",
+      "defaultValue": ""
+    },
+    {
+      "name": "S, T, M",
+      "type": "VARCHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "score, text, mixed",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "1 자리숫자",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜만",
+      "type": "TIMESTAMP",
+      "defaultValue": ""
+    },
+    {
+      "name": "문항노출 여부",
+      "type": "TIMESTAMP",
+      "defaultValue": ""
+    },
+    {
+      "name": "숙소이름",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "지역명",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "1자리 숫자",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "신청현황",
+      "type": "CHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜와 시간",
+      "type": "DATETIME",
+      "defaultValue": ""
+    },
+    {
+      "name": "권한코드",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "부서코드",
+      "type": "CHAR(2)",
+      "defaultValue": ""
+    },
+    {
+      "name": "명칭",
+      "type": "VARCHAR(35)",
+      "defaultValue": ""
+    },
+    {
+      "name": "직급코드",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "J1,J2, J3, J4, J5",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "J1,J2, J3, J4J5",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "J1~J5",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "1자리 정수갑",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "1짜리 정수갑",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "1자리 정수값",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "Y, N",
+      "type": "",
+      "defaultValue": ""
+    },
+    {
+      "name": "0000-00-00/00:00:00",
+      "type": "DAYETIME",
+      "defaultValue": ""
+    },
+    {
+      "name": "5,4,3,2,1",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "0000-00=00",
+      "type": "DATETIME",
+      "defaultValue": ""
+    },
+    {
+      "name": "0000-00-00",
+      "type": "DATETIME",
+      "defaultValue": ""
+    },
+    {
+      "name": "Y, N, R",
+      "type": "VARCHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜와 시간 기록",
+      "type": "DATETIME",
+      "defaultValue": ""
+    },
+    {
+      "name": "연락처(-)",
+      "type": "VARCHAR(13)",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜",
+      "type": "DATE",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜와",
+      "type": "DATE",
+      "defaultValue": ""
+    },
+    {
+      "name": "4",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "D",
+      "type": "DATE",
+      "defaultValue": ""
+    },
+    {
+      "name": "ADMIN, MANAGER,EMPLOYEE",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "ROLE",
+      "type": "VARCHAR(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜와 시간기록",
+      "type": "DATETIME",
+      "defaultValue": ""
+    },
+    {
+      "name": "1, 2, 3",
+      "type": "VARCHAR(15)",
+      "defaultValue": ""
+    },
+    {
+      "name": "6wkfl wjdtnrkqt",
+      "type": "",
+      "defaultValue": ""
+    },
+    {
+      "name": "A, B, C",
+      "type": "VARCHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "재직(A), 휴직(B), 퇴직(C)",
+      "type": "VARCHAR(1)",
+      "defaultValue": ""
+    },
+    {
+      "name": "사원, 대리, 과장, 차장, 부장",
+      "type": "VARCHAR2(10)",
+      "defaultValue": ""
+    },
+    {
+      "name": "VARCHAR2(10)",
+      "type": "VARCHAR2(10)",
+      "defaultValue": ""
+    },
+    {
+      "name": "ARCHAR2",
+      "type": "",
+      "defaultValue": ""
+    },
+    {
+      "name": "4자리 정수값",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "5자리 정수값",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "한글1~15자",
+      "type": "VARCHAR2(15)",
+      "defaultValue": ""
+    },
+    {
+      "name": "3자리정수값",
+      "type": "INT",
+      "defaultValue": ""
+    },
+    {
+      "name": "날짜만 기록",
+      "type": "DATE",
+      "defaultValue": ""
+    },
+    {
+      "name": "300자이하",
+      "type": "VARCHAR2(300)",
+      "defaultValue": ""
+    },
+    {
+      "name": "이메일 형식",
+      "type": "VARCHAR2(50)",
+      "defaultValue": ""
+    },
+    {
+      "name": "연락처",
+      "type": "VARCHAR2(13)",
+      "defaultValue": ""
+    },
+    {
+      "name": "8~20자리영문/숫자/특문",
+      "type": "VARCHAR2(25)",
+      "defaultValue": ""
+    },
+    {
+      "name": "한글2~17",
+      "type": "VARCHAR2(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "한글 2~17",
+      "type": "VARCHAR2(60)",
+      "defaultValue": ""
+    },
+    {
+      "name": "8~16자리 영문/숫자",
+      "type": "VARCHAR2(20)",
+      "defaultValue": ""
+    },
+    {
+      "name": "6자리 정수값",
+      "type": "INT",
+      "defaultValue": ""
+    }
+  ],
+  "createdAt": "2026-09-09T08:19:37.827Z",
+  "creatorName": "이창현",
+  "creatorThumb": "https://lh3.googleusercontent.com/a/ACg8ocJjRrmOGZGI9SX-ZTPKF23zlRkPo5R-IZ5wozAQOtUfYMGvqw=s96-c"
+}

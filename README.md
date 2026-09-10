@@ -588,17 +588,167 @@ AWS EC2
 * [x] 사용자 역할 정의
 * [x] 워케이션 업무 프로세스 설계
 * [x] 시스템 구조 설계
-* [ ] UI/UX 구현
-* [ ] 회원 및 인증 기능
-* [ ] 워케이션 신청 기능
-* [ ] 승인 관리
+* [x] UI/UX 구현
+* [x] 회원 및 인증 기능
+* [x] 워케이션 신청 기능
+* [x] 승인 관리
 * [ ] 일정 관리
-* [ ] 업무 관리
-* [ ] 비용 및 정산
-* [ ] 관리자 대시보드
-* [ ] CI/CD 구축
-* [ ] AWS 배포
-* [ ] 테스트 및 안정화
+* [x] 업무 관리 (업무 진행률 추적 + 출퇴근 위치 인증까지 포함, 2026-09-09 STEP 9)
+* [x] 비용 및 정산 (신청→승인/반려까지 실제 검증 완료, 2026-09-09 STEP 9)
+* [x] 만족도조사 (2026-09-09 STEP 9 신규 구현)
+* [x] 관리자 대시보드
+* [x] CI/CD 구축 (GitHub Actions 워크플로우 실제 가동 검증 완료 — `Deploy` 브랜치 push → 자동 빌드/배포 성공, 2026-09-09)
+* [x] AWS 배포 (EC2+RDS 실제 리소스 생성 및 최초 배포 완료, 2026-09-09 — 아래 "AWS 배포 가이드" 참조)
+* [x] 테스트 및 안정화 — 워케이션 신청→승인→업무 수행(출퇴근 인증 포함)→정산→만족도조사 전체 플로우를 **로컬 환경에서 실제 UI/API/DB로 검증 완료**(2026-09-09 STEP 9, 상세는 WORK_LOG.md 참조)
+* [ ] 운영(EC2/RDS) 환경 재검증 — `attendance` 테이블 마이그레이션 + 시연용 더미데이터(`SQL/dummy_data.sql`, 약 2주치)까지 준비 완료(2026-09-09 STEP 10), **`Deploy` 브랜치 push만 남음**(권한 정책상 사용자 실행 필요)
+
+---
+
+## 🚀 AWS 배포 가이드 (STEP 8)
+
+### 1. 아키텍처
+
+```text
+                          Internet
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   EC2 (Ubuntu)  │
+                    │  ┌───────────┐  │
+                    │  │  Nginx    │  │   / (정적파일)      → React (dist/)
+                    │  │  :80      │──┼─▶ /workflow/**      → 127.0.0.1:8006
+                    │  └─────┬─────┘  │
+                    │        │        │
+                    │        ▼        │
+                    │  ┌───────────┐  │
+                    │  │Spring Boot│  │  systemd 서비스(workflow), context-path=/workflow
+                    │  │  :8006    │  │
+                    │  └─────┬─────┘  │
+                    └────────┼────────┘
+                             ▼
+                    ┌─────────────────┐
+                    │   RDS (MySQL)   │  SQL/WorkFlow_Script.sql 기준 스키마
+                    └─────────────────┘
+```
+
+React와 Spring Boot를 **같은 EC2 인스턴스, 같은 origin(포트 80)**에서 서빙한다.
+Nginx가 `/workflow/**` 요청만 백엔드(`localhost:8006`)로 프록시하고, 나머지는 React 정적 파일을 반환한다.
+이 구조 덕분에 브라우저 입장에서는 프론트엔드와 API가 **같은 origin**이라 CORS가 대부분의 경우 필요 없다.
+
+### 2. Git 브랜치 전략 / 배포 트리거
+
+```text
+main  →  (준비되면) Deploy 브랜치로 병합/푸시  →  GitHub Actions 자동 실행  →  AWS 배포
+```
+
+* **`Deploy`** 브랜치에 push가 발생할 때만 `.github/workflows/deploy.yml`이 실행된다.
+* `main`에 아무리 push해도 자동 배포되지 않는다 (의도적으로 분리됨).
+* 배포하려면 반드시 `main`의 변경사항을 `Deploy` 브랜치로 가져온 뒤 `Deploy`에 push해야 한다.
+
+```bash
+git checkout Deploy
+git merge main
+git push origin Deploy
+```
+
+### 3. 필요한 GitHub Secrets
+
+Repository Settings → Secrets and variables → Actions 에 아래 항목을 등록한다.
+
+| Secret 이름 | 설명 |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | CI/CD 전용 IAM 사용자의 Access Key (Root 계정 키 사용 금지) |
+| `AWS_SECRET_ACCESS_KEY` | 위 IAM 사용자의 Secret Key |
+| `AWS_REGION` | 실제 리소스를 생성한 리전 (예: `us-east-1`) |
+| `AWS_DEPLOY_BUCKET` | 빌드 산출물(JAR, 프론트 빌드)을 임시로 올려둘 S3 버킷 이름 |
+| `EC2_INSTANCE_ID` | 배포 대상 EC2의 **실제** 인스턴스 ID (⚠️ 아래 참고) |
+| `KAKAO_APP_KEY` | Kakao Maps JavaScript SDK 키 (프론트 빌드 시 주입) |
+| `EC2_PUBLIC_URL` | (선택) 배포 후 외부 스모크 테스트용, 예: `http://<EC2_공인IP>` |
+
+> AWS Access Key/Secret Key는 GitHub Secrets에만 저장하며 코드에 절대 직접 적지 않는다. GitHub OIDC는 사용하지 않는다(이번 프로젝트의 결정).
+
+> ⚠️ **`EC2_INSTANCE_ID`에 이 문서의 예시 문자열(`i-0123456789abcdef0` 형태)을 그대로 등록하지 말 것.** 실제로 이 실수 때문에 IAM 정책이 정확히 구성돼 있었음에도 `ssm:SendCommand`가 계속 `AccessDeniedException`으로 실패한 사례가 있었다(2026-09-09). GitHub Actions 로그는 시크릿 값을 자동 마스킹하므로 이런 실수는 로그만으로는 발견하기 어렵고, AWS CloudTrail의 이벤트 원문(마스킹 없음)을 확인해야 드러난다 — 아래 "장애 발생 시 확인 방법" 표 참고.
+
+### 4. EC2에서 준비해야 할 것 (최초 1회, 아래 "AWS에서 직접 해야 할 작업" 참조)
+
+* `/opt/workflow/backend/` — 백엔드 JAR 배치 위치
+* `/opt/workflow/uploads/receipts/` — 비용 영수증 업로드 저장 위치
+* `/etc/workflow/workflow.env` — 운영 환경변수 (`deploy/workflow.env.example` 참고, 실제 값 채워서 EC2에만 생성)
+* `/etc/systemd/system/workflow.service` — `deploy/systemd/workflow.service` 그대로 복사
+* `/etc/nginx/sites-available/workflow.conf` — `deploy/nginx/workflow.conf` 그대로 복사 후 `sites-enabled`에 링크
+* SSM Agent 활성화 + EC2 인스턴스 프로필에 `AmazonSSMManagedInstanceCore` + S3 읽기 정책 연결
+
+### 5. 최초 배포 절차
+
+> **2026-09-09 기준: 이 절차가 실제로 완료되어 EC2+RDS 배포가 살아있고, `Deploy` 브랜치 push → GitHub Actions 자동 배포까지 실가동 검증됨.** 재배포는 6번 절차만 반복하면 된다.
+
+1. AWS에서 EC2(Java 21 설치), RDS(MySQL), S3 버킷을 직접 생성한다 (Claude가 자동 생성하지 않음). ⚠️ EC2가 **Amazon Linux**라면 Nginx가 Ubuntu식 `sites-available`/`sites-enabled` 구조가 아니라 `conf.d/*.conf` 구조를 쓰고, `nginx.conf`에 기본 `server{}` 블록이 내장되어 있어 그대로 두면 포트 80을 선점한다 — 이 경우 `deploy/nginx/workflow.conf`를 `/etc/nginx/conf.d/workflow.conf`에 직접 두고, `nginx.conf`의 내장 기본 서버 블록을 주석 처리한 뒤 우리 설정에 `listen 80 default_server;`를 명시해야 한다.
+2. EC2에 Java 21, Nginx 설치 후 위 "4. EC2에서 준비해야 할 것" 항목을 전부 설정한다.
+3. RDS에 `SQL/WorkFlow_Script.sql`을 실행해 스키마를 구축한다.
+4. `/etc/workflow/workflow.env`에 RDS 접속정보 등 실제 값을 채운다.
+5. GitHub repository에 위 "3. 필요한 GitHub Secrets"를 전부 등록한다. IAM 정책은 `s3:PutObject`(버킷) + `ssm:SendCommand`(document ARN과 EC2 instance ARN 둘 다 Resource에 명시) + `ssm:GetCommandInvocation`/`ssm:ListCommands`가 필요하며, EC2 인스턴스에는 `AmazonSSMManagedInstanceCore` + S3 읽기 권한을 가진 인스턴스 프로필을 연결해야 SSM 배포가 동작한다.
+6. `Deploy` 브랜치를 생성하고 `main`을 병합해 push한다 → GitHub Actions가 자동으로 빌드·배포한다.
+7. Actions 탭에서 워크플로우 로그를 확인하고, 완료 후 `http://<EC2_공인IP>` 로 접속해 로그인 화면이 뜨는지 확인한다.
+
+### 6. 재배포 절차
+
+`Deploy` 브랜치에 새 커밋을 push하기만 하면 된다. GitHub Actions가 자동으로:
+Maven 빌드 → npm 빌드 → S3 업로드 → SSM으로 EC2에서 JAR 교체 + `systemctl restart workflow` → 프론트 정적파일 교체 + `nginx reload` → 헬스체크까지 수행한다.
+
+```bash
+git checkout Deploy
+git merge main   # 또는 원하는 브랜치
+git push origin Deploy
+```
+
+> **2026-09-09 (STEP 10) 기준 임시 추가 스텝**: `attendance` 테이블이 새로 생겼지만 운영 RDS는 이미 실데이터가 있어 `WorkFlow_Script.sql` 전체를 재실행할 수 없다. 이번 배포 1회에 한해 `deploy.yml`에 `SQL/migration_add_attendance.sql`(테이블 추가, 재실행 안전)과 `SQL/dummy_data.sql`(시연용 약 2주치 더미데이터, 재실행 안전)을 EC2 경유로 RDS에 적용하는 스텝(`deploy/scripts/db-apply.sh`)이 임시로 들어가 있다. 운영 반영이 확인되면 이 스텝은 `deploy.yml`에서 제거해 평소 배포 흐름(앱 코드만 배포)으로 되돌릴 예정 — 이후 스키마 변경이 다시 필요해지면 같은 패턴(별도 `migration_*.sql` + 임시 배포 스텝)으로 반복하면 된다.
+
+### 7. 서버 상태 확인 명령 (EC2 접속 후)
+
+```bash
+# 백엔드 서비스 상태
+sudo systemctl status workflow
+sudo journalctl -u workflow -f          # 실시간 로그
+
+# 백엔드가 실제로 응답하는지
+curl -i http://127.0.0.1:8006/workflow/v3/api-docs
+
+# Nginx 상태 / 설정 문법 검사
+sudo systemctl status nginx
+sudo nginx -t
+
+# 프론트 정적 파일이 잘 배포됐는지
+ls -la /usr/share/nginx/html
+```
+
+### 8. 장애 발생 시 확인 방법
+
+| 증상 | 확인할 것 |
+|---|---|
+| GitHub Actions에서 실패 | Actions 탭 로그 확인. `Verify deployment result` 스텝이 SSM 명령의 stdout/stderr를 그대로 출력하므로 대부분 원인이 바로 보임 |
+| GitHub Actions 실행이 **job 0개로 즉시 실패**(브랜치 무관하게 항상 실패) | 워크플로 YAML 자체가 무효(Invalid workflow file)인 경우. Actions 탭에서 해당 run을 열면 "Annotations" 섹션에 정확한 라인/사유가 뜬다. **스텝의 `if:` 조건에서 `secrets.*`를 직접 참조하면 안 된다**(`Unrecognized named-value: 'secrets'`) — `env:`로 한 번 거친 뒤 `env.*`로 참조할 것(2026-09-09 실제 발생 사례, `deploy.yml` 참고) |
+| `./mvnw: Permission denied` (exit 126) | `mvnw` 파일이 git에 실행권한 없이(`100644`) 커밋된 경우. `git ls-files -s WorkFlow_Project_BE/mvnw`로 확인 후 `git update-index --chmod=+x WorkFlow_Project_BE/mvnw`로 수정(2026-09-09 실제 발생 사례 — Windows에서 커밋하면 흔히 발생) |
+| `ssm:SendCommand`가 `AccessDeniedException` (IAM 정책은 봐도 맞는데 계속 거부됨) | ① IAM 정책 시뮬레이터(사용자 페이지 → 시뮬레이션)로 `document`+`instance` 리소스 둘 다 실제 ARN을 넣고 확인. ② 그래도 안 되면 **GitHub Secret `EC2_INSTANCE_ID`에 실제 값이 아니라 예시 placeholder가 등록됐을 가능성**을 의심할 것 — GitHub Actions 로그는 시크릿 값을 자동 마스킹해서 로그만으로는 안 보이니, **AWS CloudTrail → 이벤트 기록에서 해당 `SendCommand` 이벤트를 찾아 마스킹 없는 원문 오류 메시지의 실제 인스턴스 ARN을 확인**할 것(2026-09-09 실제 발생 사례) |
+| SSM으로 실행한 `remote-deploy.sh`가 `/usr/bin/env: 'bash\n# ...': No such file or directory`(exit 127)로 실패 | `aws ssm send-command`의 `--parameters`를 `commands="$(jq -Rs '[.]' < script)"`처럼 shorthand와 JSON을 섞어 넘기면 다중 줄 스크립트의 개행이 실제 줄바꿈이 아니라 문자 그대로 `\n` 텍스트로 전달되는 경우가 있다. `PARAMS_JSON=$(jq -Rn --rawfile script <파일> '{"commands":[$script]}')`로 만든 순수 JSON을 `--parameters`에 통째로 넘기는 방식으로 우회(2026-09-09 실제 발생 사례, `deploy.yml` 참고) |
+| 로그인 성공했는데 대시보드/거점 등 특정 화면만 404 | 프론트 `api/*.js` 파일이 `axiosInstance`(이미 `baseURL` 보유)에 넘기는 요청 URL에 `API_BASE_URL`을 다시 붙이고 있지 않은지 확인 — 로컬 개발 기본값이 절대 URL이라 로컬에서는 안 드러나고 배포 환경(상대경로 baseURL)에서만 `/workflow/workflow/...` 형태로 터진다(2026-09-09 `dashboardApi.js`/`hubApi.js` 실제 발생 사례) |
+| 백엔드가 재시작 후 응답 없음 | `sudo journalctl -u workflow -n 100` — DB 연결 실패(`workflow.env`의 `DB_URL`/비밀번호), JWT_SECRET 누락 등이 흔한 원인 |
+| 502/504 (Nginx) | 백엔드(`:8006`)가 떠 있는지 먼저 확인, `sudo nginx -t`로 설정 문법 확인 |
+| 새로고침 시 흰 화면/404 | `deploy/nginx/workflow.conf`의 `try_files ... /index.html` 폴백이 실제로 적용됐는지 확인 |
+| 로그인 후 API 호출이 CORS 에러 | `CORS_ALLOWED_ORIGINS` 환경변수가 실제 접속 도메인과 일치하는지 확인 (same-origin이면 애초에 CORS 자체가 발생하지 않아야 함) |
+| 파일 업로드 실패 | `/opt/workflow/uploads/receipts/`에 `workflow` 사용자 쓰기 권한이 있는지 확인 |
+| DB 연결 안 됨 | RDS 보안그룹이 EC2로부터의 3306 인바운드를 허용하는지, `workflow.env`의 `DB_URL`이 정확한지 확인 |
+
+### 9. 관련 파일
+
+| 파일 | 용도 |
+|---|---|
+| `.github/workflows/deploy.yml` | GitHub Actions 배포 워크플로우 |
+| `deploy/nginx/workflow.conf` | Nginx 설정 (React + API 프록시) |
+| `deploy/systemd/workflow.service` | Spring Boot systemd 서비스 정의 |
+| `deploy/workflow.env.example` | EC2용 운영 환경변수 템플릿 (실제 값은 EC2에만 존재) |
+| `deploy/scripts/remote-deploy.sh` | SSM으로 EC2에서 실행되는 실제 배포 스크립트 |
+| `WorkFlow_Project_BE/src/main/resources/application-prod.properties` | Production Spring 프로필 |
+| `workflow_project_fe/.env.example` | 프론트 로컬 개발용 환경변수 템플릿 |
 
 ---
 

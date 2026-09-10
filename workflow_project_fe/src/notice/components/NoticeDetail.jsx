@@ -13,15 +13,20 @@ export default function NoticeDetail() {
 
     // =========================================================
     // 로그인 사용자 정보
+    //
+    // 앱 전역에서 로그인 정보는 App.jsx가 localStorage("user")에
+    // authCode(ADMIN/MANAGER/STAFF)로 저장함 - 이전에는 어디서도
+    // 설정되지 않는 sessionStorage("loginMember").role === 'S'를
+    // 참조하고 있어 실제로는 관리자여도 항상 false였던 버그
     // =========================================================
 
-    const loginMember =
+    const loginUser =
         JSON.parse(
-            sessionStorage.getItem('loginMember')
+            localStorage.getItem('user')
         );
 
     const isAdmin =
-        loginMember?.role === 'S';
+        loginUser?.authCode === 'ADMIN';
 
 
     // =========================================================
@@ -102,15 +107,15 @@ export default function NoticeDetail() {
 
     const handleDelete = async () => {
 
-        // if (!isAdmin) {
+        if (!isAdmin) {
 
-        //     alert(
-        //         '관리자만 삭제할 수 있습니다.'
-        //     );
+            alert(
+                '관리자만 삭제할 수 있습니다.'
+            );
 
-        //     return;
+            return;
 
-        // }
+        }
 
 
         const confirmed =
@@ -161,23 +166,23 @@ export default function NoticeDetail() {
     // 수정
     // =========================================================
 
-    // const handleUpdate = () => {
+    const handleUpdate = () => {
 
-    //     if (!isAdmin) {
+        if (!isAdmin) {
 
-    //         alert(
-    //             '관리자만 수정할 수 있습니다.'
-    //         );
+            alert(
+                '관리자만 수정할 수 있습니다.'
+            );
 
-    //         return;
+            return;
 
-    //     }
+        }
 
-    //     navigate(
-    //         `/notice/update/${noticeNo}`
-    //     );
+        navigate(
+            `/notice/update/${noticeNo}`
+        );
 
-    // };
+    };
 
 
     // =========================================================
@@ -350,7 +355,7 @@ export default function NoticeDetail() {
 
                     <button
                         type="button"
-                        className="btn-list"
+                        className="btn btn-secondary"
                         onClick={() =>
                             navigate('/notice')
                         }
@@ -368,7 +373,7 @@ export default function NoticeDetail() {
 
                                 <button
                                     type="button"
-                                    className="btn-update"
+                                    className="btn btn-outline-primary"
                                     onClick={handleUpdate}
                                 >
                                     수정
@@ -377,7 +382,7 @@ export default function NoticeDetail() {
 
                                 <button
                                     type="button"
-                                    className="btn-delete"
+                                    className="btn btn-outline-danger"
                                     onClick={handleDelete}
                                 >
                                     삭제

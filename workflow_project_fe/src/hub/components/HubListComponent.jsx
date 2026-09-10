@@ -199,11 +199,25 @@ function HubListComponent(props) {
 
     // return 구문
     return (
-        <div className="hub-content">
-            <div className="position-relative d-flex align-items-center w-100 mb-4 hub-list-header">
-                <h2 className="m-0 w-100 text-center hub-header"><b>거점 목록</b></h2>
-                <button className="btn btn-outline-dark" onClick={ () => { navigate("/place/list") } }>지역 정보 목록으로</button>
-            </div>
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">거점 목록</h1>
+                    <p className="wf-page-description">워케이션에 사용할 거점(숙소·공유오피스)을 조회합니다.</p>
+                </div>
+
+                <div className="wf-page-actions">
+                    <button type="button" id="AI" onClick={ () => { navigate("/hub/ai"); } }>AI에게 장소 및 일정 추천 받기</button>
+                    <button type="button" className="btn btn-secondary" onClick={ () => { navigate("/place/list") } }>지역 정보 목록으로</button>
+                    { (loginUser.authCode === "ADMIN") && (
+                        <button type="button" className="btn btn-primary hub-primary" onClick={ () => { navigate("/hub/enrollForm") } }>+ 거점 등록</button>
+                    )}
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="hub-content">
             {/* 검색 필터 영역 */}
             <table align="left" className="search-filter-table hub-table">
                 <tbody>
@@ -239,43 +253,27 @@ function HubListComponent(props) {
                     </tr>
                 </tbody>
             </table>
-            
-            <div align="right">
-                <button type="button" id="AI" onClick={ () => { navigate("/hub/ai"); } }>AI에게 장소 및 일정 추천 받기</button>
-            </div>
-            
-            <div style={{ height: "30px" }}></div>
 
             {/* 거점 목록 테이블 */}
             <table className="table table-hover list-area hub-table">
                 <thead></thead>
-                <tbody> 
+                <tbody>
                     {/* 서버로부터 받아와서 생성한 실제 아이템 컴포넌트들(HubItemComponent)이 이 자리에 뿌려집니다. */}
                     { dataList.length > 0 ? (dataList) : (
-                        <tr className="not-found">
+                        <tr className="not-found wf-empty-row">
                             <td>
-                                <h3><b><mark>조회된 거점이 존재하지 않습니다.</mark></b></h3>
+                                조회된 거점이 존재하지 않습니다.
                             </td>
                         </tr>
                     ) }
                 </tbody>
             </table>
 
-            <br />
+            <div className="paging-area">{ pageList }</div>
 
-            <div align="center" className="paging-area">{ pageList }</div>
-
-            <br />
-            
-            {/* 관리자용 거점 등록 버튼 */}
-            { (loginUser.authCode === "ADMIN") && (
-                <div>
-                    <button type="button" className="btn btn-primary btn-sm hub-primary" onClick={ () => { navigate("/hub/enrollForm") } }>▶ 거점 등록</button>
-                </div>
-            )}
-            <br /><br />
-
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

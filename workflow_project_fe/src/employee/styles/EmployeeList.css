@@ -1,52 +1,13 @@
-.employeeListPage {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 30px 40px;
-    box-sizing: border-box;
-}
-
-/* 상단 영역 */
-.employeeListHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.employeeListHeader h2 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-}
-
-/* 직원 등록 버튼 */
-.addEmployeeBtn {
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 50%;
-    background-color: #111;
-    color: white;
-    font-size: 22px;
-    font-weight: 400;
-    line-height: 28px;
-    cursor: pointer;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    transition: 0.2s;
-}
-
-.addEmployeeBtn:hover {
-    background-color: #444;
-}
-
 /* 테이블 영역 */
 .employeeTableWrapper {
     width: 100%;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
+
+    overflow: hidden;
 }
 
 /* 테이블 */
@@ -54,27 +15,29 @@
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* 헤더 */
 .employeeTable thead {
-    background-color: #eeeeee;
+    background-color: var(--wf-table-header-bg);
 }
 
 .employeeTable th {
-    height: 30px;
-    font-weight: 500;
-    color: #333;
+    height: 46px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--wf-text-secondary);
     text-align: center;
+    border-bottom: 1px solid var(--wf-border);
 }
 
 /* 데이터 */
 .employeeTable td {
-    height: 60px;
+    height: 56px;
     text-align: center;
-    border-bottom: 1px solid #d5d5d5;
-    color: #333;
+    border-bottom: 1px solid var(--wf-border);
+    color: var(--wf-text-primary);
 }
 
 /* 행 */
@@ -84,12 +47,12 @@
 }
 
 .employeeTable tbody tr:hover {
-    background-color: #f7f7f7;
+    background-color: var(--wf-row-hover);
 }
 
 /* 데이터가 없을 때 */
 .employeeTable .emptyEmployee {
-    height: 100px;
-    color: #888;
+    height: 120px;
+    color: var(--wf-text-muted);
     cursor: default;
 }
