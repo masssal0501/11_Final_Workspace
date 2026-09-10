@@ -5,6 +5,13 @@ import { placeApi } from "../api/placeApi";
 
 import "../style/placeDetail.css";
 
+// BUG: 이미지 URL이 http://localhost:8006으로 하드코딩되어 있어, 배포 서버에서
+// 접속한 사용자는 본인 PC의 8006 포트로 요청을 보내 썸네일이 항상 로드 실패했다.
+// Hub*.jsx 컴포넌트들과 동일하게 빌드 시점 환경변수를 사용한다
+// (배포 빌드는 VITE_API_BASE_URL=/workflow로 주입되어 상대경로로 동작함).
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8006/workflow";
+
 function PlaceDetail() {
 
     const { hubNo } = useParams();
@@ -117,7 +124,7 @@ function PlaceDetail() {
                 <div className="place-image">
                     {mainFile ? (
                         <img
-                            src={`http://localhost:8006/workflow${mainFile.filePath}/${mainFile.changeName}`}
+                            src={`${API_BASE_URL}${mainFile.filePath}/${mainFile.changeName}`}
                             alt={place.hubName}
                         />
                     ) : (
