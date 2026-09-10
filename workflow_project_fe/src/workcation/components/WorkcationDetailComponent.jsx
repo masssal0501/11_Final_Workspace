@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import { getWorkcationDetail, deleteWorkcation } from "../api/WorkcationApi";
 
+import { getStatusText } from "../utils/StatusBadge";
+
 import "../styles/WorkcationDetail.css";
 
 function WorkcationDetailComponent() {
@@ -39,6 +41,8 @@ function WorkcationDetailComponent() {
         workcationTitle = "",
         startDate = "",
         endDate = "",
+        canUpdate = false,
+        canDelete = false,
         peopleCount = 1,
         purpose = "",
         mainRegion = "",
@@ -346,14 +350,23 @@ function WorkcationDetailComponent() {
                 </div>
             </div>
 
-            <div className="detail-button-area">
-                <button type="button" className="btn btn-outline-primary" onClick={handleUpdate}>
-                    수정
-                </button>
-                <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
-                    삭제
-                </button>
-            </div>
+            {(canUpdate || canDelete) && (
+                <div className="detail-button-area">
+
+                    {canUpdate && (
+                        <button type="button" className="btn btn-outline-primary" onClick={handleUpdate}>
+                            수정
+                        </button>
+                    )}
+
+                    {canDelete && (
+                        <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
+                            삭제
+                        </button>
+                    )}
+
+                </div>
+            )}
             </div>
         </main>
     );

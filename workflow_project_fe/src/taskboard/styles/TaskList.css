@@ -28,10 +28,10 @@
     font-weight: 800;
 }
 
-/*정렬용 컨테이너*/
 .task-btnset {
     display: flex;
     justify-content: center;
+    margin-bottom: 20px;
 }
 
 .task-list-table {
@@ -71,7 +71,7 @@
 .search-form {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
 }
 
 /*드롭다운 전체박스*/
@@ -172,7 +172,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
 }
 
 .page-btn:hover {

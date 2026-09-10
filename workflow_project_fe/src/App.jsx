@@ -276,12 +276,16 @@ function App() {
                 
                 {/* 업무 게시판 라우트 */}
                 <Route path="/task/list" element={<TaskListComponent />} />
-                <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
+                {/* TaskDetailComponent는 useParams()로 workcationNo를 읽는다 */}
+                <Route path="/task/detail/:workcationNo" element={<TaskDetailComponent />} />
 
                 {/* 워케이션 라우트 */}
-                <Route path="/workcation/list" element={<WorkcationListComponent />} />
+                <Route path="/workcation/list" element={<WorkcationListComponent loginUser={loginUser} />} />
                 <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-                <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+                {/* 관리자는 워케이션을 직접 신청하지 않는다 */}
+                {loginUser.authCode !== "ADMIN" && (
+                    <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
+                )}
                 {/* BUG-009: "내 워케이션"(업무 진행률 관리) 화면이 라우팅되지 않아 접근 불가였음 */}
                 <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
                 <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />

@@ -16,8 +16,25 @@ import com.kh.workflow.dashboard.model.dto.WaitingListDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
+import com.kh.workflow.task.model.vo.Task;
+import com.kh.workflow.task.model.vo.Work;
 
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
+//AND w.approverState ='Y' --> 승인 기능 추가후
+	@Query("""
+			SELECT w
+			FROM WorkcationInfo w
+			WHERE w.startAt <= :endOfDay
+			AND w.endAt >= :startOfDay
+
+			ORDER BY w.startAt ASC
+			""")
+	List<WorkcationInfo> findWorkcationByDate(
+			@Param("startOfDay") LocalDateTime startOfDay,
+			@Param("endOfDay") LocalDateTime endOfDay);
+
+	// searchWorkcationList / findByEmployeeEmpNo 는 origin/main 쪽에도 동일한 메서드가 있어
+	// (Reservation 연관관계 매핑에 맞춰 JPQL이 수정된 버전) 아래 main 블록의 것을 사용한다.
 
 	/*
 	 * ===================================================================== 1. 관리자
@@ -477,5 +494,19 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			@Param("subRegion") String subRegion, Pageable pageable);
 
 	Optional<WorkcationInfo> findByWorkcationNoAndEmployeeEmpNo(Integer workcationNo, int empNo);
+
+	@Query("""
+		    SELECT DISTINCT w
+		    FROM WorkcationInfo w
+		    JOIN Work wk ON wk.workcationInfo = w
+		    JOIN Task t ON t.work = wk
+		    WHERE (:keyword = ''
+		        OR LOWER(w.workcationTitle)
+		            LIKE LOWER(CONCAT('%', :keyword, '%')))
+		    ORDER BY w.workcationNo DESC
+		""")
+		Page<WorkcationInfo> findTaskBoardList(
+		        @Param("keyword") String keyword,
+		        Pageable pageable);
 
 }

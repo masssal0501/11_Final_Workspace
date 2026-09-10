@@ -170,9 +170,13 @@
     font-size: 14px;
 }
 
-.completed-text {
+.approved-task {
     text-decoration: line-through;
     color: var(--wf-text-muted);
+}
+
+.rejected-task {
+    color: var(--wf-danger);
 }
 
 

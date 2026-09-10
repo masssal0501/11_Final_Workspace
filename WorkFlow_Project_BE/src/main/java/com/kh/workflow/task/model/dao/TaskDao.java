@@ -2,11 +2,14 @@ package com.kh.workflow.task.model.dao;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.task.model.vo.Task;
+import com.kh.workflow.task.model.vo.WorkFile;
 
 public interface TaskDao extends JpaRepository<Task, Integer> {
 
@@ -54,5 +57,11 @@ public interface TaskDao extends JpaRepository<Task, Integer> {
 			   AND wi.endAt >= CURRENT_TIMESTAMP
 			""")
 	double selectProgressRate(@Param("empNo") int empNo);
+
+	List<Task> findByWorkWorkNo(Integer workNo);
+
+	Page<Task> findAllByOrderByTaskNoDesc(Pageable pageable);
+
+	Page<Task> findByTaskTitleContainingOrderByTaskNoDesc(String keyword, Pageable pageable);
 
 }

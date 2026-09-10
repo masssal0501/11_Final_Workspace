@@ -26,8 +26,7 @@ function MyWorkcationListComponent() {
     // URL 페이지 정보
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const cpage =
-        parseInt(searchParams.get("cpage")) || 1;
+    const cpage = parseInt(searchParams.get("cpage")) || 1;
 
     // 목록
     const [workcationList, setWorkcationList] = useState([]);
@@ -35,10 +34,7 @@ function MyWorkcationListComponent() {
     // 전체 페이지 수
     const [totalPages, setTotalPages] = useState(1);
 
-
-    // ==============================
     // 1. 메인 지역 조회
-    // ==============================
     useEffect(() => {
 
         getMainRegionList()
@@ -60,10 +56,7 @@ function MyWorkcationListComponent() {
 
     }, []);
 
-
-    // ==============================
     // 2. 상세 지역 조회
-    // ==============================
     useEffect(() => {
 
         if (!mainRegion) {
@@ -94,10 +87,7 @@ function MyWorkcationListComponent() {
 
     }, [mainRegion]);
 
-
-    // ==============================
     // 3. 내 워케이션 목록 조회
-    // ==============================
     useEffect(() => {
 
         // 메인 지역 선택 후
@@ -115,10 +105,7 @@ function MyWorkcationListComponent() {
         searchType
     ]);
 
-
-    // ==============================
     // 목록 조회
-    // ==============================
     const selectMyWorkcationList = async () => {
 
         try {
@@ -170,10 +157,7 @@ function MyWorkcationListComponent() {
         }
     };
 
-
-    // ==============================
     // 메인 지역 변경
-    // ==============================
     const handleMainRegionChange = (e) => {
 
         const value = e.target.value;
@@ -186,10 +170,7 @@ function MyWorkcationListComponent() {
         });
     };
 
-
-    // ==============================
     // 상세 지역 변경
-    // ==============================
     const handleSubRegionChange = (e) => {
 
         const value = e.target.value;
@@ -201,10 +182,7 @@ function MyWorkcationListComponent() {
         });
     };
 
-
-    // ==============================
     // 상태 변경
-    // ==============================
     const handleSearchTypeChange = (e) => {
 
         const value = e.target.value;
@@ -216,10 +194,7 @@ function MyWorkcationListComponent() {
         });
     };
 
-
-    // ==============================
     // 페이지 변경
-    // ==============================
     const changePage = (page) => {
 
         setSearchParams({
@@ -255,9 +230,7 @@ function MyWorkcationListComponent() {
 
             <div className="wf-page-content">
 
-            {/* =========================
-                필터 영역
-            ========================= */}
+            {/*필터 영역*/}
             <div className="workcation-btnSet">
 
                 {/* 지역 */}
@@ -266,34 +239,27 @@ function MyWorkcationListComponent() {
                     <select
                         className="main-region"
                         value={mainRegion}
-                        onChange={
-                            handleMainRegionChange
-                        }
+                        onChange={handleMainRegionChange}
                     >
 
-                        <option value="">
-                            지역명
-                        </option>
+                        <option value="">지역명</option>
 
-                        {
-                            mainRegionList.map(
-                                (main, index) => {
+                        {mainRegionList.map((main, index) => {
+                            const value =
+                                typeof main === "string"
+                                    ? main
+                                    : main.main_region;
 
-                                    const value =
-                                        typeof main === "string"
-                                            ? main
-                                            : main.main_region;
-
-                                    return (
-                                        <option
-                                            key={index}
-                                            value={value}
-                                        >
-                                            {value}
-                                        </option>
-                                    );
-                                }
-                            )
+                            return (
+                                <option
+                                    key={index}
+                                    value={value}
+                                >
+                                    {value}
+                                </option>
+                            );
+                        }
+                        )
                         }
 
                     </select>
@@ -370,15 +336,16 @@ function MyWorkcationListComponent() {
                     <option value="review">
                         검토
                     </option>
+                    <option value="waiting">
+                        대기
+                    </option>
 
                 </select>
 
             </div>
 
 
-            {/* =========================
-                목록
-            ========================= */}
+            {/* 목록*/}
             <table className="workcation-list">
 
                 <thead>
@@ -414,100 +381,58 @@ function MyWorkcationListComponent() {
                                     return (
 
                                         <tr
-                                            key={
-                                                item.workcationNo
-                                            }
+                                            key={item.workcationNo}
                                             onClick={() =>
-                                                navigate(
-                                                    `/workcation/mydetail/${item.workcationNo}`
-                                                )
-                                            }
-                                            style={{
-                                                cursor: "pointer"
-                                            }}
-                                        >
-
+                                                navigate(`/workcation/mydetail/${item.workcationNo}`)}
+                                            style={{ cursor: "pointer" }}>
                                             <td>
-                                                {
-                                                    item.workcationNo
-                                                }
+                                                {item.workcationNo}
                                             </td>
-
 
                                             <td
-                                                style={{
-                                                    whiteSpace:
-                                                        "pre-line"
-                                                }}
-                                            >
-                                                {
-                                                    item.workcationTitle
-                                                }
+                                                style={{ whiteSpace: "pre-line" }}>
+                                                {item.workcationTitle}
                                             </td>
-
 
                                             <td>
                                                 {region}
                                             </td>
 
-
                                             <td>
-                                                {
-                                                    item.createdAt
-                                                        ? item.createdAt.substring(
-                                                            0,
-                                                            10
-                                                        )
-                                                        : "-"
-                                                }
+                                                {item.createdAt ? item.createdAt.substring(0, 10) : "-"}
                                             </td>
-
-
                                             <td>
                                                 {renderStatusBadge(item)}
                                             </td>
-
                                         </tr>
                                     );
-                                }
-                            )
-
-                            :
+                                }) :
 
                             <tr className="wf-empty-row">
 
                                 <td colSpan={5}>
                                     신청한 워케이션 내역이 없습니다.
                                 </td>
-
                             </tr>
                     }
-
                 </tbody>
-
             </table>
 
-
             <br />
             <br />
 
 
-            {/* =========================
-                페이징
-            ========================= */}
+            {/*페이징 */}
             <div
                 align="center"
-                className="paging-area"
-            >
+                className="paging-area">
 
                 {/* 이전 */}
-
                 <button
                     className="page-btn"
                     disabled={cpage === 1}
                     onClick={() =>
-                        changePage(cpage - 1)
-                    }
+                        changePage(cpage - 1)}
                 >
                     &lt;
                 </button>
@@ -530,10 +455,9 @@ function MyWorkcationListComponent() {
                             key={page}
 
                             className={
-                                `page-btn ${
-                                    cpage === page
-                                        ? "active"
-                                        : ""
+                                `page-btn ${cpage === page
+                                    ? "active"
+                                    : ""
                                 }`
                             }
 
@@ -547,7 +471,6 @@ function MyWorkcationListComponent() {
                     ))
                 }
 
-
                 {/* 다음 */}
 
                 <button
@@ -555,8 +478,7 @@ function MyWorkcationListComponent() {
                     disabled={
                         cpage === totalPages
                     }
-                    onClick={() =>
-                        changePage(cpage + 1)
+                    onClick={() => changePage(cpage + 1)
                     }
                 >
                     &gt;

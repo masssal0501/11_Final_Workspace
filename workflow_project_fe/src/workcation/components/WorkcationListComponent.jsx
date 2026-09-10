@@ -14,7 +14,7 @@ export const OPTION_CONFIG = {
     tour: { label: "관광지", key: "tour", priceKey: "tourPrice", dateName: "tourDate" }
 };
 
-function WorkcationListComponent() {
+function WorkcationListComponent({ loginUser }) {
 
     const navigate = useNavigate(); // 페이지 이동 함수
 
@@ -59,7 +59,7 @@ function WorkcationListComponent() {
 
     // 3. 조건 변경 시 워케이션 목록 조회
     useEffect(() => {
-        if(mainRegion && !subRegion){
+        if (mainRegion && !subRegion) {
             return;
         }
         selectWorkcationList();
@@ -103,7 +103,22 @@ function WorkcationListComponent() {
         const items = Array.isArray(responseData) ? responseData
             : (responseData?.list || responseData?.content || []);
 
-        const trArr = items.map((item) => {
+        const statusMap = {
+            approved: "A",
+            canceled: "C",
+            hold: "H",
+            rejected: "J",
+            review: "R",
+            waiting: "W"
+        };
+
+        const filteredItems = searchType === "all" ? items : items.filter(item => {
+            const status = item.approverState || item.workStatus;
+
+            return status === statusMap[searchType];
+        })
+
+        const trArr = filteredItems.map((item) => {
             const main = item.mainRegion || "";
             const sub = item.subRegion || "";
             const regionText = (main || sub) ? `${main} ${sub}`.trim() : "-";
@@ -218,7 +233,6 @@ function WorkcationListComponent() {
             searchType: newSearchType
         })
     }
-
     return (
         <main className="wf-container">
             <section className="wf-page-header">
@@ -232,9 +246,12 @@ function WorkcationListComponent() {
                         onClick={() => setIsScheduleOpen(true)}>
                         일정관리
                     </button>
-                    <button className="btn btn-primary" onClick={() => { navigate("/workcation/enrollform"); }}>
-                        + 워케이션 신청
-                    </button>
+                    {/* 관리자는 워케이션을 직접 신청하지 않는다 */}
+                    {["STAFF", "MANAGER"].includes(loginUser?.authCode) && (
+                        <button className="btn btn-primary" onClick={() => { navigate("/workcation/enrollform"); }}>
+                            + 워케이션 신청
+                        </button>
+                    )}
                 </div>
             </section>
 
@@ -283,6 +300,7 @@ function WorkcationListComponent() {
                         <option value="hold">보류</option>
                         <option value="rejected">반려</option>
                         <option value="review">검토</option>
+                        <option value="waiting">대기</option>
                     </select>
                 </div>
 

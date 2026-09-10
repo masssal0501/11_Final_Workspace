@@ -90,3 +90,55 @@ export const saveTaskProgress = async (data, file) => {
 
     return response.data;
 };
+
+//워케이션 리스트 일정 조회
+export const getWorkcationSchedule = async (date) => {
+
+    const response = await axiosInstance.get(
+        "/workcation/schedule",
+        { params: { date } }
+    );
+
+    return response.data;
+}
+
+//내 워케이션 첨부파일업로드
+export const uploadWorkFile = async (workcationNo, file) => {
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await axiosInstance.post(
+        `/workcation/${workcationNo}/file`,
+        formData,
+        { headers: { "Content-Type": undefined } }
+    );
+
+    return response.data;
+};
+
+//첨부 다운로드
+export const downloadWorkFile = async (taskFileNo, originName) => {
+
+    const response = await axiosInstance.get(
+        `/workcation/file/${taskFileNo}/download`,
+        { responseType: "blob" }
+    );
+
+    const url = window.URL.createObjectURL(
+        new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = originName;
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+};

@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter
         String authorization =
                 request.getHeader("Authorization");
 
+        System.out.println("요청 METHOD : " + request.getMethod());
         System.out.println("요청 URI : " + request.getRequestURI());
         System.out.println("Authorization : " + authorization);
 

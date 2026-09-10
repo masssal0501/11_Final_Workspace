@@ -45,7 +45,7 @@ function Header({ loginUser, onLogout }) {
   };
 
   //내 워케이션 리스트 이동
-  const handleMyWorcation =() =>{
+  const handleMyWorcation = () => {
     setIsProfileOpen(false);
     navigate("/workcation/mylist");
   }
@@ -87,6 +87,9 @@ function Header({ loginUser, onLogout }) {
       label: "업무 관리",
       icon: "☷",
       path: "/task/list",
+
+      // STAFF는 업무관리 메뉴가 보이지 않아야 한다
+      roles: ["ADMIN", "MANAGER"],
     },
     {
       id: "amount",
@@ -257,7 +260,7 @@ function Header({ loginUser, onLogout }) {
 
 
         {/* =========================
-            Navigation
+            Navigation staff는 업무관리가 안뜨게
         ========================= */}
         <nav className="wf-nav">
           {menus
@@ -358,7 +361,7 @@ function Header({ loginUser, onLogout }) {
                     마이페이지
                   </button>
 
-                   <button
+                  <button
                     type="button"
                     onClick={handleMyWorcation}
                   >

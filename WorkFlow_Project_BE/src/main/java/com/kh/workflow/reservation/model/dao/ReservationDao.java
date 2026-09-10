@@ -23,6 +23,13 @@ public interface ReservationDao
     );
 
 
+    // 워케이션 번호(PK)로 예약 조회
+    // (Nam_Final 쪽 WorkcationServiceImpl이 workcationNo(Integer)만 들고 조회하던
+    //  findByWorkcationNo()를, Reservation이 WorkcationInfo 연관관계로 바뀐
+    //  origin/main 매핑에 맞춰 연관 프로퍼티 탐색 방식으로 대체한 것)
+    List<Reservation> findByWorkcationWorkcationNo(Integer workcationNo);
+
+
     // =========================================================
     // 예약 중복 확인
     //

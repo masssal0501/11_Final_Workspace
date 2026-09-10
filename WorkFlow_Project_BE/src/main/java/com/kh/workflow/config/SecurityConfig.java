@@ -224,6 +224,17 @@ public class SecurityConfig {
 	                    .requestMatchers(
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
+
+	                    // 업무 상태 변경 - 관리자만
+	                    .requestMatchers(
+	                    		HttpMethod.PATCH,
+	                    		"/task/*/status"
+	                    		).hasRole("ADMIN")
+
+	                    // 업무 관리 - 관리자/부서장만
+	                    .requestMatchers("/task/**")
+	                    .hasAnyRole("MANAGER", "ADMIN")
+
 	                 // 승인 관련 API - 관리자 및 매니저만
 	                    .requestMatchers(
 	                            "/approval/**"

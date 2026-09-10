@@ -21,12 +21,12 @@ const OPTION_CONFIG = {
 
 function WorkcationUpdateFormComponent() {
     const navigate = useNavigate();
-    const {workcationNo} = useParams();
+    const { workcationNo } = useParams();
 
     // 지역 데이터 state (WorkcationItemComponent 기능 포함)
     const [mainRegion, setMainRegion] = useState("");
     const [subRegion, setSubRegion] = useState("");
-    const [mainRegionDrop, setMainRegionDrop] = useState([]);   
+    const [mainRegionDrop, setMainRegionDrop] = useState([]);
     const [subRegionDrop, setSubRegionDrop] = useState([]);
 
     const [workcationTitle, setWorkcationTitle] = useState("");
@@ -92,7 +92,7 @@ function WorkcationUpdateFormComponent() {
                 setMainRegionDrop([]);
             });
 
-    }, [])   
+    }, [])
 
     // 상세 지역 조회 
     useEffect(() => {
@@ -126,7 +126,7 @@ function WorkcationUpdateFormComponent() {
                     ? res.data
                     : (Array.isArray(res) ? res : []);
                 setHubDrop(listData);
-                
+
             })
             .catch(err => {
                 console.error("거점 목록 조회 실패: ", err);
@@ -173,17 +173,17 @@ function WorkcationUpdateFormComponent() {
         });
     }, [mainRegion, subRegion, selectedBtns]);
 
-  useEffect(() => {
+    useEffect(() => {
         if (!workcationNo) return;
 
         getWorkcationDetail(workcationNo)
             .then(res => {
                 if (!res) return;
                 setWorkcationTitle(res.workcationTitle || "");
-                setStartDate(res.startDate || getToday()); 
+                setStartDate(res.startDate || getToday());
                 setEndDate(res.endDate || getToday());
-                setUserCapacity(res.peopleCount || res.userCapacity || 1); 
-                setTaskPurpose(res.purpose || res.taskPurpose || "");                                    
+                setUserCapacity(res.peopleCount || res.userCapacity || 1);
+                setTaskPurpose(res.purpose || res.taskPurpose || "");
 
                 setMainRegion(res.mainRegion);
                 setSubRegion(res.subRegion || "");
@@ -414,17 +414,17 @@ function WorkcationUpdateFormComponent() {
         };
 
         try {
-            const response = await updateWorkcation(workcationNo, insertworkcationData);
-            if (response.status === 200 || response.status === 201) {
-                alert("수정이 완료되었습니다.");
-                navigate("/workcation/list");
-            }
+            await updateWorkcation(workcationNo, insertworkcationData);
+
+            alert("수정이 완료되었습니다.");
+            navigate(`/workcation/detail/${workcationNo}`);
+
         } catch (err) {
-            console.error("실패", err);
-            alert("오류가 발생했습니다.");
+            console.error("수정 실패", err);
+            alert("수정 중 오류가 발생했습니다.");
         }
     };
-    
+
 
     return (
         <div className="workcatrion-enroll-container">

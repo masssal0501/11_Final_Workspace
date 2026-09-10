@@ -1,4 +1,4 @@
-.task-status-badge { /*진행도뱃지*/
+.task-status-badge {
     margin: auto;
     display: inline-flex;
     align-items: center;
@@ -9,8 +9,9 @@
     white-space: nowrap;
 }
 
-.status-gray {background-color: var(--wf-neutral-bg); color: var(--wf-neutral);}/*업무준비*/
-.status-red {background-color: var(--wf-danger-bg); color: var(--wf-danger);}/*1~50*/
-.status-yellow {background-color: var(--wf-warning-bg); color: var(--wf-warning);}/*51-100*/
-.status-blue {background-color: var(--wf-info-bg); color: var(--wf-info);}/*완료요청*/
-.status-green {background-color: var(--wf-success-bg); color: var(--wf-success);}/*업무 완료*/
+.task-status-gray {background-color: var(--wf-neutral-bg); color: var(--wf-neutral);}/*업무준비*/
+.task-status-orange {background-color: var(--wf-warning-bg); color: var(--wf-warning);}/*1~50*/
+.task-status-yellow {background-color: #fef3c7; color: #b45309;}/*51-99*/
+.task-status-blue {background-color: var(--wf-info-bg); color: var(--wf-info);}/*완료요청, 승인대기*/
+.task-status-green {background-color: var(--wf-success-bg); color: var(--wf-success);}/*업무 완료(승인)*/
+.task-status-red {background-color: var(--wf-danger-bg); color: var(--wf-danger);}/*거부*/

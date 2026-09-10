@@ -1,11 +1,14 @@
 package com.kh.workflow.workcation.model.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,9 +30,11 @@ import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.task.model.dao.TaskHistoryDao;
 import com.kh.workflow.task.model.dao.WorkDao;
+import com.kh.workflow.task.model.dao.WorkFileDao;
 import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.TaskHistory;
 import com.kh.workflow.task.model.vo.Work;
+import com.kh.workflow.task.model.vo.WorkFile;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
@@ -53,7 +58,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Autowired
 	private com.kh.workflow.hub.model.dao.HubDao hubDao;
-	
+
 	@Autowired
 	private TaskDao taskDao;
 
@@ -62,18 +67,21 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 	@Autowired
 	private WorkDao workDao;
-	
+
+	@Autowired
+	private WorkFileDao workFileDao;
+
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
 		int empNo = (int) paramMap.get("empNo");
-		
+
 		// 1. 오라클 DB용 빈문자열 NULL 변환
 		String mainRegion = paramMap != null ? (String) paramMap.get("mainRegion") : null;
 		String subRegion = paramMap != null ? (String) paramMap.get("subRegion") : null;
 
 		Page<WorkcationInfo> workcationPage = workcationDao.findByEmployeeEmpNo(empNo, pageable);
-		
+
 		if (mainRegion != null && mainRegion.trim().isEmpty()) {
 			mainRegion = null;
 		}
@@ -93,17 +101,27 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("employee", workcation.getEmployee());
 
 			// 3. 람다식 내부 변수명 중복 해결 (hubMainRegion, hubSubRegion으로 변경)
-			List<Reservation> reservations = reservationDao.findByWorkcation(workcation);
+			List<Reservation> reservations = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 			String hubMainRegion = "";
 			String hubSubRegion = "";
 
 			if (reservations != null && !reservations.isEmpty()) {
 				for (Reservation r : reservations) {
+
 					if (r.getHub() != null) {
-						int hubType = r.getHub().getHubType();
-						if (hubType == 1 || hubType == 2) { // 오피스 또는 숙소
-							hubMainRegion = r.getHub().getMainRegion() != null ? r.getHub().getMainRegion() : "";
-							hubSubRegion = r.getHub().getSubRegion() != null ? r.getHub().getSubRegion() : "";
+
+						Hub hub = hubDao.findById(r.getHub().getHubNo()).orElse(null);
+
+						if (hub != null) {
+
+							int hubType = hub.getHubType();
+							if (hubType == 1 || hubType == 2) {
+
+							}
+							hubMainRegion = hub.getMainRegion() != null ? hub.getMainRegion() : "";
+
+							hubSubRegion = hub.getSubRegion() != null ? hub.getSubRegion() : "";
+
 							break;
 						}
 					}
@@ -115,8 +133,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 			return map;
 		});
-	}	
-	
+	}
+
 	@Override
 	public Map<String, Object> getAmountSupportInfo() {
 
@@ -219,21 +237,20 @@ public class WorkcationServiceImpl implements WorkcationService {
 			}
 		}
 
-		// Hub 객체 생성
-		Hub hub = new Hub();
-		if (hubNo != null) {
-			hub.setHubNo(hubNo);
-		}
+		// Hub 객체 조회 (Reservation이 Hub 연관관계를 갖도록 바뀌어 실제 엔티티가 필요)
+		Hub hub = (hubNo != null) ? hubDao.findById(hubNo).orElse(null) : null;
 
 		Object peopleCountObj = paramMap.get("peopleCount");
 		Integer peopleCount = peopleCountObj != null ? Integer.parseInt(peopleCountObj.toString()) : 1;
 
 		Reservation reservation = new Reservation();
+
 		reservation.setWorkcation(workcation);
 		reservation.setHub(hub);
 		reservation.setUserCapacity(peopleCount);
 		reservation.setRsvStart(startAt);
 		reservation.setRsvEnd(endAt);
+		reservation.setRsvStatus("N");
 
 		reservationDao.save(reservation);
 
@@ -302,7 +319,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
 		// 1. 해당 워케이션의 모든 예약(메인 거점 + 옵션 거점들) 조회
-		List<Reservation> reservationList = reservationDao.findByWorkcation(workcation);
+		List<Reservation> reservationList = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 
 		Hub mainHub = null;
 		Reservation mainReservation = null;
@@ -310,7 +327,13 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		if (reservationList != null) {
 			for (Reservation reservation : reservationList) {
-				Hub hub = reservation.getHub();
+
+				Hub hub = null;
+
+				if (reservation.getHub() != null) {
+					hub = hubDao.findById(reservation.getHub().getHubNo()).orElse(null);
+				}
+
 				if (hub != null) {
 					int hubType = hub.getHubType(); // 1: 오피스, 2: 숙소, 3: 체험, 4: 맛집, 5: 관광지
 					if (hubType == 1 || hubType == 2) {
@@ -356,6 +379,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("workcationTitle", workcation.getWorkcationTitle());
 		// BUG-008: 상세 화면이 승인 상태를 표시하지 못해 항상 "신청 완료"로 고정 노출되던
 		// 문제의 근본 원인 - 이 맵에 approverState 자체가 빠져 있었음.
+		result.put("writerEmpNo", workcation.getEmployee() != null ? workcation.getEmployee().getEmpNo() : null);
+
 		result.put("approverState", workcation.getApproverState());
 		result.put("startDate",
 				workcation.getStartAt() != null ? workcation.getStartAt().toLocalDate().toString() : "");
@@ -393,7 +418,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		result.put("companySupport", companySupport);
 		result.put("localGovSupport", localGovSupport);
-		
+
 		int totalSupport = companySupport + localGovSupport;
 		result.put("totalSupport", totalSupport);
 
@@ -422,7 +447,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 			actualPurpose = purposeToken.replace("[근무 목적]", "").trim();
 		}
 
-		workDao.findByWorkcationInfo_WorkcationNo(workcation.getWorkcationNo()).ifPresent(work -> {
+		// 워케이션 1건에 Work가 여러 건(예: 날짜별 근무) 있을 수 있으므로 전부 순회한다.
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcation.getWorkcationNo());
+		for (Work work : workList) {
 			List<Task> taskList = taskDao.findByWork_WorkNo(work.getWorkNo());
 			for (Task task : taskList) {
 				long days = 1;
@@ -440,7 +467,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 				planMap.put("days", days);
 				planList.add(planMap);
 			}
-		});
+		}
 
 		result.put("purpose", actualPurpose);
 		result.put("planList", planList);
@@ -496,8 +523,52 @@ public class WorkcationServiceImpl implements WorkcationService {
 		workcation.setEndAt(endAt);
 		workcationDao.save(workcation);
 
+		// 업무
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+
+		Work work;
+
+		if (workList.isEmpty()) {
+			work = new Work();
+			work.setWorkcationInfo(workcation);
+			work.setSubmittedAt(LocalDateTime.now());
+			work = workDao.save(work);
+		} else {
+			work = workList.get(0);
+		}
+
+		List<Task> existingTasks = taskDao.findByWorkWorkNo(work.getWorkNo());
+
+		if (planList != null) {
+			for (Map<String, Object> planItem : planList) {
+
+				String taskName = (String) planItem.get("taskName");
+
+				if (taskName == null || taskName.trim().isEmpty()) {
+					continue;
+				}
+				boolean exists = existingTasks.stream().anyMatch(task -> taskName.equals(task.getTaskTitle()));
+
+				if (!exists) {
+
+					Task task = new Task();
+
+					task.setTaskTitle(taskName);
+					task.setTaskContent("");
+					task.setTasktimeAt(LocalDateTime.now());
+					task.setProgress(0);
+					task.setStatus("N");
+					task.setWork(work);
+
+					taskDao.save(task);
+					existingTasks.add(task);
+
+				}
+			}
+		}
+
 		// 2. 예약(Reservation) 정보 수정 (기존 예약 삭제 후 메인+옵션 재등록)
-		List<Reservation> existingRsvs = reservationDao.findByWorkcation(workcation);
+		List<Reservation> existingRsvs = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 		if (existingRsvs != null && !existingRsvs.isEmpty()) {
 			reservationDao.deleteAll(existingRsvs);
 		}
@@ -521,9 +592,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 				Integer mainHubNo = Integer.parseInt(hubNoObj.toString());
 
 				mainRsv.setWorkcation(workcation);
-				Hub mainHub = new Hub();
-				mainHub.setHubNo(mainHubNo);
-				mainRsv.setHub(mainHub);
+				mainRsv.setHub(hubDao.findById(mainHubNo).orElse(null));
 				mainRsv.setUserCapacity(peopleCount);
 				mainRsv.setRsvStart(startAt);
 				mainRsv.setRsvEnd(endAt);
@@ -558,10 +627,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 						LocalDateTime visitDate = parseDateSafely(visitDateObj, startAt);
 
 						Reservation optionRsv = new Reservation();
+						optionRsv.setHub(hubDao.findById(optionHubNo).orElse(null));
 						optionRsv.setWorkcation(workcation);
-						Hub optionHub = new Hub();
-						optionHub.setHubNo(optionHubNo);
-						optionRsv.setHub(optionHub);
 						optionRsv.setUserCapacity(peopleCount);
 						optionRsv.setRsvStart(visitDate);
 						optionRsv.setRsvEnd(visitDate);
@@ -707,182 +774,377 @@ public class WorkcationServiceImpl implements WorkcationService {
 		WorkcationInfo workcation = workcationDao.findById(workcationNo)
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
-		List<Reservation> reservationList = reservationDao.findByWorkcation(workcation);
-		if (reservationList != null) {
+		// 업무
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+
+		for (Work work : workList) {
+
+			List<Task> taskList = taskDao.findByWorkWorkNo(work.getWorkNo());
+
+			for (Task task : taskList) {
+
+				List<TaskHistory> historyList = taskHistoryDao.findByTaskTaskNoOrderByCreatedAtDesc(task.getTaskNo());
+
+				taskHistoryDao.deleteAll(historyList);
+			}
+
+			taskDao.deleteAll(taskList);
+		}
+
+		workDao.deleteAll(workList);
+
+		// 예약
+		List<Reservation> reservationList = reservationDao.findByWorkcationWorkcationNo(workcationNo);
+
+		if (reservationList != null && !reservationList.isEmpty()) {
 			reservationDao.deleteAll(reservationList);
 		}
 
-		List<Amount> amountList = amountDao.findByWorkcationNo(workcation.getWorkcationNo());
+		// 비용
+		List<Amount> amountList = amountDao.findByWorkcationNo(workcationNo);
+
 		if (amountList != null && !amountList.isEmpty()) {
+
 			amountDao.deleteAll(amountList);
 		}
 
+		// 워케이션
 		workcationDao.delete(workcation);
 	}
 
 	@Override
-	public Page<Map<String, Object>> selectMyWorkcationList(
-	        Map<String, Object> paramMap,
-	        Pageable pageable) {
+	public Page<Map<String, Object>> selectMyWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
-	    int empNo = (int) paramMap.get("empNo");
+		int empNo = (int) paramMap.get("empNo");
 
-	    String mainRegion =
-	            paramMap.get("mainRegion") != null
-	                    ? (String) paramMap.get("mainRegion")
-	                    : null;
+		String mainRegion = paramMap.get("mainRegion") != null ? (String) paramMap.get("mainRegion") : null;
 
-	    String subRegion =
-	            paramMap.get("subRegion") != null
-	                    ? (String) paramMap.get("subRegion")
-	                    : null;
+		String subRegion = paramMap.get("subRegion") != null ? (String) paramMap.get("subRegion") : null;
 
-	    // 빈 문자열이면 JPA 검색조건에서 제외하기 위해 null 처리
-	    if (mainRegion != null && mainRegion.trim().isEmpty()) {
-	        mainRegion = null;
-	    }
+		// 빈 문자열이면 JPA 검색조건에서 제외하기 위해 null 처리
+		if (mainRegion != null && mainRegion.trim().isEmpty()) {
+			mainRegion = null;
+		}
 
-	    if (subRegion != null && subRegion.trim().isEmpty()) {
-	        subRegion = null;
-	    }
+		if (subRegion != null && subRegion.trim().isEmpty()) {
+			subRegion = null;
+		}
 
-	    Page<WorkcationInfo> page =
-	            workcationDao.searchMyWorkcationList(
-	                    empNo,
-	                    mainRegion,
-	                    subRegion,
-	                    pageable
-	            );
+		Page<WorkcationInfo> page = workcationDao.searchMyWorkcationList(empNo, mainRegion, subRegion, pageable);
 
-	    return page.map(workcation -> {
+		return page.map(workcation -> {
 
-	        Map<String, Object> map = new HashMap<>();
+			Map<String, Object> map = new HashMap<>();
 
-	        map.put(
-	                "workcationNo",
-	                workcation.getWorkcationNo()
-	        );
+			map.put("workcationNo", workcation.getWorkcationNo());
 
-	        map.put(
-	                "workcationTitle",
-	                workcation.getWorkcationTitle()
-	        );
+			map.put("workcationTitle", workcation.getWorkcationTitle());
 
-	        map.put(
-	                "createdAt",
-	                workcation.getCreatedAt()
-	        );
+			map.put("createdAt", workcation.getCreatedAt());
 
-	        map.put(
-	                "approverState",
-	                workcation.getApproverState()
-	        );
-	    
-	        // 지역 조회
-	        List<Reservation> reservations =
-	                reservationDao.findByWorkcation(workcation);
+			map.put("approverState", workcation.getApproverState());
 
-	        String main = "";
-	        String sub = "";
+			// 지역 조회
+			List<Reservation> reservations = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 
-	        if (reservations != null &&
-	            !reservations.isEmpty()) {
+			String main = "";
+			String sub = "";
 
-	            for (Reservation reservation : reservations) {
+			if (reservations != null && !reservations.isEmpty()) {
 
-	                if (reservation.getHub() == null) {
-	                    continue;
-	                }
+				for (Reservation reservation : reservations) {
 
-	                int hubType =
-	                        reservation
-	                                .getHub()
-	                                .getHubType();
+					if (reservation.getHub() == null) {
+						continue;
+					}
 
-	                // 메인 거점 또는 숙소
-	                if (hubType == 1 || hubType == 2) {
+					Hub hub = hubDao.findById(reservation.getHub().getHubNo()).orElse(null);
 
-	                    main =
-	                            reservation
-	                                    .getHub()
-	                                    .getMainRegion() != null
-	                                    ? reservation
-	                                        .getHub()
-	                                        .getMainRegion()
-	                                    : "";
+					if (hub == null) {
+						continue;
+					}
 
-	                    sub =
-	                            reservation
-	                                    .getHub()
-	                                    .getSubRegion() != null
-	                                    ? reservation
-	                                        .getHub()
-	                                        .getSubRegion()
-	                                    : "";
+					int hubType = hub.getHubType();
 
-	                    break;
-	                }
-	            }
-	        }
+					// 메인 거점 또는 숙소
+					if (hubType == 1 || hubType == 2) {
 
-	        map.put("mainRegion", main);
-	        map.put("subRegion", sub);
+						main = hub.getMainRegion() != null ? hub.getMainRegion() : "";
 
-	        return map;
-	    });
+						sub = hub.getSubRegion() != null ? hub.getSubRegion() : "";
+
+						break;
+					}
+				}
+			}
+
+			map.put("mainRegion", main);
+			map.put("subRegion", sub);
+
+			return map;
+		});
 	}
 
 	@Override
-	public Map<String, Object> getMyWorkcationDetail(
-	        Integer workcationNo,
-	        int empNo
-	) {
+	public Map<String, Object> getMyWorkcationDetail(Integer workcationNo, int empNo) {
 
-	    WorkcationInfo workcation =
-	            workcationDao
-	                    .findByWorkcationNoAndEmployeeEmpNo(
-	                            workcationNo,
-	                            empNo
-	                    )
-	                    .orElseThrow(() ->
-	                            new RuntimeException(
-	                                    "조회할 수 없는 워케이션입니다."
-	                            )
-	                    );
+		WorkcationInfo workcation = workcationDao.findByWorkcationNoAndEmployeeEmpNo(workcationNo, empNo)
+				.orElseThrow(() -> new RuntimeException("조회할 수 없는 워케이션입니다."));
 
-	    return getWorkcationDetail(
-	            workcation.getWorkcationNo()
-	    );
+		Map<String, Object> result = getWorkcationDetail(workcationNo);
+
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+
+		List<Map<String, Object>> taskList = new ArrayList<>();
+
+		List<Map<String, Object>> historyList = new ArrayList<>();
+
+		for (Work work : workList) {
+
+			List<Task> tasks = taskDao.findByWorkWorkNo(work.getWorkNo());
+
+			for (Task task : tasks) {
+
+				Map<String, Object> taskMap = new HashMap<>();
+
+				taskMap.put("taskNo", task.getTaskNo());
+				taskMap.put("taskName", task.getTaskTitle());
+				taskMap.put("taskTitle", task.getTaskTitle());
+				taskMap.put("taskContent", task.getTaskContent());
+				taskMap.put("progress", task.getProgress() != null ? task.getProgress() : 0);
+				taskMap.put("status", task.getStatus());
+				taskList.add(taskMap);
+
+				List<TaskHistory> histories = taskHistoryDao.findByTaskTaskNoOrderByCreatedAtDesc(task.getTaskNo());
+
+				for (TaskHistory history : histories) {
+
+					Map<String, Object> historyMap = new HashMap<>();
+
+					historyMap.put("history", history.getHistoryNo());
+					historyMap.put("taskNo", task.getTaskNo());
+					historyMap.put("title", history.getHistoryTitle());
+					historyMap.put("content", history.getHistoryContent());
+					historyMap.put("progress", history.getProgress());
+					historyMap.put("createdAt", history.getCreatedAt());
+					historyList.add(historyMap);
+
+				}
+			}
+		}
+		result.put("planList", taskList);
+		result.put("historyList", historyList);
+
+		return result;
 	}
 
 	@Transactional
 	@Override
 	public void updateTask(Integer taskNo, Integer progress, String title, String content, MultipartFile file) {
-		
-		Task task = taskDao.findById(taskNo).orElseThrow(()-> 
-									new RuntimeException("업무를 찾을수 없습니다."));
-		
-		//진행률 검증
-		if(progress < 0 || progress > 100 || progress %5!=0) {
+
+		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무를 찾을수 없습니다."));
+
+		// 진행률 검증
+		if (progress < 0 || progress > 100 || progress % 5 != 0) {
 			throw new IllegalArgumentException("진행률은 0~100 사이의 5단위 값");
 		}
-		
-		//task 업데이트 최신 상태
+
+		// 기존 제목
+		String oldTitle = task.getTaskTitle();
+
+		// 업무
 		task.setProgress(progress);
 		task.setTaskTitle(title);
 		task.setTaskContent(content);
 		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
 		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
 		task.setStatus(progress == 100 ? "Y" : "N");
-		
-		//최근 업무 이력 INSERT
+
+		// 워케이션 업무계획 제목 동기화
+		Work work = task.getWork();
+
+		if (work != null && work.getWorkcationInfo() != null) {
+			WorkcationInfo workcation = work.getWorkcationInfo();
+
+			String workPlan = workcation.getWorkPlan();
+
+			if (workPlan != null && oldTitle != null && title != null && !oldTitle.equals(title)) {
+
+				String[] tokens = workPlan.split(" / ");
+				StringBuilder newPlan = new StringBuilder();
+
+				for (String token : tokens) {
+					String updatedToken = token;
+
+					if (!token.startsWith("[근무 목적]")) {
+						int idxOpen = token.lastIndexOf("(");
+
+						if (idxOpen > 0) {
+							String planTitle = token.substring(0, idxOpen).trim();
+
+							if (planTitle.equals(oldTitle)) {
+								updatedToken = title + token.substring(idxOpen);
+							}
+						}
+					}
+
+					if (newPlan.length() > 0) {
+						newPlan.append(" / ");
+					}
+
+					newPlan.append(updatedToken);
+				}
+
+				workcation.setWorkPlan(newPlan.toString());
+			}
+		}
+
+		// 최근 업무 이력 INSERT
 		TaskHistory history = new TaskHistory();
-		
+
 		history.setTask(task);
 		history.setHistoryTitle(title);
 		history.setHistoryContent(content);
 		history.setProgress(progress);
-		
+
 		taskHistoryDao.save(history);
+
+		// 첨부파일 저장
+		if (file != null && !file.isEmpty()) {
+
+			String originName = file.getOriginalFilename();
+
+			String extension = "";
+
+			if (originName != null && originName.contains(".")) {
+				extension = originName.substring(originName.lastIndexOf("."));
+			}
+
+			String changeName = UUID.randomUUID().toString() + extension;
+
+			String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
+
+			File dir = new File(uploadDir);
+
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+
+			try {
+				file.transferTo(new File(uploadDir + changeName));
+			} catch (IOException e) {
+				throw new RuntimeException("첨부파일 저장에 실패했습니다.", e);
+			}
+
+			WorkFile workFile = new WorkFile();
+
+			workFile.setOriginName(originName);
+			workFile.setChangeName(changeName);
+			workFile.setFilePath("/uploads/work/");
+			workFile.setFileSize(file.getSize());
+			workFile.setStatus("Y");
+
+			// task가 소속된 work 연결
+			workFile.setWork(task.getWork());
+
+			workFileDao.save(workFile);
+		}
 	}
+
+	@Override
+	public Map<String, Object> getWorkcationSchedule(LocalDate date, int empNo) {
+
+		LocalDateTime startOfDay = date.atStartOfDay();
+
+		LocalDateTime endOfDay = date.plusDays(1).atStartOfDay().minusNanos(1);
+		List<WorkcationInfo> list = workcationDao.findWorkcationByDate(startOfDay, endOfDay);
+		List<Map<String, Object>> mySchedule = new ArrayList<>();
+		List<Map<String, Object>> departmentSchedule = new ArrayList<>();
+		for (WorkcationInfo workcation : list) {
+
+			Employee employee = workcation.getEmployee();
+			if (employee == null) {
+				continue;
+			}
+
+			Map<String, Object> schedule = new HashMap<>();
+
+			schedule.put("workcationNo", workcation.getWorkcationNo());
+			schedule.put("empNo", employee.getEmpNo());
+			schedule.put("empName", employee.getEmpName());
+			schedule.put("startAt", workcation.getStartAt());
+			schedule.put("endAt", workcation.getEndAt());
+			if (employee.getEmpNo() == empNo) {
+
+				mySchedule.add(schedule);
+
+			} else {
+
+				departmentSchedule.add(schedule);
+			}
+		}
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("mySchedule", mySchedule);
+		result.put("departmentSchedule", departmentSchedule);
+
+		return result;
+	}
+
+	@Transactional
+	@Override
+	public void uploadWorkFile(Integer workcationNo, MultipartFile file) {
+
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("첨부파일이 없습니다.");
+		}
+
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+
+		if (workList.isEmpty()) {
+			throw new RuntimeException("업무 정보를 찾을 수 없습니다.");
+		}
+
+		Work work = workList.get(0);
+
+		String originName = file.getOriginalFilename();
+
+		String extension = "";
+
+		if (originName != null && originName.contains(".")) {
+
+			extension = originName.substring(originName.lastIndexOf("."));
+		}
+
+		String changeName = UUID.randomUUID() + extension;
+
+		String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
+
+		File dir = new File(uploadDir);
+
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+
+		try {
+
+			file.transferTo(new File(uploadDir + changeName));
+
+		} catch (IOException e) {
+
+			throw new RuntimeException("파일 저장 실패", e);
+		}
+
+		WorkFile workFile = new WorkFile();
+
+		workFile.setWork(work);
+		workFile.setOriginName(originName);
+		workFile.setChangeName(changeName);
+		workFile.setFilePath("/uploads/work/");
+		workFile.setFileSize(file.getSize());
+		workFile.setStatus("Y");
+
+		workFileDao.save(workFile);
+	}
+
 }
