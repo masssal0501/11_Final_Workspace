@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Sector } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import { selectAdminDashboardApi } from "../api/dashboardApi";
 import "../css/dashboard.css"
 
@@ -75,19 +75,21 @@ function AdminComponent() {
         if (name === 'BE 개발부') return '#b3e6ff';
         if (name === '데이터부') return '#b3ffb3';
         if (name === 'QA부서') return '#ffffb3';
-        return '#1f1e33';
+        return '#a4b0be';
     };
 
     /**
-     * 파이/도넛 차트 내부 또는 외부 지시선에 라벨을 동적으로 렌더링하는 함수
-     * 비중이 15% 이하일 경우 바깥쪽 지시선에 표시하고, 초과일 경우 파이 조각 내부에 표시합니다.
+     * percent 파라미터(0~1)를 받아서 퍼센티지를 계산하는 라벨 렌더링 함수
      */
-    const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, value }) => {
+    const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, percent }) => {
         const RADIAN = Math.PI / 180;
         const sin = Math.sin(-midAngle * RADIAN);
         const cos = Math.cos(-midAngle * RADIAN);
+        const percentValue = Math.round(percent * 100);
 
-        if (value <= 15) {
+        if (percentValue === 0) return null;
+
+        if (percentValue <= 15) {
             const sx = cx + (outerRadius + 5) * cos;
             const sy = cy + (outerRadius + 5) * sin;
             const mx = cx + (outerRadius + 15) * cos;
@@ -100,7 +102,7 @@ function AdminComponent() {
                 <g>
                     <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke="#888" fill="none" />
                     <text x={ex + (cos >= 0 ? 3 : -3)} y={ey} textAnchor={textAnchor} fill="#333" dominantBaseline="central" style={{ fontSize: '11px' }}>
-                        {`${name} ${value}%`}
+                        {`${name} ${percentValue}%`}
                     </text>
                 </g>
             );
@@ -112,7 +114,7 @@ function AdminComponent() {
 
             return (
                 <text x={x} y={y} fill="#333" textAnchor="middle" dominantBaseline="central" style={{ fontSize: '11px', fontWeight: 'bold' }}>
-                    {`${name} ${value}%`}
+                    {`${name} ${percentValue}%`}
                 </text>
             );
         }
@@ -188,9 +190,9 @@ function AdminComponent() {
                 </div>
                 {/* 우측: 주요 지역별(제주, 강원, 부산) 이용 통계 수치 표출 */}
                 <div className="d-flex w-50 dashboard-3">
-                    <p>제주 : {data.regionData?.find(item => item.name === '제주' || item.name === '제주도')?.value ?? 0}%</p>
-                    <p>강원 : {data.regionData?.find(item => item.name === '강원' || item.name === '강원도')?.value ?? 0}%</p>
-                    <p>부산 : {data.regionData?.find(item => item.name === '부산' || item.name === '부산시')?.value ?? 0}%</p>
+                    <p>제주 : {data.regionData?.find(item => item.name === '제주')?.value ?? 0}%</p>
+                    <p>강원 : {data.regionData?.find(item => item.name === '강원')?.value ?? 0}%</p>
+                    <p>부산 : {data.regionData?.find(item => item.name === '부산')?.value ?? 0}%</p>
                 </div>
             </div>
             <br /><br /><br /><br />
@@ -284,7 +286,10 @@ function AdminComponent() {
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie 
-                                data={data.shareData} 
+                                data={data.shareData.map(item => ({
+                                        ...item,
+                                        fill: getOfficeColor(item.name)
+                                    }))}  
                                 dataKey="value" 
                                 nameKey="name" 
                                 cx="50%" 
@@ -292,7 +297,6 @@ function AdminComponent() {
                                 outerRadius={100} 
                                 labelLine={false} 
                                 label={renderCustomLabel}
-                                shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name)} />}
                             />
                             <Tooltip />
                         </PieChart>
@@ -308,27 +312,27 @@ function AdminComponent() {
             {/* 예산 관련 시각화 분석 섹션 */}
             <div className="dashboard-1" align="center">예산</div>
             <div className="d-flex text-center py-4" style={{ height: '300px' }}>
-                {/* 총 예산 대비 집행률을 시각적으로 나타내는 프로그레스 바 영역 */}
+                {/* 총 예산 대비 집행률 */}
                 <div className="d-flex flex-column align-items-center" style={{ width: '33.3%', height: '100%' }}>
                     <p style={{ fontWeight: 'bold' }}>총 예산 대비 집행률</p>
-                    {/* 부트스트랩 progress 클래스를 활용한 프로그레스 바 외곽 배경 컨테이너 */}
                     <div className="progress dashboard-progress">
-                        {/* 부트스트랩 줄무늬 및 애니메이션 효과와 함께, 데이터에 따른 너비 및 커스텀 배경색이 적용되는 바 내부 영역 */}
                         <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.budgetData}%`, backgroundColor: '#ea8685' }}></div>
-                        {/* 프로그레스 바 채움 정도와 상관없이 텍스트를 항상 정중앙에 고정하여 보여주기 위한 오버레이 레이어 */}
                         <div className="d-flex dashboard-progress-text">
                             {data.budgetData}% / 100%
                         </div>
                     </div>
                 </div>
-                {/* 항목별 지출 비중 파이 차트 영역 */}
+                {/* 항목별 지출 비중 파이 차트 */}
                 <div style={{ width: '33.3%', height: '100%' }}>
                     <p style={{ fontWeight: 'bold', marginBottom: '0' }}>항목별 지출 비중</p>
                     {data.categoryData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie 
-                                    data={data.categoryData} 
+                                    data={data.categoryData.map(item => ({
+                                        ...item,
+                                        fill: getOfficeColor(item.name)
+                                    }))} 
                                     dataKey="value" 
                                     nameKey="name" 
                                     cx="50%" 
@@ -336,8 +340,7 @@ function AdminComponent() {
                                     outerRadius={75} 
                                     labelLine={false} 
                                     label={renderCustomLabel}
-                                    shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name)} />}
-                            />
+                                />
                             <Tooltip />
                         </PieChart>
                     </ResponsiveContainer>
@@ -355,7 +358,10 @@ function AdminComponent() {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie 
-                                    data={data.deptData} 
+                                    data={data.deptData.map(item => ({
+                                        ...item,
+                                        fill: getOfficeColor(item.name)
+                                    }))}  
                                     dataKey="value" 
                                     nameKey="name" 
                                     cx="50%" 
@@ -364,7 +370,6 @@ function AdminComponent() {
                                     outerRadius={75} 
                                     labelLine={false} 
                                     label={renderCustomLabel}
-                                    shape={(props) => <Sector {...props} fill={getOfficeColor(props.payload.name)} />}
                                 />
                             <Tooltip />
                         </PieChart>

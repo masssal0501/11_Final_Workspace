@@ -296,8 +296,10 @@ public interface AmountDao
                 END,
                 COALESCE(SUM(ai.itemAmount), 0)
             )
-            FROM AmountItem ai
-            GROUP BY ai.itemType
+              FROM AmountItem ai
+              JOIN Amount a ON ai.amount = a
+             WHERE a.status = 'A'
+             GROUP BY ai.itemType
         """)
 	List<ChartDataDto> selectCategoryData();
 

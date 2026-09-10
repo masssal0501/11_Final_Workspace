@@ -155,7 +155,10 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
-				h.mainRegion,
+				CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주'
+    			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
+    			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
+    			     ELSE '' END,
 				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
 			)
 			  FROM WorkcationInfo w
