@@ -32,7 +32,7 @@ export default function NoticeForm({
             <div className="notice-form-row">
 
                 <label>
-                    제목
+                    제목<span className="wf-required">*</span>
                 </label>
 
                 <input
@@ -83,7 +83,7 @@ export default function NoticeForm({
             <div className="notice-form-row content-row">
 
                 <label>
-                    내용
+                    내용<span className="wf-required">*</span>
                 </label>
 
                 <textarea
@@ -103,7 +103,7 @@ export default function NoticeForm({
 
                 <button
                     type="submit"
-                    className="notice-btn primary"
+                    className="primary"
                 >
                     {submitText}
                 </button>

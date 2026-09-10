@@ -39,9 +39,12 @@ public class SurveyAnswer {
 	@Column(name="answer_value", length=200)
 	private String answerValue;
 	
+	// SQL상 score는 NULL 허용(TEXT형 질문은 평점이 없음) - 기존 통계 쿼리
+	// (WorkcationDao.selectAvgSatisfaction)가 AVG(s.score)로 평균을 내므로
+	// primitive int(기본값 0)를 쓰면 TEXT 답변까지 0점으로 잡혀 평균이 왜곡된다.
 	@Schema(description="평점")
-	@Column(name="score", columnDefinition="INT")
-	private int score;
+	@Column(name="score")
+	private Integer score;
 	
 	@ManyToOne
 	@JoinColumn(name="survey_no", nullable=false)

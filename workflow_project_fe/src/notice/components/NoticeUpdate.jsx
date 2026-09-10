@@ -189,24 +189,25 @@ export default function NoticeUpdate() {
 
     return (
 
-        <div className="notice-container">
+        <main className="notice-container">
 
-            <div className="notice-header">
+            <section className="notice-header wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">공지사항 수정</h1>
+                    <p className="wf-page-description">공지사항 내용을 수정합니다.</p>
+                </div>
+            </section>
 
-                <h2>
-                    공지사항 수정
-                </h2>
-
+            <div className="wf-page-content">
+                <NoticeForm
+                    form={form}
+                    setForm={setForm}
+                    onSubmit={handleSubmit}
+                    submitText="수정"
+                />
             </div>
 
-            <NoticeForm
-                form={form}
-                setForm={setForm}
-                onSubmit={handleSubmit}
-                submitText="수정"
-            />
-
-        </div>
+        </main>
 
     );
 

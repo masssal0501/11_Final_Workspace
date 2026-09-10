@@ -13,7 +13,7 @@
     margin: 0 auto;
     padding: 30px 40px 50px;
     box-sizing: border-box;
-    background-color: #f7f8fa;
+    background-color: var(--wf-bg);
     min-height: 100vh;
 }
 
@@ -31,9 +31,9 @@
 
 .statistics-header h2 {
     margin: 0;
-    font-size: 28px;
+    font-size: var(--wf-fs-page-title);
     font-weight: 700;
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 
@@ -43,10 +43,10 @@
 
 .refresh-button {
     padding: 10px 18px;
-    border: 1px solid #ddd;
-    border-radius: 7px;
-    background-color: #fff;
-    color: #333;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
+    background-color: var(--wf-white);
+    color: var(--wf-text-primary);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -54,8 +54,8 @@
 }
 
 .refresh-button:hover {
-    background-color: #f1f3f5;
-    border-color: #bbb;
+    background-color: var(--wf-gray-50);
+    border-color: var(--wf-gray-400);
 }
 
 .refresh-button:active {
@@ -90,16 +90,16 @@
 
     box-sizing: border-box;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
 
     display: flex;
     flex-direction: column;
     justify-content: center;
 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--wf-shadow-sm);
 
     transition:
         transform 0.2s ease,
@@ -109,7 +109,7 @@
 .summary-card:hover {
     transform: translateY(-2px);
 
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+    box-shadow: var(--wf-shadow);
 }
 
 
@@ -120,7 +120,7 @@
 .summary-title {
     margin-bottom: 10px;
 
-    color: #666;
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
     font-weight: 500;
@@ -132,7 +132,7 @@
    ========================================================= */
 
 .summary-value {
-    color: #222;
+    color: var(--wf-text-primary);
 
     font-size: 23px;
     font-weight: 700;
@@ -148,7 +148,7 @@
 .summary-description {
     margin-top: 7px;
 
-    color: #999;
+    color: var(--wf-text-muted);
 
     font-size: 12px;
 }
@@ -174,16 +174,16 @@
    ========================================================= */
 
 .statistics-card {
-    background-color: #fff;
+    background-color: var(--wf-white);
 
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
 
     padding: 24px;
 
     box-sizing: border-box;
 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--wf-shadow-sm);
 }
 
 
@@ -203,7 +203,7 @@
 .statistics-card-header h3 {
     margin: 0;
 
-    color: #222;
+    color: var(--wf-text-primary);
 
     font-size: 18px;
     font-weight: 700;
@@ -249,7 +249,7 @@
     align-items: center;
     justify-content: center;
 
-    color: #999;
+    color: var(--wf-text-muted);
 
     font-size: 14px;
 }
@@ -298,7 +298,7 @@
 }
 
 .statistics-table thead {
-    background-color: #f8f9fb;
+    background-color: var(--wf-table-header-bg);
 }
 
 .statistics-table th {
@@ -306,10 +306,10 @@
 
     padding: 12px 15px;
 
-    border-top: 1px solid #e5e7eb;
-    border-bottom: 1px solid #e5e7eb;
+    border-top: 1px solid var(--wf-border);
+    border-bottom: 1px solid var(--wf-border);
 
-    color: #555;
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
     font-weight: 600;
@@ -324,9 +324,9 @@
 
     padding: 12px 15px;
 
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--wf-border);
 
-    color: #444;
+    color: var(--wf-text-primary);
 
     font-size: 14px;
 
@@ -340,7 +340,7 @@
 }
 
 .statistics-table tbody tr:hover {
-    background-color: #fafafa;
+    background-color: var(--wf-row-hover);
 }
 
 .statistics-table tbody tr:last-child td {
@@ -380,7 +380,7 @@
     align-items: center;
     justify-content: center;
 
-    color: #999;
+    color: var(--wf-text-muted);
 
     font-size: 14px;
 }
@@ -398,7 +398,7 @@
     align-items: center;
     justify-content: center;
 
-    color: #666;
+    color: var(--wf-text-secondary);
 
     font-size: 15px;
 }
@@ -418,10 +418,10 @@
 
     box-sizing: border-box;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
 
     text-align: center;
 
@@ -431,7 +431,7 @@
 .statistics-error h3 {
     margin: 0 0 12px;
 
-    color: #d64545;
+    color: var(--wf-danger);
 
     font-size: 20px;
 }
@@ -439,7 +439,7 @@
 .statistics-error p {
     margin: 0 0 20px;
 
-    color: #666;
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
 
@@ -450,13 +450,14 @@
     padding: 10px 20px;
 
     border: none;
-    border-radius: 6px;
+    border-radius: 9px;
 
-    background-color: #333;
+    background-color: var(--wf-primary);
 
-    color: #fff;
+    color: #ffffff;
 
     font-size: 14px;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -464,7 +465,7 @@
 }
 
 .statistics-error button:hover {
-    background-color: #555;
+    background-color: var(--wf-primary-dark);
 }
 
 
@@ -479,10 +480,10 @@
 .recharts-default-tooltip {
     padding: 10px 12px !important;
 
-    border: 1px solid #ddd !important;
+    border: 1px solid var(--wf-gray-300) !important;
     border-radius: 6px !important;
 
-    background-color: #fff !important;
+    background-color: var(--wf-white) !important;
 
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }

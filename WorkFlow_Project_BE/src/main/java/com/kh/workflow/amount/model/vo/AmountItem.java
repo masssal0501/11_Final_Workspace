@@ -2,6 +2,8 @@ package com.kh.workflow.amount.model.vo;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,8 +39,16 @@ public class AmountItem {
     private String itemType;
 
     @Schema(description = "항목 금액")
-    @Column(name = "item_amount", nullable = false)
+    @Column(name = "amount", nullable = false)
     private Integer itemAmount;
+
+    @Schema(description = "항목별 결재 상태(A승인, C취소, H보류, J반려, R검토)")
+    @Column(name = "item_approved", length = 15)
+    private String itemApproved;
+
+    @Schema(description = "항목별 승인 금액")
+    @Column(name = "item_approved_amount", nullable = false)
+    private Integer itemApprovedAmount = 0;
 
     @Schema(description = "항목 일자")
     @Column(
@@ -51,7 +61,8 @@ public class AmountItem {
     @Column(name = "item_description", length = 500)
     private String itemDescription;
 
-    @Schema(description = "비용 정보")
+    @Schema(description = "비용 정보", hidden = true)
+    @JsonIgnore
     @JoinColumn(name = "amount_no", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Amount amount;

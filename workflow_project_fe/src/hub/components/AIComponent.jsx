@@ -70,11 +70,17 @@ function AIComponent() {
     };
 
     return (
-        <div className="hub-content">
-            {/* 타이틀 영역 */}
-            <h2 align="center" className="hub-header"><b>AI 추천</b></h2>
-            <hr />
-            <br />
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">AI 여행 일정 추천</h1>
+                    <p className="wf-page-description">AI에게 워케이션 장소와 일정을 추천받아 보세요.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="hub-content">
 
             {/* 대화 내용 출력 영역 */}
             <div id="chatMessages">
@@ -110,7 +116,9 @@ function AIComponent() {
                     뒤로가기
                 </button>
             </form>
-        </div>
+            </div>
+            </div>
+        </main>
     );
 }
 

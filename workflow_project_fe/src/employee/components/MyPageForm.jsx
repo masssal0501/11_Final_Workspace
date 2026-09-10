@@ -49,10 +49,17 @@ function MyPageForm() {
     // 데이터 로딩 전
     if (!employee) {
         return (
-            <div className="enrollForm">
-                <h2>마이 페이지</h2>
-                <p>사용자 정보를 불러오는 중입니다.</p>
-            </div>
+            <main className="wf-container">
+                <section className="wf-page-header">
+                    <div>
+                        <h1 className="wf-page-title">마이페이지</h1>
+                    </div>
+                </section>
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <span className="wf-state-title">사용자 정보를 불러오는 중입니다.</span>
+                </div>
+            </main>
         );
     }
 
@@ -139,9 +146,16 @@ function MyPageForm() {
 
     return (
 
-        <div className="enrollForm">
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">마이페이지</h1>
+                    <p className="wf-page-description">나의 인사 정보를 확인합니다.</p>
+                </div>
+            </section>
 
-            <h2>마이 페이지</h2>
+            <div className="wf-page-content">
+            <div className="enrollForm">
 
             <form>
 
@@ -238,6 +252,7 @@ function MyPageForm() {
 
                 <button
                     type="button"
+                    className="btn btn-secondary"
                     onClick={() => navigate(-1)}
                 >
                     돌아가기
@@ -253,8 +268,9 @@ function MyPageForm() {
                 </button>
 
             </form>
-
-        </div>
+            </div>
+            </div>
+        </main>
     );
 }
 

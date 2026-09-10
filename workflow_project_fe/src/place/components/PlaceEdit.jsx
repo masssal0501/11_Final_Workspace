@@ -118,6 +118,9 @@ function PlaceEdit() {
 
         try {
 
+            // placeApi.updatePlace()는 multipart/form-data로 전송하고
+            // 백엔드 PlaceController.updatePlace()도 @RequestPart("place")/@RequestPart("file")을
+            // 받으므로, 반드시 FormData로 감싸서 보내야 한다(사진 재업로드 포함).
             const formData = new FormData();
 
             // 장소 정보
@@ -156,254 +159,280 @@ function PlaceEdit() {
     };
 
 
-    if (!place) {
-
-        return <div>로딩중...</div>;
-
-    }
-
-
     return (
 
-    <div className="formContainer">
+        <main className="wf-container">
 
-        <h2>지역 정보 수정</h2>
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">지역 정보 수정</h1>
+                    <p className="wf-page-description">등록된 지역 정보를 수정합니다.</p>
+                </div>
+            </section>
 
-        <hr />
+            <div className="wf-page-content">
+            <div className="place-info">
 
-        <form onSubmit={handleSubmit}>
+            {!place ? (
 
-            <div>
-
-                {/* 거점 이름 */}
-                <div className="formGroup">
-
-                    <h4>거점 이름 :</h4>
-
-                    <input
-                        type="text"
-                        name="hubName"
-                        value={place.hubName || ""}
-                        onChange={handleChange}
-                    />
-
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <div className="wf-state-title">지역 정보를 불러오는 중입니다.</div>
                 </div>
 
+            ) : (
 
-                {/* 메인 지역 */}
-                <div className="formGroup">
+            <form onSubmit={handleSubmit}>
 
-                    <h4>지역명 :</h4>
-
-                    <select
-                        name="mainRegion"
-                        value={place.mainRegion || ""}
-                        onChange={handleChange}
-                    >
-
-                        <option value="">
-                            지역을 선택해주세요.
-                        </option>
-
-                        <option value="강원도">
-                            강원도
-                        </option>
-
-                        <option value="부산">
-                            부산
-                        </option>
-
-                        <option value="제주도">
-                            제주도
-                        </option>
-
-                    </select>
-
-                </div>
+                <div>
 
 
-                {/* 하위 지역 */}
-                <div className="formGroup">
+                    {/* 거점 이름 */}
+                    <div className="wf-form-group">
 
-                    <h4>상세지역명 :</h4>
+                        <label className="wf-label" htmlFor="hubName">거점 이름</label>
 
-                    <select
-                        name="subRegion"
-                        value={place.subRegion || ""}
-                        onChange={handleChange}
-                        disabled={!place.mainRegion}
-                    >
+                        <input
+                            id="hubName"
+                            type="text"
+                            name="hubName"
+                            className="wf-input"
+                            value={place.hubName || ""}
+                            onChange={handleChange}
+                        />
 
-                        <option value="">
-                            {place.mainRegion
-                                ? "상세 지역을 선택해주세요."
-                                : "지역을 먼저 선택해주세요."
+                    </div>
+
+
+                    {/* 메인 지역 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="mainRegion">지역명</label>
+
+                        <select
+                            id="mainRegion"
+                            name="mainRegion"
+                            className="wf-select"
+                            value={place.mainRegion || ""}
+                            onChange={handleChange}
+                        >
+
+                            <option value="">
+                                지역을 선택해주세요.
+                            </option>
+
+                            <option value="강원도">
+                                강원도
+                            </option>
+
+                            <option value="부산">
+                                부산
+                            </option>
+
+                            <option value="제주도">
+                                제주도
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    {/* 하위 지역 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="subRegion">상세지역명</label>
+
+                        <select
+                            id="subRegion"
+                            name="subRegion"
+                            className="wf-select"
+                            value={place.subRegion || ""}
+                            onChange={handleChange}
+                            disabled={!place.mainRegion}
+                        >
+
+                            <option value="">
+                                {place.mainRegion
+                                    ? "상세 지역을 선택해주세요."
+                                    : "지역을 먼저 선택해주세요."
+                                }
+                            </option>
+
+                            {place.mainRegion &&
+                                subRegionList[place.mainRegion]?.map((subRegion) => (
+
+                                    <option
+                                        key={subRegion}
+                                        value={subRegion}
+                                    >
+                                        {subRegion}
+                                    </option>
+
+                                ))
                             }
-                        </option>
 
-                        {place.mainRegion &&
-                            subRegionList[place.mainRegion]?.map((subRegion) => (
+                        </select>
 
-                                <option
-                                    key={subRegion}
-                                    value={subRegion}
-                                >
-                                    {subRegion}
-                                </option>
+                    </div>
 
-                            ))
-                        }
 
-                    </select>
+                    {/* 장소 유형 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="hubType">장소 유형</label>
+
+                        <select
+                            id="hubType"
+                            name="hubType"
+                            className="wf-select"
+                            value={place.hubType || ""}
+                            onChange={handleChange}
+                        >
+
+                            <option value="">
+                                장소 유형을 선택해주세요.
+                            </option>
+
+                            <option value="3">
+                                체험 프로그램
+                            </option>
+
+                            <option value="4">
+                                맛집
+                            </option>
+
+                            <option value="5">
+                                관광지
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    {/* 운영 상태 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="hubStatus">운영 상태</label>
+
+                        <select
+                            id="hubStatus"
+                            name="hubStatus"
+                            className="wf-select"
+                            value={place.hubStatus || ""}
+                            onChange={handleChange}
+                        >
+
+                            <option value="OPEN">
+                                🟢 운영중
+                            </option>
+
+                            <option value="PAUSED">
+                                🟠 일시중단
+                            </option>
+
+                            <option value="CLOSED">
+                                🔴 종료
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    {/* 주소 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="hubAddress">주소</label>
+
+                        <input
+                            id="hubAddress"
+                            type="text"
+                            name="hubAddress"
+                            className="wf-input"
+                            value={place.hubAddress || ""}
+                            onChange={handleChange}
+                        />
+
+                    </div>
+
+
+                    {/* 전화번호 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="phone">전화번호</label>
+
+                        <input
+                            id="phone"
+                            type="text"
+                            name="phone"
+                            className="wf-input"
+                            value={place.phone || ""}
+                            onChange={handleChange}
+                        />
+
+                    </div>
+
+
+                    {/* 설명 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="description">지역 설명</label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            className="wf-textarea"
+                            value={place.description || ""}
+                            onChange={handleChange}
+                        />
+
+                    </div>
+
+                    {/* 사진 첨부 */}
+                    <div className="wf-form-group">
+
+                        <label className="wf-label" htmlFor="placeFile">사진 첨부</label>
+
+                        <input
+                            id="placeFile"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setFile(e.target.files[0])}
+                        />
+
+                    </div>
+
 
                 </div>
 
 
-                {/* 장소 유형 */}
-                <div className="formGroup">
+                <div className="wf-page-actions">
 
-                    <h4>장소 유형 :</h4>
+                    <button type="submit" className="btn btn-primary">
+                        저장하기
+                    </button>
 
-                    <select
-                        name="hubType"
-                        value={place.hubType || ""}
-                        onChange={handleChange}
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate(-1)}
                     >
-
-                        <option value="">
-                            장소 유형을 선택해주세요.
-                        </option>
-
-                        <option value="3">
-                            체험 프로그램
-                        </option>
-
-                        <option value="4">
-                            맛집
-                        </option>
-
-                        <option value="5">
-                            관광지
-                        </option>
-
-                    </select>
+                        뒤로가기
+                    </button>
 
                 </div>
 
+            </form>
 
-                {/* 운영 상태 */}
-                <div className="formGroup">
-
-                    <h4>운영 상태 :</h4>
-
-                    <select
-                        name="hubStatus"
-                        value={place.hubStatus || ""}
-                        onChange={handleChange}
-                    >
-
-                        <option value="OPEN">
-                            🟢 운영중
-                        </option>
-
-                        <option value="PAUSED">
-                            🟠 일시중단
-                        </option>
-
-                        <option value="CLOSED">
-                            🔴 종료
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                {/* 주소 */}
-                <div className="formGroup">
-
-                    <h4>주소 :</h4>
-
-                    <input
-                        type="text"
-                        name="hubAddress"
-                        value={place.hubAddress || ""}
-                        onChange={handleChange}
-                    />
-
-                </div>
-
-
-                {/* 전화번호 */}
-                <div className="formGroup">
-
-                    <h4>전화번호 :</h4>
-
-                    <input
-                        type="text"
-                        name="phone"
-                        value={place.phone || ""}
-                        onChange={handleChange}
-                    />
-
-                </div>
-
-
-                {/* 설명 */}
-                <div className="formGroup">
-
-                    <h4>지역 설명 :</h4>
-
-                    <textarea
-                        name="description"
-                        value={place.description || ""}
-                        onChange={handleChange}
-                    />
-
-                </div>
-
-
-                {/* 사진 첨부 */}
-                <div className="formGroup">
-
-                    <h4>사진 첨부 :</h4>
-
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setFile(e.target.files[0])}
-                    />
-
-                </div>
+            )}
 
             </div>
-
-
-            {/* 버튼 */}
-            <div className="buttonGroup">
-
-                <button
-                    type="submit"
-                    className="submitBtn"
-                >
-                    저장하기
-                </button>
-
-                <button
-                    type="button"
-                    className="backBtn"
-                    onClick={() => navigate(-1)}
-                >
-                    뒤로가기
-                </button>
-
             </div>
+        </main>
 
-        </form>
-
-    </div>
-
-);
+    );
 
 }
 

@@ -68,28 +68,28 @@
 }
 
 .status-A {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: var(--wf-success-bg);
+    color: var(--wf-success);
 }
 
 .status-R {
-    background: #fff8e1;
-    color: #f57c00;
+    background: var(--wf-warning-bg);
+    color: var(--wf-warning);
 }
 
 .status-H {
-    background: #eeeeee;
-    color: #555555;
+    background: var(--wf-neutral-bg);
+    color: var(--wf-neutral);
 }
 
 .status-J {
-    background: #ffebee;
-    color: #c62828;
+    background: var(--wf-danger-bg);
+    color: var(--wf-danger);
 }
 
 .status-C {
-    background: #eeeeee;
-    color: #777777;
+    background: var(--wf-neutral-bg);
+    color: var(--wf-neutral);
 }
 
 
@@ -102,9 +102,9 @@
 
     margin-bottom: 25px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--wf-gray-200);
     border-radius: 8px;
 
     box-sizing: border-box;
@@ -117,7 +117,7 @@
 
     min-height: 55px;
 
-    border-bottom: 1px solid #eeeeee;
+    border-bottom: 1px solid var(--wf-gray-200);
 
     box-sizing: border-box;
 }
@@ -145,7 +145,7 @@
 
     padding: 15px;
 
-    background: #f8f8f8;
+    background: var(--wf-gray-50);
 
     font-weight: 600;
 
@@ -204,7 +204,7 @@
 .amount-item-table td {
     padding: 10px;
 
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--wf-gray-200);
 
     box-sizing: border-box;
 
@@ -214,7 +214,7 @@
 }
 
 .amount-item-table th {
-    background: #f7f7f7;
+    background: var(--wf-gray-50);
 
     text-align: center;
 
@@ -222,7 +222,7 @@
 }
 
 .amount-item-table td {
-    background: #ffffff;
+    background: var(--wf-white);
 
     text-align: center;
 }
@@ -294,10 +294,10 @@
 
     box-sizing: border-box;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
     font-size: 14px;
 
@@ -307,13 +307,13 @@
 .company-support-input:focus {
     outline: none;
 
-    border-color: #555555;
+    border-color: var(--wf-text-secondary);
 }
 
 .company-support-input:disabled {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 
-    color: #777777;
+    color: var(--wf-text-muted);
 
     cursor: not-allowed;
 }
@@ -339,12 +339,12 @@
 
     padding: 0 10px;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
-    color: #333333;
+    color: var(--wf-text-primary);
 
     font-size: 13px;
 
@@ -356,7 +356,7 @@
 }
 
 .btn-small:hover {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 }
 
 .btn-small:disabled {
@@ -383,7 +383,7 @@
     margin-top: 15px;
     padding: 15px;
 
-    background: #f8f8f8;
+    background: var(--wf-gray-50);
 
     border-radius: 6px;
 
@@ -424,12 +424,12 @@
     margin-top: 15px;
     padding: 8px 16px;
 
-    border: 1px solid #333333;
+    border: 1px solid var(--wf-text-primary);
     border-radius: 5px;
 
-    background: #333333;
+    background: var(--wf-text-primary);
 
-    color: #ffffff;
+    color: var(--wf-white);
 
     font-size: 14px;
     font-weight: 500;
@@ -440,7 +440,7 @@
 }
 
 .btn-apply-company:hover {
-    background: #222222;
+    background: var(--wf-text-primary);
 }
 
 
@@ -453,9 +453,9 @@
 
     padding: 20px;
 
-    background: #fafafa;
+    background: var(--wf-gray-50);
 
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--wf-gray-200);
     border-radius: 6px;
 
     box-sizing: border-box;
@@ -515,10 +515,10 @@
 
     box-sizing: border-box;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
     font-size: 14px;
 }
@@ -545,7 +545,7 @@
 
     padding: 10px;
 
-    resize: vertical;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 
     line-height: 1.5;
 }
@@ -560,7 +560,7 @@
 .local-support-form .form-row > textarea:focus {
     outline: none;
 
-    border-color: #555555;
+    border-color: var(--wf-text-secondary);
 }
 
 
@@ -571,9 +571,9 @@
 .local-support-form .form-row > input:disabled,
 .local-support-form .form-row > select:disabled,
 .local-support-form .form-row > textarea:disabled {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 
-    color: #777777;
+    color: var(--wf-text-muted);
 
     cursor: not-allowed;
 }
@@ -605,12 +605,12 @@
 
     padding: 0 15px;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
-    color: #333333;
+    color: var(--wf-text-primary);
 
     font-size: 14px;
 
@@ -620,19 +620,19 @@
 }
 
 .local-support-buttons button:first-child {
-    background: #333333;
+    background: var(--wf-text-primary);
 
-    border-color: #333333;
+    border-color: var(--wf-text-primary);
 
-    color: #ffffff;
+    color: var(--wf-white);
 }
 
 .local-support-buttons button:first-child:hover {
-    background: #222222;
+    background: var(--wf-text-primary);
 }
 
 .local-support-buttons button:last-child:hover {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 }
 
 
@@ -646,9 +646,9 @@
 
     padding: 20px;
 
-    background: #fafafa;
+    background: var(--wf-gray-50);
 
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--wf-gray-200);
     border-radius: 6px;
 
     box-sizing: border-box;
@@ -688,7 +688,7 @@
 
     padding: 0 10px;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
     box-sizing: border-box;
@@ -704,7 +704,7 @@
 
     padding: 0 10px;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
     box-sizing: border-box;
@@ -718,12 +718,110 @@
 
     padding: 0 10px;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
     box-sizing: border-box;
+}
+
+/* =========================================================
+   14. 비용 정산 신청 폼(AmountForm) 레이아웃
+   ★ .info-row/.info-label 같은 흔한 클래스명이 다른 화면
+   (PlaceList의 .info-label 등)과 전역으로 충돌하던 문제가 있어,
+   AmountForm의 폼 컨테이너(.detail-box)로 스코프를 좁혀서 정의한다.
+   ========================================================= */
+.detail-box {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+}
+
+.detail-box .info-row {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    padding: 18px;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+.detail-box .info-row.comment-row {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.detail-box .info-row.file-section {
+    align-items: flex-start;
+}
+
+.detail-box .info-label {
+    flex: 0 0 120px;
+    width: 120px;
+
+    font-weight: 600;
+    color: var(--wf-text-primary);
+
+    box-sizing: border-box;
+}
+
+.detail-box .info-row.comment-row .info-label {
+    flex: none;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.detail-box .info-value {
+    flex: 1;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+.detail-box .amount-support-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-top: 15px;
+    padding-top: 12px;
+
+    border-top: 1px solid var(--wf-gray-200);
+
+    font-size: 15px;
+}
+
+.detail-box .grand-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-box .info-comment {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 6px;
+
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
+
+    font-family: inherit;
+    font-size: 14px;
 }
 
 .sponsor-input:focus,
@@ -731,7 +829,7 @@
 .sponsor-select:focus {
     outline: none;
 
-    border-color: #555555;
+    border-color: var(--wf-text-secondary);
 }
 
 
@@ -749,9 +847,9 @@
     margin-bottom: 30px;
     padding: 20px;
 
-    background: #f8f8f8;
+    background: var(--wf-gray-50);
 
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--wf-gray-200);
     border-radius: 6px;
 
     box-sizing: border-box;
@@ -771,7 +869,7 @@
 
     padding: 0 15px;
 
-    border-right: 1px solid #dddddd;
+    border-right: 1px solid var(--wf-gray-300);
 
     box-sizing: border-box;
 }
@@ -808,9 +906,9 @@
 
     padding: 12px;
 
-    resize: vertical;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 
-    border: 1px solid #d5d5d5;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
     box-sizing: border-box;
@@ -823,7 +921,7 @@
 .admin-comment:focus {
     outline: none;
 
-    border-color: #555555;
+    border-color: var(--wf-text-secondary);
 }
 
 
@@ -844,7 +942,7 @@
     margin-top: 30px;
     padding-top: 25px;
 
-    border-top: 1px solid #eeeeee;
+    border-top: 1px solid var(--wf-gray-200);
 
     box-sizing: border-box;
 }
@@ -860,12 +958,12 @@
 
     padding: 8px 16px;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
-    color: #333333;
+    color: var(--wf-text-primary);
 
     font-size: 14px;
     font-weight: 500;
@@ -876,19 +974,19 @@
 }
 
 .amount-detail-buttons button:hover {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 }
 
 .amount-detail-buttons .btn-approval {
-    border-color: #333333;
+    border-color: var(--wf-text-primary);
 
-    background: #333333;
+    background: var(--wf-text-primary);
 
-    color: #ffffff;
+    color: var(--wf-white);
 }
 
 .amount-detail-buttons .btn-approval:hover {
-    background: #222222;
+    background: var(--wf-text-primary);
 }
 
 
@@ -927,7 +1025,7 @@
 .amount-table td {
     padding: 10px;
 
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--wf-gray-200);
 
     text-align: center;
 
@@ -935,13 +1033,13 @@
 }
 
 .amount-table th {
-    background: #f7f7f7;
+    background: var(--wf-gray-50);
 
     font-weight: 600;
 }
 
 .amount-table td {
-    background: #ffffff;
+    background: var(--wf-white);
 }
 
 
@@ -1000,7 +1098,7 @@
 .amount-form-item-table td {
     padding: 10px;
 
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--wf-gray-200);
 
     box-sizing: border-box;
 
@@ -1010,7 +1108,7 @@
 }
 
 .amount-form-item-table th {
-    background: #f7f7f7;
+    background: var(--wf-gray-50);
 
     text-align: center;
 
@@ -1018,7 +1116,7 @@
 }
 
 .amount-form-item-table td {
-    background: #ffffff;
+    background: var(--wf-white);
 }
 
 
@@ -1040,10 +1138,10 @@
 
     box-sizing: border-box;
 
-    border: 1px solid #cccccc;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 5px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 }
 
 .amount-item-select {
@@ -1084,7 +1182,7 @@
 .amount-item-amount:focus {
     outline: none;
 
-    border-color: #555555;
+    border-color: var(--wf-text-secondary);
 }
 
 
@@ -1122,27 +1220,27 @@
 }
 
 .btn-primary {
-    background: #333333;
+    background: var(--wf-text-primary);
 
-    border-color: #333333;
+    border-color: var(--wf-text-primary);
 
-    color: #ffffff;
+    color: var(--wf-white);
 }
 
 .btn-primary:hover {
-    background: #222222;
+    background: var(--wf-text-primary);
 }
 
 .btn-secondary {
-    background: #ffffff;
+    background: var(--wf-white);
 
-    border-color: #cccccc;
+    border-color: var(--wf-gray-300);
 
-    color: #333333;
+    color: var(--wf-text-primary);
 }
 
 .btn-secondary:hover {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 }
 
 
@@ -1171,7 +1269,7 @@
 
     border: 0;
 
-    border-top: 1px solid #eeeeee;
+    border-top: 1px solid var(--wf-gray-200);
 }
 
 .section-header {
@@ -1187,7 +1285,7 @@
 
     padding: 15px;
 
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--wf-gray-200);
 
     border-radius: 6px;
 
@@ -1234,7 +1332,7 @@
     margin-top: 30px;
     padding-top: 25px;
 
-    border-top: 1px solid #eeeeee;
+    border-top: 1px solid var(--wf-gray-200);
 
     box-sizing: border-box;
 }
@@ -1261,9 +1359,9 @@
 .file-item {
     padding: 8px 10px;
 
-    background: #f7f7f7;
+    background: var(--wf-gray-50);
 
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--wf-gray-200);
 
     border-radius: 4px;
 
@@ -1273,7 +1371,7 @@
 }
 
 .file-link {
-    color: #333333;
+    color: var(--wf-text-primary);
 
     text-decoration: none;
 }
@@ -1309,10 +1407,10 @@ input[type="file"] {
 
 
 /* =========================================================
-   26. 기존 Status Badge
+   26. Status Badge
    ========================================================= */
 
-.status-badge {
+.amount-status-badge {
     display: inline-flex;
 
     align-items: center;
@@ -1326,40 +1424,13 @@ input[type="file"] {
 
     font-size: 12px;
 
-    font-weight: 600;
+    font-weight: 700;
 
     box-sizing: border-box;
 }
 
-.status-approved {
-    background: #e8f5e9;
-
-    color: #2e7d32;
-}
-
-.status-review {
-    background: #fff8e1;
-
-    color: #f57c00;
-}
-
-.status-hold {
-    background: #eeeeee;
-
-    color: #555555;
-}
-
-.status-rejected {
-    background: #ffebee;
-
-    color: #c62828;
-}
-
-.status-cancelled {
-    background: #eeeeee;
-
-    color: #777777;
-}
+/* status-approved/review/hold/rejected/cancelled 는 어떤 JSX에서도 참조되지 않는
+   죽은 중복 CSS였기에 제거함 (실제 사용되는 상태 클래스는 status-A/R/H/J/C, 위 1번 섹션 참고) */
 
 
 /* =========================================================
@@ -1382,25 +1453,25 @@ input[type="file"] {
 
     height: 35px;
 
-    border: 1px solid #dddddd;
+    border: 1px solid var(--wf-gray-300);
 
     border-radius: 4px;
 
-    background: #ffffff;
+    background: var(--wf-white);
 
     cursor: pointer;
 }
 
 .pagination button:hover {
-    background: #f5f5f5;
+    background: var(--wf-gray-50);
 }
 
 .pagination button.active {
-    background: #333333;
+    background: var(--wf-text-primary);
 
-    border-color: #333333;
+    border-color: var(--wf-text-primary);
 
-    color: #ffffff;
+    color: var(--wf-white);
 }
 
 
@@ -1532,7 +1603,7 @@ input[type="file"] {
 
         border-right: none;
 
-        border-bottom: 1px solid #dddddd;
+        border-bottom: 1px solid var(--wf-gray-300);
     }
 
     .amount-total-box > div:last-child {

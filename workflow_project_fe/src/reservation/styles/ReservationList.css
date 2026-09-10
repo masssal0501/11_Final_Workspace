@@ -20,25 +20,26 @@
 
 .reservation-list-header h2 {
     margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: #222;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
+    color: var(--wf-text-primary);
 }
 
 .reservation-enroll-button {
-    padding: 11px 20px;
+    height: 42px;
+    padding: 0 20px;
     border: none;
-    border-radius: 8px;
-    background-color: #2563eb;
+    border-radius: 9px;
+    background-color: var(--wf-primary);
     color: white;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .reservation-enroll-button:hover {
-    background-color: #1d4ed8;
+    background-color: var(--wf-primary-dark);
 }
 
 /* 필터 */
@@ -50,23 +51,23 @@
 
 .reservation-filter button {
     padding: 9px 18px;
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 20px;
     background-color: white;
-    color: #666;
+    color: var(--wf-text-secondary);
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .reservation-filter button:hover {
-    border-color: #2563eb;
-    color: #2563eb;
+    border-color: var(--wf-primary);
+    color: var(--wf-primary);
 }
 
 .reservation-filter button.active {
-    border-color: #2563eb;
-    background-color: #2563eb;
+    border-color: var(--wf-primary);
+    background-color: var(--wf-primary);
     color: white;
 }
 
@@ -81,10 +82,10 @@
 .reservation-empty {
     padding: 80px 20px;
     text-align: center;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
     border-radius: 12px;
-    background-color: #fff;
-    color: #888;
+    background-color: var(--wf-white);
+    color: var(--wf-text-muted);
 }
 
 .reservation-empty p {
@@ -96,7 +97,7 @@
 .reservation-loading {
     padding: 80px 20px;
     text-align: center;
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 
@@ -111,10 +112,10 @@
 
     padding: 22px 25px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
     border-radius: 12px;
 
-    background-color: #fff;
+    background-color: var(--wf-white);
 
     cursor: pointer;
 
@@ -125,8 +126,8 @@
 }
 
 .reservation-item:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
+    border-color: #cfdff5;
+    box-shadow: var(--wf-shadow);
     transform: translateY(-2px);
 }
 
@@ -147,17 +148,17 @@
     margin: 0;
     font-size: 18px;
     font-weight: 700;
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-item-date {
     font-size: 14px;
-    color: #666;
+    color: var(--wf-text-secondary);
 }
 
 .reservation-item-capacity {
     font-size: 13px;
-    color: #888;
+    color: var(--wf-text-muted);
 }
 
 /* 상태 */
@@ -176,23 +177,23 @@
 }
 
 .reservation-status.status-N {
-    background-color: #eff6ff;
-    color: #2563eb;
+    background-color: var(--wf-info-bg);
+    color: var(--wf-info);
 }
 
 .reservation-status.status-C {
-    background-color: #fef2f2;
-    color: #dc2626;
+    background-color: var(--wf-danger-bg);
+    color: var(--wf-danger);
 }
 
 .reservation-status.status-Y {
-    background-color: #f3f4f6;
-    color: #6b7280;
+    background-color: var(--wf-success-bg);
+    color: var(--wf-success);
 }
 
 /* 오른쪽 */
 .reservation-item-arrow {
-    color: #9ca3af;
+    color: var(--wf-text-muted);
     font-size: 22px;
 }
 

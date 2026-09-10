@@ -5,19 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kh.workflow.amount.dao.AmountDao;
+import com.kh.workflow.attendance.model.dao.AttendanceDao;
 import com.kh.workflow.dashboard.model.dto.AdminDto;
+import com.kh.workflow.dashboard.model.dto.CurrentHubDto;
 import com.kh.workflow.dashboard.model.dto.ManagerDto;
 import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.hub.model.dao.HubDao;
-import com.kh.workflow.notice.dao.NoticeDao;
+import com.kh.workflow.notice.service.NoticeService;
 import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 
@@ -39,16 +40,16 @@ public class DashboardServiceImpl implements DashboardService {
 	private AmountDao amountDao;
 	
 	@Autowired
-	private NoticeDao noticeDao;
-	
+	private NoticeService noticeService;
+
 	@Autowired
 	private EmployeeDao employeeDao;
 
 	@Autowired
 	private TaskDao taskDao;
-	
+
 	@Autowired
-	private SqlSessionTemplate sqlSession;
+	private AttendanceDao attendanceDao;
 
 	/**
 	 * [관리자] 전사 대시보드 데이터 조회
@@ -80,7 +81,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Map<String, Object> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("limit", 3);
-		adminDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+		adminDto.setNoticeData(noticeService.selectNoticeList(map));
 		
 		/* --- [4] 차트 시각화용 데이터 --- */
 		// 최근 6개월간의 월별 참가 현황 트렌드
@@ -126,7 +127,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Map<String, Object> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("limit", 3);
-		managerDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+		managerDto.setNoticeData(noticeService.selectNoticeList(map));
 		
 		return managerDto;
 	}
@@ -157,14 +158,24 @@ public class DashboardServiceImpl implements DashboardService {
 		staffDto.setWorkcationPlan(workcationDao.selectWorkcationPlan(empNo));
 		staffDto.setProgressRate(taskDao.selectProgressRate(empNo));
 		staffDto.setReservationList(workcationDao.selectReservationList(empNo));
-		staffDto.setHubAddress(hubDao.selectHubAddress(empNo));
+		List<CurrentHubDto> hubList = hubDao.selectHubAddress(empNo);
+		if (!hubList.isEmpty()) {
+			CurrentHubDto currentHub = hubList.get(0);
+			staffDto.setHubAddress(currentHub.getHubAddress());
+			staffDto.setCurrentWorkcationNo(currentHub.getWorkcationNo());
+			staffDto.setCurrentHubNo(currentHub.getHubNo());
+
+			// 현재 워케이션의 가장 최근 근태 기록으로 출근 상태 판단(새로고침해도 유지)
+			attendanceDao.findTopByWorkcation_WorkcationNoOrderByCheckedAtDesc(currentHub.getWorkcationNo())
+					.ifPresent(latest -> staffDto.setCheckedIn("IN".equals(latest.getCheckType())));
+		}
 		
 		/* --- [3] 공통 데이터 --- */
 		// 공지사항
 		Map<String, Object> map = new HashMap<>();
 		map.put("offset", 0);
 		map.put("limit", 3);
-		staffDto.setNoticeData(noticeDao.selectNoticeList(sqlSession, map));
+		staffDto.setNoticeData(noticeService.selectNoticeList(map));
 				
 		return staffDto;
 	}

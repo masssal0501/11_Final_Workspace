@@ -16,14 +16,14 @@
 
 .reservation-enroll-header h2 {
     margin: 0 0 8px;
-    font-size: 28px;
+    font-size: var(--wf-fs-page-title);
     font-weight: 700;
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-enroll-header p {
     margin: 0;
-    color: #777;
+    color: var(--wf-text-muted);
     font-size: 14px;
 }
 
@@ -36,7 +36,7 @@
     margin-bottom: 25px;
     padding: 25px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
     border-radius: 12px;
 
     background-color: #fff;
@@ -47,7 +47,7 @@
 
     font-size: 18px;
     font-weight: 700;
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-form-row {
@@ -71,7 +71,7 @@
 .reservation-form-group label {
     font-size: 13px;
     font-weight: 600;
-    color: #555;
+    color: var(--wf-text-secondary);
 }
 
 .reservation-form-group select,
@@ -83,12 +83,12 @@
 
     box-sizing: border-box;
 
-    border: 1px solid #d9dee7;
-    border-radius: 7px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     background-color: #fff;
 
-    color: #333;
+    color: var(--wf-text-primary);
     font-size: 14px;
 
     outline: none;
@@ -96,7 +96,7 @@
 
 .reservation-form-group select:focus,
 .reservation-form-group input:focus {
-    border-color: #2563eb;
+    border-color: var(--wf-primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
@@ -112,7 +112,7 @@
     border: none;
     border-radius: 8px;
 
-    background-color: #2563eb;
+    background-color: var(--wf-primary);
     color: white;
 
     font-size: 14px;
@@ -124,11 +124,11 @@
 }
 
 .reservation-search-button:hover {
-    background-color: #1d4ed8;
+    background-color: var(--wf-primary-dark);
 }
 
 .reservation-search-button:disabled {
-    background-color: #cbd5e1;
+    background-color: var(--wf-gray-300);
     cursor: not-allowed;
 }
 
@@ -146,10 +146,10 @@
 .reservation-hub-card {
     padding: 20px;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--wf-border);
     border-radius: 10px;
 
-    background-color: white;
+    background-color: var(--wf-white);
 
     cursor: pointer;
 
@@ -159,13 +159,13 @@
 }
 
 .reservation-hub-card:hover {
-    border-color: #93c5fd;
+    border-color: #a9c8ed;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .reservation-hub-card.selected {
-    border: 2px solid #2563eb;
-    background-color: #eff6ff;
+    border: 2px solid var(--wf-primary);
+    background-color: var(--wf-primary-light);
 }
 
 .reservation-hub-name {
@@ -173,14 +173,14 @@
 
     font-size: 17px;
     font-weight: 700;
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 .reservation-hub-address {
     margin: 0 0 12px;
 
     font-size: 13px;
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 .reservation-hub-info {
@@ -194,10 +194,10 @@
 
     border-radius: 5px;
 
-    background-color: #f3f4f6;
+    background-color: var(--wf-gray-100);
 
     font-size: 12px;
-    color: #666;
+    color: var(--wf-text-secondary);
 }
 
 
@@ -215,17 +215,17 @@
     width: 34px;
     height: 34px;
 
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 6px;
 
-    background-color: white;
+    background-color: var(--wf-white);
 
     font-size: 18px;
     cursor: pointer;
 }
 
 .capacity-button:hover {
-    background-color: #f3f4f6;
+    background-color: var(--wf-gray-100);
 }
 
 .capacity-value {
@@ -253,11 +253,11 @@
 .reservation-cancel-button {
     padding: 12px 25px;
 
-    border: 1px solid #d9dee7;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 8px;
 
-    background-color: white;
-    color: #555;
+    background-color: var(--wf-white);
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
     font-weight: 600;
@@ -271,7 +271,7 @@
     border: none;
     border-radius: 8px;
 
-    background-color: #2563eb;
+    background-color: var(--wf-primary);
     color: white;
 
     font-size: 14px;
@@ -281,11 +281,11 @@
 }
 
 .reservation-submit-button:hover {
-    background-color: #1d4ed8;
+    background-color: var(--wf-primary-dark);
 }
 
 .reservation-submit-button:disabled {
-    background-color: #cbd5e1;
+    background-color: var(--wf-gray-300);
     cursor: not-allowed;
 }
 
@@ -299,10 +299,10 @@
 
     text-align: center;
 
-    border: 1px dashed #d1d5db;
+    border: 1px dashed var(--wf-gray-300);
     border-radius: 10px;
 
-    color: #888;
+    color: var(--wf-text-muted);
 }
 
 

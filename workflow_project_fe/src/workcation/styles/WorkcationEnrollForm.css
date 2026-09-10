@@ -39,10 +39,38 @@
 .back-space {
     margin: 0;
     width: 120px;
-    padding: 6px 12px;
+    height: 42px;
+    padding: 0 12px;
     cursor: pointer;
     display: block;
     text-align: center;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transition: background-color 0.2s ease;
+}
+
+.insert-btn {
+    background-color: var(--wf-primary);
+    color: #ffffff;
+}
+
+.insert-btn:hover {
+    background-color: var(--wf-primary-dark);
+}
+
+.back-space {
+    background-color: #ffffff;
+    border-color: var(--wf-gray-300);
+    color: var(--wf-text-secondary);
+}
+
+.back-space:hover {
+    background-color: var(--wf-gray-50);
 }
 
 /* 테이블: display: flex 절대 금지 (테이블 속성 유지) */
@@ -83,25 +111,304 @@
     justify-content: center;
 }
 
-.task-plan-box {
-    display: flex;
-    justify-content: center;
+/* =========================
+   워케이션 신청/수정 폼 - 테이블/버튼 보강
+   (Enroll/Update 두 컴포넌트가 동일한 클래스명을 공유한다)
+========================= */
+
+.workcation-form-table {
+    background: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
+    overflow: hidden;
 }
 
-.task-plan-list {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
+.workcation-form-table th,
+.workcation-form-table td {
+    padding: 10px 12px;
+
+    border-bottom: 1px solid var(--wf-border);
+
+    font-size: 13px;
+}
+
+.workcation-form-table th {
+    background: var(--wf-table-header-bg);
+    color: var(--wf-text-secondary);
+    font-weight: 700;
+}
+
+.workcation-form-table td {
+    color: var(--wf-text-primary);
+}
+
+.workcation-form-table input,
+.workcation-form-table select {
+    height: 36px;
+
+    padding: 0 10px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 7px;
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+.workcation-form-table input:focus,
+.workcation-form-table select:focus {
+    border-color: var(--wf-primary);
+}
+
+.radio-btn {
+    display: inline-flex;
     align-items: center;
+    gap: 5px;
+
+    margin-right: 12px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+/* 옵션(체험/맛집/관광지) 추가 버튼 */
+.add-option-btn {
+    height: 34px;
+
+    padding: 0 14px;
+
+    border: 1px dashed var(--wf-gray-300);
+    border-radius: 7px;
+
+    background: var(--wf-gray-50);
+    color: var(--wf-text-secondary);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.add-option-btn:hover:not(:disabled) {
+    border-color: var(--wf-primary);
+    color: var(--wf-primary);
+}
+
+.add-option-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.optionBtn-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.remove-btn {
+    width: 26px;
+    height: 26px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 50%;
+
+    background: #ffffff;
+    color: var(--wf-danger);
+
+    font-size: 12px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    background: var(--wf-danger-bg);
+}
+
+/* 업무 계획 입력 영역 */
+.task-plan-container h3 {
+    margin: 0 0 14px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 16px;
+    font-weight: 700;
+
+    text-align: center;
+}
+
+.task-paln-input {
+    width: 600px;
+
+    margin: 0 auto;
+}
+
+.task-plan-box {
+    gap: 8px;
+
+    margin-bottom: 10px;
+}
+
+.task-plan-box input {
+    height: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+.task-plan-box input:focus {
+    border-color: var(--wf-primary);
+}
+
+.add-btn {
+    height: 40px;
+
+    padding: 0 16px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: var(--wf-primary);
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.add-btn:hover {
+    background: var(--wf-primary-dark);
 }
 
 .plan-item {
-    border: 1px solid;
-    width: 500px;
-    list-style: none;
-    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 1px solid var(--wf-border);
+    border-radius: 8px;
+
+    margin-bottom: 6px;
+    padding: 10px 14px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 13px;
 }
 
-.all-price-container {
-    width: 600px;
+.plan-item .delete-btn {
+    width: 22px;
+    height: 22px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: var(--wf-danger-bg);
+    color: var(--wf-danger);
+
+    font-size: 11px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+/* 지출/지원금 요약 박스 */
+.left-price-box {
+    flex: 1;
+    max-width: 300px;
+
+    padding: 20px;
+
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
+
+    background: var(--wf-white);
+    box-shadow: var(--wf-shadow-sm);
+
+    box-sizing: border-box;
+}
+
+.left-price-box h3 {
+    margin: 0 0 14px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 15px;
+    font-weight: 700;
+
+    text-align: center;
+}
+
+.left-price-box hr {
+    margin: 12px 0;
+
+    border: none;
+    border-top: 1px solid var(--wf-border);
+}
+
+.left-price-row,
+.right-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin: 8px 0;
+
+    font-size: 13px;
+
+    color: var(--wf-text-secondary);
+}
+
+.right-price-row.total {
+    color: var(--wf-text-primary);
+    font-weight: 700;
+}
+
+.left-price-input input {
+    width: 110px;
+    height: 32px;
+
+    padding: 0 8px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 7px;
+
+    text-align: right;
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+.left-price-input input:focus {
+    border-color: var(--wf-primary);
+}
+
+.left-price-total,
+.right-price-pay {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    color: var(--wf-text-primary);
+}
+
+.right-price-pay strong {
+    color: var(--wf-primary);
 }

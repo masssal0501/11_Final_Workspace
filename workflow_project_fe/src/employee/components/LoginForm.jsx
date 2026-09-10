@@ -263,11 +263,12 @@ function LoginForm({ onLogin }) {
 
                 <div className="loginInputGroup">
 
-                    <label>
+                    <label htmlFor="login-empId">
                         아이디
                     </label>
 
                     <input
+                        id="login-empId"
                         type="text"
                         placeholder="아이디를 입력하세요"
                         value={empId}
@@ -283,11 +284,12 @@ function LoginForm({ onLogin }) {
 
                 <div className="loginInputGroup">
 
-                    <label>
+                    <label htmlFor="login-password">
                         비밀번호
                     </label>
 
                     <input
+                        id="login-password"
                         type="password"
                         placeholder="비밀번호를 입력하세요"
                         value={password}

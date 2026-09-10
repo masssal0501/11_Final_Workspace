@@ -3,10 +3,11 @@
     margin: 50px auto;
     padding: 35px 45px;
 
-    background-color: #ffffff;
-    border-radius: 12px;
+    background-color: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
 
@@ -23,19 +24,20 @@
     height: 350px;
     object-fit: cover;
     display: block;
-    border-radius: 8px;
+
+    border-radius: var(--wf-radius);
 }
 
 .Title-box h3{
     margin: 0 0 20px;
-    font-size: 26px;
-    font-weight: 700;
-    color: #222;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
+    color: var(--wf-text-primary);
 }
 
 .input-guide{
-    color: gray;
-    font-size: small;
+    color: var(--wf-text-muted);
+    font-size: 12px;
 }
 
 .description {
@@ -43,10 +45,10 @@
     min-height: 100px;
     padding: 15px 20px;
 
-    border: 2px dashed #d5d5d5;
-    border-radius: 15px;
+    border: 2px dashed var(--wf-gray-300);
+    border-radius: var(--wf-radius);
 
-    background-color: #fafafa;
+    background-color: var(--wf-gray-50);
 
     box-sizing: border-box;
 }
@@ -61,16 +63,17 @@
     margin-top: 30px;
 }
 .editButton {
-    padding: 10px 20px;
+    padding: 0 20px;
+    height: 42px;
 
-    border: none;
-    border-radius: 8px;
+    border: 1px solid var(--wf-primary);
+    border-radius: 9px;
 
-    background-color: #e74c3c;
+    background-color: var(--wf-primary);
     color: white;
 
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -78,22 +81,21 @@
 }
 
 .editButton:hover {
-    background-color: #c0392b;
-    transform: translateY(-2px);
-
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background-color: var(--wf-primary-dark);
+    border-color: var(--wf-primary-dark);
 }
 .backButton {
-    padding: 10px 20px;
+    padding: 0 20px;
+    height: 42px;
 
-    border: 1px solid #d5d5d5;
-    border-radius: 8px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
-    background-color: #f5f5f5;
-    color: #555;
+    background-color: #ffffff;
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -101,8 +103,6 @@
 }
 
 .backButton:hover {
-    background-color: #e5e5e5;
-    color: #333;
-
-    transform: translateY(-2px);
+    background-color: var(--wf-gray-50);
+    color: var(--wf-text-primary);
 }

@@ -25,6 +25,16 @@ import com.kh.workflow.notice.service.NoticeService;
 import com.kh.workflow.notice.vo.Notice;
 import com.kh.workflow.notice.service.NoticeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "공지사항 관리", description = "공지사항 목록/상세 조회, 등록, 수정, 삭제 관련 API (등록·수정·삭제는 ADMIN 권한 필요)")
 @RestController
 @RequestMapping("/api/v1/notice")
 public class NoticeController {
@@ -42,18 +52,27 @@ public class NoticeController {
     // GET /api/v1/notice
     // =========================================================
 
+    @Operation(summary = "공지사항 목록 조회", description = "페이지네이션과 제목/내용 검색 조건을 적용해 공지사항 목록을 조회합니다. 로그인 없이 누구나 조회할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @GetMapping
     public ResponseEntity<?> selectNoticeList(
 
+            @Parameter(description = "조회할 페이지 번호(1부터 시작)", example = "1")
             @RequestParam(defaultValue = "1")
             int page,
 
+            @Parameter(description = "페이지당 조회 개수", example = "10")
             @RequestParam(defaultValue = "10")
             int limit,
 
+            @Parameter(description = "검색 조건(title: 제목, content: 내용 등)", example = "title")
             @RequestParam(defaultValue = "title")
             String condition,
 
+            @Parameter(description = "검색 키워드(미입력 시 전체 조회)", example = "")
             @RequestParam(defaultValue = "")
             String keyword) {
 
@@ -135,9 +154,16 @@ public class NoticeController {
     // GET /api/v1/notice/{noticeNo}
     // =========================================================
 
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항 번호로 상세 내용과 첨부파일 정보를 조회합니다. 로그인 없이 누구나 조회할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "해당 번호의 공지사항이 존재하지 않음", content = @Content),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @GetMapping("/{noticeNo}")
     public ResponseEntity<?> selectNotice(
 
+            @Parameter(description = "조회할 공지사항 번호", example = "1", required = true)
             @PathVariable int noticeNo) {
 
         try {
@@ -176,14 +202,25 @@ public class NoticeController {
     // authority.auth_code = ADMIN
     // =========================================================
 
+    @Operation(summary = "공지사항 등록", description = "새 공지사항을 등록합니다. 첨부파일(다중)을 함께 업로드할 수 있으며, ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "등록 성공"),
+        @ApiResponse(responseCode = "400", description = "등록 실패 또는 로그인 사용자 정보를 찾을 수 없는 경우", content = @Content),
+        @ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+        @ApiResponse(responseCode = "403", description = "ADMIN 권한이 아닌 경우", content = @Content),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @SecurityRequirement(name = "JWT")
     @PostMapping(
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<?> insertNotice(
 
+            @Parameter(description = "등록할 공지사항 정보(JSON)", required = true)
             @RequestPart("notice")
             Notice notice,
 
+            @Parameter(description = "첨부파일 목록(선택, 다중 업로드 가능)")
             @RequestPart(
                     value = "files",
                     required = false
@@ -314,17 +351,29 @@ public class NoticeController {
     // authority.auth_code = ADMIN
     // =========================================================
 
+    @Operation(summary = "공지사항 수정", description = "기존 공지사항의 내용을 수정합니다. 첨부파일을 새로 업로드할 수 있으며, ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "수정 성공"),
+        @ApiResponse(responseCode = "400", description = "수정 실패", content = @Content),
+        @ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+        @ApiResponse(responseCode = "403", description = "ADMIN 권한이 아닌 경우", content = @Content),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @SecurityRequirement(name = "JWT")
     @PutMapping(
             value = "/{noticeNo}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<?> updateNotice(
 
+            @Parameter(description = "수정할 공지사항 번호", example = "1", required = true)
             @PathVariable int noticeNo,
 
+            @Parameter(description = "수정할 공지사항 정보(JSON)", required = true)
             @RequestPart("notice")
             Notice notice,
 
+            @Parameter(description = "새로 첨부할 파일 목록(선택, 다중 업로드 가능)")
             @RequestPart(
                     value = "files",
                     required = false
@@ -440,9 +489,19 @@ public class NoticeController {
     // authority.auth_code = ADMIN
     // =========================================================
 
+    @Operation(summary = "공지사항 삭제", description = "공지사항을 삭제합니다. ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "삭제 성공"),
+        @ApiResponse(responseCode = "400", description = "삭제 실패", content = @Content),
+        @ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+        @ApiResponse(responseCode = "403", description = "ADMIN 권한이 아닌 경우", content = @Content),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @SecurityRequirement(name = "JWT")
     @DeleteMapping("/{noticeNo}")
     public ResponseEntity<?> deleteNotice(
 
+            @Parameter(description = "삭제할 공지사항 번호", example = "1", required = true)
             @PathVariable int noticeNo,
 
             Authentication authentication) {
