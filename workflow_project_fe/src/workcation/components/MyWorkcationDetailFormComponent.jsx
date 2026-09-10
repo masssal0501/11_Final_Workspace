@@ -97,13 +97,6 @@ function MyWorkcationDetailFormComponent() {
         setTaskProgress(percent);
     };
 
-    const openTaskModal = (task) => {
-    setSelectedTask(task);
-    setTaskProgress(task.progress ?? 0);
-    setTaskReportTitle(task.taskTitle ?? "");
-    setTaskReportContent(task.taskContent ?? "");
-};
-
     const handleTaskSave = async () => {
 
         if (!selectedTask?.taskNo) {
