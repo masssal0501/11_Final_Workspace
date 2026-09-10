@@ -177,7 +177,7 @@ public class TaskServiceImpl implements TaskService {
 				taskMap.put("tasktimeAt", task.getTasktimeAt());
 				taskMap.put("taskendAt", task.getTaskendAt());
 
-				List<WorkFile> files = workFileDao.findByWorkWorkNo(task.getWork().getWorkNo());
+				List<WorkFile> files = workFileDao.findByTaskTaskNo(task.getTaskNo());
 
 				List<Map<String, Object>> fileList = new ArrayList<>();
 

@@ -123,28 +123,14 @@ function StaffComponent(props) {
     const commuteClicker = e => {
         e.preventDefault();
 
-        const now = new Date();
-        const currentHour = now.getHours();
-
         if (!data.WorkcationIsTrue) {
             alert("등록된 워케이션이 없습니다.");
-            return; 
+            return;
         }
 
-        // 출근 시간 체크 (08:00 ~ 12:00)
-        if (!isCheckedIn) {
-            if (currentHour < 8 || currentHour >= 12) {
-                alert("지금은 출근 시간이 아닙니다. (출근 가능 시간: 08:00 ~ 12:00)");
-                return;
-            }
-        } 
-        // 퇴근 시간 체크 (17:00 ~ 23:00) - 필요에 따라 시간 변경 가능
-        else {
-            if (currentHour < 17 || currentHour >= 23) {
-                alert("지금은 퇴근 시간이 아닙니다. (퇴근 가능 시간: 17:00 ~ 23:00)");
-                return;
-            }
-        }
+        // BUG: 출근을 09~12시(등 임의 시간대)로만 제한해, 그 시간이 지나면
+        // 출근을 아예 못 하는 문제가 있었다. 출근 전이면 언제든 출근할 수 있고,
+        // 출근 후(퇴근 전)면 언제든 퇴근할 수 있어야 하므로 시간대 제한을 없앤다.
 
         if (!data.currentWorkcationNo || !data.currentHubNo) {
             alert("현재 진행 중인 워케이션 거점 정보를 확인할 수 없습니다.");

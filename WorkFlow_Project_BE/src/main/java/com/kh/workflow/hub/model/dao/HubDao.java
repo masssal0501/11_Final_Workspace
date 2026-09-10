@@ -117,6 +117,7 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 
 	List<Hub> findByMainRegionAndSubRegionAndHubType(String mainRegion, String subRegion, int hubType);
 
+// mainRegion 중복 제거 및 NULL 제외
 	@Query("SELECT DISTINCT h.mainRegion FROM Hub h WHERE h.mainRegion IS NOT NULL ORDER BY h.mainRegion")
 	List<String> selectMainRegionList();
 
@@ -138,6 +139,7 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     		""")
 	List<CurrentHubDto> selectHubAddress(@Param("empNo") int empNo);
 
+// 동일 지역의 허브가 여러 개 존재해 mainRegion/subRegion이 중복 조회되므로 DISTINCT로 중복 제거
     @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion AND h.subRegion IS NOT NULL ORDER BY h.subRegion")
     List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
 }

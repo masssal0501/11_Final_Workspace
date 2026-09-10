@@ -66,8 +66,8 @@ public class WorkcationController {
 	@Autowired
 	private WorkFileDao workFileDao;
 
-	// 워케이션 목록 조회 (STAFF / MANAGER / ADMIN 모두 조회 가능)
-	@Operation(summary = "워케이션 목록 조회", description = "지역/조건/키워드로 검색한 전체 워케이션 신청 목록을 페이징 조회합니다. 로그인한 사용자만 이용할 수 있습니다.")
+	// 워케이션 목록 조회 (STAFF는 본인 신청 건만, MANAGER는 소속 부서 신청 건만, ADMIN은 전체 조회)
+	@Operation(summary = "워케이션 목록 조회", description = "지역/조건/키워드로 검색한 워케이션 신청 목록을 페이징 조회합니다. STAFF는 본인이 신청한 건만, MANAGER는 소속 부서의 신청 건만, ADMIN은 전체를 조회합니다.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "조회 성공"),
 		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
@@ -116,6 +116,10 @@ public class WorkcationController {
 		paramMap.put("searchType", searchType);
 
 		paramMap.put("empNo", empNo);
+
+		paramMap.put("authCode", employee.getAuthCode());
+
+		paramMap.put("depId", employee.getDepId());
 
 		Page<Map<String, Object>> pageResult = workcationService.selectWorkcationList(paramMap, pageable);
 
