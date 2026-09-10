@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -1080,6 +1081,59 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 			workFileDao.save(workFile);
 		}
+	}
+
+	// TODO-N03: 워케이션 최종 완료 처리 - "결과보고"(업무 리포트/TaskHistory)는 이미
+	// 구현되어 있었지만, 관리자/부서장이 이를 확인하고 워케이션 전체를 최종 완료로
+	// 확정하는 단계가 없었다. 기존 approverState 컬럼(VARCHAR(1), CHECK 제약 없이
+	// 애플리케이션 코드로만 값이 제한됨)에 새 값 'D'(완료)를 추가하는 것만으로
+	// DB 스키마 변경 없이 구현 가능하다.
+	@Override
+	@Transactional
+	public void completeWorkcation(Integer workcationNo, Employee loginEmployee) {
+
+		WorkcationInfo workcation = workcationDao.findById(workcationNo)
+				.orElseThrow(() -> new IllegalArgumentException("워케이션 정보를 찾을 수 없습니다."));
+
+		String authCode = loginEmployee.getAuthCode();
+
+		if (!"ADMIN".equals(authCode) && !"MANAGER".equals(authCode)) {
+			throw new AccessDeniedException("관리자 또는 부서장만 완료 처리할 수 있습니다.");
+		}
+
+		if ("MANAGER".equals(authCode)) {
+
+			Employee owner = workcation.getEmployee();
+
+			if (owner == null || owner.getDepId() == null || !owner.getDepId().equals(loginEmployee.getDepId())) {
+				throw new AccessDeniedException("소속 부서의 워케이션만 완료 처리할 수 있습니다.");
+			}
+		}
+
+		if (!"A".equals(workcation.getApproverState())) {
+			throw new IllegalArgumentException("승인된 워케이션만 완료 처리할 수 있습니다.");
+		}
+
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+
+		List<Task> allTasks = new ArrayList<>();
+
+		for (Work work : workList) {
+			allTasks.addAll(taskDao.findByWorkWorkNo(work.getWorkNo()));
+		}
+
+		if (allTasks.isEmpty()) {
+			throw new IllegalArgumentException("등록된 업무가 없어 완료 처리할 수 없습니다.");
+		}
+
+		boolean allDone = allTasks.stream().allMatch(task -> "Y".equals(task.getStatus()));
+
+		if (!allDone) {
+			throw new IllegalArgumentException("모든 업무가 완료 상태여야 최종 완료 처리할 수 있습니다.");
+		}
+
+		workcation.setApproverState("D");
+		workcation.setUpdatedAt(LocalDateTime.now());
 	}
 
 	@Override

@@ -33,6 +33,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload.hub-dir:C:/upload/hub/}")
     private String hubDir;
 
+    // TODO-N02: 워케이션 후기 사진
+    @Value("${app.upload.reviews-dir:C:/upload/reviews/}")
+    private String reviewsDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
@@ -51,5 +55,13 @@ public class WebConfig implements WebMvcConfigurer {
         registry
                 .addResourceHandler("/resources/upload/hub/**")
                 .addResourceLocations("file:" + hubLocation);
+
+        String reviewsLocation = reviewsDir.endsWith("/")
+                ? reviewsDir
+                : reviewsDir + "/";
+
+        registry
+                .addResourceHandler("/upload/reviews/**")
+                .addResourceLocations("file:" + reviewsLocation);
     }
 }

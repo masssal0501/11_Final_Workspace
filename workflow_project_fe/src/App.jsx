@@ -39,6 +39,7 @@ import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnr
 import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
 import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
 import SurveyForm from './survey/components/SurveyForm';
+import WorkcationReviewForm from './review/components/WorkcationReviewForm';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -290,6 +291,7 @@ function App() {
                 <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
                 <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
                 <Route path="/survey/:workcationNo" element={<SurveyForm />} />
+                <Route path="/workcation/:workcationNo/review" element={<WorkcationReviewForm />} />
 
 
 

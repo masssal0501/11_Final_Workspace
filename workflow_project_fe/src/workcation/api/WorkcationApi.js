@@ -54,6 +54,12 @@ export const deleteWorkcation = async (workcationNo) => {
     return response.data;
 }
 
+// TODO-N03: 최종 완료 처리(MANAGER/ADMIN 전용, 전체 업무 완료 후)
+export const completeWorkcation = async (workcationNo) => {
+    const response = await axiosInstance.patch(`/workcation/${workcationNo}/complete`);
+    return response.data;
+}
+
 //회사 지우너금 정보조회
 export const getSupportInfo = async () => {
     const response = await axiosInstance.get("/workcation/amount/supportInfo");

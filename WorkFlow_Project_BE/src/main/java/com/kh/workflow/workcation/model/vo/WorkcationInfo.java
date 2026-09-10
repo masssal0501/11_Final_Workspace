@@ -71,8 +71,11 @@ public class WorkcationInfo {
 	@Column(name = "approver_comment", length = 300)
 	private String approverComment;// 반려사유
 
-	@Schema(description = "신청상태(A승인, C취소, H보류, J반려, R검토)", 
-			allowableValues = { "A", "C", "H", "J", "R", "W" }, defaultValue = "W")
+	// TODO-N03: 모든 업무 완료 후 관리자/부서장이 최종 확정하는 "D"(완료) 상태 추가.
+	// approver_state 컬럼은 VARCHAR(1)이고 DB CHECK 제약이 없어 애플리케이션 코드에서만
+	// 값을 제한하므로, 스키마 변경 없이 허용값만 늘리는 것으로 구현 가능하다.
+	@Schema(description = "신청상태(A승인, C취소, H보류, J반려, R검토, D완료, W대기)",
+			allowableValues = { "A", "C", "H", "J", "R", "W", "D" }, defaultValue = "W")
 	@Column(name="approver_state", columnDefinition="VARCHAR(1) DEFAULT 'W'")
 	private String approverState;// 신청상태
 	

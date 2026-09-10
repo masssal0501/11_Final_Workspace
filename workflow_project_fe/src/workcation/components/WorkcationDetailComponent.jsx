@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { getWorkcationDetail, deleteWorkcation } from "../api/WorkcationApi";
+import { getWorkcationDetail, deleteWorkcation, completeWorkcation } from "../api/WorkcationApi";
 
 import { getStatusText } from "../utils/StatusBadge";
 
@@ -74,6 +74,8 @@ function WorkcationDetailComponent() {
             case "J": return "반려";
             case "A": return "승인 완료";
             case "C": return "취소";
+            // TODO-N03: 모든 업무 완료 후 관리자/부서장이 확정하는 최종 완료 상태
+            case "D": return "최종 완료";
             default: return "알 수 없음";
         }
     };
@@ -83,6 +85,7 @@ function WorkcationDetailComponent() {
     const getStatusTone = (state) => {
         switch (state) {
             case "A": return "wf-badge-success";
+            case "D": return "wf-badge-success";
             case "J": return "wf-badge-danger";
             case "C": return "wf-badge-neutral";
             case "H": return "wf-badge-neutral";
@@ -108,6 +111,27 @@ function WorkcationDetailComponent() {
     const handleUpdate = async () => {
         navigate(`/workcation/update/${workcationNo}`);
     }
+
+    // TODO-N03: 관리자/부서장이 모든 업무 완료를 확인한 뒤 워케이션을 최종 완료 처리한다.
+    const handleComplete = async () => {
+        if (!window.confirm("모든 업무 완료를 확인하고 최종 완료 처리하시겠습니까?")) return;
+
+        try {
+            await completeWorkcation(workcationNo);
+            alert("워케이션이 최종 완료 처리되었습니다.");
+            const res = await getWorkcationDetail(workcationNo);
+            setDetailData(res);
+        } catch (err) {
+            console.error("완료 처리 실패 :", err);
+            alert(err?.response?.data?.message || "완료 처리 중 오류가 발생했습니다.");
+        }
+    }
+
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    const isManagerOrAdmin = user?.authCode === "ADMIN" || user?.authCode === "MANAGER";
+    const tasksAssigned = planList.filter(item => item.taskNo);
+    const allTasksDone = tasksAssigned.length > 0 && tasksAssigned.every(item => item.status === "Y");
+    const canComplete = isManagerOrAdmin && approverState === "A" && allTasksDone;
 
     return (
         <main className="wf-container">
@@ -350,7 +374,7 @@ function WorkcationDetailComponent() {
                 </div>
             </div>
 
-            {(canUpdate || canDelete) && (
+            {(canUpdate || canDelete || canComplete) && (
                 <div className="detail-button-area">
 
                     {canUpdate && (
@@ -362,6 +386,14 @@ function WorkcationDetailComponent() {
                     {canDelete && (
                         <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
                             삭제
+                        </button>
+                    )}
+
+                    {/* TODO-N03: 모든 업무가 완료(Y)됐고 워케이션이 승인(A) 상태일 때만
+                        관리자/부서장에게 노출 - 이미 최종 완료(D)됐거나 업무가 남아있으면 숨김 */}
+                    {canComplete && (
+                        <button type="button" className="btn btn-primary" onClick={handleComplete}>
+                            최종 완료 처리
                         </button>
                     )}
 

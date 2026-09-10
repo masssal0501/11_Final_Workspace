@@ -180,6 +180,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/upload/receipts/**"
                         ).permitAll()
+
+                        // TODO-N02: 워케이션 후기 사진 정적 서빙 - <img src="...">로 직접
+                        // 요청되므로(Authorization 헤더를 실을 수 없음) 영수증 이미지와 동일하게
+                        // 인증 없이 조회 가능하도록 허용한다(파일명이 UUID라 추측 어려움)
+                        .requestMatchers(
+                                "/upload/reviews/**"
+                        ).permitAll()
                         
                         // 거점 조회 - 로그인 사용자면 누구나
                         .requestMatchers(

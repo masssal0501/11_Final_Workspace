@@ -37,6 +37,8 @@ import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.workcation.model.dao.WorkcationDao;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,6 +62,7 @@ public class AmountController {
 
     private final AmountService amountService;
     private final EmployeeDao employeeDao;
+    private final WorkcationDao workcationDao;
 
 
     // =========================================================
@@ -95,9 +98,37 @@ public class AmountController {
             "/upload/receipts/";
 
 
-    public AmountController(AmountService amountService, EmployeeDao employeeDao) {
+    public AmountController(AmountService amountService, EmployeeDao employeeDao, WorkcationDao workcationDao) {
         this.amountService = amountService;
         this.employeeDao = employeeDao;
+        this.workcationDao = workcationDao;
+    }
+
+    // BUG-N08/BUG-N10: 조회(GET)·취소(cancel) API에 소유권 검증이 없어 로그인만
+    // 하면 타인의 정산 신청을 열람·취소할 수 있었다. BUG-N03(수정 API)에 적용한
+    // 것과 동일한 정책 - amount는 workcationNo만 갖고 있어(연관관계 없음)
+    // WorkcationInfo를 통해 신청자(empNo)를 조회한다. STAFF/MANAGER는 본인이
+    // 신청한 정산만, ADMIN은 전체 접근 가능.
+    private void checkAmountAccess(Amount amount, Authentication authentication) {
+
+        Employee loginEmployee = employeeDao.findByEmpId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("로그인 사용자 정보를 찾을 수 없습니다."));
+
+        if ("ADMIN".equals(loginEmployee.getAuthCode())) {
+            return;
+        }
+
+        WorkcationInfo workcation = amount.getWorkcationNo() != null
+                ? workcationDao.findById(amount.getWorkcationNo()).orElse(null)
+                : null;
+
+        boolean isOwner = workcation != null
+                && workcation.getEmployee() != null
+                && workcation.getEmployee().getEmpNo().equals(loginEmployee.getEmpNo());
+
+        if (!isOwner) {
+            throw new AccessDeniedException("본인이 신청한 정산만 접근할 수 있습니다.");
+        }
     }
 
 
@@ -467,7 +498,9 @@ public class AmountController {
                     example = "1001"
             )
             @PathVariable("amountNo")
-            int amountNo) {
+            int amountNo,
+
+            Authentication authentication) {
 
         try {
 
@@ -499,8 +532,15 @@ public class AmountController {
             }
 
 
+            checkAmountAccess(amount, authentication);
+
+
             return ResponseEntity.ok(amount);
 
+
+        } catch (AccessDeniedException e) {
+
+            throw e;
 
         } catch (Exception e) {
 
@@ -562,7 +602,9 @@ public class AmountController {
                     value = "page",
                     defaultValue = "1"
             )
-            int page) {
+            int page,
+
+            Authentication authentication) {
 
         try {
 
@@ -573,6 +615,27 @@ public class AmountController {
                         .body(
                                 "잘못된 워케이션 번호입니다."
                         );
+            }
+
+
+            // BUG-N10: 소유권 검증 - amountNo가 아닌 workcationNo를 직접 받는
+            // 경로라 amountNo 없이도 워케이션 소유자를 바로 확인할 수 있다.
+            {
+                Employee loginEmployee = employeeDao.findByEmpId(authentication.getName())
+                        .orElseThrow(() -> new AccessDeniedException("로그인 사용자 정보를 찾을 수 없습니다."));
+
+                if (!"ADMIN".equals(loginEmployee.getAuthCode())) {
+
+                    WorkcationInfo workcation = workcationDao.findById(workcationNo).orElse(null);
+
+                    boolean isOwner = workcation != null
+                            && workcation.getEmployee() != null
+                            && workcation.getEmployee().getEmpNo().equals(loginEmployee.getEmpNo());
+
+                    if (!isOwner) {
+                        throw new AccessDeniedException("본인이 신청한 워케이션의 정산만 조회할 수 있습니다.");
+                    }
+                }
             }
 
 
@@ -603,6 +666,10 @@ public class AmountController {
                     createPagingResult(amountPage)
             );
 
+
+        } catch (AccessDeniedException e) {
+
+            throw e;
 
         } catch (Exception e) {
 
@@ -831,7 +898,9 @@ public class AmountController {
                     example = "1001"
             )
             @PathVariable("amountNo")
-            int amountNo) {
+            int amountNo,
+
+            Authentication authentication) {
 
         try {
 
@@ -843,6 +912,21 @@ public class AmountController {
                                 "잘못된 비용 신청 번호입니다."
                         );
             }
+
+
+            // BUG-N08: 소유권 검증 없이 누구나 타인의 정산 신청을 취소할 수 있었다.
+            Amount existingAmount = amountService.selectAmountById(amountNo);
+
+            if (existingAmount == null) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                "존재하지 않는 비용 신청입니다."
+                        );
+            }
+
+            checkAmountAccess(existingAmount, authentication);
 
 
             int result =
@@ -864,6 +948,11 @@ public class AmountController {
                     .body(
                             "취소할 수 없는 비용 신청입니다."
                     );
+
+
+        } catch (AccessDeniedException e) {
+
+            throw e;
 
 
         } catch (IllegalArgumentException e) {

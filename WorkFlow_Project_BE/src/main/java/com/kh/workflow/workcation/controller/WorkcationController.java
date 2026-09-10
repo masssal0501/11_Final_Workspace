@@ -21,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -508,7 +509,7 @@ public class WorkcationController {
 
 		Employee owner = task.getWork().getWorkcationInfo().getEmployee();
 
-		if (!canUpdateTask(owner, loginEmployee)) {
+		if (!canAccessEmployeeScope(owner, loginEmployee)) {
 			throw new AccessDeniedException("해당 업무를 수정할 권한이 없습니다.");
 		}
 
@@ -516,9 +517,10 @@ public class WorkcationController {
 		return ResponseEntity.ok("업무 진행 상황 저장 완료");
 	}
 
-	// BUG-N05: 업무 수정 권한 검사 - STAFF는 본인 업무만, MANAGER는 같은 부서 소속 업무만,
-	// ADMIN은 전체 업무 수정 가능
-	private boolean canUpdateTask(Employee owner, Employee loginEmployee) {
+	// BUG-N05/BUG-N11: 워케이션 참여자(owner) 소유 리소스(업무 진행상황, 첨부파일 등)에 대한
+	// 접근 권한 검사 - STAFF는 본인 소유만, MANAGER는 같은 부서 소속 owner의 것만,
+	// ADMIN은 전체 접근 가능
+	private boolean canAccessEmployeeScope(Employee owner, Employee loginEmployee) {
 
 		String authCode = loginEmployee.getAuthCode();
 
@@ -568,10 +570,24 @@ public class WorkcationController {
 	@GetMapping("/file/{taskFileNo}/download")
 	public ResponseEntity<Resource> downloadWorkFile(
 			@Parameter(description = "다운로드할 첨부파일 번호", example = "1", required = true)
-			@PathVariable Integer taskFileNo) {
+			@PathVariable Integer taskFileNo,
+			Authentication authentication) {
 
 		WorkFile workFile = workFileDao.findById(taskFileNo)
 				.orElseThrow(() -> new RuntimeException("첨부파일을 찾을 수 없습니다."));
+
+		// BUG-N11: 소유권 검증 없이 누구나 타인의 업무 증빙 파일을 다운로드할 수 있었다.
+		// WorkFile -> Task -> Work -> WorkcationInfo -> Employee 체인으로 소유자를 확인한다.
+		String empId = (String) authentication.getPrincipal();
+
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+		Employee fileOwner = workFile.getTask().getWork().getWorkcationInfo().getEmployee();
+
+		if (!canAccessEmployeeScope(fileOwner, loginEmployee)) {
+			throw new AccessDeniedException("해당 첨부파일에 접근할 권한이 없습니다.");
+		}
 
 		File file = new File(System.getProperty("user.dir") + workFile.getFilePath() + workFile.getChangeName());
 
@@ -587,6 +603,32 @@ public class WorkcationController {
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName).body(resource);
 	}
 
+	// TODO-N03: 워케이션 최종 완료 처리 - 모든 업무가 완료(Y) 상태인 승인된
+	// 워케이션을 관리자/부서장이 확인 후 최종 완료(D) 상태로 확정한다.
+	@Operation(summary = "워케이션 최종 완료 처리", description = "승인된 워케이션의 모든 업무가 완료 상태일 때, 관리자 또는 소속 부서장이 최종 완료로 확정합니다.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "완료 처리 성공"),
+		@ApiResponse(responseCode = "400", description = "완료 처리 조건 미충족(미승인/업무 미완료 등)", content = @Content),
+		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+		@ApiResponse(responseCode = "403", description = "완료 처리 권한 없음", content = @Content)
+	})
+	@SecurityRequirement(name = "JWT")
+	@PatchMapping("/{workcationNo}/complete")
+	public ResponseEntity<?> completeWorkcation(
+			@Parameter(description = "완료 처리할 워케이션 번호", example = "1", required = true)
+			@PathVariable Integer workcationNo,
+			Authentication authentication) {
+
+		String empId = (String) authentication.getPrincipal();
+
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+		workcationService.completeWorkcation(workcationNo, loginEmployee);
+
+		return ResponseEntity.ok("워케이션이 최종 완료 처리되었습니다.");
+	}
+
 	// 워케이션 업무 첨부파일 등록
 	@Operation(summary = "워케이션 업무 첨부파일 등록", description = "워케이션에 속한 업무의 증빙 파일을 추가로 업로드합니다.")
 	@ApiResponses({
@@ -599,7 +641,21 @@ public class WorkcationController {
 			@Parameter(description = "워케이션 번호", example = "1", required = true)
 			@PathVariable Integer workcationNo,
 			@Parameter(description = "업로드할 첨부파일", required = true)
-			@RequestParam MultipartFile file) {
+			@RequestParam MultipartFile file,
+			Authentication authentication) {
+
+		// BUG-N11: 소유권 검증 없이 누구나 타인의 워케이션에 첨부파일을 등록할 수 있었다.
+		String empId = (String) authentication.getPrincipal();
+
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+		WorkcationInfo workcation = workcationDao.findById(workcationNo)
+				.orElseThrow(() -> new RuntimeException("워케이션 정보를 찾을 수 없습니다."));
+
+		if (!canAccessEmployeeScope(workcation.getEmployee(), loginEmployee)) {
+			throw new AccessDeniedException("해당 워케이션에 파일을 등록할 권한이 없습니다.");
+		}
 
 		workcationService.uploadWorkFile(workcationNo, file);
 
