@@ -253,7 +253,13 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WaitingListDto> 부서 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState) 
+		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(
+			 	e.empName,
+			 	e.depId,
+			 	h.mainRegion,
+			 	w.startAt,
+			 	w.endAt,
+			 	w.approverState) 
 		      FROM WorkcationInfo w 
 		      JOIN w.employee e
 		      JOIN Reservation r ON r.workcation = w
