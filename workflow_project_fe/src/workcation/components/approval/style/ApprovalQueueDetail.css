@@ -1,0 +1,402 @@
+/* 전체 영역 */
+.workcation-detail-container {
+    width: 90%;
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+
+/* 상단 제목 + 목록 버튼 */
+.detail-top-nav {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.detail-top-nav h2 {
+    margin: 0;
+}
+
+.back-list-btn {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+
+/* 워케이션 기본 정보 카드 */
+.workcation-info-card {
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.info-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.info-date {
+    font-size: 14px;
+}
+
+.info-divider {
+    margin: 15px 0;
+    border: 0;
+    border-top: 1px solid #ddd;
+}
+
+.info-row-bottom {
+    font-size: 15px;
+}
+
+
+/* 업무 관리 전체 */
+.task-manage-section {
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+.task-manage-header {
+    margin-bottom: 20px;
+}
+
+.task-manage-header h3 {
+    margin: 0;
+}
+
+
+/* 전체 진행률 영역 */
+.progress-overview-box {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.progress-title-area {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.task-modal-box {
+    user-select: none;
+}
+
+/* 진행바 */
+.progress-bar-bg {
+    width: 100%;
+    height: 25px;
+
+    background-color: #eee;
+    border: 1px solid #ccc;
+
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+
+    background-color: #4caf50;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 0;
+}
+
+.progress-text {
+    font-size: 13px;
+}
+
+
+/* 진행률 설명 */
+.progress-status-text {
+    margin-top: 10px;
+}
+
+.sub-guide-text {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+
+/* 업무 목록 */
+.my-task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.my-task-item {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    cursor: pointer;
+}
+
+.my-task-item:hover {
+    background-color: #f5f5f5;
+}
+
+
+/* 업무 왼쪽 */
+.task-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* 업무 오른쪽 */
+.task-item-right {
+    font-size: 14px;
+}
+
+.completed-text {
+    text-decoration: line-through;
+    color: #888;
+}
+
+
+/* 삭제 버튼 영역 */
+.detail-button-area {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.delete-workcation-btn {
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+/* =========================
+   업무 모달 전체 배경
+========================= */
+.task-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    background: rgba(0, 0, 0, 0.35);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+
+/* =========================
+   모달 본체
+========================= */
+.task-modal-box {
+    width: 520px;
+    max-height: 85vh;
+
+    background: white;
+    border-radius: 12px;
+
+    padding: 24px;
+
+    box-sizing: border-box;
+
+    overflow-y: auto;
+
+    user-select: none;
+}
+
+
+/* =========================
+   모달 상단
+========================= */
+.task-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 24px;
+}
+
+.task-modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.task-modal-header button {
+    border: none;
+    background: none;
+
+    font-size: 26px;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   각 영역
+========================= */
+.task-modal-section {
+    margin-bottom: 22px;
+}
+
+.task-modal-section h4 {
+    margin: 0 0 10px 0;
+}
+
+
+/* =========================
+   진행률 바
+========================= */
+.modal-progress-bar-bg {
+    position: relative;
+
+    width: 100%;
+    height: 24px;
+
+    background: #e9ecef;
+    border: 1px solid #ccc;
+
+    overflow: hidden;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.modal-progress-bar-fill {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    height: 100%;
+
+    background: #4c8bf5;
+
+    pointer-events: none;
+}
+
+.modal-progress-text {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    z-index: 2;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   최근 활동
+========================= */
+.activity-list {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+
+    overflow: hidden;
+}
+
+.activity-item {
+    display: grid;
+
+    grid-template-columns: 1fr 110px 60px;
+
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    border-bottom: 1px solid #eee;
+
+    font-size: 14px;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+
+/* =========================
+   파일
+========================= */
+.task-modal-section input[type="file"] {
+    width: 100%;
+}
+
+
+/* =========================
+   리포트
+========================= */
+.task-modal-section input[type="text"] {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+
+    border: 1px solid #ccc;
+    border-radius: 4px;
+
+    user-select: text;
+}
+
+.task-modal-section textarea {
+    width: 100%;
+    min-height: 120px;
+
+    box-sizing: border-box;
+
+    padding: 10px;
+
+    resize: vertical;
+
+    border: 1px solid #ccc;
+    border-radius: 4px;
+
+    user-select: text;
+}
+
+
+/* =========================
+   하단 버튼
+========================= */
+.task-modal-buttons {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    padding-top: 16px;
+
+    border-top: 1px solid #eee;
+}
+
+.task-modal-buttons button {
+    padding: 8px 16px;
+
+    cursor: pointer;
+}

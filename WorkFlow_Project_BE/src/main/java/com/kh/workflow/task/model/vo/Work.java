@@ -23,7 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "work")
+@Table(name="work")
 
 @DynamicInsert
 @DynamicUpdate
@@ -33,44 +33,23 @@ import lombok.ToString;
 @Getter
 @ToString
 public class Work {
-
-    @Id
-    @Column(name = "work_no")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer workNo; // 근무 번호
-
-
-    @Schema(
-        description = "근무 제출시간",
-        accessMode = Schema.AccessMode.READ_ONLY
-    )
-    @Column(
-        name = "submitted_at",
-        nullable = false,
-        columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-    )
-    private LocalDateTime submittedAt;
-
-
-    @Schema(
-        description = "근무 수정시간",
-        accessMode = Schema.AccessMode.READ_ONLY
-    )
-    @Column(
-        name = "updated_at",
-        columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-    )
-    private LocalDateTime updatedAt;
-
-
-    @Schema(
-        description = "워케이션 번호",
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    @JoinColumn(
-        name = "workcation_no",
-        nullable = false
-    )
-    @ManyToOne(fetch = FetchType.LAZY)
-    private WorkcationInfo workcation;
+	
+	@Schema(description="근무 번호", example="1", accessMode=Schema.AccessMode.READ_ONLY)
+	@Id
+	@Column(name="work_no")
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int workNo; // 근무 번호
+	
+	@Schema(description="근무 제출 시간", example="2026-08-24T10:00:00", accessMode=Schema.AccessMode.READ_ONLY)
+	@Column(name="submitted_at", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private LocalDateTime submittedAt;
+	
+	@Schema(description="근무 수정 시간", example="2026-08-24T10:00:00", accessMode=Schema.AccessMode.READ_ONLY)
+	@Column(name="updated_at", columnDefinition="TIMESTAMP")
+	private LocalDateTime updatedAt;
+	
+	@Schema(description="워케이션 내역 정보 (WorkcationInfo 객체)")
+	@ManyToOne
+	@JoinColumn(name="workcation_no", nullable=false)
+	private WorkcationInfo workcationInfo;
 }

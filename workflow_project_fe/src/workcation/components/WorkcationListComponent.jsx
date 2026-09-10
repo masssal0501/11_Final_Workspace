@@ -6,7 +6,7 @@ import { getStatusText } from "../utils/StatusBadge";
 
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
 
-import "../styles/WorkcationList.css";
+// import "../styles/WorkcationList.css";
 
 // 선택 옵션 설정 (WorkcationItemComponent에 있던 상수)
 export const OPTION_CONFIG = {

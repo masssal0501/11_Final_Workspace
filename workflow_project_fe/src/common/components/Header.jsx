@@ -57,6 +57,30 @@ function Header({ loginUser, onLogout }) {
       label: "워케이션 신청",
       icon: "▣",
       path: "/workcation/list",
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+
+      children: [ 
+        { 
+          label: "워케이션 신청", 
+          path: "/workcation/enrollform" ,
+          roles: ["MANAGER", "STAFF"]
+        }, 
+        { 
+          label: "부서 워케이션 목록", 
+          path: "/workcation/deptList",
+          roles: ["MANAGER"]
+        } ,
+        { 
+          label: "신청 내역 목록", 
+          path: "/workcation/list"
+        } ,
+        { 
+          label: "시설 예약 관리", 
+          path: "/reservations/schedules",
+          roles: ["ADMIN"]
+        }         
+      ]
     },
     {
       id: "task",
@@ -69,6 +93,68 @@ function Header({ loginUser, onLogout }) {
       label: "비용 관리",
       icon: "₩",
       path: "/cost/list",
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+
+      children: [ 
+        { 
+          label: "정산 신청", 
+          path: "/cost/apply" ,
+          roles: ["MANAGER", "STAFF"]
+        } ,
+        { 
+          label: "정산 목록", 
+          path: "/cost/list" 
+        }, 
+        { 
+          label: "지원금 목록", 
+          path: "/subsidy/list" ,
+          rolse:["ADMIN"]
+        }, 
+      ]
+    },
+    {
+      id: "employee",
+      label: "직원 관리",
+      icon: "☷",
+      path: "/employee/list",
+
+      roles: ["ADMIN"],
+
+      children: [ 
+        { 
+          label: "직원 목록", 
+          path: "/employee/list" 
+        }, 
+        { 
+          label: "직원 등록", 
+          path: "/employee/enrollForm" 
+        } 
+      ]
+    },
+    {
+      id: "hub",
+      label: "장소/거점",
+      icon: "⌖",
+      path: "/hub/list",
+
+      roles: ["ADMIN", "MANAGER", "STAFF"],
+
+      children: [ 
+        { 
+          label: "장소 정보 등록", 
+          path: "/workflow/place/Form" 
+        }, 
+        { 
+          label: "AI 여행 일정 추천", 
+          path: "/hub/ai" 
+        },     
+        { 
+          label: "거점 등록", 
+          path: "/hub/enrollForm",
+          roles:["ADMIN"]
+        } 
+      ]      
     },
     {
       id: "notice",
@@ -76,12 +162,7 @@ function Header({ loginUser, onLogout }) {
       icon: "♢",
       path: "/notice",
     },
-    {
-      id: "hub",
-      label: "장소/거점",
-      icon: "⌖",
-      path: "/placeInfo/list",
-    },
+
   ];
 
 

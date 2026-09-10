@@ -1,0 +1,247 @@
+/* =========================
+   Reservation Detail
+========================= */
+
+.reservation-detail-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 30px 60px;
+    box-sizing: border-box;
+}
+
+
+/* =========================
+   Header
+========================= */
+
+.reservation-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.reservation-detail-header h2 {
+    margin: 0;
+
+    font-size: 28px;
+    font-weight: 700;
+    color: #222;
+}
+
+
+/* =========================
+   Status
+========================= */
+
+.reservation-detail-status {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 7px 13px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.reservation-detail-status.status-N {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.reservation-detail-status.status-C {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.reservation-detail-status.status-Y {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+
+/* =========================
+   Card
+========================= */
+
+.reservation-detail-card {
+    overflow: hidden;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    background-color: white;
+}
+
+
+/* =========================
+   Section
+========================= */
+
+.reservation-detail-section {
+    padding: 25px;
+
+    border-bottom: 1px solid #eef0f3;
+}
+
+.reservation-detail-section:last-child {
+    border-bottom: none;
+}
+
+.reservation-detail-section h3 {
+    margin: 0 0 20px;
+
+    font-size: 17px;
+    font-weight: 700;
+    color: #222;
+}
+
+
+/* =========================
+   Info
+========================= */
+
+.reservation-detail-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.reservation-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.reservation-info-label {
+    font-size: 12px;
+    color: #999;
+}
+
+.reservation-info-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+
+/* =========================
+   Hub
+========================= */
+
+.reservation-hub-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reservation-hub-detail-name {
+    font-size: 19px;
+    font-weight: 700;
+    color: #222;
+}
+
+.reservation-hub-detail-address {
+    font-size: 14px;
+    color: #666;
+}
+
+
+/* =========================
+   Actions
+========================= */
+
+.reservation-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 25px;
+}
+
+.reservation-detail-actions button {
+    padding: 11px 22px;
+
+    border-radius: 7px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.reservation-back-button {
+    border: 1px solid #d9dee7;
+    background-color: white;
+    color: #555;
+}
+
+.reservation-update-button {
+    border: none;
+    background-color: #2563eb;
+    color: white;
+}
+
+.reservation-update-button:hover {
+    background-color: #1d4ed8;
+}
+
+.reservation-cancel-button-danger {
+    border: 1px solid #fecaca;
+    background-color: white;
+    color: #dc2626;
+}
+
+.reservation-cancel-button-danger:hover {
+    background-color: #fef2f2;
+}
+
+
+/* =========================
+   Loading
+========================= */
+
+.reservation-detail-loading {
+    padding: 80px 20px;
+
+    text-align: center;
+
+    color: #777;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 768px) {
+
+    .reservation-detail-container {
+        padding: 25px 16px 40px;
+    }
+
+    .reservation-detail-header {
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .reservation-detail-header h2 {
+        font-size: 23px;
+    }
+
+    .reservation-detail-info {
+        grid-template-columns: 1fr;
+    }
+
+    .reservation-detail-actions {
+        flex-direction: column;
+    }
+
+    .reservation-detail-actions button {
+        width: 100%;
+    }
+}

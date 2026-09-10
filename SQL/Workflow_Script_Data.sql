@@ -1,7 +1,7 @@
 -- 임의 사용자 계정데이터
 INSERT INTO employee (emp_id, emp_pwd, emp_name, phone, email, address, join_at, status, pw_chg_required, dep_id, auth_code, job_code) VALUES
 -- 관리자 (1명)
-('admin01', '$2a$10$dummyPasswordHashExample1', '관리자', '010-1111-2222', 'admin@workflow.com', '서울시 강남구', NOW(), 'Y', FALSE, 'D1', 'ADMIN', 'J5'),
+('admin01', '$2a$10$1tpWzuqxqpx04vYNpVCBT.Dbc3cED1CNdNyx4RtMLM.OQGvY3jwI2', '관리자', '010-1111-2222', 'admin@workflow.com', '서울시 강남구', NOW(), 'N', FALSE, 'D1', 'ADMIN', 'J5'),
 
 -- 매니저 (1명)
 ('manager01', '$2a$10$dummyPasswordHashExample2', '김팀장', '010-3333-4444', 'manager@workflow.com', '서울시 서초구', NOW(), 'Y', FALSE, 'D2', 'MANAGER', 'J3'),
@@ -13,7 +13,8 @@ INSERT INTO employee (emp_id, emp_pwd, emp_name, phone, email, address, join_at,
 ('staff04', '$2a$10$dummyPasswordHashExample6', '박민수', '010-5555-9999', 'staff4@workflow.com', '경기도 수원시', NOW(), 'Y', FALSE, 'D4', 'STAFF', 'J1'),
 ('staff05', '$2a$10$dummyPasswordHashExample7', '정지원', '010-6666-1111', 'staff5@workflow.com', '서울시 마포구', NOW(), 'Y', FALSE, 'D5', 'STAFF', 'J2'),
 ('staff06', '$2a$10$dummyPasswordHashExample8', '한서준', '010-6666-2222', 'staff6@workflow.com', '경기도 고양시', NOW(), 'Y', FALSE, 'D5', 'STAFF', 'J1'),
-('staff07', '$2a$10$dummyPasswordHashExample9', '오지은', '010-6666-3333', 'staff7@workflow.com', '서울시 용산구', NOW(), 'Y', FALSE, 'D6', 'STAFF', 'J2');
+('staff07', '$2a$10$dummyPasswordHashExample9', '오지은', '010-6666-3333', 'staff7@workflow.com', '서울시 용산구', NOW(), 'Y', FALSE, 'D6', 'STAFF', 'J2'),
+('test', '$2a$10$1tpWzuqxqpx04vYNpVCBT.Dbc3cED1CNdNyx4RtMLM.OQGvY3jwI2', '테스트', '010-6666-3333', 'masssal0501@gmail.com', '서울시 용산구', NOW(), 'Y', FALSE, 'D6', 'STAFF', 'J2');
 
 -- 더미 워케이션 신청 내역
 INSERT INTO workcation_info (

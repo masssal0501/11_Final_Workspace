@@ -13,7 +13,10 @@ import com.kh.workflow.employee.model.dto.ChangePasswordRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeCreateResponse;
 import com.kh.workflow.employee.model.dto.EmployeeResponse;
+import com.kh.workflow.employee.model.dto.EmployeeRoleUpdateRequest;
 import com.kh.workflow.employee.model.dto.EmployeeUpdateRequest;
+import com.kh.workflow.employee.model.dto.FindIdRequest;
+import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.vo.Employee;
@@ -225,6 +228,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public LoginResponse login(LoginRequest request) {
 
+    	
         Employee employee =
         		employeeDao.findByEmpId(request.getEmpId())
                         .orElseThrow(() ->
@@ -235,25 +239,24 @@ public class EmployeeServiceImpl implements EmployeeService{
 
 
         // 계정 상태 확인
-        if (employee.getStatus() == null || !"Y".equals(employee.getStatus())) {
+        if (!"Y".equals(employee.getStatus())) {
 
             throw new IllegalStateException(
                     "현재 사용할 수 없는 계정입니다."
             );
         }
 
-/*급하니 주석처리 추후 코드통합시 해제
+
         // 비밀번호 확인
-        String rawPassword = request.getPassword() != null ? request.getPassword() : "";
         if (!passwordEncoder.matches(
-        		rawPassword,
+        		request.getPassword(),
                 employee.getEmpPwd()
         )) {
 
             throw new IllegalArgumentException(
                     "아이디 또는 비밀번호가 올바르지 않습니다."
             );
-        }*/
+        }
 
 
         // JWT 생성
@@ -488,6 +491,97 @@ public class EmployeeServiceImpl implements EmployeeService{
                 .toList();
     }
 
+    // =========================================================
+    // USR-009
+    // 계정 ID 찾기
+    // =========================================================
+    @Override
+    public FindIdResponse findEmployeeId(
+            FindIdRequest request
+    ) {
+
+        /*
+         * 이름 + 이메일로 직원 조회
+         */
+        Employee employee =
+                employeeDao
+                        .findByEmpNameAndEmail(
+                                request.getEmpName(),
+                                request.getEmail()
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "입력하신 정보와 일치하는 계정을 찾을 수 없습니다."
+                                )
+                        );
+
+
+        /*
+         * 아이디 마스킹
+         */
+        String maskedEmpId =
+                maskEmpId(employee.getEmpId());
+
+
+        /*
+         * 응답
+         */
+        return new FindIdResponse(
+                maskedEmpId
+        );
+    }
+    
+    // 아이디 마스킹 처리
+    private String maskEmpId(String empId) {
+
+        if (empId == null || empId.isEmpty()) {
+            return "";
+        }
+
+        int length = empId.length();
+
+
+        /*
+         * 1~2자리
+         */
+        if (length <= 2) {
+
+            return empId.charAt(0) + "*";
+        }
+
+
+        /*
+         * 3자리
+         */
+        if (length == 3) {
+
+            return empId.charAt(0)
+                    + "*"
+                    + empId.charAt(2);
+        }
+
+
+        /*
+         * 4자리 이상
+         *
+         * 앞 2자리 + * + 뒤 2자리
+         */
+        int visibleFront = 2;
+        int visibleBack = 2;
+
+        int maskLength =
+                length - visibleFront - visibleBack;
+
+        return empId.substring(
+                    0,
+                    visibleFront
+                )
+                + "*".repeat(maskLength)
+                + empId.substring(
+                    length - visibleBack
+                );
+    }
+
 
     // =========================================================
     // USR-010
@@ -520,7 +614,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     public void updateEmployeeRole(
             Integer empNo,
-            String authCode
+            EmployeeRoleUpdateRequest request
     ) {
 
         Employee employee =
@@ -532,7 +626,9 @@ public class EmployeeServiceImpl implements EmployeeService{
                         );
 
 
-        employee.setAuthCode(authCode);
+        employee.setAuthCode(request.getAuthCode());
+        employee.setDepId(request.getDepId());
+        employee.setJobCode(request.getJobCode());
     }
 
 

@@ -1,0 +1,143 @@
+.rejectPage {
+    width: 700px;
+    margin: 50px auto;
+    padding: 35px 45px;
+
+    background-color: #ffffff;
+    border-radius: 12px;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    box-sizing: border-box;
+}
+
+/* 제목 */
+.rejectPage h3 {
+    margin: 0 0 10px;
+}
+
+.rejectPage h2 {
+    margin: 10px 0;
+}
+
+.rejectPage h5 {
+    margin: 0 0 10px;
+}
+
+.rejectPage h6 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* 상세 정보 */
+.rejectPage span {
+    font-size: 14px;
+    color: #555;
+}
+
+.workcation-period {
+    width: fit-content;
+    margin-left: auto;
+    text-align: left;
+}
+
+.workcation-period h6 {
+    margin: 0 0 8px;
+}
+
+.period-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.period-content span {
+    font-size: 14px;
+    color: #555;
+}
+
+/* ~ 만 가운데 */
+.period-content span:nth-child(2) {
+    width: 100%;
+    text-align: center;
+}
+/* 업무계획 / 반려사유 */
+.planBox,
+.rejectBox {
+    width: 100%;
+    min-height: 200px;
+    padding: 15px 20px;
+
+    background-color: #ffffff;
+
+    border-radius: 13px;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.375);
+
+    box-sizing: border-box;
+}
+
+/* 버튼 영역 */
+.button {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 30px;
+}
+
+
+/* 승인/반려 버튼 */
+.submit-btn {
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #27d9f0;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* 이전 버튼 */
+.back-btn {
+    padding: 10px 20px;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 8px;
+
+    background-color: #f5f5f5;
+    color: #555;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background-color: #e5e5e5;
+    color: #333;
+
+    transform: translateY(-2px);
+}

@@ -28,10 +28,15 @@ public class SecurityConfig {
     }
    
     
+    /**
+     * 정적 리소스(Static Resources) 경로에 대해 Spring Security 인증 예외 처리 설정
+     * 
+     * @return WebSecurityCustomizer 객체
+     */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-    return (web) -> web.ignoring()
-    .requestMatchers("/resources/**");
+        return (web) -> web.ignoring()
+                .requestMatchers("/resources/**");
     }
     
     @Bean
@@ -84,6 +89,12 @@ public class SecurityConfig {
                                 "/employees"
                         ).permitAll()
                         
+                        // Swagger UI 및 API 문서화 경로 허용
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                            ).permitAll()
+                        
                         .requestMatchers(
                             "/employees/password"
                         ).authenticated()
@@ -95,9 +106,29 @@ public class SecurityConfig {
                     	).permitAll()
                         
                         // 장소 관련 API
+                     // 장소 조회
                         .requestMatchers(
+                                HttpMethod.GET,
                                 "/place/**"
                         ).permitAll()
+
+                        // 장소 등록 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/place"
+                        ).hasRole("ADMIN")
+
+                        // 장소 수정 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/place/**"
+                        ).hasRole("ADMIN")
+
+                        // 장소 삭제 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/place/**"
+                        ).hasRole("ADMIN")
                         
                         .requestMatchers(
                         		"/hubs/**"
@@ -118,15 +149,79 @@ public class SecurityConfig {
 	                    .requestMatchers(	                    	    
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
-	                    
+
+	                    // 업무 상태 변경 - 관리자만
 	                    .requestMatchers(
 	                    		HttpMethod.PATCH,
 	                    		"/task/*/status"
 	                    		).hasRole("ADMIN")
-	                    
+
+	                    // 업무 관리 - 관리자/부서장만
 	                    .requestMatchers("/task/**")
 	                    .hasAnyRole("MANAGER", "ADMIN")
 
+	                 // 승인 관련 API - 관리자 및 매니저만
+	                    .requestMatchers(
+	                            "/approval/**"
+	                    ).hasAnyRole("ADMIN", "MANAGER")
+
+	                    // swagger
+	                    .requestMatchers(
+                        		"/swagger-ui/**",
+	                    		"/v3/api-docs/**"
+                		).permitAll()
+	                    
+                        .requestMatchers(
+                            "/employees/password"
+                        ).authenticated()
+
+                        
+                        // 통계페이지 추후 관리자로 수정
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/statistics"
+                        	).permitAll()
+                        
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/workcation/**"
+                        	).permitAll()
+                        
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts"
+                        	).permitAll()
+                        // 관리자 정산 추후 권한 수정
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/admin/cost/list"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/cost/detail/**"
+                        	).permitAll()
+                        
+                        .requestMatchers(
+                        	    HttpMethod.GET,
+                        	    "/api/v1/amounts/*"
+                        	).permitAll()
+                     // 공지사항
+                        .requestMatchers(
+                            "/api/v1/notice/**"
+                        ).permitAll()
+                        
+                        .requestMatchers(
+                                "/api/v1/notice/insert/"
+                            ).permitAll()
+                        .requestMatchers(
+                                "/api/v1/notice/update/**"
+                            ).permitAll()
+                        
+                       
+            
                         // 나머지는 JWT 필요
                         .anyRequest().authenticated()
                 )

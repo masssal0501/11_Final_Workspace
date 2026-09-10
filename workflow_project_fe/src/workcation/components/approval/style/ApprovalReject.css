@@ -1,0 +1,275 @@
+/* 전체 페이지 */
+.rejectPage {
+    width: 1000px;
+    margin: 50px auto;
+    padding: 35px 45px;
+
+    background-color: #ffffff;
+    border-radius: 12px;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    box-sizing: border-box;
+}
+
+
+/* 페이지 제목 */
+.rejectPage h3 {
+    margin: 0 0 20px;
+
+    font-size: 24px;
+    font-weight: 700;
+
+    color: #222;
+}
+
+
+/* 워케이션 제목 */
+.rejectPage h2 {
+    margin: 20px 0;
+
+    font-size: 26px;
+    font-weight: 700;
+
+    color: #222;
+}
+
+
+/* 정보 영역 */
+.rejectPage > div {
+    margin-bottom: 10px;
+}
+
+
+/* 정보 제목 */
+.rejectPage h6 {
+    display: inline-block;
+
+    width: 100px;
+
+    margin: 0 15px 0 0;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    color: #323232;
+}
+
+
+/* 정보 내용 */
+.rejectPage span {
+    display: inline-block;
+
+    font-size: 14px;
+    color: #333;
+}
+
+
+/* 업무계획 / 반려사유 제목 */
+.rejectPage h5 {
+    margin: 10px 0 12px;
+
+    font-size: 17px;
+    font-weight: 700;
+
+    color: #222;
+}
+
+
+/* 업무계획 */
+.planBox {
+    width: 100%;
+    height: 250px;
+
+    padding: 15px 20px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e0e0e0;
+    border-radius: 13px;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+
+    box-sizing: border-box;
+
+    font-size: 16px;
+    line-height: 1.6;
+
+    overflow-y: auto;
+}
+
+
+/* 상태 선택 */
+#approverState {
+    width: 180px;
+    height: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    outline: none;
+}
+
+#approverState:focus {
+    border-color: #27d9f0;
+}
+
+
+/* 반려 사유 입력창 */
+.rejectBox {
+    width: 100%;
+    height: 180px;
+
+    padding: 15px 20px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 13px;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+
+    box-sizing: border-box;
+
+    font-size: 16px;
+    line-height: 1.6;
+
+    resize: vertical;
+
+    outline: none;
+}
+
+.rejectBox:focus {
+    border-color: #27d9f0;
+
+    box-shadow: 0 4px 10px rgba(39, 217, 240, 0.15);
+}
+
+
+/* 버튼 영역 */
+.button {
+    display: flex;
+
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 30px;
+}
+
+
+/* 등록 버튼 */
+.submit-btn {
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #27d9f0;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: #1bbbd0;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* 이전으로 버튼 */
+.back-btn {
+    padding: 10px 20px;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 8px;
+
+    background-color: #f5f5f5;
+    color: #555;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background-color: #e5e5e5;
+    color: #333;
+
+    transform: translateY(-2px);
+}
+
+
+/* 모바일 대응 */
+@media (max-width: 1050px) {
+
+    .rejectPage {
+        width: calc(100% - 40px);
+
+        margin: 30px auto;
+        padding: 30px;
+    }
+
+    .planBox,
+    .rejectBox {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .rejectPage {
+        width: calc(100% - 20px);
+
+        padding: 20px;
+    }
+
+    .rejectPage h2 {
+        font-size: 22px;
+    }
+
+    .rejectPage h6 {
+        width: 80px;
+
+        font-size: 14px;
+    }
+
+    .rejectPage span {
+        font-size: 13px;
+    }
+
+    .planBox {
+        height: 200px;
+    }
+
+    .rejectBox {
+        height: 150px;
+    }
+
+    .button {
+        justify-content: center;
+    }
+
+}

@@ -1,40 +1,184 @@
-import axios from 'axios';
+import axiosInstance from "../../common/api/axiosInstance";
 
-const BASE_URL = '/workflow/api/v1/amount';
+const API_BASE_URL = "/api/v1/amounts";
 
+const amountApi = {
 
-export const amountApi = {
-  // 1. 비용 검토 신청 등록 (POST)
-  createAmount: async (amountData) => {
-    const response = await axios.post(BASE_URL, amountData);
-    return response.data;
-  },
+    // =========================================================
+    // 1. 전체 비용 신청 목록
+    // GET /api/v1/amounts?page=1
+    // =========================================================
+    getAmountList: async (page = 1) => {
 
-  // 2. 비용 신청 단건 상세 조회 (GET)
-  getAmountDetail: async (amountNo) => {
-    const response = await axios.get(`${BASE_URL}/${amountNo}`);
-    return response.data;
-  },
+        const response = await axiosInstance.get(
+            API_BASE_URL,
+            {
+                params: {
+                    page
+                }
+            }
+        );
 
-  // 3. 특정 워케이션의 비용 신청 목록 조회 (GET)
-  getAmountListByWorkcation: async (workcationNo) => {
-    const response = await axios.get(`${BASE_URL}/workcation/${workcationNo}`);
-    return response.data;
-  },
+        return response.data;
+    },
 
-  // 4. 결재 승인 / 반려 / 보류 처리 (PATCH - Query Parameter 방식)
-  updateApproval: async (amountNo, status, approvedAmount, comment) => {
-    const response = await axios.patch(
-      `${BASE_URL}/${amountNo}/approval`,
-      null,
-      {
-        params: {
-          status,
-          approvedAmount,
-          comment
-        }
-      }
-    );
-    return response.data;
-  }
+    // =========================================================
+    // 2. 워케이션별 비용 신청 목록
+    // GET /api/v1/amounts/workcation/{workcationNo}?page=1
+    // =========================================================
+    getAmountListByWorkcation: async (
+        workcationNo,
+        page = 1
+    ) => {
+
+        const response = await axiosInstance.get(
+            `${API_BASE_URL}/workcation/${workcationNo}`,
+            {
+                params: {
+                    page
+                }
+            }
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 3. 비용 상세 조회
+    // GET /api/v1/amounts/{amountNo}
+    // =========================================================
+    getAmountById: async (amountNo) => {
+
+        const response = await axiosInstance.get(
+            `${API_BASE_URL}/${amountNo}`
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 4. 비용 신청 등록
+    // POST /api/v1/amounts
+    // =========================================================
+    insertAmount: async (formData) => {
+
+        const response = await axiosInstance.post(
+            API_BASE_URL,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 5. 비용 신청 수정
+    // PUT /api/v1/amounts/{amountNo}
+    // =========================================================
+    updateAmount: async (
+        amountNo,
+        formData
+    ) => {
+
+        const response = await axiosInstance.put(
+            `${API_BASE_URL}/${amountNo}`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 6. 결재 상태 변경 + 지원금 반영
+    // PATCH /api/v1/amounts/{amountNo}/approval
+    // =========================================================
+    updateApproval: async (
+        amountNo,
+        status,
+        approvedAmount,
+        amountComment,
+        sponsorName,
+        sponsorAmount,
+        sponsorStatus,
+        remark
+    ) => {
+
+        const data = {
+            status,
+            approvedAmount,
+            amountComment,
+            sponsorName,
+            sponsorAmount,
+            sponsorStatus,
+            remark
+        };
+
+        console.log("📌 승인 요청:", {
+            amountNo,
+            data
+        });
+
+        const response = await axiosInstance.patch(
+            `${API_BASE_URL}/${amountNo}/approval`,
+            data
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 7. 비용 신청 취소
+    // PATCH /api/v1/amounts/{amountNo}/cancel
+    // =========================================================
+    cancelAmount: async (amountNo) => {
+
+        const response = await axiosInstance.patch(
+            `${API_BASE_URL}/${amountNo}/cancel`,
+            {}
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 8. 첨부파일 삭제
+    // DELETE /api/v1/amounts/{amountNo}/files/{amountattachmentNo}
+    // =========================================================
+    deleteFile: async (
+        amountNo,
+        amountattachmentNo
+    ) => {
+
+        const response = await axiosInstance.delete(
+            `${API_BASE_URL}/${amountNo}/files/${amountattachmentNo}`
+        );
+
+        return response.data;
+    },
+
+    // =========================================================
+    // 9. 통계
+    // GET /api/v1/amounts/statistics
+    // =========================================================
+    getStatistics: async () => {
+
+        const response = await axiosInstance.get(
+            `${API_BASE_URL}/statistics`
+        );
+
+        return response.data;
+    }
 };
+
+export { amountApi };
+
+export default amountApi;

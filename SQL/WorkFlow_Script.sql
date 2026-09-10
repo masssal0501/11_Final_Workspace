@@ -2,7 +2,7 @@
    WorkFlow ERP Database Initialization Script
    MySQL 8.x / MySQL Workbench
    BY ChatGPT 
-   AT 2026-08-20
+   AT 2026-09-02
    ========================================================= */
 
 
@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS notice_file;
 DROP TABLE IF EXISTS survey_answer;
 DROP TABLE IF EXISTS workcation_survey;
 DROP TABLE IF EXISTS survey_question;
+DROP TABLE IF EXISTS task_history;
 DROP TABLE IF EXISTS work_file;
 DROP TABLE IF EXISTS task;
 DROP TABLE IF EXISTS work;
@@ -38,6 +39,7 @@ DROP TABLE IF EXISTS amount;
 DROP TABLE IF EXISTS notice;
 DROP TABLE IF EXISTS workcation_info;
 DROP TABLE IF EXISTS hub;
+DROP TABLE IF EXISTS hub_file;
 DROP TABLE IF EXISTS employee;
 DROP TABLE IF EXISTS authority;
 DROP TABLE IF EXISTS job;
@@ -103,7 +105,8 @@ CREATE TABLE employee (
     status VARCHAR(1) NOT NULL DEFAULT 'Y'
         COMMENT 'Y 재직, N 퇴사, R 휴직, V 휴가',
 
-	pw_chg_required	BOOLEAN	NOT NULL	COMMENT '최초 생성시 변경 필수 요구',
+	pw_chg_required BOOLEAN NOT NULL DEFAULT TRUE
+		COMMENT '최초 생성시 변경 필수 요구',
 
     dep_id CHAR(2) NOT NULL COMMENT '부서 PK',
     auth_code VARCHAR(20) NOT NULL COMMENT '권한 PK',
@@ -136,8 +139,11 @@ CREATE TABLE employee (
 CREATE TABLE hub (
     hub_no INT NOT NULL AUTO_INCREMENT COMMENT '거점 PK',
 
-    region_name VARCHAR(20) NOT NULL
+    main_region VARCHAR(20) NOT NULL
         COMMENT '부산, 제주도, 강원도',
+
+    sub_region VARCHAR(20) NOT NULL
+        COMMENT '강릉시, 속초시, 양양군 등',
 
     hub_name VARCHAR(20) NOT NULL
         COMMENT '거점명 / 숙소명',
@@ -146,18 +152,44 @@ CREATE TABLE hub (
         COMMENT '카카오맵 API 사용 예정',
 
     phone VARCHAR(13) NULL
-        COMMENT '(-) 포함',
+        COMMENT '(-) 포함，전화번호',
 
     description VARCHAR(300) NULL
         COMMENT '거점 상세정보',
 
     hub_type INT NULL
-        COMMENT '1 공유오피스, 2 숙소, 3 제휴시설',
+        COMMENT '1 공유오피스, 2 숙소, 3 체험프로그램, 4 맛집, 5 관광지',
+        
+	max_capacity INT NULL
+        COMMENT '최대 수용인원',
+
+    price INT NULL
+        COMMENT '1박 또는 1회 기준 이용 금액',
+
+    hub_status VARCHAR(10) NOT NULL DEFAULT 'OPEN'
+        COMMENT 'OPEN 운영중, PAUSED 일시중단, CLOSED 종료',
 
     CONSTRAINT pk_hub
         PRIMARY KEY (hub_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE hub_file (
+    hubfile_no INT NOT NULL AUTO_INCREMENT,
+    file_path VARCHAR(500) NULL,
+    origin_name VARCHAR(255) NOT NULL,
+    change_name VARCHAR(255) NOT NULL,
+    UPDATED_AT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Y: 사용, N: 삭제',
+    hub_no INT NOT NULL COMMENT '거점 PK',
+
+    CONSTRAINT pk_hub_file
+        PRIMARY KEY (hubfile_no),
+
+    CONSTRAINT fk_hub_file_hub
+        FOREIGN KEY (hub_no)
+        REFERENCES hub (hub_no)
+)ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4;
 
 /* =========================================================
    5. 워케이션
@@ -229,7 +261,7 @@ CREATE TABLE reservation (
     rsv_status VARCHAR(1) NOT NULL DEFAULT 'N'
         COMMENT 'N 예약, C 취소, Y 완료',
 
-    user_cnt INT NULL
+    user_capacity INT NULL
         COMMENT '이용 인원',
 
     workcation_no INT NOT NULL
@@ -290,6 +322,9 @@ CREATE TABLE task (
 
     taskend_at TIMESTAMP NULL
         COMMENT '작업 종료일시',
+        
+	progress INT NOT NULL DEFAULT 0
+    COMMENT '작업 진행률 0~100',
 
     status VARCHAR(1) NOT NULL DEFAULT 'N'
         COMMENT 'N 미완료, Y 완료',
@@ -305,6 +340,31 @@ CREATE TABLE task (
         REFERENCES work (work_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+/* 작업 기록*/
+CREATE TABLE task_history (
+    history_no INT NOT NULL AUTO_INCREMENT
+        COMMENT 'PK',
+
+    history_title VARCHAR(200) NOT NULL,
+
+    history_content VARCHAR(1000) NOT NULL,
+
+    progress INT NOT NULL DEFAULT 0
+        COMMENT '작업 진행률',
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        COMMENT '업무 진행 기록 시간',
+
+    task_no INT NOT NULL
+        COMMENT '작업 PK',
+
+    CONSTRAINT pk_task_history
+        PRIMARY KEY (history_no),
+
+    CONSTRAINT fk_task_history_task
+        FOREIGN KEY (task_no)
+        REFERENCES task (task_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
 
 /* 작업 첨부파일 */
 CREATE TABLE work_file (
@@ -379,14 +439,17 @@ CREATE TABLE amount (
 CREATE TABLE amount_item (
     item_no INT NOT NULL AUTO_INCREMENT,
 
-    amountamountitem_type VARCHAR(15) NOT NULL
+    item_type VARCHAR(15) NOT NULL
         COMMENT 'S 숙박, T 교통, E 체험, F 식비, V 차량, O 기타',
-
-    item_date TIMESTAMP NOT NULL
-        COMMENT '비용 발생일시',
 
     item_approved VARCHAR(15) NULL
         COMMENT 'A 승인, C 취소, H 보류, J 반려, R 검토',
+        
+	item_approved_amount INT NOT NULL DEFAULT 0
+		COMMENT '승인 비용',
+    
+	item_date TIMESTAMP NOT NULL
+        COMMENT '비용 발생일시',
 
     item_description VARCHAR(500) NULL
         COMMENT '반려된 비용 참고 설명',
@@ -670,6 +733,9 @@ CREATE INDEX idx_work_workcation
 
 CREATE INDEX idx_task_work
     ON task (work_no);
+    
+CREATE INDEX idx_task_history_task
+    ON task_history (task_no);
 
 
 /* 비용 조회 */
@@ -755,10 +821,10 @@ SELECT 'WorkFlow DB initialization completed.' AS result;
 -- 1) 사원(employee) 데이터 생성 (workcation_info 참조용)
 INSERT INTO employee (
     emp_no, emp_id, emp_pwd, emp_name, phone, email, address, 
-    join_at, status, dep_id, auth_code, job_code
+    join_at, status, pw_chg_required, dep_id, auth_code, job_code 
 ) VALUES (
-    1, 'testuser', '1234', '홍길동', '010-1234-5678', 'test@workflow.com', '서울',
-    NOW(), 'Y', 'D4', 'ADMIN', 'J1'
+    1, 'admin', '$2a$10$1tpWzuqxqpx04vYNpVCBT.Dbc3cED1CNdNyx4RtMLM.OQGvY3jwI2', '홍길동', '010-1234-5678', 'test@workflow.com', '서울',
+    NOW(), 'Y', FALSE, 'D4', 'ADMIN', 'J1'
 ) ON DUPLICATE KEY UPDATE emp_no = emp_no;
 
 -- 2) 워케이션(workcation_info) 1번 데이터 생성

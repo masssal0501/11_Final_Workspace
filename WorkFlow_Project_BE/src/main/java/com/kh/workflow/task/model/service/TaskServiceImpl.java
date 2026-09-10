@@ -116,7 +116,7 @@ public class TaskServiceImpl implements TaskService {
 
 			Map<String, Object> map = new HashMap<>();
 
-			List<Work> workList = workDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
+			List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcation.getWorkcationNo());
 
 			int taskCount = 0;
 			int progressSum = 0;
@@ -155,7 +155,7 @@ public class TaskServiceImpl implements TaskService {
 		Map<String, Object> result = new HashMap<>();
 		List<Map<String, Object>> taskList = new ArrayList<>();
 
-		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
 		int progressSum = 0;
 

@@ -101,16 +101,16 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("employee", workcation.getEmployee());
 
 			// 3. 람다식 내부 변수명 중복 해결 (hubMainRegion, hubSubRegion으로 변경)
-			List<Reservation> reservations = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
+			List<Reservation> reservations = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 			String hubMainRegion = "";
 			String hubSubRegion = "";
 
 			if (reservations != null && !reservations.isEmpty()) {
 				for (Reservation r : reservations) {
 
-					if (r.getHubNo() != null) {
+					if (r.getHub() != null) {
 
-						Hub hub = hubDao.findById(r.getHubNo()).orElse(null);
+						Hub hub = hubDao.findById(r.getHub().getHubNo()).orElse(null);
 
 						if (hub != null) {
 
@@ -211,7 +211,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		WorkcationInfo workcation = workcationDao.save(info);
 
 		Work work = new Work();
-		work.setWorkcation(workcation);
+		work.setWorkcationInfo(workcation);
 		work.setSubmittedAt(LocalDateTime.now());
 
 		Work saveWork = workDao.save(work);
@@ -235,19 +235,16 @@ public class WorkcationServiceImpl implements WorkcationService {
 			}
 		}
 
-		// Hub 객체 생성
-		Hub hub = new Hub();
-		if (hubNo != null) {
-			hub.setHubNo(hubNo);
-		}
+		// Hub 객체 조회 (Reservation이 Hub 연관관계를 갖도록 바뀌어 실제 엔티티가 필요)
+		Hub hub = (hubNo != null) ? hubDao.findById(hubNo).orElse(null) : null;
 
 		Object peopleCountObj = paramMap.get("peopleCount");
 		Integer peopleCount = peopleCountObj != null ? Integer.parseInt(peopleCountObj.toString()) : 1;
 
 		Reservation reservation = new Reservation();
 
-		reservation.setWorkcationNo(workcation.getWorkcationNo());
-		reservation.setHubNo(hubNo);
+		reservation.setWorkcation(workcation);
+		reservation.setHub(hub);
 		reservation.setUserCapacity(peopleCount);
 		reservation.setRsvStart(startAt);
 		reservation.setRsvEnd(endAt);
@@ -312,7 +309,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
 		// 1. 해당 워케이션의 모든 예약(메인 거점 + 옵션 거점들) 조회
-		List<Reservation> reservationList = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
+		List<Reservation> reservationList = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 
 		Hub mainHub = null;
 		Reservation mainReservation = null;
@@ -323,8 +320,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 				Hub hub = null;
 
-				if (reservation.getHubNo() != null) {
-					hub = hubDao.findById(reservation.getHubNo()).orElse(null);
+				if (reservation.getHub() != null) {
+					hub = hubDao.findById(reservation.getHub().getHubNo()).orElse(null);
 				}
 
 				if (hub != null) {
@@ -520,13 +517,13 @@ public class WorkcationServiceImpl implements WorkcationService {
 		workcationDao.save(workcation);
 
 		// 업무
-		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
 		Work work;
 
 		if (workList.isEmpty()) {
 			work = new Work();
-			work.setWorkcation(workcation);
+			work.setWorkcationInfo(workcation);
 			work.setSubmittedAt(LocalDateTime.now());
 			work = workDao.save(work);
 		} else {
@@ -564,7 +561,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		}
 
 		// 2. 예약(Reservation) 정보 수정 (기존 예약 삭제 후 메인+옵션 재등록)
-		List<Reservation> existingRsvs = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
+		List<Reservation> existingRsvs = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 		if (existingRsvs != null && !existingRsvs.isEmpty()) {
 			reservationDao.deleteAll(existingRsvs);
 		}
@@ -587,10 +584,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 			if (hubNoObj != null && !hubNoObj.toString().trim().isEmpty()) {
 				Integer mainHubNo = Integer.parseInt(hubNoObj.toString());
 
-				mainRsv.setWorkcationNo(workcation.getWorkcationNo());
-				Hub mainHub = new Hub();
-				mainHub.setHubNo(mainHubNo);
-				mainRsv.setHubNo(mainHubNo);
+				mainRsv.setWorkcation(workcation);
+				mainRsv.setHub(hubDao.findById(mainHubNo).orElse(null));
 				mainRsv.setUserCapacity(peopleCount);
 				mainRsv.setRsvStart(startAt);
 				mainRsv.setRsvEnd(endAt);
@@ -625,8 +620,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 						LocalDateTime visitDate = parseDateSafely(visitDateObj, startAt);
 
 						Reservation optionRsv = new Reservation();
-						optionRsv.setHubNo(optionHubNo);
-						optionRsv.setWorkcationNo(workcation.getWorkcationNo());
+						optionRsv.setHub(hubDao.findById(optionHubNo).orElse(null));
+						optionRsv.setWorkcation(workcation);
 						optionRsv.setUserCapacity(peopleCount);
 						optionRsv.setRsvStart(visitDate);
 						optionRsv.setRsvEnd(visitDate);
@@ -773,7 +768,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 				.orElseThrow(() -> new IllegalArgumentException("해당 워케이션 정보를 찾을 수 없습니다. 번호: " + workcationNo));
 
 		// 업무
-		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
 		for (Work work : workList) {
 
@@ -792,7 +787,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		workDao.deleteAll(workList);
 
 		// 예약
-		List<Reservation> reservationList = reservationDao.findByWorkcationNo(workcationNo);
+		List<Reservation> reservationList = reservationDao.findByWorkcationWorkcationNo(workcationNo);
 
 		if (reservationList != null && !reservationList.isEmpty()) {
 			reservationDao.deleteAll(reservationList);
@@ -843,7 +838,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("approverState", workcation.getApproverState());
 
 			// 지역 조회
-			List<Reservation> reservations = reservationDao.findByWorkcationNo(workcation.getWorkcationNo());
+			List<Reservation> reservations = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 
 			String main = "";
 			String sub = "";
@@ -852,11 +847,11 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 				for (Reservation reservation : reservations) {
 
-					if (reservation.getHubNo() == null) {
+					if (reservation.getHub() == null) {
 						continue;
 					}
 
-					Hub hub = hubDao.findById(reservation.getHubNo()).orElse(null);
+					Hub hub = hubDao.findById(reservation.getHub().getHubNo()).orElse(null);
 
 					if (hub == null) {
 						continue;
@@ -891,7 +886,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		Map<String, Object> result = getWorkcationDetail(workcationNo);
 
-		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
 		List<Map<String, Object>> taskList = new ArrayList<>();
 
@@ -958,8 +953,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 		// 워케이션 업무계획 제목 동기화
 		Work work = task.getWork();
 
-		if (work != null && work.getWorkcation() != null) {
-			WorkcationInfo workcation = work.getWorkcation();
+		if (work != null && work.getWorkcationInfo() != null) {
+			WorkcationInfo workcation = work.getWorkcationInfo();
 
 			String workPlan = workcation.getWorkPlan();
 
@@ -1094,7 +1089,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 			throw new IllegalArgumentException("첨부파일이 없습니다.");
 		}
 
-		List<Work> workList = workDao.findByWorkcationWorkcationNo(workcationNo);
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
 		if (workList.isEmpty()) {
 			throw new RuntimeException("업무 정보를 찾을 수 없습니다.");

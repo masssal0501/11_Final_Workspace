@@ -7,20 +7,41 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.reservation.model.vo.Reservation;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
-public interface ReservationDao extends JpaRepository<Reservation, Integer>{
+public interface ReservationDao
+        extends JpaRepository<Reservation, Integer> {
 
-	List<Reservation> findByWorkcationNo(Integer workcationNo);
-	
-	  // =========================================================
-    // 예약 가능 여부 확인
+    // =========================================================
+    // 워케이션별 예약 조회
+    // =========================================================
+
+    List<Reservation> findByWorkcationOrderByRsvStartDesc(
+            WorkcationInfo workcation
+    );
+
+
+    // 워케이션 번호(PK)로 예약 조회
+    // (Nam_Final 쪽 WorkcationServiceImpl이 workcationNo(Integer)만 들고 조회하던
+    //  findByWorkcationNo()를, Reservation이 WorkcationInfo 연관관계로 바뀐
+    //  origin/main 매핑에 맞춰 연관 프로퍼티 탐색 방식으로 대체한 것)
+    List<Reservation> findByWorkcationWorkcationNo(Integer workcationNo);
+
+
+    // =========================================================
+    // 예약 중복 확인
+    //
+    // Reservation
+    // └─ hub
+    //     └─ hubNo
     // =========================================================
 
     @Query("""
         SELECT COUNT(r)
         FROM Reservation r
-        WHERE r.hubNo = :hubNo
+        WHERE r.hub.hubNo = :hubNo
           AND r.rsvStatus = 'N'
           AND r.rsvStart < :rsvEnd
           AND r.rsvEnd > :rsvStart
@@ -39,7 +60,7 @@ public interface ReservationDao extends JpaRepository<Reservation, Integer>{
     @Query("""
         SELECT r
         FROM Reservation r
-        WHERE r.hubNo = :hubNo
+        WHERE r.hub.hubNo = :hubNo
           AND r.rsvStatus = 'N'
           AND r.rsvStart < :rsvEnd
           AND r.rsvEnd > :rsvStart
@@ -53,20 +74,11 @@ public interface ReservationDao extends JpaRepository<Reservation, Integer>{
 
 
     // =========================================================
-    // 워케이션별 예약 조회
-    // =========================================================
-
-    List<Reservation> findByWorkcationNoOrderByRsvStartDesc(
-            Integer workcationNo
-    );
-
-
-    // =========================================================
     // 거점별 예약 조회
     // =========================================================
 
-    List<Reservation> findByHubNoOrderByRsvStartDesc(
-            Integer hubNo
+    List<Reservation> findByHubOrderByRsvStartDesc(
+            com.kh.workflow.hub.model.vo.Hub hub
     );
 
 
@@ -78,7 +90,7 @@ public interface ReservationDao extends JpaRepository<Reservation, Integer>{
     @Query("""
         SELECT COUNT(r)
         FROM Reservation r
-        WHERE r.hubNo = :hubNo
+        WHERE r.hub.hubNo = :hubNo
           AND r.rsvNo <> :rsvNo
           AND r.rsvStatus = 'N'
           AND r.rsvStart < :rsvEnd
@@ -91,5 +103,12 @@ public interface ReservationDao extends JpaRepository<Reservation, Integer>{
             @Param("rsvEnd") LocalDateTime rsvEnd
     );
 
+    @Query("SELECT w FROM WorkcationInfo w WHERE w.workcationNo = :workcationNo")
+	WorkcationInfo findWorkcationByNo(@Param("workcationNo") Integer workcationNo);
 
+	@Query("SELECT h FROM Hub h WHERE h.hubNo = :hubNo")
+	Hub findHubByNo(@Param("hubNo") Integer hubNo);
+
+
+	List<Reservation> findByWorkcation(WorkcationInfo workcation);
 }
