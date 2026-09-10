@@ -350,7 +350,7 @@ function StaffComponent(props) {
                     <div>
                         <table className="table table-hover">
                             <thead>
-                                <tr>
+                                <tr style={ { cursor : "auto" } }>
                                     <th>숙소명</th>
                                     <th>예약일자</th>
                                     <th>인원</th>

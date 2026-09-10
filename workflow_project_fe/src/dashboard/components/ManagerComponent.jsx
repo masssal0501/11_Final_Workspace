@@ -283,7 +283,7 @@ function ManagerComponent(props) {
             <div>
                 <table className="table table-hover">
                     <thead>
-                        <tr>
+                        <tr style={ { cursor: "auto" } }>
                             <th>번호</th>
                             <th>제목</th>
                             <th>지역</th>
