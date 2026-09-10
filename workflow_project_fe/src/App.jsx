@@ -56,6 +56,7 @@ import ApprovalReject from "./workcation/components/approval/components/Approval
 import ApprovalHistoryList from "./workcation/components/approval/components/ApprovalHistoryList";
 import ApprovalHistoryDetail from "./workcation/components/approval/components/ApprovalHistoryDetail";
 import ApprovalQueueList from "./workcation/components/approval/components/ApprovalQueueList";
+import ApprovalQueueDetail from "./workcation/components/approval/components/ApprovalQueueDetail";
 
 import ReservationListComponent from "./reservation/components/ReservationListComponent"; 
 import ReservationEnrollComponent from "./reservation/components/ReservationEnrollComponent"; 
@@ -75,12 +76,17 @@ import {
     Navigate
 } from "react-router-dom";
 
+// 앱 키는 소스에 하드코딩하지 않고 환경변수(VITE_KAKAO_APP_KEY)로 주입한다.
+// 옵션 객체는 렌더마다 새로 만들지 않도록 모듈 스코프 상수로 둔다
+// (매 렌더 새 객체를 넘기면 useKakaoLoader가 SDK를 반복 로드함).
+const KAKAO_MAP_OPTIONS = {
+    appkey: import.meta.env.VITE_KAKAO_APP_KEY,
+    libraries: ["services"]
+}
+
 function App() {
 
-    useKakaoLoader({
-        appkey: import.meta.env.VITE_KAKAO_APP_KEY,
-        libraries: ["services"],
-    });
+    useKakaoLoader(KAKAO_MAP_OPTIONS);
 
     const [loginUser, setLoginUser] = useState(() => {
 
@@ -263,12 +269,11 @@ function App() {
                 <Route path="/hub/ai" element={ <AIComponent/> }></Route>
 
                 {/* place */}
-                <Route path="/workflow/place/list" element={ <PlaceList /> } />
-                <Route path="/workflow/place/Form" element={ <PlaceForm /> } />
-                <Route path="/workflow/place/detail/:hubNo" element={ <PlaceDetail /> } />
-                <Route path="/workflow/place/edit/:hubNo" element={ <PlaceEdit /> } />
-                <Route path="/placeInfo/ai" element={ <AIComponent/> }></Route>
-
+                <Route path="/place/list" element={ <PlaceList /> } />
+                <Route path="/place/Form" element={ <PlaceForm /> } />
+                <Route path="/place/detail/:hubNo" element={ <PlaceDetail /> } />
+                <Route path="/place/edit/:hubNo" element={ <PlaceEdit /> } />
+                
                 {/* 업무 게시판 라우트 */}
                 <Route path="/task/list" element={<TaskListComponent />} />
                 <Route path="/task/detail/:taskNo" element={<TaskDetailComponent />} />
@@ -352,6 +357,7 @@ function App() {
                         <Route path="/approval/history" element={<ApprovalHistoryList />}/>
                         <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
                         <Route path="/approval/queue/list" element={<ApprovalQueueList/>} />
+                        <Route path="/approval/queue/detail/:workcationNo" element={<ApprovalQueueDetail/>} />
                     </>
                 )}
 

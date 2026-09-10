@@ -300,7 +300,7 @@ function PlaceList() {
                         type="button"
                         className="btn btn-outline-info"
                         onClick={() =>
-                            navigate("/placeInfo/ai")
+                            navigate("/hub/ai")
                         }
                     >
                         AI에게 장소 및 일정 추천 받기

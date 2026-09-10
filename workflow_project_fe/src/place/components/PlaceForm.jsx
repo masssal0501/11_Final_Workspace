@@ -79,7 +79,7 @@ function PlaceForm() {
 
             alert("지역 정보가 등록되었습니다.");
 
-            navigate("/workflow/place/list");
+            navigate("/place/list");
 
         } catch (error) {
 

@@ -209,7 +209,7 @@ function HubListComponent(props) {
 
                 <div className="wf-page-actions">
                     <button type="button" id="AI" onClick={ () => { navigate("/hub/ai"); } }>AI에게 장소 및 일정 추천 받기</button>
-                    <button type="button" className="btn btn-secondary" onClick={ () => { navigate("/workflow/place/list") } }>지역 정보 목록으로</button>
+                    <button type="button" className="btn btn-secondary" onClick={ () => { navigate("/place/list") } }>지역 정보 목록으로</button>
                     { (loginUser.authCode === "ADMIN") && (
                         <button type="button" className="btn btn-primary hub-primary" onClick={ () => { navigate("/hub/enrollForm") } }>+ 거점 등록</button>
                     )}

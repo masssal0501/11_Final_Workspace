@@ -59,7 +59,7 @@ function HubDetailComponent(props) {
             }
         }
         selectBoard();
-    }, [hub]);
+    }, [hubNo]);
 
     /**
      * 주소 데이터를 기반으로 카카오맵 좌표(위경도) 변환 처리
@@ -91,28 +91,61 @@ function HubDetailComponent(props) {
         };
 
         // 이미 로드된 경우 즉시 실행
-    if (executeAddressSearch()) return;
+        if (executeAddressSearch()) return;
 
-    // 아직 로드되지 않은 경우 100ms 간격으로 확인하여 로드 완료 시 실행
-    const timer = setInterval(() => {
-        if (executeAddressSearch()) {
-            clearInterval(timer);
-        }
-    }, 100);
+        // 아직 로드되지 않은 경우 100ms 간격으로 확인하여 로드 완료 시 실행
+        const timer = setInterval(() => {
+            if (executeAddressSearch()) {
+                clearInterval(timer);
+            }
+        }, 100);
 
-    return () => clearInterval(timer);
+        return () => clearInterval(timer);
     }, [hub.hubAddress]);
 
     /**
      * 거점 주소 클립보드 복사 핸들러
      */
     const handleCopyClipBoard = async () => {
-        try {
-            await navigator.clipboard.writeText(hub.hubAddress);
-            alert('클립보드에 링크가 복사되었습니다.');
-        } catch (error) {
-            console.error(error);
+        if (!hub.hubAddress) return;
+
+        // 최신 브라우저 보안 환경 지원 시
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(hub.hubAddress)
+                .then(() => {
+                    alert('클립보드에 주소가 복사되었습니다.');
+                })
+                .catch(() => {
+                    fallbackCopyText(hub.hubAddress);
+                });
+        } else {
+            // HTTP 환경 등 최신 API 차단 시 구형 방식으로 대체
+            fallbackCopyText(hub.hubAddress);
         }
+    };
+
+    // 구형 클립보드 복사 폴백 함수
+    const fallbackCopyText = (text) => {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed"; // 화면 스크롤 방지
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                alert('클립보드에 주소가 복사되었습니다.');
+            } else {
+                alert('복사에 실패했습니다.');
+            }
+        } catch (err) {
+            console.error('클립보드 복사 실패:', err);
+            alert('이 브라우저는 복사 기능을 지원하지 않습니다.');
+        }
+        
+        document.body.removeChild(textarea);
     };
 
     /**
@@ -151,23 +184,36 @@ function HubDetailComponent(props) {
 
         const { kakao } = window;
 
-        if(kakao && kakao.maps && kakao.maps.services) {
-            const geocoder = new kakao.maps.services.Geocoder();
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (data) => {
-                        // 현재 좌표를 주소로 변환하여 길찾기 링크(from ~ to) 오픈
-                        geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result) => {
-                            window.open(`https://map.kakao.com/link/from/${result[0].address.address_name},${data.coords.latitude},${data.coords.longitude}/to/${hub.hubName},${position.lat},${position.lng}`);
+        // 위치 정보 조회가 가능한 경우 현재 위치 기반 길찾기 시도
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (data) => {
+                    // 성공 시 (현재 위치 -> 거점 위치)
+                    if (kakao && kakao.maps && kakao.maps.services) {
+                        const geocoder = new kakao.maps.services.Geocoder();
+                        geocoder.coord2Address(data.coords.longitude, data.coords.latitude, (result, status) => {
+                            if (status === kakao.maps.services.Status.OK && result[0]) {
+                                const addressName = result[0].address.address_name;
+                                window.open(`https://map.kakao.com/link/from/${addressName},${data.coords.latitude},${data.coords.longitude}/to/${hub.hubName},${position.lat},${position.lng}`);
+                            } else {
+                                window.open(`https://map.kakao.com/link/to/${hub.hubName},${position.lat},${position.lng}`);
+                            }
                         });
+                    } else {
+                        window.open(`https://map.kakao.com/link/to/${hub.hubName},${position.lat},${position.lng}`);
                     }
-                );
-            } else {
-                // 위치 정보 미제공 시 해당 목적지의 지도 뷰만 오픈
-                window.open(`https://map.kakao.com/link/map/${hub.hubName}, ${position.lat},${position.lng}`);
-            }
+                },
+                (error) => {
+                    // 실패/차단 시 (HTTP 환경이거나 권한 거부 시 목적지 지도 바로 열기)
+                    console.warn("위치 정보를 가져올 수 없어 목적지 기준으로 안내합니다.", error);
+                    window.open(`https://map.kakao.com/link/to/${hub.hubName},${position.lat},${position.lng}`);
+                },
+                { timeout: 5000 }
+            );
+        } else {
+            // 위치 정보를 지원하지 않는 브라우저인 경우
+            window.open(`https://map.kakao.com/link/to/${hub.hubName},${position.lat},${position.lng}`);
         }
-        
     }
 
     // return 구문

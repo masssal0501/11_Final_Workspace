@@ -161,12 +161,12 @@ function Header({ loginUser, onLogout }) {
 
       children: [ 
         { 
-          label: "장소 정보", 
-          path: "/hub/list" 
-        }, 
+          label: "장소 정보 등록",
+          path: "/place/Form"
+        },
         { 
           label: "AI 여행 일정 추천", 
-          path: "/placeInfo/ai" 
+          path: "/hub/ai" 
         },     
         {
           label: "거점 등록",

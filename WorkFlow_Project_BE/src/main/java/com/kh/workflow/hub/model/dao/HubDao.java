@@ -103,7 +103,10 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 	 */
     @Query("""
     		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(
-    			h.mainRegion,
+    			CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주'
+    			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
+    			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
+    			     ELSE '' END,
     			(COUNT(h) * 100) / (SELECT COUNT(h2) FROM Hub h2 WHERE h2.hubType = 2)
     		)
     		FROM Hub h

@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { placeApi } from "../api/placeApi";
 
+import "../style/placeDetail.css";
+
 function PlaceEdit() {
 
     const { hubNo } = useParams();
@@ -116,14 +118,35 @@ function PlaceEdit() {
 
         try {
 
+            // placeApi.updatePlace()는 multipart/form-data로 전송하고
+            // 백엔드 PlaceController.updatePlace()도 @RequestPart("place")/@RequestPart("file")을
+            // 받으므로, 반드시 FormData로 감싸서 보내야 한다(사진 재업로드 포함).
+            const formData = new FormData();
+
+            // 장소 정보
+            formData.append(
+                "place",
+                new Blob(
+                    [JSON.stringify(place)],
+                    {
+                        type: "application/json"
+                    }
+                )
+            );
+
+            // 새 파일을 선택했을 경우
+            if (file) {
+                formData.append("file", file);
+            }
+
             await placeApi.updatePlace(
                 hubNo,
-                place
+                formData
             );
 
             alert("지역 정보가 수정되었습니다.");
 
-            navigate(`/workflow/place/detail/${hubNo}`);
+            navigate(`/place/detail/${hubNo}`);
 
         } catch (error) {
 

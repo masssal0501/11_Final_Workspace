@@ -47,10 +47,10 @@ public class ApprovalController {
 
 	@Autowired
 	private ApprovalService approvalService;
-	
+
 	@Autowired
 	private WorkcationService workcationService;
-	
+
 	@Autowired
 	private EmployeeDao employeeDao;
 
@@ -80,12 +80,12 @@ public class ApprovalController {
 			@RequestParam(value = "keyword", required = false) String keyword,
 
 			Authentication authentication) {
-		
+
 		String empId = authentication.getName();
-		
+
 		Employee loginEmployee = employeeDao.findByEmpId(empId)
 				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
-		
+
 		String authCode = loginEmployee.getAuthCode();
 		Integer empNo = loginEmployee.getEmpNo();
 		String depId = loginEmployee.getDepId();
@@ -104,8 +104,8 @@ public class ApprovalController {
 		}
 
 		// 승인 이력 조회
-		Page<WorkcationInfo> pageResult = approvalService.selectApprovalList(authCode, empNo, depId, searchType, keyword, startDateTime,
-				endDateTime, pageable);
+		Page<WorkcationInfo> pageResult = approvalService.selectApprovalList(authCode, empNo, depId, searchType,
+				keyword, startDateTime, endDateTime, pageable);
 
 		int listCount = (int) pageResult.getTotalElements();
 
@@ -168,21 +168,19 @@ public class ApprovalController {
 			Authentication authentication) {
 
 		String empId = authentication.getName();
-		
+
 		Employee loginEmployee = employeeDao.findByEmpId(empId)
 				.orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
-		
+
 		String authCode = loginEmployee.getAuthCode();
 		Integer empNo = loginEmployee.getEmpNo();
 		String depId = loginEmployee.getDepId();
-		
+
 		if ("STAFF".equals(authCode)) {
-			
-			return ResponseEntity
-					.status(HttpStatus.FORBIDDEN)
-					.build();
+
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}
-		
+
 		Pageable pageable = PageRequest.of(currentPage - 1, 10);
 
 		// 검색 날짜 변환
@@ -197,8 +195,8 @@ public class ApprovalController {
 		}
 
 		// 승인 대기 목록 조회
-		Page<WorkcationInfo> pageResult = approvalService.selectApprovalQueueList(authCode, empNo, depId, status, searchType, keyword,
-				startDateTime, endDateTime, pageable);
+		Page<WorkcationInfo> pageResult = approvalService.selectApprovalQueueList(authCode, empNo, depId, status,
+				searchType, keyword, startDateTime, endDateTime, pageable);
 
 		int listCount = (int) pageResult.getTotalElements();
 

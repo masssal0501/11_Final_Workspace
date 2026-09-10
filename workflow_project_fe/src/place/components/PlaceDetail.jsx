@@ -24,7 +24,6 @@ function PlaceDetail() {
 
     }, [hubNo]);
 
-
     // 지역 정보 상세 조회
     const selectPlaceDetail = async () => {
 
@@ -41,6 +40,13 @@ function PlaceDetail() {
         }
 
     };
+
+
+    // 대표 이미지(status === "Y") 1건
+    // (로딩 처리는 아래 JSX에서 인라인으로 하므로 place가 null일 수 있음 - 옵셔널 체이닝 유지)
+    const mainFile = place?.hubFileList?.find(
+        file => file.status === "Y"
+    );
 
 
     // 허브 상태 표시
@@ -106,21 +112,14 @@ function PlaceDetail() {
 
             <div>
 
+
                 {/* 사진 */}
                 <div className="place-image">
-
-                    {place.filePath ? (
-
+                    {mainFile ? (
                         <img
-                            src={`http://localhost:8080${place.filePath}`}
+                            src={`http://localhost:8006/workflow${mainFile.filePath}/${mainFile.changeName}`}
                             alt={place.hubName}
-                            style={{
-                                width: "400px",
-                                height: "300px",
-                                objectFit: "cover"
-                            }}
                         />
-
                     ) : (
 
                         <div className="wf-state">
@@ -128,7 +127,6 @@ function PlaceDetail() {
                         </div>
 
                     )}
-
                 </div>
 
 
@@ -198,7 +196,7 @@ function PlaceDetail() {
                 {isAdmin && (
 
                     <button className="editButton"
-                        onClick={() => navigate(`/workflow/place/edit/${hubNo}`)}
+                        onClick={() => navigate(`/place/edit/${hubNo}`)}
                     >
                         수정하기
                     </button>

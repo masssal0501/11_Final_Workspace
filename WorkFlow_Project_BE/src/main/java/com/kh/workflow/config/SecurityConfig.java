@@ -147,9 +147,29 @@ public class SecurityConfig {
                     	).permitAll()
                         
                         // 장소 관련 API
+                     // 장소 조회
                         .requestMatchers(
+                                HttpMethod.GET,
                                 "/place/**"
                         ).permitAll()
+
+                        // 장소 등록 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/place"
+                        ).hasRole("ADMIN")
+
+                        // 장소 수정 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/place/**"
+                        ).hasRole("ADMIN")
+
+                        // 장소 삭제 - 관리자만
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/place/**"
+                        ).hasRole("ADMIN")
 
                         // BUG-XXX 수정: 업로드된 비용 증빙(영수증) 이미지 정적 서빙 경로.
                         // WebConfig에서 실제 파일 시스템 디렉터리(app.upload.receipts-dir)로
@@ -204,6 +224,10 @@ public class SecurityConfig {
 	                    .requestMatchers(
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
+	                 // 승인 관련 API - 관리자 및 매니저만
+	                    .requestMatchers(
+	                            "/approval/**"
+	                    ).hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers(
                             "/employees/password"

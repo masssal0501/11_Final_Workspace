@@ -198,15 +198,6 @@ function ApprovalHistoryList() {
                     }
                 />
 
-
-                {/* 검색 버튼 */}
-                <button
-                    className="search-button"
-                    onClick={handleSearch}
-                >
-                    검색
-                </button>
-
             </div>
 
 

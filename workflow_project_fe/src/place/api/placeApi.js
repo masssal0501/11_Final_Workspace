@@ -72,7 +72,12 @@ export const placeApi = {
         const response =
             await axiosInstance.post(
                 BASE_URL,
-                formData
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
             );
 
         return response.data;
@@ -81,11 +86,15 @@ export const placeApi = {
 
     // 장소 수정
     updatePlace: async (hubNo, formData) => {
-
         const response =
             await axiosInstance.put(
                 `${BASE_URL}/${hubNo}`,
-                formData
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
             );
 
         return response.data;

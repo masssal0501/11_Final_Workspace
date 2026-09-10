@@ -79,7 +79,7 @@ export const ApprovalApi = {
     },
 
 
-    // 반려 처리
+    // 승인 / 반려 처리
     rejectApproval: async (
         workcationNo,
         workcation
@@ -100,6 +100,7 @@ export const ApprovalApi = {
         // axiosInstance 기본 헤더(Content-Type: application/json)가 FormData의
         // multipart boundary를 덮어써서 500(InvalidContentTypeException)이 나던 문제(BUG-006) -
         // undefined로 지정해 axios가 boundary 포함 헤더를 자동 설정하도록 한다.
+        // ("multipart/form-data"를 직접 지정하면 boundary가 빠져 같은 오류가 재발한다)
         const response = await axiosInstance.post(
             `${BASE_URL}/${workcationNo}`,
             formData,

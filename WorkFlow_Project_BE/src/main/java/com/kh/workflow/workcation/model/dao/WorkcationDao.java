@@ -21,7 +21,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
 	/*
 	 * ===================================================================== 1. 관리자
-	 * 대시보드 관련 쿼리
+	 * 관리자 대시보드 관련 쿼리
 	 * =====================================================================
 	 */
 
@@ -133,7 +133,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		      JOIN r.hub h
 		      JOIN Department d ON d.depId = e.depId
 		     WHERE e.depId = d.depId
-		       AND w.approverState = 'W'
+		       AND w.approverState IN ('W', 'R', 'H')
 		     ORDER BY w.startAt DESC
 		    """)
 	List<WaitingListDto> adminSelectWaitingList();
@@ -177,7 +177,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
 	/*
 	 * ===================================================================== 2. 부서장
-	 * 대시보드 관련 쿼리
+	 * 부서장 대시보드 관련 쿼리
 	 * =====================================================================
 	 */
 
@@ -239,7 +239,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		      JOIN Reservation r ON r.workcation = w
 			  JOIN r.hub h
 		     WHERE e.depId = :depId
-		       AND w.approverState = 'W'
+		       AND w.approverState IN ('W', 'R', 'H')
 		     ORDER BY w.workcationNo DESC
 		    """)
 	List<WaitingListDto> managerSelectWaitingList(@Param("depId") String depId);
@@ -325,7 +325,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
 	/*
 	 * ===================================================================== 3. 사원
-	 * 대시보드 관련 쿼리
+	 * 사원 대시보드 관련 쿼리
 	 * =====================================================================
 	 */
 
