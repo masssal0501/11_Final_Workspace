@@ -12,7 +12,10 @@ function HubItemComponent(props) {
         <tr onClick={ () => { navigate(`/hub/detail/${ item.hubNo }`); } }>
             <td>
                 <div className="img-area">
-                    <img src={ `${BASE_URL.replace('/hubs', '')}${item.hubFileList[0].filePath}/${item.hubFileList[0].changeName}` } width="300" />
+                    {/* 첨부 이미지가 없는 거점도 있으므로 안전하게 접근한다 (없으면 렌더링 생략) */}
+                    { item.hubFileList && item.hubFileList.length > 0 && (
+                        <img src={ `${BASE_URL.replace('/hubs', '')}${item.hubFileList[0].filePath}/${item.hubFileList[0].changeName}` } width="300" />
+                    ) }
                 </div>
                 <div className="span-area">
                     <span>주소 : { item.hubAddress }</span>

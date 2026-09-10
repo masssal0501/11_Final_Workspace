@@ -383,10 +383,17 @@ function UpdateMyPageForm() {
     if (loading) {
 
         return (
-            <div className="enrollForm">
-                <h2>마이 페이지 수정</h2>
-                <p>사용자 정보를 불러오는 중입니다...</p>
-            </div>
+            <main className="wf-container">
+                <section className="wf-page-header">
+                    <div>
+                        <h1 className="wf-page-title">마이페이지 수정</h1>
+                    </div>
+                </section>
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <span className="wf-state-title">사용자 정보를 불러오는 중입니다.</span>
+                </div>
+            </main>
         );
 
     }
@@ -394,12 +401,16 @@ function UpdateMyPageForm() {
 
     return (
 
-        <div className="enrollForm">
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">마이페이지 수정</h1>
+                    <p className="wf-page-description">나의 인사 정보를 수정합니다.</p>
+                </div>
+            </section>
 
-            <h2>
-                마이 페이지 수정
-            </h2>
-
+            <div className="wf-page-content">
+            <div className="enrollForm">
 
             <form onSubmit={handleSubmit}>
 
@@ -583,6 +594,7 @@ function UpdateMyPageForm() {
                 {/* 버튼 */}
                 <button
                     type="button"
+                    className="btn btn-secondary"
                     onClick={() => navigate(-1)}
                 >
                     돌아가기
@@ -591,6 +603,7 @@ function UpdateMyPageForm() {
 
                 <button
                     type="button"
+                    className="btn btn-outline-primary"
                 >
                     <Link to="/changePW">
                         비밀번호 변경
@@ -602,12 +615,13 @@ function UpdateMyPageForm() {
                     type="submit"
                     className="btnPrimary"
                 >
-                    확인
+                    저장
                 </button>
 
             </form>
-
-        </div>
+            </div>
+            </div>
+        </main>
 
     );
 

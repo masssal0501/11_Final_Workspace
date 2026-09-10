@@ -137,150 +137,132 @@ function EmployeeList() {
     };
 
 
-    /*
-     * 로딩
-     */
-    if (loading) {
-
-        return (
-
-            <div className="employeeListPage">
-
-                <div className="employeeListHeader">
-                    <h2>직원 관리</h2>
-                </div>
-
-                <div>
-                    직원 목록을 불러오는 중입니다...
-                </div>
-
-            </div>
-
-        );
-
-    }
-
-
     return (
 
-        <div className="employeeListPage">
+        <main className="wf-container">
 
             {/* 페이지 상단 */}
-            <div className="employeeListHeader">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">직원 관리</h1>
+                    <p className="wf-page-description">전체 직원 목록을 조회하고 신규 직원을 등록합니다.</p>
+                </div>
 
-                <h2>
-                    직원 관리
-                </h2>
+                <div className="wf-page-actions">
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleAddEmployee}
+                    >
+                        + 직원 등록
+                    </button>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+                {/* 직원 목록 */}
+                <div className="employeeTableWrapper">
+
+                    <table className="employeeTable">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    부서명
+                                </th>
+
+                                <th>
+                                    사원명
+                                </th>
+
+                                <th>
+                                    직위
+                                </th>
+
+                                <th>
+                                    아이디
+                                </th>
+
+                                <th>
+                                    상태
+                                </th>
+
+                            </tr>
+
+                        </thead>
 
 
-                <button
-                    className="addEmployeeBtn"
-                    onClick={handleAddEmployee}
-                    title="직원 등록"
-                >
-                    +
-                </button>
+                        <tbody>
 
-            </div>
+                            {loading ? (
 
-
-            {/* 직원 목록 */}
-            <div className="employeeTableWrapper">
-
-                <table className="employeeTable">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                부서명
-                            </th>
-
-                            <th>
-                                사원명
-                            </th>
-
-                            <th>
-                                직위
-                            </th>
-
-                            <th>
-                                아이디
-                            </th>
-
-                            <th>
-                                상태
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        {employees.length > 0 ? (
-
-                            employees.map((employee) => (
-
-                                <tr
-                                    key={employee.empNo}
-                                    onClick={() =>
-                                        handleEmployeeClick(
-                                            employee.empNo
-                                        )
-                                    }
-                                >
-
-                                    <td>
-                                        {getDepName(employee.depId)}
+                                <tr className="wf-empty-row">
+                                    <td colSpan={5}>
+                                        직원 목록을 불러오는 중입니다.
                                     </td>
+                                </tr>
 
-                                    <td>
-                                        {employee.empName}
-                                    </td>
+                            ) : employees.length > 0 ? (
 
-                                    <td>
-                                        {getJobName(employee.jobCode)}
-                                    </td>
+                                employees.map((employee) => (
 
-                                    <td>
-                                        {employee.empId}
-                                    </td>
+                                    <tr
+                                        key={employee.empNo}
+                                        onClick={() =>
+                                            handleEmployeeClick(
+                                                employee.empNo
+                                            )
+                                        }
+                                    >
 
-                                    <td>
-                                        {employee.status === "Y"
-                                            ? "활성"
-                                            : "비활성"}
+                                        <td>
+                                            {getDepName(employee.depId)}
+                                        </td>
+
+                                        <td>
+                                            {employee.empName}
+                                        </td>
+
+                                        <td>
+                                            {getJobName(employee.jobCode)}
+                                        </td>
+
+                                        <td>
+                                            {employee.empId}
+                                        </td>
+
+                                        <td>
+                                            {employee.status === "Y"
+                                                ? <span className="badge bg-success">활성</span>
+                                                : <span className="badge bg-secondary">비활성</span>}
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            ) : (
+
+                                <tr className="wf-empty-row">
+
+                                    <td colSpan={5}>
+                                        등록된 직원이 없습니다.
                                     </td>
 
                                 </tr>
 
-                            ))
+                            )}
 
-                        ) : (
+                        </tbody>
 
-                            <tr>
+                    </table>
 
-                                <td
-                                    colSpan={5}
-                                    className="emptyEmployee"
-                                >
-                                    등록된 직원이 없습니다.
-                                </td>
-
-                            </tr>
-
-                        )}
-
-                    </tbody>
-
-                </table>
-
+                </div>
             </div>
 
-        </div>
+        </main>
 
     );
 

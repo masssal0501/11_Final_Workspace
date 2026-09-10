@@ -24,6 +24,9 @@ public interface ApprovalService {
     // 승인 이력 상세 조회
 	WorkcationInfo selectApproval(int workcationNo);
 
+	// 승인 대기 상세 조회 (상태 제한 없음)
+	WorkcationInfo selectApprovalQueueDetail(int workcationNo);
+
 	// 반려 처리
 	WorkcationInfo rejectApproval(WorkcationInfo w);
 

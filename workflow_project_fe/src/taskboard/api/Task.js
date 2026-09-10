@@ -1,19 +1,12 @@
-import axios from "axios";
-
-const BASE_URL = "/workflow";
+import axiosInstance from "../../common/api/axiosInstance";
 
 // 목록
 export const getTaskList = async ({ cpage, condition, keyword }) => {
-    const token = localStorage.getItem("accessToken");
-
-    const response = await axios.get(`${BASE_URL}/task/list`, {
+    const response = await axiosInstance.get("/task/list", {
         params: {
             cpage,
             condition,
             keyword
-        },
-        headers: {
-            Authorization: `Bearer ${token}`
         }
     });
 
@@ -22,29 +15,17 @@ export const getTaskList = async ({ cpage, condition, keyword }) => {
 
 // 워케이션별 업무
 export const getWorkcationTasks = async (workcationNo) => {
-    const token = localStorage.getItem("accessToken");
-
-    console.log("업무 상세 토큰:", token);
-
-    const response = await axios({
-        method: "GET",
-        url: `${BASE_URL}/task/workcation/${workcationNo}`,
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+    const response = await axiosInstance.get(`/task/workcation/${workcationNo}`);
 
     return response.data;
 };
 
 //업무상세 내역 승인
-export const updateTaskStatus = async (taskNo, status, content="") => {
-    const token = localStorage.getItem("accessToken");
+export const updateTaskStatus = async (taskNo, status, content = "") => {
+    const response = await axiosInstance.patch(
+        `/task/${taskNo}/status`,
+        { status, content }
+    );
 
-    const response = await axios.patch(
-        `${BASE_URL}/task/${taskNo}/status`,
-        {status, content},
-        {headers: {Authorization : `Bearer ${token}`}}
-    )
     return response.data;
 }

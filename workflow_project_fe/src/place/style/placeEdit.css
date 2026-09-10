@@ -9,11 +9,11 @@
     margin: 50px auto;
     padding: 35px 45px;
 
-    background-color: #ffffff;
+    background-color: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
-    border-radius: 12px;
-
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
 }
@@ -128,7 +128,7 @@
 .formGroup textarea {
     min-height: 150px;
 
-    resize: vertical;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 
     line-height: 1.6;
 }

@@ -48,6 +48,13 @@ public class ApprovalServiceImpl implements ApprovalService {
         return approvalDao.findApprovalDetail(workcationNo);
     }
 
+    // 승인 대기 상세 조회 (상태 제한 없음)
+    @Override
+    public WorkcationInfo selectApprovalQueueDetail(int workcationNo) {
+
+        return approvalDao.findApprovalQueueDetail(workcationNo);
+    }
+
     // 반려 처리
     @Override
     public WorkcationInfo rejectApproval(WorkcationInfo w) {

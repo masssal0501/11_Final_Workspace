@@ -5,6 +5,7 @@ import "./common/styles/common.css";
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
+import ErrorPage from "./common/components/ErrorPage";
 
 import NoticeListPage from './pages/notice/NoticeListPage';
 import NoticeDetailPage from './pages/notice/NoticeDetailPage';
@@ -35,6 +36,9 @@ import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
+import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
+import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
+import SurveyForm from './survey/components/SurveyForm';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -72,8 +76,11 @@ import {
     Navigate
 } from "react-router-dom";
 
+// 앱 키는 소스에 하드코딩하지 않고 환경변수(VITE_KAKAO_APP_KEY)로 주입한다.
+// 옵션 객체는 렌더마다 새로 만들지 않도록 모듈 스코프 상수로 둔다
+// (매 렌더 새 객체를 넘기면 useKakaoLoader가 SDK를 반복 로드함).
 const KAKAO_MAP_OPTIONS = {
-    appkey: "a00510cb26a4e33be1647f26b12df5c9", 
+    appkey: import.meta.env.VITE_KAKAO_APP_KEY,
     libraries: ["services"]
 }
 
@@ -279,6 +286,10 @@ function App() {
                 {loginUser.authCode !== "ADMIN" && (
                     <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
                 )}
+                {/* BUG-009: "내 워케이션"(업무 진행률 관리) 화면이 라우팅되지 않아 접근 불가였음 */}
+                <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
+                <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
+                <Route path="/survey/:workcationNo" element={<SurveyForm />} />
 
 
 
@@ -315,11 +326,16 @@ function App() {
                 <Route path="/reservations/enroll" element={<ReservationEnrollComponent />}/>
                 <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />}/>
                 <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />}/>
-                <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
 
                 {/* 관리자 */}
                 {loginUser.authCode === "ADMIN" && (
                     <>
+                        {/* BUG: Header 메뉴에서는 "시설 예약 관리"가 ADMIN 전용으로
+                            표시되지만, 라우트 자체는 ADMIN 조건 밖에 선언되어 있어
+                            STAFF/MANAGER도 URL 직접 접근 시 정상적으로 페이지가
+                            열리던 문제 - ADMIN 전용 라우트 블록 안으로 이동 */}
+                        <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
+
                         {/* 직원 관리 */}
                         <Route path="/employee/enrollForm" element={ <EmployeeEnrollFormComponent /> }/>
                         <Route path="/employee/list" element={<EmployeeList />} />
@@ -327,7 +343,7 @@ function App() {
                         <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
 
                         {/* 관리자용 정산 페이지 */}
-                        <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+                        <Route path="/admin/cost/list" element={<AdminAmountPage />} />
 
                         {/* 공지사항 */}
                         {/* <Route path="/admin/notice" element={<NoticeAdminListPage />} /> */}
@@ -338,8 +354,14 @@ function App() {
 
                         {/* 📌 통계 페이지 라우트 추가 */}
                         <Route path="/admin/statistics" element={<StatisticsPage />} />
+                    </>
+                )}
 
-                        {/* 승인 페이지 */}
+                {/* 승인 페이지 - Backend(ApprovalController)는 ADMIN/MANAGER 모두 허용(STAFF만 차단) */}
+                {(loginUser.authCode === "ADMIN" ||
+                    loginUser.authCode === "MANAGER") && (
+
+                    <>
                         <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />}/>
                         <Route path="/approval/history" element={<ApprovalHistoryList />}/>
                         <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
@@ -366,9 +388,19 @@ function App() {
 
                 {/* 그 외 페이지 접속 시 */}
                 <Route path="/login" element={ <Navigate to="/" replace />}/>
-                {/* <Route path="/error" element={ <ErrorPage /> }/> */}
-                {/* <Route path="*" element={ <Navigate to="/error" replace />}/> */}
-                
+
+                {/* 에러 페이지 - axios 401/403 인터셉터가 이동시키는 경로 */}
+                <Route path="/error" element={ <ErrorPage /> }/>
+
+                {/*
+                 * BUG: 이 catch-all이 없어서 (1) 존재하지 않는 URL과
+                 * (2) 로그인은 했지만 현재 authCode에서 등록되지 않은 Route(위의
+                 * ADMIN/MANAGER/STAFF 조건부 블록 밖의 경로 - 예: STAFF/MANAGER 계정으로
+                 * /employee/list 직접 접근)가 전부 아무 것도 렌더링하지 않는 빈 화면으로
+                 * 남아있었다. 메뉴에서 숨기는 것만으로는 URL 직접 입력을 막을 수 없으므로
+                 * (요구사항 8번), 매치되는 Route가 없으면 항상 에러 페이지로 보낸다.
+                 */}
+                <Route path="*" element={ <ErrorPage /> }/>
 
             </Routes>
 

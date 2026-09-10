@@ -1,12 +1,13 @@
 .historyList {
-    width: 1500px;
+    width: 100%;
+    max-width: 1500px;
     margin: 50px auto;
     padding: 35px 45px;
 
-    background-color: #ffffff;
-    border-radius: 13px;
+    background-color: var(--wf-white);
+    border-radius: var(--wf-radius-lg);
 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
 }
@@ -41,8 +42,8 @@
 
     padding: 0 8px;
 
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     background-color: #fff;
 
@@ -62,8 +63,8 @@
 
     padding: 0 10px;
 
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     box-sizing: border-box;
 
@@ -71,7 +72,7 @@
 }
 
 .search-input:focus {
-    border-color: #0dcaf0;
+    border-color: var(--wf-primary);
 }
 
 
@@ -85,8 +86,8 @@
 
     padding: 0 8px;
 
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     box-sizing: border-box;
 
@@ -113,12 +114,12 @@
 
     margin-left: 3px;
 
-    border: 1px solid #0dcaf0;
-    border-radius: 5px;
+    border: 1px solid var(--wf-primary);
+    border-radius: 9px;
 
-    background-color: #f4fffe;
+    background-color: var(--wf-white);
 
-    color: #333;
+    color: var(--wf-text-secondary);
 
     box-sizing: border-box;
 
@@ -126,7 +127,7 @@
 }
 
 .search-button:hover {
-    background-color: #0dcaf0;
+    background-color: var(--wf-primary);
     color: white;
 }
 
@@ -147,7 +148,7 @@
 /* 테이블 헤더 */
 
 .thead th {
-    background-color: rgba(193, 245, 250, 0.44);
+    background-color: var(--wf-table-header-bg);
 }
 
 
@@ -226,7 +227,7 @@
 /* 마우스 오버 */
 
 .historyList tbody tr:hover {
-    background-color: #f0f8ff;
+    background-color: var(--wf-row-hover);
 }
 
 
@@ -247,7 +248,7 @@
 
 
 .pagination button {
-    color: #0dcaf0 !important;
+    color: var(--wf-primary) !important;
 
     background-color: white !important;
 }
@@ -256,5 +257,5 @@
 .pagination button:hover:not(:disabled) {
     color: white !important;
 
-    background-color: #0dcaf0 !important;
+    background-color: var(--wf-primary) !important;
 }

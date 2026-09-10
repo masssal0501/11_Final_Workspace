@@ -12,6 +12,8 @@ import com.kh.workflow.employee.model.dto.FindIdRequest;
 import com.kh.workflow.employee.model.dto.FindIdResponse;
 import com.kh.workflow.employee.model.dto.LoginRequest;
 import com.kh.workflow.employee.model.dto.LoginResponse;
+import com.kh.workflow.employee.model.dto.PasswordResetRequest;
+import com.kh.workflow.employee.model.dto.PasswordResetVerifyRequest;
 
 public interface EmployeeService {
 
@@ -111,5 +113,23 @@ public interface EmployeeService {
             Integer empNo,
             EmployeeRoleUpdateRequest request
     );
-	
+
+
+    /*
+     * 비밀번호 찾기 - 1단계
+     * 인증번호 발송
+     */
+    void requestPasswordReset(
+            PasswordResetRequest request
+    );
+
+
+    /*
+     * 비밀번호 찾기 - 2단계
+     * 인증번호 확인 후 임시 비밀번호 발급
+     */
+    void verifyPasswordResetCode(
+            PasswordResetVerifyRequest request
+    );
+
 }

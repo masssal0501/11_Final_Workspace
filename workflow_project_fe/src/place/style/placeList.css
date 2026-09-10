@@ -13,10 +13,10 @@
 .place-list h2 {
     margin-bottom: 25px;
 
-    font-size: 28px;
-    font-weight: 700;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 /* 검색 영역 */
@@ -36,13 +36,13 @@
 
     padding: 0 35px 0 13px;
 
-    border: 1px solid #ddd;
-    border-radius: 7px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
     background-color: white;
 
     font-size: 14px;
-    color: #333;
+    color: var(--wf-text-primary);
 
     outline: none;
 
@@ -50,7 +50,7 @@
 }
 
 .place-search select:focus {
-    border-color: #4a90e2;
+    border-color: var(--wf-primary);
 }
 
 /* 검색 박스 */
@@ -68,10 +68,10 @@
 
     padding: 0 13px;
 
-    border: 1px solid #ddd;
+    border: 1px solid var(--wf-gray-300);
     border-right: none;
 
-    border-radius: 7px 0 0 7px;
+    border-radius: 9px 0 0 9px;
 
     outline: none;
 
@@ -81,7 +81,7 @@
 }
 
 .search-box input:focus {
-    border-color: #4a90e2;
+    border-color: var(--wf-primary);
 }
 
 /* 검색 버튼 */
@@ -89,19 +89,21 @@
     width: 60px;
 
     border: none;
-    border-radius: 0 7px 7px 0;
+    border-radius: 0 9px 9px 0;
 
-    background-color: #4a90e2;
+    background-color: var(--wf-primary);
     color: white;
 
     font-size: 14px;
     font-weight: 600;
 
     cursor: pointer;
+
+    transition: background 0.2s ease;
 }
 
 .search-box button:hover {
-    background-color: #357abd;
+    background-color: var(--wf-primary-dark);
 }
 
 
@@ -112,9 +114,9 @@
     padding: 0 18px;
 
     border: none;
-    border-radius: 7px;
+    border-radius: 9px;
 
-    background-color: #222;
+    background-color: var(--wf-text-primary);
     color: white;
 
     font-size: 14px;
@@ -126,7 +128,7 @@
 }
 
 .ai-button:hover {
-    background-color: #444;
+    background-color: var(--wf-primary-dark);
     transform: translateY(-1px);
 }
 
@@ -136,7 +138,7 @@
     margin: 25px 0;
 
     border: none;
-    border-top: 1px solid #e5e5e5;
+    border-top: 1px solid var(--wf-border);
 }
 
 
@@ -150,10 +152,10 @@
     margin-bottom: 18px;
     padding: 24px 26px;
 
-    background-color: #ffffff;
+    background-color: var(--wf-white);
 
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
     box-sizing: border-box;
 
@@ -170,7 +172,7 @@
 
     border-color: #cfdff5;
 
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow);
 }
 
 
@@ -194,11 +196,11 @@
 
     border-radius: 20px;
 
-    background-color: #eef5ff;
-    color: #357abd;
+    background-color: var(--wf-info-bg);
+    color: var(--wf-info);
 
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 
@@ -211,27 +213,27 @@
 
     border-radius: 20px;
 
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 
 /* 운영중 */
 .place-status.open {
-    background-color: #eaf8ee;
-    color: #2e8b57;
+    background-color: var(--wf-success-bg);
+    color: var(--wf-success);
 }
 
 /* 일시중단 */
 .place-status.paused {
-    background-color: #fff4df;
-    color: #d88900;
+    background-color: var(--wf-warning-bg);
+    color: var(--wf-warning);
 }
 
 /* 종료 */
 .place-status.closed {
-    background-color: #fceaea;
-    color: #d64545;
+    background-color: var(--wf-danger-bg);
+    color: var(--wf-danger);
 }
 
 
@@ -245,10 +247,10 @@
 .place-item-content h3 {
     margin: 0 0 15px;
 
-    font-size: 21px;
+    font-size: var(--wf-fs-card-title);
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 
@@ -265,7 +267,7 @@
     font-size: 14px;
     line-height: 1.5;
 
-    color: #555;
+    color: var(--wf-text-secondary);
 }
 
 
@@ -279,7 +281,7 @@
 
     font-weight: 600;
 
-    color: #333;
+    color: var(--wf-text-primary);
 }
 
 
@@ -287,7 +289,7 @@
 .place-description {
     margin: 15px 0 0;
 
-    color: #777;
+    color: var(--wf-text-muted);
 
     font-size: 14px;
     line-height: 1.6;
@@ -311,9 +313,9 @@
 
     padding-top: 13px;
 
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid var(--wf-border);
 
-    color: #4a90e2;
+    color: var(--wf-primary);
 
     font-size: 13px;
     font-weight: 600;
@@ -340,7 +342,7 @@
     justify-content: center;
     align-items: center;
 
-    gap: 5px;
+    gap: 6px;
 
     margin-top: 30px;
 }
@@ -351,78 +353,55 @@
 
     padding: 0 8px;
 
-    border-radius: 6px;
-
-    cursor: pointer;
-}
-/* ================================
-   페이지네이션
-================================ */
-
-.pagination {
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    gap: 5px;
-
-    margin-top: 30px;
-}
-
-.pagination button {
-    min-width: 34px;
-    height: 34px;
-
-    padding: 0 8px;
-
-    border-radius: 6px;
+    border-radius: 8px;
 
     cursor: pointer;
 
-    color: #0dcaf0;
+    color: var(--wf-text-secondary);
     background-color: white;
 
-    border: 1px solid #0dcaf0;
+    border: 1px solid var(--wf-gray-300);
 
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
+
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 
 /* 현재 페이지 */
 .pagination button.btn-info {
     color: white;
-    background-color: #0dcaf0;
+    background-color: var(--wf-primary);
 
-    border-color: #0dcaf0;
+    border-color: var(--wf-primary);
 }
 
 
 /* 선택되지 않은 페이지 */
 .pagination button.btn-outline-info {
-    color: #0dcaf0;
+    color: var(--wf-text-secondary);
     background-color: white;
 
-    border-color: #0dcaf0;
+    border-color: var(--wf-gray-300);
 }
 
 
 /* 마우스 올렸을 때 */
 .pagination button:hover:not(:disabled) {
     color: white;
-    background-color: #0dcaf0;
+    background-color: var(--wf-primary);
 
-    border-color: #0dcaf0;
+    border-color: var(--wf-primary);
 }
 
 
 /* 비활성화 버튼 */
 .pagination button:disabled {
-    color: #aaa;
-    background-color: #f5f5f5;
+    color: var(--wf-gray-400);
+    background-color: var(--wf-gray-50);
 
-    border-color: #ddd;
+    border-color: var(--wf-gray-300);
 
     cursor: not-allowed;
 }

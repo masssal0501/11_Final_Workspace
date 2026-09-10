@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,7 +37,7 @@ public class AmountFile {
     @Schema(description = "첨부파일 번호", accessMode = Schema.AccessMode.READ_ONLY)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "amountfile_no")
+    @Column(name = "amountattachment_no")
     private Integer amountFileNo;
 
     @Schema(description = "파일경로")
@@ -43,23 +45,19 @@ public class AmountFile {
     private String filePath;
 
     @Schema(description = "원본 파일명", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Column(name = "origin_name", length = 255, nullable = false)
+    @Column(name = "origin_name", length = 225, nullable = false)
     private String originName;
 
     @Schema(description = "수정된 파일명", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Column(name = "change_name", length = 255, nullable = false)
+    @Column(name = "change_name", length = 225, nullable = false)
     private String changeName;
 
     @Schema(description = "첨부파일 등록일", accessMode = Schema.AccessMode.READ_ONLY)
     @Column(
-        name = "created_at",
+        name = "updated_at",
         columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
     )
     private LocalDateTime createdAt;
-
-    @Schema(description = "파일용량", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Column(name = "file_size", nullable = false)
-    private Long fileSize;
 
     @Schema(
         description = "상태",
@@ -72,7 +70,8 @@ public class AmountFile {
     )
     private String status;
 
-    @Schema(description = "비용번호", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "비용번호", hidden = true)
+    @JsonIgnore
     @JoinColumn(name = "amount_no", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Amount amount;

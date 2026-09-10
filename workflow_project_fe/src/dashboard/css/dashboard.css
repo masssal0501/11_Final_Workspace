@@ -4,16 +4,23 @@
    1. 대시보드 공통 컨테이너 스타일
    ========================================== */
 
-/** 대시보드 화면 전체를 감싸는 메인 컨테이너 박스 디자인 (중앙 정렬, 둥근 테두리, 여백 설정) */
+/** 대시보드 화면 전체를 감싸는 메인 컨테이너 (WorkFlow 카드 스타일로 통일) */
 .dashboard-content {
-  width : 1000px;
-  margin : auto;
-  margin-top : 50px;
-  margin-bottom : 50px;
-  background-color: white;
-  border: 1px solid gray;
-  border-radius: 50px;
-  padding: 50px 25px;
+  width: 100%;
+  max-width: 1240px;
+
+  margin: 32px auto 48px;
+
+  background-color: var(--wf-white);
+
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius-lg);
+
+  box-shadow: var(--wf-shadow-sm);
+
+  padding: 36px 40px;
+
+  color: var(--wf-text-primary);
 }
 
 .dashboard-content div {
@@ -24,29 +31,45 @@
    2. 대시보드 섹션 타이틀 및 요약 통계 영역
    ========================================== */
 
-/** 대시보드 내 주요 섹션 제목 바 스타일 (회색 배경, 넉넉한 패딩, 큰 글씨) */
+/** 대시보드 내 주요 섹션 제목 바 스타일 (공통 테이블 헤더 톤과 통일) */
 .dashboard-1 {
-    background-color: rgb(235, 235, 235);
-    font-size: x-large;
-    padding: 10px;
+    background-color: var(--wf-table-header-bg);
+    border-radius: var(--wf-radius-sm);
+
+    color: var(--wf-text-primary);
+
+    font-size: var(--wf-fs-section-title);
+    font-weight: 800;
+
+    padding: 14px 16px;
 }
 
 /** 대시보드 요약 통계(예: 총 신청 건수, 예산 소진율 등) 내 단락(p) 텍스트 스타일 */
 .dashboard-3 p {
-    font-size: large;
-    padding: 0px 38px;
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    padding: 0 16px;
 }
 
 /** 대시보드 요약 통계 내부 블록 요소 글자 크기 지정 */
 .dashboard-3 div {
-    font-size: large;
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
 }
 
 /** 대시보드 하위 콘텐츠 영역(예: 공지사항 등) 내 하위 블록 패딩 및 하단 구분선 지정 */
 .dashboard-4 div {
-    font-size: large;
-    padding: 10px 40px;
-    border-bottom: 1px solid black;
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
+
+    padding: 10px 16px;
+
+    border-bottom: 1px solid var(--wf-border);
 }
 
 /* ==========================================
@@ -57,8 +80,10 @@
 .dashboard-progress {
     position: relative;
     width: 100%;
-    height: 25px;
+    height: 22px;
     margin-top: 10px;
+
+    border-radius: 20px;
 }
 
 /** 프로그레스 바 중앙에 텍스트(예: 퍼센트 수치)를 정확히 배치하기 위한 오버레이 스타일 */
@@ -68,7 +93,13 @@
     height: 100%;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 12px;
+    font-weight: 700;
+
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.65);
 }
 
 /* ==========================================
@@ -77,23 +108,11 @@
 
 /** 검색 버튼 테두리 및 마우스 커서 포인터 설정 */
 .search-button {
-    border: 1px solid currentColor;
+    border: 1px solid var(--wf-gray-300);
     cursor: pointer;
 }
 
 /** 임직원(Staff) 전용 테이블 행(tr)의 마우스 커서를 기본값(auto)으로 고정 */
 .staff-table tr{
     cursor: auto;
-}
-
-.dashboard-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: #ffffff;
-}
-
-.dashboard-primary:hover {
-    background-color: #0b5ed7; 
-    border-color: #0a58ca;
-    color: #ffffff;
 }

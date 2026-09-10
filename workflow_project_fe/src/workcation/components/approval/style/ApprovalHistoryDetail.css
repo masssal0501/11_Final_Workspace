@@ -1,39 +1,57 @@
-.rejectPage {
-    width: 700px;
+.historyDetailPage {
+    width: 100%;
+    max-width: 700px;
     margin: 50px auto;
     padding: 35px 45px;
 
-    background-color: #ffffff;
-    border-radius: 12px;
+    background-color: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
 }
 
 /* 제목 */
-.rejectPage h3 {
+.historyDetailPage h3 {
     margin: 0 0 10px;
+
+    color: var(--wf-text-primary);
+
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
 }
 
-.rejectPage h2 {
+.historyDetailPage h2 {
     margin: 10px 0;
+
+    color: var(--wf-text-primary);
+
+    font-size: 22px;
+    font-weight: 700;
 }
 
-.rejectPage h5 {
+.historyDetailPage h5 {
     margin: 0 0 10px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 15px;
+    font-weight: 700;
 }
 
-.rejectPage h6 {
+.historyDetailPage h6 {
     margin: 0 0 8px;
-    font-size: 15px;
-    font-weight: 600;
+    color: var(--wf-text-secondary);
+    font-size: 13px;
+    font-weight: 700;
 }
 
 /* 상세 정보 */
-.rejectPage span {
+.historyDetailPage span {
     font-size: 14px;
-    color: #555;
+    color: var(--wf-text-secondary);
 }
 
 .workcation-period {
@@ -55,7 +73,7 @@
 
 .period-content span {
     font-size: 14px;
-    color: #555;
+    color: var(--wf-text-secondary);
 }
 
 /* ~ 만 가운데 */
@@ -63,72 +81,54 @@
     width: 100%;
     text-align: center;
 }
-/* 업무계획 / 반려사유 */
-.planBox,
-.rejectBox {
+/* 업무계획 / 반려사유 (이 페이지는 읽기 전용이므로 rejectBox/submit-btn은 사용하지 않음 -
+   ApprovalReject.css와 클래스명이 겹치던 죽은 CSS였기에 제거함) */
+.historyPlanBox {
     width: 100%;
     min-height: 200px;
     padding: 15px 20px;
 
-    background-color: #ffffff;
+    background-color: var(--wf-white);
 
-    border-radius: 13px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
 
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.375);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
-}
 
-/* 버튼 영역 */
-.button {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-
-    gap: 10px;
-
-    margin-top: 30px;
-}
-
-
-/* 승인/반려 버튼 */
-.submit-btn {
-    padding: 10px 20px;
-
-    border: none;
-    border-radius: 8px;
-
-    background-color: #27d9f0;
-    color: white;
+    color: var(--wf-text-primary);
 
     font-size: 14px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: all 0.2s ease;
+    line-height: 1.6;
 }
 
-.submit-btn:hover {
-    background-color: #c0392b;
-    transform: translateY(-2px);
 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+/* 상세 정보 행 간격 (기존에는 <br/> 태그로 여백을 만들던 것을 정리) */
+.historyDetailPage .info-row {
+    margin-bottom: 18px;
 }
 
+.historyDetailPage .info-row-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 18px;
+}
 
 /* 이전 버튼 */
 .back-btn {
-    padding: 10px 20px;
+    padding: 0 20px;
+    height: 42px;
 
-    border: 1px solid #d5d5d5;
-    border-radius: 8px;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
 
-    background-color: #f5f5f5;
-    color: #555;
+    background-color: #ffffff;
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -136,8 +136,6 @@
 }
 
 .back-btn:hover {
-    background-color: #e5e5e5;
-    color: #333;
-
-    transform: translateY(-2px);
+    background-color: var(--wf-gray-50);
+    color: var(--wf-text-primary);
 }

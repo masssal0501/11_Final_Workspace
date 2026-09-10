@@ -6,7 +6,6 @@ import {
     getSubRegionList,
     getMyWorkcationList
 } from "../api/WorkcationApi";
-import { getStatusText } from "../utils/StatusBadge";
 
 import "../styles/MyWorkcationList.css";
 
@@ -204,15 +203,32 @@ function MyWorkcationListComponent() {
     };
 
 
+    // 상태 코드를 한글 라벨 + 배지 톤으로 변환(표시 전용, 데이터 값은 변경하지 않음)
+    // 기존에는 approverState 코드값("W"/"A"/"J" 등)이 번역 없이 그대로 노출되던 문제가 있었다.
+    const renderStatusBadge = (item) => {
+        const raw = item.approverState || item.workcationStatus || "W";
+        const labelMap = { W: "대기", A: "승인", C: "취소", H: "보류", J: "반려", R: "검토" };
+        const toneMap = {
+            W: "bg-warning", A: "bg-success", C: "bg-secondary",
+            H: "bg-secondary", J: "bg-danger", R: "bg-primary",
+        };
+        const label = labelMap[raw] || raw;
+        const tone = toneMap[raw] || "bg-primary";
+        return <span className={`badge ${tone}`}>{label}</span>;
+    };
+
     return (
 
-        <div
-            align="center"
-            className="content-area"
-        >
+        <main className="wf-container">
 
-            <h2>내 워케이션 신청 목록</h2>
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">내 워케이션</h1>
+                    <p className="wf-page-description">내가 신청한 워케이션의 진행 현황을 확인합니다.</p>
+                </div>
+            </section>
 
+            <div className="wf-page-content">
 
             {/*필터 영역*/}
             <div className="workcation-btnSet">
@@ -386,18 +402,15 @@ function MyWorkcationListComponent() {
                                                 {item.createdAt ? item.createdAt.substring(0, 10) : "-"}
                                             </td>
                                             <td>
-                                                {getStatusText(item.approverState || item.workcationStatus)}
+                                                {renderStatusBadge(item)}
                                             </td>
                                         </tr>
                                     );
                                 }) :
 
-                            <tr>
+                            <tr className="wf-empty-row">
 
-                                <td
-                                    colSpan={5}
-                                    align="center"
-                                >
+                                <td colSpan={5}>
                                     신청한 워케이션 내역이 없습니다.
                                 </td>
                             </tr>
@@ -473,7 +486,8 @@ function MyWorkcationListComponent() {
 
             </div>
 
-        </div>
+            </div>
+        </main>
     );
 }
 

@@ -182,9 +182,13 @@ function ReservationDetailComponent() {
 
     return (
 
-        <div className="reservation-detail-page">
+        <main className="reservation-detail-page">
 
-            <div className="detail-header">
+            <section className="detail-header wf-page-header">
+
+                <div>
+                    <h1 className="wf-page-title">예약 상세</h1>
+                </div>
 
                 <button
                     className="back-button"
@@ -195,11 +199,7 @@ function ReservationDetailComponent() {
                     ← 예약 목록
                 </button>
 
-                <h1>
-                    예약 상세
-                </h1>
-
-            </div>
+            </section>
 
 
             <div className="reservation-detail-card">
@@ -335,7 +335,7 @@ function ReservationDetailComponent() {
 
             </div>
 
-        </div>
+        </main>
 
     );
 }

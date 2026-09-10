@@ -52,7 +52,7 @@ function HubDetailComponent(props) {
                 } else {
                     // 데이터가 없거나 삭제된 경우 경고 후 목록으로 강제 이동
                     alert("이미 삭제되었거나 없는 거점입니다.");
-                    navigate("/placeInfo/list")
+                    navigate("/hub/list")
                 }
             } catch(error) {
                 console.error(error);
@@ -199,13 +199,19 @@ function HubDetailComponent(props) {
 
     // return 구문
     return (
-        // 중단(CLOSED) 상태일 경우 CSS를 통해 비활성화 디자인(content-off) 적용
-        <div className={ `hub-content ${hub.hubStatus === 'CLOSED' && 'content-off'}` }>
-            
-            {/* 타이틀: 거점명 */}
-            <h2 align="center" className="hub-header"><b>{ hub.hubName }</b></h2>
-            <br /><br />
-            
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">{ hub.hubName || '거점 상세' }</h1>
+                    <p className="wf-page-description">거점의 상세 정보와 위치, 평점을 확인합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            {/* 중단(CLOSED) 상태일 경우 CSS를 통해 비활성화 디자인(content-off) 적용 */}
+            <div className={ `hub-content ${hub.hubStatus === 'CLOSED' && 'content-off'}` }>
+
             {/* 썸네일 이미지와 기본 정보 */}
             <div className="title-area d-flex">
                 {/* 첫 번째 첨부파일(썸네일) 렌더링 */}
@@ -217,7 +223,7 @@ function HubDetailComponent(props) {
                     <span>거점명 : { hub.hubName }</span>
                     <span>전화번호 : { hub.phone }</span>
                     <span>1{ (hub.hubType === 1) ? "박" : "일" } 가격 : { hub.price.toLocaleString('ko-KR') }원 </span>
-                    <span>운영 상태 : { (hub.hubStatus === "OPEN") ? (<b style={{color:'green'}}>운영중</b>) : ((hub.hubStatus === "PAUSED") ? (<b style={{color:'yellow'}}>일시중단</b>) : (<b style={{color:'red'}}>중단</b>)) }</span>
+                    <span>운영 상태 : { (hub.hubStatus === "OPEN") ? (<span className="wf-badge wf-badge-success">운영중</span>) : ((hub.hubStatus === "PAUSED") ? (<span className="wf-badge wf-badge-warning">일시중단</span>) : (<span className="wf-badge wf-badge-danger">중단</span>)) }</span>
                     <span>최대 수용 인원 : { hub.maxCapacity }명</span>
                     <span>유형 : { (hub.hubType === 1) ? "숙소" : "공유 오피스" }</span>
                 </div>
@@ -290,7 +296,9 @@ function HubDetailComponent(props) {
                 {/* 공통 뒤로가기 버튼 */}
                 <button className='btn btn-dark' onClick={ () => { navigate(-1) } }>뒤로가기</button>
             </div>
-        </div>
+            </div>
+            </div>
+        </main>
     );
 }
 

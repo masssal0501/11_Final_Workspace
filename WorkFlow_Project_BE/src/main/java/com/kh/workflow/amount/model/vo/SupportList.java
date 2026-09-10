@@ -2,6 +2,8 @@ package com.kh.workflow.amount.model.vo;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,7 +20,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "support_list")
+@Table(name = "amount_list")
 
 @NoArgsConstructor
 @Getter
@@ -64,7 +66,8 @@ public class SupportList {
     @Column(name = "other_supported", length = 1, nullable = false)
     private String otherSupported;
 
-    @Schema(description = "비용 정보")
+    @Schema(description = "비용 정보", hidden = true)
+    @JsonIgnore
     @JoinColumn(name = "amount_no", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Amount amount;

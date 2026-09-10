@@ -55,6 +55,36 @@
   --wf-radius: 12px;
   --wf-radius-lg: 16px;
   --wf-radius-xl: 20px;
+
+  /* Neutral / Gray scale (borders, muted surfaces) */
+  --wf-gray-50: #f7f9fc;
+  --wf-gray-100: #f1f4f8;
+  --wf-gray-200: #e5ebf2;
+  --wf-gray-300: #dce4ed;
+  --wf-gray-400: #c7d0dc;
+  --wf-gray-500: #8793a4;
+  --wf-gray-600: #67758a;
+  --wf-gray-700: #52627a;
+
+  --wf-neutral: #667085;
+  --wf-neutral-bg: #f1f3f6;
+
+  /* Table */
+  --wf-table-header-bg: #f3f6fb;
+  --wf-row-hover: #f5f9fd;
+
+  /* Typography scale */
+  --wf-fs-page-title: 26px;
+  --wf-fs-section-title: 18px;
+  --wf-fs-card-title: 16px;
+  --wf-fs-body: 14px;
+  --wf-fs-desc: 13px;
+  --wf-fs-table: 14px;
+  --wf-fs-button: 14px;
+  --wf-fs-label: 13px;
+  --wf-fs-input: 14px;
+  --wf-fs-badge: 11px;
+  --wf-fs-nav: 15px;
 }
 
 
@@ -155,6 +185,13 @@ img {
 ======================================== */
 
 .wf-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 16px;
+
   margin-bottom: 28px;
 }
 
@@ -175,6 +212,52 @@ img {
   color: var(--wf-text-muted);
 
   font-size: 14px;
+}
+
+.wf-page-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 10px;
+}
+
+.wf-page-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 24px;
+}
+
+
+/* ========================================
+   Content Section
+   (page-content 내부의 개별 구획 — 목록/폼/상세 정보 등을
+   의미 단위로 나눌 때 사용. wf-card와 함께 써도 되고
+   단독으로 써도 된다.)
+======================================== */
+
+.wf-section {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+.wf-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 12px;
+}
+
+.wf-section-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
 }
 
 
@@ -395,7 +478,7 @@ img {
 
   padding: 12px 13px;
 
-  resize: vertical;
+  resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 }
 
 .wf-input:focus,
@@ -443,4 +526,848 @@ img {
   .wf-page-title {
     font-size: 24px;
   }
+}
+
+
+/* ========================================
+   Typography Hierarchy
+   Page Title > Section Title > Card Title > Body > Description
+======================================== */
+
+.wf-section-title {
+  margin: 0 0 14px;
+
+  color: var(--wf-text-primary);
+
+  font-size: var(--wf-fs-section-title);
+  font-weight: 800;
+
+  letter-spacing: -0.4px;
+}
+
+.wf-body {
+  color: var(--wf-text-primary);
+
+  font-size: var(--wf-fs-body);
+  line-height: 1.6;
+}
+
+.wf-desc {
+  color: var(--wf-text-muted);
+
+  font-size: var(--wf-fs-desc);
+  line-height: 1.6;
+}
+
+
+/* ========================================
+   Badge - additional tones
+======================================== */
+
+.wf-badge-info {
+  color: var(--wf-info);
+  background: var(--wf-info-bg);
+}
+
+.wf-badge-neutral {
+  color: var(--wf-neutral);
+  background: var(--wf-neutral-bg);
+}
+
+
+/* ========================================
+   Button - additional variants
+======================================== */
+
+.wf-btn-secondary {
+  color: var(--wf-text-secondary);
+  background: #ffffff;
+  border-color: var(--wf-gray-300);
+}
+
+.wf-btn-secondary:hover {
+  background: var(--wf-gray-50);
+  border-color: var(--wf-gray-400);
+}
+
+.wf-btn-danger {
+  color: #ffffff;
+  background: var(--wf-danger);
+}
+
+.wf-btn-danger:hover {
+  background: #d94f4f;
+}
+
+.wf-btn-success {
+  color: #ffffff;
+  background: var(--wf-success);
+}
+
+.wf-btn-success:hover {
+  background: #1c8e64;
+}
+
+.wf-btn-outline-danger {
+  color: var(--wf-danger);
+  background: #ffffff;
+  border-color: #f3c8c8;
+}
+
+.wf-btn-outline-danger:hover {
+  background: var(--wf-danger-bg);
+}
+
+.wf-btn-sm {
+  min-height: 32px;
+
+  padding: 0 13px;
+
+  border-radius: 7px;
+
+  font-size: 12px;
+}
+
+.wf-btn:disabled,
+.wf-btn.disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ========================================
+   Form - additional states
+======================================== */
+
+.wf-input:disabled,
+.wf-select:disabled,
+.wf-textarea:disabled {
+  background: var(--wf-gray-50);
+  color: var(--wf-text-muted);
+
+  cursor: not-allowed;
+}
+
+.wf-input.wf-input-error,
+.wf-select.wf-input-error,
+.wf-textarea.wf-input-error {
+  border-color: var(--wf-danger);
+}
+
+.wf-input.wf-input-error:focus,
+.wf-select.wf-input-error:focus,
+.wf-textarea.wf-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(237, 98, 98, 0.12);
+}
+
+.wf-error-text {
+  margin-top: 4px;
+
+  color: var(--wf-danger);
+
+  font-size: 12px;
+}
+
+.wf-required {
+  margin-left: 3px;
+
+  color: var(--wf-danger);
+
+  font-weight: 700;
+}
+
+.wf-help-text {
+  margin-top: 4px;
+
+  color: var(--wf-text-muted);
+
+  font-size: 12px;
+}
+
+
+/* ========================================
+   Table System
+======================================== */
+
+.wf-table-wrap {
+  width: 100%;
+
+  overflow-x: auto;
+
+  background: var(--wf-white);
+
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius-lg);
+}
+
+.wf-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: var(--wf-fs-table);
+}
+
+.wf-table thead th {
+  padding: 14px 16px;
+
+  background: var(--wf-table-header-bg);
+
+  border-bottom: 1px solid var(--wf-border);
+
+  color: var(--wf-text-secondary);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+.wf-table tbody td {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--wf-border);
+
+  color: var(--wf-text-primary);
+
+  vertical-align: middle;
+}
+
+.wf-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.wf-table.wf-table-hover tbody tr {
+  transition: background 0.15s ease;
+}
+
+.wf-table.wf-table-hover tbody tr:hover {
+  background: var(--wf-row-hover);
+
+  cursor: pointer;
+}
+
+.wf-table .wf-table-empty td {
+  padding: 60px 16px;
+
+  color: var(--wf-text-muted);
+
+  text-align: center;
+
+  cursor: default;
+}
+
+
+/* ========================================
+   Empty / Loading / Error State
+======================================== */
+
+.wf-state {
+  width: 100%;
+
+  padding: 64px 24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  color: var(--wf-text-muted);
+
+  font-size: 14px;
+
+  text-align: center;
+}
+
+.wf-state-icon {
+  font-size: 26px;
+
+  line-height: 1;
+}
+
+.wf-state-title {
+  color: var(--wf-text-secondary);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.wf-error-state {
+  color: var(--wf-danger);
+}
+
+.wf-error-state .wf-state-title {
+  color: var(--wf-danger);
+}
+
+.wf-spinner {
+  width: 22px;
+  height: 22px;
+
+  border: 3px solid var(--wf-gray-200);
+  border-top-color: var(--wf-primary);
+  border-radius: 50%;
+
+  animation: wf-spin 0.7s linear infinite;
+}
+
+@keyframes wf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ========================================
+   Modal System
+======================================== */
+
+.wf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(18, 30, 51, 0.45);
+
+  padding: 20px;
+}
+
+.wf-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+
+  overflow-y: auto;
+
+  background: var(--wf-white);
+
+  border-radius: var(--wf-radius-lg);
+
+  box-shadow: var(--wf-shadow-lg);
+}
+
+.wf-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 24px;
+
+  border-bottom: 1px solid var(--wf-border);
+}
+
+.wf-modal-title {
+  margin: 0;
+
+  color: var(--wf-text-primary);
+
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.wf-modal-close {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: var(--wf-text-muted);
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+.wf-modal-close:hover {
+  background: var(--wf-gray-50);
+}
+
+.wf-modal-body {
+  padding: 22px 24px;
+}
+
+.wf-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding: 16px 24px;
+
+  border-top: 1px solid var(--wf-border);
+}
+
+
+/* ========================================
+   Pagination
+======================================== */
+
+.wf-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  margin-top: 24px;
+}
+
+.wf-page-btn {
+  min-width: 34px;
+  height: 34px;
+
+  padding: 0 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--wf-border);
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: var(--wf-text-secondary);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.wf-page-btn:hover {
+  background: var(--wf-gray-50);
+}
+
+.wf-page-btn.active {
+  background: var(--wf-primary);
+  border-color: var(--wf-primary);
+
+  color: #ffffff;
+}
+
+.wf-page-btn:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+
+/* ========================================
+   Empty Row Helper
+   Bootstrap <table>(.table) 안에서 "데이터가 없습니다" 류의
+   행을 공통 톤으로 표시하기 위한 헬퍼 클래스.
+   기존 <tr>/<td colSpan> 구조는 그대로 두고 className만 추가해 사용한다.
+======================================== */
+
+tr.wf-empty-row,
+tr.wf-empty-row:hover {
+  background: transparent !important;
+
+  cursor: default !important;
+}
+
+tr.wf-empty-row td {
+  padding: 56px 16px !important;
+
+  color: var(--wf-text-muted);
+
+  font-size: 14px;
+
+  text-align: center;
+}
+
+
+/* ========================================================================
+   Bootstrap Component Overrides
+   다수의 페이지가 Bootstrap 유틸리티 클래스(btn/table/form-control/badge/
+   modal/pagination)를 그대로 사용 중이므로, JSX 구조 변경 없이 전체 화면의
+   일관성을 확보하기 위해 Bootstrap 컴포넌트 클래스 자체를 WorkFlow 디자인
+   토큰으로 재도색한다. (기능/구조는 변경하지 않고 색상/규격만 통일)
+   ======================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border-radius: 9px;
+  border: 1px solid transparent;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.btn.btn-sm {
+  min-height: 32px;
+
+  padding: 0 12px;
+
+  font-size: 12px;
+}
+
+.btn.btn-lg {
+  min-height: 46px;
+
+  padding: 0 22px;
+
+  font-size: 15px;
+}
+
+.btn.btn-primary {
+  background: var(--wf-primary);
+  border-color: var(--wf-primary);
+  color: #ffffff;
+}
+
+.btn.btn-primary:hover {
+  background: var(--wf-primary-dark);
+  border-color: var(--wf-primary-dark);
+  color: #ffffff;
+}
+
+.btn.btn-secondary,
+.btn.btn-outline-secondary {
+  background: #ffffff;
+  border-color: var(--wf-gray-300);
+  color: var(--wf-text-secondary);
+}
+
+.btn.btn-secondary:hover,
+.btn.btn-outline-secondary:hover {
+  background: var(--wf-gray-50);
+  color: var(--wf-text-primary);
+}
+
+.btn.btn-danger {
+  background: var(--wf-danger);
+  border-color: var(--wf-danger);
+  color: #ffffff;
+}
+
+.btn.btn-danger:hover {
+  background: #d94f4f;
+  border-color: #d94f4f;
+}
+
+.btn.btn-outline-danger {
+  background: #ffffff;
+  border-color: #f3c8c8;
+  color: var(--wf-danger);
+}
+
+.btn.btn-outline-danger:hover {
+  background: var(--wf-danger-bg);
+}
+
+.btn.btn-success {
+  background: var(--wf-success);
+  border-color: var(--wf-success);
+  color: #ffffff;
+}
+
+.btn.btn-success:hover {
+  background: #1c8e64;
+  border-color: #1c8e64;
+}
+
+.btn.btn-warning {
+  background: var(--wf-warning);
+  border-color: var(--wf-warning);
+  color: #ffffff;
+}
+
+.btn.btn-info,
+.btn.btn-outline-info {
+  background: #ffffff;
+  border-color: var(--wf-info);
+  color: var(--wf-info);
+}
+
+.btn.btn-info:hover,
+.btn.btn-outline-info:hover {
+  background: var(--wf-info-bg);
+}
+
+.btn.btn-outline-primary {
+  background: #ffffff;
+  border-color: var(--wf-primary);
+  color: var(--wf-primary);
+}
+
+.btn.btn-outline-primary:hover {
+  background: var(--wf-primary-light);
+}
+
+.btn.btn-dark {
+  background: var(--wf-text-primary);
+  border-color: var(--wf-text-primary);
+  color: #ffffff;
+}
+
+.btn.btn-light {
+  background: var(--wf-gray-50);
+  border-color: var(--wf-gray-200);
+  color: var(--wf-text-secondary);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Form controls */
+
+.form-control,
+.form-select {
+  height: 42px;
+
+  padding: 0 13px;
+
+  border: 1px solid var(--wf-gray-300);
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: var(--wf-text-primary);
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 110px;
+
+  padding: 12px 13px;
+
+  resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--wf-primary);
+  box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  background: var(--wf-gray-50);
+  color: var(--wf-text-muted);
+}
+
+.form-check-input:checked {
+  background-color: var(--wf-primary);
+  border-color: var(--wf-primary);
+}
+
+.form-label {
+  color: var(--wf-text-primary);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Table */
+
+.table {
+  width: 100%;
+
+  font-size: 14px;
+
+  color: var(--wf-text-primary);
+}
+
+.table th {
+  padding: 13px 16px;
+
+  background: var(--wf-table-header-bg);
+
+  border-bottom: 1px solid var(--wf-border) !important;
+
+  color: var(--wf-text-secondary);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  vertical-align: middle;
+}
+
+.table td {
+  padding: 13px 16px;
+
+  border-bottom: 1px solid var(--wf-border);
+
+  vertical-align: middle;
+}
+
+.table.table-hover tbody tr:hover {
+  background: var(--wf-row-hover);
+}
+
+/* Badge */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px 10px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge.bg-primary {
+  background: var(--wf-info-bg) !important;
+  color: var(--wf-info) !important;
+}
+
+.badge.bg-success {
+  background: var(--wf-success-bg) !important;
+  color: var(--wf-success) !important;
+}
+
+.badge.bg-danger {
+  background: var(--wf-danger-bg) !important;
+  color: var(--wf-danger) !important;
+}
+
+.badge.bg-warning {
+  background: var(--wf-warning-bg) !important;
+  color: var(--wf-warning) !important;
+}
+
+.badge.bg-secondary {
+  background: var(--wf-neutral-bg) !important;
+  color: var(--wf-neutral) !important;
+}
+
+/* Modal */
+
+.modal-content {
+  border: none;
+  border-radius: var(--wf-radius-lg);
+
+  box-shadow: var(--wf-shadow-lg);
+}
+
+.modal-header {
+  padding: 18px 22px;
+
+  border-bottom: 1px solid var(--wf-border);
+}
+
+.modal-title {
+  color: var(--wf-text-primary);
+
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.modal-body {
+  padding: 20px 22px;
+}
+
+.modal-footer {
+  padding: 14px 22px;
+
+  border-top: 1px solid var(--wf-border);
+}
+
+.modal-backdrop.show {
+  opacity: 0.45;
+
+  background: rgb(18, 30, 51);
+}
+
+/* Pagination */
+
+.pagination .page-link {
+  margin: 0 3px;
+
+  border: 1px solid var(--wf-gray-300);
+  border-radius: 8px;
+
+  color: var(--wf-text-secondary);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pagination .page-link:hover {
+  background: var(--wf-gray-50);
+
+  color: var(--wf-text-primary);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--wf-primary);
+  border-color: var(--wf-primary);
+
+  color: #ffffff;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--wf-gray-400);
+}
+
+/* Progress */
+
+.progress {
+  background: var(--wf-gray-100);
+  border-radius: 20px;
+}
+
+.progress-bar {
+  background: var(--wf-primary);
 }
