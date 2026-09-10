@@ -60,9 +60,9 @@ function AdminComponent() {
      * @returns {string} HEX 색상 코드
      */
     const getOfficeColor = (name) => {
-        if (name === '강원') return '#ff8042';
-        if (name === '제주') return '#8884d8';
-        if (name === '부산') return '#00C49F';
+        if (name === '강원' || name === '강원도') return '#ff8042';
+        if (name === '제주' || name === '제주도') return '#8884d8';
+        if (name === '부산' || name === '부산시') return '#00C49F';
         if (name === '숙박') return '#45eed8';
         if (name === '식비') return '#fa6666';
         if (name === '기타') return '#ffd094';
