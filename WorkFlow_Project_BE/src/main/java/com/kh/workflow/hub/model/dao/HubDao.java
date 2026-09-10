@@ -117,7 +117,7 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 
 	List<Hub> findByMainRegionAndSubRegionAndHubType(String mainRegion, String subRegion, int hubType);
 
-	@Query("SELECT h.mainRegion FROM Hub h")
+	@Query("SELECT DISTINCT h.mainRegion FROM Hub h WHERE h.mainRegion IS NOT NULL ORDER BY h.mainRegion")
 	List<String> selectMainRegionList();
 
     // BUG-011: 직원이 워케이션을 2건 이상 신청하면 이 쿼리가 여러 건을 반환해
@@ -138,6 +138,6 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     		""")
 	List<CurrentHubDto> selectHubAddress(@Param("empNo") int empNo);
 
-    @Query("SELECT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
-	List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
+    @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion AND h.subRegion IS NOT NULL ORDER BY h.subRegion")
+    List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
 }
