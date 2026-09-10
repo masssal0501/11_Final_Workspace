@@ -241,10 +241,10 @@ function App() {
             <Routes>
 
                 {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
-                <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
+                <Route path="/cost/list" element={<AmountPage />} />
 
                 {/* 📌 비용 신청 페이지 경로 추가 */}
-                <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
+                <Route path="/cost/apply/:amountNo" element={<AmountForm  />} />
 
                 <Route path="/cost/apply" element={<AmountForm />} />
 

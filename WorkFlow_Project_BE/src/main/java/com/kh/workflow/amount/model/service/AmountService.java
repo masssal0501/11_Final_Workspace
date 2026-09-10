@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.amount.model.vo.Amount;
@@ -28,7 +29,7 @@ public interface AmountService {
 
 
     // =========================================================
-    // 3. 전체 비용 신청 목록
+    // 3. 전체 비용 신청 목록 - 기존 PageInfo 방식
     // =========================================================
 
     List<Amount> selectAmountList(PageInfo pi);
@@ -58,7 +59,7 @@ public interface AmountService {
 
 
     // =========================================================
-    // 7. 워케이션별 비용 신청 목록
+    // 7. 워케이션별 비용 신청 목록 - 기존 PageInfo 방식
     // =========================================================
 
     List<Amount> selectAmountListByWorkcationNo(
@@ -138,15 +139,68 @@ public interface AmountService {
     Map<String, Object> getFullStatistics();
 
 
-	Page<Amount> selectAmountList(Pageable pageable);
+    // =========================================================
+    // 15. 전체 비용 신청 목록 - Spring Data Page 방식
+    // =========================================================
+
+    Page<Amount> selectAmountList(
+            Pageable pageable
+    );
 
 
-	int insertAmount(Amount amount, MultipartFile[] files);
+    // =========================================================
+    // 16. 비용 신청 등록 + 파일
+    // =========================================================
+
+    int insertAmount(
+            Amount amount,
+            MultipartFile[] files
+    );
 
 
-	Page<Amount> selectAmountListByWorkcationNo(int workcationNo, Pageable pageable);
+    // =========================================================
+    // 17. 워케이션별 비용 신청 목록 - Spring Data Page 방식
+    // =========================================================
+
+    Page<Amount> selectAmountListByWorkcationNo(
+            int workcationNo,
+            Pageable pageable
+    );
 
 
-	Amount selectAmountById(Integer amountNo);
+    // =========================================================
+    // 18. 비용 상세 조회 - Integer 방식
+    // =========================================================
+
+    Amount selectAmountById(
+            Integer amountNo
+    );
+
+
+    // =========================================================
+    // 19. 로그인 사용자 비용 신청 목록
+    //
+    // JWT
+    //   ↓
+    // Authentication.getName()
+    //   ↓
+    // empId
+    //   ↓
+    // Employee
+    //   ↓
+    // empNo
+    //   ↓
+    // WorkcationInfo
+    //   ↓
+    // workcationNo
+    //   ↓
+    // Amount
+    // =========================================================
+
+    Page<Amount> selectMyAmountList(
+            Pageable pageable,
+            Authentication authentication
+    );
 
 }
+

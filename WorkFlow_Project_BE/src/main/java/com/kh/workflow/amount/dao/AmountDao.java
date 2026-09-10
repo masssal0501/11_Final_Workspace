@@ -451,5 +451,8 @@ public interface AmountDao
 	Object getItemStatistics();
 
 	List<Amount> findByWorkcationNo(Integer workcationNo);
-
+	Page<Amount> findByWorkcationNoInOrderByCreatedAtDescAmountNoDesc(
+	        List<Integer> workcationNos,
+	        Pageable pageable
+	);
 }

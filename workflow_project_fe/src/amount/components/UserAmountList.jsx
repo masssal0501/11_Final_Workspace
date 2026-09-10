@@ -15,6 +15,17 @@ import '../styles/AmountStyle.css';
 // 사용자 비용 정산 신청 목록
 // =========================================================
 //
+// 조회 기준
+//
+// 로그인 사용자
+//     ↓
+// 본인 워케이션
+//     ↓
+// 해당 워케이션의 비용 정산 신청 내역
+//
+// ※ workcationNo를 URL이나 props로 전달하지 않음
+// ※ GET /api/v1/amounts/my 사용
+//
 // Amount 구조
 //
 // amount
@@ -22,15 +33,15 @@ import '../styles/AmountStyle.css';
 //   └── requestedAt
 //   └── status
 //   └── itemList
-//          ├── amount                  → 신청 금액
-//          └── itemApprovedAmount      → 회사 지원금
+//          ├── itemAmount
+//          │      → 신청 금액
+//          └── itemApprovedAmount
+//                 → 회사 지원금
 //
 // =========================================================
 
 
-export default function UserAmountList({
-  workcationNo
-}) {
+export default function UserAmountList() {
 
   const navigate = useNavigate();
 
@@ -47,55 +58,26 @@ export default function UserAmountList({
   // =========================================================
   // 비용 정산 신청 목록 조회
   // =========================================================
+  //
+  // 로그인 사용자 기준으로 조회
+  //
+  // GET /api/v1/amounts/my
+  //
+  // 서버에서
+  // 로그인 사용자
+  //      ↓
+  // 본인 워케이션
+  //      ↓
+  // Amount
+  // 를 찾아서 반환
+  //
+  // =========================================================
 
   const fetchAmountList = useCallback(async () => {
-
-    // -------------------------------------------------------
-    // workcationNo 확인
-    // -------------------------------------------------------
-
-    if (
-      workcationNo === null ||
-      workcationNo === undefined ||
-      workcationNo === ''
-    ) {
-
-      console.log(
-        '⚠️ workcationNo가 없습니다.'
-      );
-
-      setAmounts([]);
-
-      return;
-    }
-
 
     try {
 
       setLoading(true);
-
-
-      // -----------------------------------------------------
-      // 숫자 변환
-      // -----------------------------------------------------
-
-      const no = Number(workcationNo);
-
-
-      if (
-        !Number.isFinite(no) ||
-        no <= 0
-      ) {
-
-        console.error(
-          '❌ 잘못된 workcationNo:',
-          workcationNo
-        );
-
-        setAmounts([]);
-
-        return;
-      }
 
 
       console.log(
@@ -107,8 +89,7 @@ export default function UserAmountList({
       );
 
       console.log(
-        '📌 workcationNo:',
-        no
+        '📌 로그인 사용자 기준 조회'
       );
 
       console.log(
@@ -117,11 +98,11 @@ export default function UserAmountList({
 
 
       // -----------------------------------------------------
-      // API 호출
+      // 로그인 사용자 비용 신청 목록 API
       // -----------------------------------------------------
 
       const data =
-        await amountApi.getAmountListByWorkcation(no);
+        await amountApi.getMyAmountList();
 
 
       console.log(
@@ -137,15 +118,28 @@ export default function UserAmountList({
       let list = [];
 
 
+      // API가 배열 자체를 반환하는 경우
       if (Array.isArray(data)) {
 
         list = data;
 
-      } else if (
+      }
+
+      // Page 응답
+      else if (
         Array.isArray(data?.list)
       ) {
 
         list = data.list;
+
+      }
+
+      // Spring Data JPA Page 형태
+      else if (
+        Array.isArray(data?.content)
+      ) {
+
+        list = data.content;
 
       }
 
@@ -186,11 +180,11 @@ export default function UserAmountList({
 
     }
 
-  }, [workcationNo]);
+  }, []);
 
 
   // =========================================================
-  // workcationNo 변경 시 목록 재조회
+  // 페이지 진입 시 목록 조회
   // =========================================================
 
   useEffect(() => {
@@ -207,9 +201,13 @@ export default function UserAmountList({
   const statusMap = {
 
     R: '검토중',
+
     A: '승인됨',
+
     H: '보류됨',
+
     J: '반려됨',
+
     C: '취소됨'
 
   };
@@ -348,6 +346,8 @@ export default function UserAmountList({
   //
   // amount_item.amount
   //     ↓
+  // AmountItem.itemAmount
+  //     ↓
   // 신청 금액
   //
   // =========================================================
@@ -367,7 +367,11 @@ export default function UserAmountList({
 
           return (
             total +
-            (Number(detailItem?.amount) || 0)
+            (
+              Number(
+                detailItem?.itemAmount
+              ) || 0
+            )
           );
 
         },
@@ -404,6 +408,8 @@ export default function UserAmountList({
   //
   // amount_item.item_approved_amount
   //     ↓
+  // AmountItem.itemApprovedAmount
+  //     ↓
   // 회사 지원금
   //
   // =========================================================
@@ -421,18 +427,15 @@ export default function UserAmountList({
       return item.itemList.reduce(
         (total, detailItem) => {
 
-          // -------------------------------------------------
-          // MyBatis
-          // itemApprovedAmount
-          // -------------------------------------------------
-
           const support =
             detailItem?.itemApprovedAmount;
 
 
           return (
             total +
-            (Number(support) || 0)
+            (
+              Number(support) || 0
+            )
           );
 
         },
@@ -676,7 +679,9 @@ export default function UserAmountList({
           responseData
         );
 
-      } else if (
+      }
+
+      else if (
         responseData?.message
       ) {
 
@@ -684,7 +689,9 @@ export default function UserAmountList({
           responseData.message
         );
 
-      } else {
+      }
+
+      else {
 
         alert(
           '비용 정산 신청 취소에 실패했습니다.'
@@ -700,26 +707,23 @@ export default function UserAmountList({
   // =========================================================
   // 비용 신청하기
   // =========================================================
+  //
+  // ※ workcationNo를 URL로 전달하지 않음
+  //
+  // /cost/list
+  //      ↓
+  // /cost/apply
+  //
+  // 신청 등록 시 서버가
+  // 로그인 사용자 → 워케이션을 찾아서
+  // Amount.workcationNo를 설정
+  //
+  // =========================================================
 
   const handleApply = () => {
 
-    if (
-      workcationNo === null ||
-      workcationNo === undefined ||
-      workcationNo === ''
-    ) {
-
-      alert(
-        '워케이션 정보가 없습니다.'
-      );
-
-      return;
-
-    }
-
-
     navigate(
-      `/cost/apply?workcationNo=${workcationNo}`
+      '/cost/apply'
     );
 
   };
@@ -728,6 +732,60 @@ export default function UserAmountList({
   // =========================================================
   // 로딩
   // =========================================================
+
+  if (loading) {
+
+    return (
+
+      <main className="amount-container">
+
+        <section className="wf-page-header">
+
+          <div>
+
+            <h1 className="wf-page-title">
+              비용 정산
+            </h1>
+
+            <p className="wf-page-description">
+              로그인한 사용자의 비용 정산 신청 내역입니다.
+            </p>
+
+          </div>
+
+          <div className="wf-page-actions">
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleApply}
+            >
+
+              + 비용 신청하기
+
+            </button>
+
+          </div>
+
+        </section>
+
+
+        <div className="wf-state">
+
+          <div className="wf-spinner" />
+
+          <span className="wf-state-title">
+            비용 정산 신청 내역을 불러오는 중입니다.
+          </span>
+
+        </div>
+
+      </main>
+
+    );
+
+  }
+
 
   // =========================================================
   // 화면
@@ -745,13 +803,20 @@ export default function UserAmountList({
       <section className="wf-page-header">
 
         <div>
-          <h1 className="wf-page-title">비용 정산</h1>
+
+          <h1 className="wf-page-title">
+            비용 정산
+          </h1>
+
           <p className="wf-page-description">
-            워케이션 번호 <strong>{workcationNo || '-'}</strong>의 비용 정산 신청 내역입니다.
+            로그인한 사용자의 비용 정산 신청 내역입니다.
           </p>
+
         </div>
 
+
         <div className="wf-page-actions">
+
           <button
             type="button"
             className="btn btn-primary"
@@ -761,23 +826,17 @@ export default function UserAmountList({
             + 비용 신청하기
 
           </button>
+
         </div>
 
       </section>
-
-      {loading && (
-        <div className="wf-state">
-          <div className="wf-spinner" />
-          <span className="wf-state-title">비용 정산 신청 내역을 불러오는 중입니다.</span>
-        </div>
-      )}
 
 
       {/* =====================================================
           비용 신청 목록
       ====================================================== */}
 
-      {!loading && <table className="amount-table">
+      <table className="amount-table">
 
         <thead>
 
@@ -988,19 +1047,24 @@ export default function UserAmountList({
 
         </tbody>
 
-      </table>}
+      </table>
 
 
       {/* =====================================================
           안내
       ====================================================== */}
 
-      {!loading && (
-        <p className="wf-help-text" style={{ marginTop: '12px' }}>
-          ※ 검토중 또는 보류 상태의 신청만
-          수정 및 취소할 수 있습니다.
-        </p>
-      )}
+      <p
+        className="wf-help-text"
+        style={{
+          marginTop: '12px'
+        }}
+      >
+
+        ※ 검토중 또는 보류 상태의 신청만
+        수정 및 취소할 수 있습니다.
+
+      </p>
 
 
     </main>
@@ -1008,3 +1072,4 @@ export default function UserAmountList({
   );
 
 }
+

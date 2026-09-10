@@ -1,6 +1,6 @@
 /* =========================================================
-   Amount Module
    AmountStyle.css
+   비용 정산 신청 / 수정 / 상세 공통
    ========================================================= */
 
 
@@ -11,42 +11,915 @@
 .amount-container,
 .amount-detail-container {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 30px 20px;
+    padding: 50px 30px 90px;
     box-sizing: border-box;
 }
 
-.amount-title {
-    margin: 0 0 25px;
-    font-size: 26px;
+
+/* =========================================================
+   2. 비용 신청 Form 전체
+   ========================================================= */
+
+.amount-form-wrapper {
+    width: 100%;
+}
+
+.amount-form {
+    width: 100%;
+}
+
+
+/* =========================================================
+   3. 페이지 Header
+   ========================================================= */
+
+.amount-page-header {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.amount-page-header h2 {
+    margin: 0;
+    color: var(--wf-text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.amount-page-header p {
+    margin: 9px 0 0;
+    color: var(--wf-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   4. Section
+   ========================================================= */
+
+.amount-section {
+    width: 100%;
+    margin-bottom: 30px;
+    padding: 28px;
+    background: var(--wf-white);
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.amount-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.amount-section-header h3 {
+    margin: 0;
+    color: var(--wf-text-primary);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   5. 항목 추가 버튼
+   ========================================================= */
+
+.amount-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+    height: 38px;
+
+    padding: 0 15px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 6px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+    box-sizing: border-box;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.amount-add-button:hover {
+    background: var(--wf-gray-50);
+    border-color: var(--wf-gray-400);
+}
+
+.amount-add-button:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   6. 비용 항목 Card
+   ========================================================= */
+
+.amount-item-card {
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 24px;
+
+    background: var(--wf-gray-50);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+.amount-item-card:last-child {
+    margin-bottom: 0;
+}
+
+
+/* =========================================================
+   7. 비용 항목 Header
+   ========================================================= */
+
+.amount-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+
+    border-bottom: 1px solid var(--wf-gray-200);
+
+    box-sizing: border-box;
+}
+
+.amount-item-header strong {
+    color: var(--wf-text-primary);
+
+    font-size: 15px;
     font-weight: 700;
 }
 
 
 /* =========================================================
-   2. Detail Header
+   8. 항목 삭제 버튼
+   ========================================================= */
+
+.amount-remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 55px;
+    height: 32px;
+
+    padding: 0 10px;
+
+    border: 1px solid var(--wf-danger);
+    border-radius: 5px;
+
+    background: var(--wf-white);
+    color: var(--wf-danger);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.amount-remove-button:hover {
+    background: var(--wf-danger-bg);
+}
+
+
+/* =========================================================
+   9. Form Row
+   ========================================================= */
+
+.amount-form-row {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    min-height: 42px;
+
+    margin-bottom: 16px;
+
+    box-sizing: border-box;
+}
+
+.amount-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.amount-form-row > label {
+    flex: 0 0 110px;
+    width: 110px;
+
+    padding-right: 20px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    line-height: 1.5;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   10. 기본 Input / Select / Textarea
+   ========================================================= */
+
+.amount-form-row > input,
+.amount-form-row > select,
+.amount-form-row > textarea,
+.amount-section > textarea {
+    min-width: 0;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 6px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 14px;
+
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+/* Select */
+
+.amount-form-row > select {
+    flex: 1;
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+
+    cursor: pointer;
+}
+
+
+/* 일반 Input */
+
+.amount-form-row > input[type="date"] {
+    flex: 1;
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+}
+
+
+/* Textarea */
+
+.amount-form-row > textarea {
+    flex: 1;
+    width: 100%;
+
+    min-height: 100px;
+
+    padding: 12px;
+
+    line-height: 1.6;
+
+    resize: vertical;
+}
+
+
+/* =========================================================
+   11. 금액 Input + 원
+   ========================================================= */
+
+.amount-input-with-unit {
+    display: flex;
+    align-items: center;
+
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+.amount-input-with-unit input {
+    flex: 1;
+    min-width: 0;
+
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 6px 0 0 6px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 14px;
+
+    text-align: right;
+
+    box-sizing: border-box;
+}
+
+.amount-input-with-unit span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 48px;
+    width: 48px;
+    height: 42px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+
+    background: var(--wf-gray-50);
+    color: var(--wf-text-secondary);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   12. Input Focus
+   ========================================================= */
+
+.amount-form-row > input:focus,
+.amount-form-row > select:focus,
+.amount-form-row > textarea:focus,
+.amount-section > textarea:focus,
+.amount-input-with-unit input:focus {
+    outline: none;
+
+    border-color: var(--wf-text-secondary);
+
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================================
+   13. 숫자 Input 화살표
+   ========================================================= */
+
+.amount-form-row input[type="number"]::-webkit-inner-spin-button,
+.amount-form-row input[type="number"]::-webkit-outer-spin-button,
+.amount-input-with-unit input[type="number"]::-webkit-inner-spin-button,
+.amount-input-with-unit input[type="number"]::-webkit-outer-spin-button {
+    margin: 0;
+}
+
+
+/* =========================================================
+   14. 신청 금액 합계
+   ========================================================= */
+
+.amount-summary-section {
+    width: 100%;
+    margin-bottom: 30px;
+
+    padding: 22px 28px;
+
+    background: var(--wf-gray-50);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 10px;
+
+    box-sizing: border-box;
+}
+
+.amount-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+
+    box-sizing: border-box;
+}
+
+.amount-summary-row span {
+    color: var(--wf-text-secondary);
+
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.amount-summary-row strong {
+    color: var(--wf-text-primary);
+
+    font-size: 22px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   15. 지자체 지원금 DB 안내
+   ========================================================= */
+
+.amount-db-info {
+    width: 100%;
+
+    padding: 18px 20px;
+
+    background: var(--wf-gray-50);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 7px;
+
+    box-sizing: border-box;
+}
+
+.amount-db-info p {
+    margin: 0;
+
+    color: var(--wf-text-secondary);
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.amount-db-info p + p {
+    margin-top: 6px;
+}
+
+
+/* =========================================================
+   16. 신청자 의견
+   ========================================================= */
+
+.amount-section > textarea {
+    display: block;
+
+    width: 100%;
+    min-height: 130px;
+
+    padding: 13px 14px;
+
+    line-height: 1.6;
+
+    resize: vertical;
+}
+
+
+/* =========================================================
+   17. 기존 첨부파일
+   ========================================================= */
+
+.amount-existing-files {
+    width: 100%;
+    margin-bottom: 18px;
+
+    padding: 16px;
+
+    background: var(--wf-gray-50);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 7px;
+
+    box-sizing: border-box;
+}
+
+.amount-existing-files > p {
+    margin: 0 0 10px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.amount-existing-file {
+    width: 100%;
+
+    padding: 9px 12px;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 5px;
+
+    color: var(--wf-text-secondary);
+
+    font-size: 13px;
+
+    word-break: break-all;
+
+    box-sizing: border-box;
+}
+
+.amount-existing-file + .amount-existing-file {
+    margin-top: 7px;
+}
+
+
+/* =========================================================
+   18. 파일 Input
+   ========================================================= */
+
+.amount-section input[type="file"] {
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    padding: 10px;
+
+    border: 1px dashed var(--wf-gray-300);
+    border-radius: 7px;
+
+    background: var(--wf-gray-50);
+
+    color: var(--wf-text-secondary);
+
+    font-family: inherit;
+    font-size: 13px;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+}
+
+.amount-section input[type="file"]:hover {
+    border-color: var(--wf-gray-400);
+}
+
+
+/* =========================================================
+   19. 선택된 파일
+   ========================================================= */
+
+.amount-selected-files {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    width: 100%;
+    margin-top: 12px;
+
+    box-sizing: border-box;
+}
+
+.amount-selected-files > div {
+    width: 100%;
+
+    padding: 8px 12px;
+
+    background: var(--wf-gray-50);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 5px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 13px;
+
+    word-break: break-all;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   20. 파일 안내 문구
+   ========================================================= */
+
+.amount-file-help {
+    margin: 10px 0 0;
+
+    color: var(--wf-text-muted);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   21. Form 하단 버튼
+   ========================================================= */
+
+.amount-form-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    width: 100%;
+
+    margin-top: 35px;
+    padding-top: 25px;
+
+    border-top: 1px solid var(--wf-gray-200);
+
+    box-sizing: border-box;
+}
+
+.amount-form-buttons button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 120px;
+    height: 44px;
+
+    padding: 0 20px;
+
+    border-radius: 6px;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        opacity 0.15s ease;
+}
+
+
+/* 취소 */
+
+.amount-cancel-button {
+    border: 1px solid var(--wf-gray-300);
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+}
+
+.amount-cancel-button:hover {
+    background: var(--wf-gray-50);
+}
+
+
+/* 신청 / 수정 */
+
+.amount-submit-button {
+    border: 1px solid var(--wf-text-primary);
+
+    background: var(--wf-text-primary);
+    color: var(--wf-white);
+}
+
+.amount-submit-button:hover {
+    opacity: 0.9;
+}
+
+
+/* Disabled */
+
+.amount-form-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   22. Loading
+   ========================================================= */
+
+.amount-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 400px;
+
+    color: var(--wf-text-secondary);
+
+    font-size: 15px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   23. Detail Header
    ========================================================= */
 
 .amount-detail-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
 
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .amount-detail-header h2 {
     margin: 0;
 
+    color: var(--wf-text-primary);
+
     font-size: 26px;
     font-weight: 700;
 }
 
 
 /* =========================================================
-   3. Detail 상태
+   24. Detail Info Box
+   ========================================================= */
+
+.amount-info-box {
+    width: 100%;
+    margin-bottom: 25px;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 8px;
+
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.amount-info-box .info-row {
+    display: flex;
+
+    width: 100%;
+    min-height: 55px;
+
+    border-bottom: 1px solid var(--wf-gray-200);
+
+    box-sizing: border-box;
+}
+
+.amount-info-box .info-row:last-child {
+    border-bottom: none;
+}
+
+.amount-info-box .info-item {
+    display: flex;
+    align-items: stretch;
+
+    flex: 1;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+.amount-info-box .info-label {
+    display: flex;
+    align-items: center;
+
+    flex: 0 0 100px;
+    width: 100px;
+
+    padding: 14px;
+
+    background: var(--wf-gray-50);
+
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    box-sizing: border-box;
+}
+
+.amount-info-box .info-value {
+    display: flex;
+    align-items: center;
+
+    flex: 1;
+    min-width: 0;
+
+    padding: 14px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   25. Detail Section
+   ========================================================= */
+
+.amount-detail-container .amount-section {
+    padding: 25px;
+}
+
+.amount-detail-container .amount-section > h3 {
+    margin: 0 0 15px;
+
+    color: var(--wf-text-primary);
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   26. Detail Table
+   ========================================================= */
+
+.amount-item-table-wrap {
+    width: 100%;
+
+    overflow-x: auto;
+
+    -webkit-overflow-scrolling: touch;
+
+    box-sizing: border-box;
+}
+
+.amount-item-table {
+    width: 100%;
+    min-width: 850px;
+
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    box-sizing: border-box;
+}
+
+.amount-item-table th,
+.amount-item-table td {
+    padding: 11px 10px;
+
+    border: 1px solid var(--wf-gray-200);
+
+    vertical-align: middle;
+
+    box-sizing: border-box;
+}
+
+.amount-item-table th {
+    background: var(--wf-gray-50);
+
+    color: var(--wf-text-primary);
+
+    text-align: center;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.amount-item-table td {
+    background: var(--wf-white);
+
+    color: var(--wf-text-primary);
+
+    text-align: center;
+
+    font-size: 13px;
+}
+
+.amount-item-table .money-cell {
+    text-align: right;
+
+    padding-right: 15px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   27. Status
    ========================================================= */
 
 .status {
@@ -55,13 +928,13 @@
     justify-content: center;
 
     min-width: 70px;
-    height: 32px;
+    height: 30px;
 
     padding: 0 12px;
 
     border-radius: 20px;
 
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
 
     box-sizing: border-box;
@@ -94,748 +967,13 @@
 
 
 /* =========================================================
-   4. Detail 기본 정보
-   ========================================================= */
-
-.amount-info-box {
-    width: 100%;
-
-    margin-bottom: 25px;
-
-    background: var(--wf-white);
-
-    border: 1px solid var(--wf-gray-200);
-    border-radius: 8px;
-
-    box-sizing: border-box;
-}
-
-.amount-info-box .info-row {
-    display: flex;
-
-    width: 100%;
-
-    min-height: 55px;
-
-    border-bottom: 1px solid var(--wf-gray-200);
-
-    box-sizing: border-box;
-}
-
-.amount-info-box .info-row:last-child {
-    border-bottom: none;
-}
-
-.amount-info-box .info-item {
-    display: flex;
-    align-items: stretch;
-
-    flex: 1;
-    min-width: 0;
-
-    box-sizing: border-box;
-}
-
-.amount-info-box .info-label {
-    display: flex;
-    align-items: center;
-
-    flex: 0 0 100px;
-    width: 100px;
-
-    padding: 15px;
-
-    background: var(--wf-gray-50);
-
-    font-weight: 600;
-
-    box-sizing: border-box;
-}
-
-.amount-info-box .info-value {
-    display: flex;
-    align-items: center;
-
-    flex: 1;
-    min-width: 0;
-
-    padding: 15px;
-
-    box-sizing: border-box;
-}
-
-
-/* =========================================================
-   5. Detail Section
-   ========================================================= */
-
-.amount-section {
-    width: 100%;
-
-    margin-bottom: 30px;
-
-    box-sizing: border-box;
-}
-
-.amount-section h3 {
-    margin: 0 0 15px;
-
-    font-size: 18px;
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   6. Detail 비용 테이블
-   ========================================================= */
-
-.amount-item-table {
-    width: 100%;
-
-    min-width: 900px;
-
-    border-collapse: collapse;
-    table-layout: fixed;
-
-    box-sizing: border-box;
-}
-
-.amount-item-table th,
-.amount-item-table td {
-    padding: 10px;
-
-    border: 1px solid var(--wf-gray-200);
-
-    box-sizing: border-box;
-
-    vertical-align: middle;
-
-    overflow: hidden;
-}
-
-.amount-item-table th {
-    background: var(--wf-gray-50);
-
-    text-align: center;
-
-    font-weight: 600;
-}
-
-.amount-item-table td {
-    background: var(--wf-white);
-
-    text-align: center;
-}
-
-
-/* ---------------------------------------------------------
-   Detail 테이블 열
-   --------------------------------------------------------- */
-
-.amount-item-table th:nth-child(1),
-.amount-item-table td:nth-child(1) {
-    width: 110px;
-}
-
-.amount-item-table th:nth-child(2),
-.amount-item-table td:nth-child(2) {
-    width: 260px;
-}
-
-.amount-item-table th:nth-child(3),
-.amount-item-table td:nth-child(3) {
-    width: 130px;
-}
-
-.amount-item-table th:nth-child(4),
-.amount-item-table td:nth-child(4) {
-    width: 140px;
-}
-
-.amount-item-table th:nth-child(5),
-.amount-item-table td:nth-child(5) {
-    width: 170px;
-}
-
-.amount-item-table th:nth-child(6),
-.amount-item-table td:nth-child(6) {
-    width: 90px;
-}
-
-
-/* ---------------------------------------------------------
-   금액
-   --------------------------------------------------------- */
-
-.amount-item-table .money-cell {
-    text-align: right;
-
-    padding-right: 15px;
-
-    white-space: nowrap;
-}
-
-
-/* =========================================================
-   7. 회사 지원금 Input
-   ========================================================= */
-
-.company-support-input {
-    display: block;
-
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-
-    height: 40px;
-
-    padding: 0 10px;
-    margin: 0;
-
-    box-sizing: border-box;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    background: var(--wf-white);
-
-    font-size: 14px;
-
-    text-align: right;
-}
-
-.company-support-input:focus {
-    outline: none;
-
-    border-color: var(--wf-text-secondary);
-}
-
-.company-support-input:disabled {
-    background: var(--wf-gray-50);
-
-    color: var(--wf-text-muted);
-
-    cursor: not-allowed;
-}
-
-.company-support-input::-webkit-inner-spin-button,
-.company-support-input::-webkit-outer-spin-button {
-    margin: 0;
-}
-
-
-/* =========================================================
-   8. 작은 적용 버튼
-   ========================================================= */
-
-.btn-small {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    min-width: 55px;
-    height: 34px;
-
-    padding: 0 10px;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    background: var(--wf-white);
-
-    color: var(--wf-text-primary);
-
-    font-size: 13px;
-
-    cursor: pointer;
-
-    box-sizing: border-box;
-
-    white-space: nowrap;
-}
-
-.btn-small:hover {
-    background: var(--wf-gray-50);
-}
-
-.btn-small:disabled {
-    opacity: 0.5;
-
-    cursor: not-allowed;
-}
-
-
-/* =========================================================
-   9. 회사 지원금 합계
-   ========================================================= */
-
-.amount-summary {
-    display: flex;
-
-    justify-content: flex-end;
-    align-items: center;
-
-    gap: 40px;
-
-    width: 100%;
-
-    margin-top: 15px;
-    padding: 15px;
-
-    background: var(--wf-gray-50);
-
-    border-radius: 6px;
-
-    box-sizing: border-box;
-}
-
-.amount-summary > div {
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-}
-
-.amount-summary span {
-    font-weight: 600;
-}
-
-.amount-summary strong {
-    font-size: 18px;
-
-    white-space: nowrap;
-}
-
-
-/* =========================================================
-   10. 회사 지원금 적용 버튼
-   ========================================================= */
-
-.btn-apply-company {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    min-height: 40px;
-
-    margin-top: 15px;
-    padding: 8px 16px;
-
-    border: 1px solid var(--wf-text-primary);
-    border-radius: 5px;
-
-    background: var(--wf-text-primary);
-
-    color: var(--wf-white);
-
-    font-size: 14px;
-    font-weight: 500;
-
-    cursor: pointer;
-
-    box-sizing: border-box;
-}
-
-.btn-apply-company:hover {
-    background: var(--wf-text-primary);
-}
-
-
-/* =========================================================
-   11. 지자체 지원금 영역
-   ========================================================= */
-
-.local-support-form {
-    width: 100%;
-
-    padding: 20px;
-
-    background: var(--wf-gray-50);
-
-    border: 1px solid var(--wf-gray-200);
-    border-radius: 6px;
-
-    box-sizing: border-box;
-}
-
-
-/* ---------------------------------------------------------
-   지자체 Form Row
-   --------------------------------------------------------- */
-
-.local-support-form .form-row {
-    display: flex;
-
-    align-items: center;
-
-    width: 100%;
-
-    min-height: 40px;
-
-    margin-bottom: 12px;
-
-    box-sizing: border-box;
-}
-
-.local-support-form .form-row:last-of-type {
-    margin-bottom: 0;
-}
-
-
-/* ---------------------------------------------------------
-   지자체 Label
-   --------------------------------------------------------- */
-
-.local-support-form .form-row > label {
-    flex: 0 0 100px;
-
-    width: 100px;
-
-    font-weight: 600;
-
-    box-sizing: border-box;
-}
-
-
-/* ---------------------------------------------------------
-   지자체 Input / Select / Textarea
-   --------------------------------------------------------- */
-
-.local-support-form .form-row > input,
-.local-support-form .form-row > select,
-.local-support-form .form-row > textarea {
-    flex: 1;
-
-    min-width: 0;
-
-    width: 100%;
-
-    box-sizing: border-box;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    background: var(--wf-white);
-
-    font-size: 14px;
-}
-
-
-/* ---------------------------------------------------------
-   Input / Select
-   --------------------------------------------------------- */
-
-.local-support-form .form-row > input,
-.local-support-form .form-row > select {
-    height: 40px;
-
-    padding: 0 10px;
-}
-
-
-/* ---------------------------------------------------------
-   Textarea
-   --------------------------------------------------------- */
-
-.local-support-form .form-row > textarea {
-    min-height: 90px;
-
-    padding: 10px;
-
-    resize: vertical;
-
-    line-height: 1.5;
-}
-
-
-/* ---------------------------------------------------------
-   Focus
-   --------------------------------------------------------- */
-
-.local-support-form .form-row > input:focus,
-.local-support-form .form-row > select:focus,
-.local-support-form .form-row > textarea:focus {
-    outline: none;
-
-    border-color: var(--wf-text-secondary);
-}
-
-
-/* ---------------------------------------------------------
-   Disabled
-   --------------------------------------------------------- */
-
-.local-support-form .form-row > input:disabled,
-.local-support-form .form-row > select:disabled,
-.local-support-form .form-row > textarea:disabled {
-    background: var(--wf-gray-50);
-
-    color: var(--wf-text-muted);
-
-    cursor: not-allowed;
-}
-
-
-/* =========================================================
-   12. 지자체 지원금 버튼
-   ========================================================= */
-
-.local-support-buttons {
-    display: flex;
-
-    justify-content: flex-end;
-    align-items: center;
-
-    gap: 10px;
-
-    margin-top: 15px;
-}
-
-.local-support-buttons button {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    min-width: 70px;
-    height: 40px;
-
-    padding: 0 15px;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    background: var(--wf-white);
-
-    color: var(--wf-text-primary);
-
-    font-size: 14px;
-
-    cursor: pointer;
-
-    box-sizing: border-box;
-}
-
-.local-support-buttons button:first-child {
-    background: var(--wf-text-primary);
-
-    border-color: var(--wf-text-primary);
-
-    color: var(--wf-white);
-}
-
-.local-support-buttons button:first-child:hover {
-    background: var(--wf-text-primary);
-}
-
-.local-support-buttons button:last-child:hover {
-    background: var(--wf-gray-50);
-}
-
-
-/* =========================================================
-   13. 기존 Sponsor 클래스
-   ★ 다른 화면과의 호환 유지
-   ========================================================= */
-
-.sponsor-form-box {
-    width: 100%;
-
-    padding: 20px;
-
-    background: var(--wf-gray-50);
-
-    border: 1px solid var(--wf-gray-200);
-    border-radius: 6px;
-
-    box-sizing: border-box;
-}
-
-.sponsor-input-row {
-    display: flex;
-
-    align-items: center;
-
-    width: 100%;
-
-    margin-bottom: 12px;
-
-    box-sizing: border-box;
-}
-
-.sponsor-input-row:last-child {
-    margin-bottom: 0;
-}
-
-.sponsor-label {
-    flex: 0 0 100px;
-
-    width: 100px;
-
-    font-weight: 600;
-
-    box-sizing: border-box;
-}
-
-.sponsor-input {
-    width: 200px;
-    max-width: 100%;
-
-    height: 40px;
-
-    padding: 0 10px;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    box-sizing: border-box;
-}
-
-.sponsor-input-flex {
-    flex: 1;
-
-    width: 100%;
-    min-width: 0;
-
-    height: 40px;
-
-    padding: 0 10px;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    box-sizing: border-box;
-}
-
-.sponsor-select {
-    width: 200px;
-    max-width: 100%;
-
-    height: 40px;
-
-    padding: 0 10px;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    background: var(--wf-white);
-
-    box-sizing: border-box;
-}
-
-.sponsor-input:focus,
-.sponsor-input-flex:focus,
-.sponsor-select:focus {
-    outline: none;
-
-    border-color: var(--wf-text-secondary);
-}
-
-
-/* =========================================================
-   14. 지원금 전체 합계
-   ========================================================= */
-
-.amount-total-box {
-    display: flex;
-
-    align-items: center;
-
-    width: 100%;
-
-    margin-bottom: 30px;
-    padding: 20px;
-
-    background: var(--wf-gray-50);
-
-    border: 1px solid var(--wf-gray-200);
-    border-radius: 6px;
-
-    box-sizing: border-box;
-}
-
-.amount-total-box > div {
-    flex: 1;
-
-    display: flex;
-    flex-direction: column;
-
-    align-items: center;
-
-    gap: 8px;
-
-    min-width: 0;
-
-    padding: 0 15px;
-
-    border-right: 1px solid var(--wf-gray-300);
-
-    box-sizing: border-box;
-}
-
-.amount-total-box > div:last-child {
-    border-right: none;
-}
-
-.amount-total-box span {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.amount-total-box strong {
-    font-size: 20px;
-
-    white-space: nowrap;
-}
-
-.amount-total-box .final-total strong {
-    font-size: 22px;
-}
-
-
-/* =========================================================
-   15. 관리자 의견
-   ========================================================= */
-
-.admin-comment {
-    display: block;
-
-    width: 100%;
-    min-height: 120px;
-
-    padding: 12px;
-
-    resize: vertical;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    box-sizing: border-box;
-
-    font-size: 14px;
-
-    line-height: 1.5;
-}
-
-.admin-comment:focus {
-    outline: none;
-
-    border-color: var(--wf-text-secondary);
-}
-
-
-/* =========================================================
-   16. Detail 하단 버튼
+   28. Detail Button
    ========================================================= */
 
 .amount-detail-buttons {
     display: flex;
-
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 
     gap: 10px;
 
@@ -851,27 +989,25 @@
 
 .amount-detail-buttons button {
     display: inline-flex;
-
     align-items: center;
     justify-content: center;
 
     min-width: 100px;
-    min-height: 40px;
+    height: 42px;
 
-    padding: 8px 16px;
+    padding: 0 18px;
 
     border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
+    border-radius: 6px;
 
     background: var(--wf-white);
-
     color: var(--wf-text-primary);
 
+    font-family: inherit;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
 
     cursor: pointer;
-
     box-sizing: border-box;
 }
 
@@ -880,221 +1016,34 @@
 }
 
 .amount-detail-buttons .btn-approval {
-    border-color: var(--wf-text-primary);
-
     background: var(--wf-text-primary);
-
+    border-color: var(--wf-text-primary);
     color: var(--wf-white);
 }
 
 .amount-detail-buttons .btn-approval:hover {
-    background: var(--wf-text-primary);
+    opacity: 0.9;
 }
 
-
-/* =========================================================
-   17. 로딩 / Empty
-   ========================================================= */
-
-.amount-detail-loading,
-.amount-detail-empty {
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    width: 100%;
-
-    min-height: 300px;
-
-    font-size: 15px;
-}
-
-
-/* =========================================================
-   18. 기본 Table
-   ========================================================= */
-
-.amount-table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    table-layout: fixed;
-}
-
-.amount-table th,
-.amount-table td {
-    padding: 10px;
-
-    border: 1px solid var(--wf-gray-200);
-
-    text-align: center;
-
-    box-sizing: border-box;
-}
-
-.amount-table th {
-    background: var(--wf-gray-50);
-
-    font-weight: 600;
-}
-
-.amount-table td {
+.amount-detail-buttons .btn-hold {
     background: var(--wf-white);
+    border-color: var(--wf-gray-300);
+    color: var(--wf-text-primary);
+}
+
+.amount-detail-buttons .btn-reject {
+    background: var(--wf-danger);
+    border-color: var(--wf-danger);
+    color: var(--wf-white);
 }
 
 
 /* =========================================================
-   19. Form 비용 테이블
-   ========================================================= */
-
-.amount-form-item-table-wrap {
-    width: 100%;
-
-    overflow-x: auto;
-
-    box-sizing: border-box;
-
-    -webkit-overflow-scrolling: touch;
-}
-
-.amount-form-item-table {
-    width: 100%;
-
-    min-width: 850px;
-
-    border-collapse: collapse;
-
-    table-layout: fixed;
-
-    box-sizing: border-box;
-}
-
-.amount-form-item-table th:nth-child(1),
-.amount-form-item-table td:nth-child(1) {
-    width: 120px;
-}
-
-.amount-form-item-table th:nth-child(2),
-.amount-form-item-table td:nth-child(2) {
-    width: 280px;
-}
-
-.amount-form-item-table th:nth-child(3),
-.amount-form-item-table td:nth-child(3) {
-    width: 150px;
-}
-
-.amount-form-item-table th:nth-child(4),
-.amount-form-item-table td:nth-child(4) {
-    width: 160px;
-}
-
-.amount-form-item-table th:nth-child(5),
-.amount-form-item-table td:nth-child(5) {
-    width: 80px;
-}
-
-.amount-form-item-table th,
-.amount-form-item-table td {
-    padding: 10px;
-
-    border: 1px solid var(--wf-gray-200);
-
-    box-sizing: border-box;
-
-    vertical-align: middle;
-
-    overflow: hidden;
-}
-
-.amount-form-item-table th {
-    background: var(--wf-gray-50);
-
-    text-align: center;
-
-    font-weight: 600;
-}
-
-.amount-form-item-table td {
-    background: var(--wf-white);
-}
-
-
-/* =========================================================
-   20. Form Input
-   ========================================================= */
-
-.amount-item-select,
-.amount-item-description,
-.amount-item-date,
-.amount-item-amount {
-    display: block;
-
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-
-    margin: 0;
-
-    box-sizing: border-box;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 5px;
-
-    background: var(--wf-white);
-}
-
-.amount-item-select {
-    height: 40px;
-
-    padding: 0 10px;
-
-    font-size: 14px;
-}
-
-.amount-item-description {
-    height: 40px;
-
-    padding: 0 10px;
-
-    font-size: 14px;
-}
-
-.amount-item-date {
-    height: 40px;
-
-    padding: 0 6px;
-
-    font-size: 13px;
-}
-
-.amount-item-amount {
-    height: 40px;
-
-    padding: 0 10px;
-
-    font-size: 14px;
-}
-
-.amount-item-select:focus,
-.amount-item-description:focus,
-.amount-item-date:focus,
-.amount-item-amount:focus {
-    outline: none;
-
-    border-color: var(--wf-text-secondary);
-}
-
-
-/* =========================================================
-   21. 공통 버튼
+   29. 기존 공통 Button 호환
    ========================================================= */
 
 .btn {
     display: inline-flex;
-
     align-items: center;
     justify-content: center;
 
@@ -1105,6 +1054,7 @@
     border: 1px solid transparent;
     border-radius: 5px;
 
+    font-family: inherit;
     font-size: 14px;
     font-weight: 500;
 
@@ -1117,27 +1067,22 @@
 
 .btn:disabled {
     opacity: 0.5;
-
     cursor: not-allowed;
 }
 
 .btn-primary {
     background: var(--wf-text-primary);
-
     border-color: var(--wf-text-primary);
-
     color: var(--wf-white);
 }
 
 .btn-primary:hover {
-    background: var(--wf-text-primary);
+    opacity: 0.9;
 }
 
 .btn-secondary {
     background: var(--wf-white);
-
     border-color: var(--wf-gray-300);
-
     color: var(--wf-text-primary);
 }
 
@@ -1147,134 +1092,96 @@
 
 
 /* =========================================================
-   22. Form 기타
+   30. 기존 Detail 호환
    ========================================================= */
 
-.amount-form-container {
+.detail-box {
     width: 100%;
 
-    max-width: 1100px;
-
-    margin: 0 auto;
-
-    padding: 30px 20px;
-
-    box-sizing: border-box;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-divider {
-    margin: 25px 0;
-
-    border: 0;
-
-    border-top: 1px solid var(--wf-gray-200);
-}
-
-.section-header {
-    margin-bottom: 15px;
-
-    font-size: 18px;
-
-    font-weight: 600;
-}
-
-.item-card {
-    width: 100%;
-
-    padding: 15px;
+    background: var(--wf-white);
 
     border: 1px solid var(--wf-gray-200);
-
-    border-radius: 6px;
+    border-radius: 8px;
 
     box-sizing: border-box;
+    overflow: hidden;
 }
 
-.form-item-row {
+.detail-box > .info-row {
     display: flex;
 
     width: 100%;
+    min-height: 60px;
 
-    gap: 10px;
+    border-bottom: 1px solid var(--wf-gray-200);
 
     box-sizing: border-box;
 }
 
-.btn-add-item {
-    margin-top: 10px;
+.detail-box > .info-row:last-of-type {
+    border-bottom: none;
 }
 
-.btn-remove-item {
-    margin-left: 5px;
-}
-
-.btn-submit {
-    min-width: 140px;
-}
-
-
-/* =========================================================
-   23. 버튼 그룹
-   ========================================================= */
-
-.btn-group {
+.detail-box > .info-row > .info-label {
     display: flex;
-
-    justify-content: center;
     align-items: center;
 
-    gap: 10px;
+    flex: 0 0 130px;
+    width: 130px;
 
-    width: 100%;
+    padding: 16px 18px;
 
-    margin-top: 30px;
-    padding-top: 25px;
+    background: var(--wf-gray-50);
 
-    border-top: 1px solid var(--wf-gray-200);
+    color: var(--wf-text-primary);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    box-sizing: border-box;
+}
+
+.detail-box > .info-row > .info-value {
+    flex: 1;
+    min-width: 0;
+
+    padding: 16px 18px;
 
     box-sizing: border-box;
 }
 
 
 /* =========================================================
-   24. 파일
+   31. 기존 파일 / 목록 호환
    ========================================================= */
-
-.file-section {
-    align-items: flex-start;
-}
 
 .file-list {
     display: flex;
-
     flex-direction: column;
-
     gap: 8px;
 
     margin-top: 12px;
 }
 
 .file-item {
-    padding: 8px 10px;
+    padding: 9px 12px;
 
     background: var(--wf-gray-50);
 
     border: 1px solid var(--wf-gray-200);
-
     border-radius: 4px;
+
+    color: var(--wf-text-primary);
 
     font-size: 13px;
 
     word-break: break-all;
+
+    box-sizing: border-box;
 }
 
 .file-link {
     color: var(--wf-text-primary);
-
     text-decoration: none;
 }
 
@@ -1284,66 +1191,13 @@
 
 
 /* =========================================================
-   25. Input 기본
-   ========================================================= */
-
-input,
-select,
-textarea {
-    font-family: inherit;
-
-    font-size: 14px;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-}
-
-input[type="file"] {
-    max-width: 100%;
-
-    box-sizing: border-box;
-}
-
-
-/* =========================================================
-   26. Status Badge
-   ========================================================= */
-
-.amount-status-badge {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    min-width: 70px;
-
-    padding: 5px 10px;
-
-    border-radius: 20px;
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-    box-sizing: border-box;
-}
-
-/* status-approved/review/hold/rejected/cancelled 는 어떤 JSX에서도 참조되지 않는
-   죽은 중복 CSS였기에 제거함 (실제 사용되는 상태 클래스는 status-A/R/H/J/C, 위 1번 섹션 참고) */
-
-
-/* =========================================================
-   27. Pagination
+   32. Pagination
    ========================================================= */
 
 .pagination {
     display: flex;
-
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 
     gap: 5px;
 
@@ -1352,14 +1206,13 @@ input[type="file"] {
 
 .pagination button {
     min-width: 35px;
-
     height: 35px;
 
     border: 1px solid var(--wf-gray-300);
-
     border-radius: 4px;
 
     background: var(--wf-white);
+    color: var(--wf-text-primary);
 
     cursor: pointer;
 }
@@ -1370,152 +1223,170 @@ input[type="file"] {
 
 .pagination button.active {
     background: var(--wf-text-primary);
-
     border-color: var(--wf-text-primary);
-
     color: var(--wf-white);
 }
 
 
 /* =========================================================
-   28. 반응형
+   33. 전역 Form 기본값 최소 보정
+   ========================================================= */
+
+.amount-container input,
+.amount-container select,
+.amount-container textarea,
+.amount-detail-container input,
+.amount-detail-container select,
+.amount-detail-container textarea {
+    font-family: inherit;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   34. 반응형 - Tablet
    ========================================================= */
 
 @media (max-width: 768px) {
 
     .amount-container,
     .amount-detail-container {
-        padding: 20px 10px;
+        padding: 30px 15px 60px;
     }
 
-    .amount-title {
-        font-size: 22px;
+
+    /* Header */
+
+    .amount-page-header {
+        margin-bottom: 25px;
+    }
+
+    .amount-page-header h2 {
+        font-size: 23px;
+    }
+
+    .amount-page-header p {
+        font-size: 13px;
+    }
+
+
+    /* Section */
+
+    .amount-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .amount-section-header {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .amount-section-header h3 {
+        font-size: 17px;
+    }
+
+
+    /* Item */
+
+    .amount-item-card {
+        padding: 18px;
+    }
+
+
+    /* Form Row */
+
+    .amount-form-row {
+        display: block;
+
+        margin-bottom: 18px;
+    }
+
+    .amount-form-row > label {
+        display: block;
+
+        width: 100%;
+        padding: 0;
+
+        margin-bottom: 8px;
+    }
+
+    .amount-form-row > input,
+    .amount-form-row > select,
+    .amount-form-row > textarea {
+        width: 100%;
+    }
+
+
+    /* Summary */
+
+    .amount-summary-section {
+        padding: 18px 20px;
+    }
+
+    .amount-summary-row {
+        gap: 15px;
+    }
+
+    .amount-summary-row span {
+        font-size: 14px;
+    }
+
+    .amount-summary-row strong {
+        font-size: 20px;
+    }
+
+
+    /* Buttons */
+
+    .amount-form-buttons {
+        margin-top: 25px;
+        padding-top: 20px;
+    }
+
+    .amount-form-buttons button {
+        min-width: 110px;
+    }
+
+
+    /* Detail */
+
+    .amount-detail-header {
+        align-items: flex-start;
+        gap: 10px;
     }
 
     .amount-detail-header h2 {
         font-size: 22px;
     }
 
-
-    /* -----------------------------------------------------
-       Detail Header
-       ----------------------------------------------------- */
-
-    .amount-detail-header {
-        align-items: flex-start;
-
-        gap: 10px;
-    }
-
-
-    /* -----------------------------------------------------
-       기본 정보
-       ----------------------------------------------------- */
-
     .amount-info-box .info-row {
         display: block;
     }
 
     .amount-info-box .info-item {
+        display: flex;
         width: 100%;
     }
 
     .amount-info-box .info-label {
-        flex: 0 0 100px;
+        flex: 0 0 90px;
+        width: 90px;
+    }
+
+    .amount-info-box .info-value {
+        min-width: 0;
     }
 
 
-    /* -----------------------------------------------------
-       Detail 비용 테이블
-       ----------------------------------------------------- */
+    /* Detail Table */
 
     .amount-item-table {
-        min-width: 900px;
-    }
-
-    .amount-section {
-        overflow: hidden;
+        min-width: 850px;
     }
 
 
-    /* -----------------------------------------------------
-       회사 지원금 합계
-       ----------------------------------------------------- */
-
-    .amount-summary {
-        flex-direction: column;
-
-        align-items: stretch;
-
-        gap: 10px;
-    }
-
-    .amount-summary > div {
-        justify-content: space-between;
-    }
-
-
-    /* -----------------------------------------------------
-       지자체 지원금
-       ----------------------------------------------------- */
-
-    .local-support-form .form-row {
-        display: block;
-    }
-
-    .local-support-form .form-row > label {
-        display: block;
-
-        width: 100%;
-
-        margin-bottom: 6px;
-    }
-
-    .local-support-form .form-row > input,
-    .local-support-form .form-row > select,
-    .local-support-form .form-row > textarea {
-        width: 100%;
-    }
-
-    .local-support-buttons {
-        flex-direction: column;
-    }
-
-    .local-support-buttons button {
-        width: 100%;
-    }
-
-
-    /* -----------------------------------------------------
-       전체 합계
-       ----------------------------------------------------- */
-
-    .amount-total-box {
-        flex-direction: column;
-
-        align-items: stretch;
-
-        gap: 0;
-    }
-
-    .amount-total-box > div {
-        width: 100%;
-
-        padding: 12px 0;
-
-        border-right: none;
-
-        border-bottom: 1px solid var(--wf-gray-300);
-    }
-
-    .amount-total-box > div:last-child {
-        border-bottom: none;
-    }
-
-
-    /* -----------------------------------------------------
-       하단 버튼
-       ----------------------------------------------------- */
+    /* Detail Buttons */
 
     .amount-detail-buttons {
         flex-direction: column;
@@ -1524,77 +1395,127 @@ input[type="file"] {
     .amount-detail-buttons button {
         width: 100%;
     }
-
-
-    /* -----------------------------------------------------
-       Form Table
-       ----------------------------------------------------- */
-
-    .amount-form-item-table-wrap {
-        overflow-x: auto;
-    }
-
-    .amount-form-item-table {
-        min-width: 850px;
-    }
-
-
-    /* -----------------------------------------------------
-       기존 Sponsor
-       ----------------------------------------------------- */
-
-    .sponsor-input-row {
-        display: block;
-    }
-
-    .sponsor-label {
-        display: block;
-
-        width: 100%;
-
-        margin-bottom: 6px;
-    }
-
-    .sponsor-input,
-    .sponsor-select,
-    .sponsor-input-flex {
-        width: 100%;
-    }
 }
 
 
 /* =========================================================
-   29. 아주 작은 화면
+   35. 반응형 - Mobile
    ========================================================= */
 
 @media (max-width: 480px) {
 
     .amount-container,
     .amount-detail-container {
-        padding: 15px 8px;
+        padding: 20px 10px 50px;
     }
 
-    .amount-title {
+
+    /* Header */
+
+    .amount-page-header h2 {
+        font-size: 21px;
+    }
+
+    .amount-page-header p {
+        font-size: 12px;
+    }
+
+
+    /* Section */
+
+    .amount-section {
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .amount-section-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .amount-section-header h3 {
+        font-size: 16px;
+    }
+
+    .amount-add-button {
+        width: 100%;
+    }
+
+
+    /* Item */
+
+    .amount-item-card {
+        padding: 15px;
+    }
+
+    .amount-item-header {
+        margin-bottom: 18px;
+    }
+
+
+    /* Summary */
+
+    .amount-summary-section {
+        padding: 16px;
+    }
+
+    .amount-summary-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .amount-summary-row strong {
         font-size: 20px;
     }
+
+
+    /* DB Info */
+
+    .amount-db-info {
+        padding: 14px;
+    }
+
+    .amount-db-info p {
+        font-size: 13px;
+    }
+
+
+    /* Form Buttons */
+
+    .amount-form-buttons {
+        flex-direction: column-reverse;
+    }
+
+    .amount-form-buttons button {
+        width: 100%;
+    }
+
+
+    /* Detail */
 
     .amount-detail-header h2 {
         font-size: 20px;
     }
 
+    .amount-info-box .info-item {
+        display: block;
+    }
+
     .amount-info-box .info-label {
-        flex: 0 0 90px;
+        display: flex;
 
-        width: 90px;
+        width: 100%;
+        height: auto;
 
-        padding: 12px;
+        padding: 10px 12px;
     }
 
     .amount-info-box .info-value {
-        padding: 12px;
-    }
+        width: 100%;
 
-    .local-support-form {
         padding: 12px;
     }
 }
+

@@ -1,6 +1,8 @@
 package com.kh.workflow.amount.model.vo;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -55,7 +57,8 @@ public class AmountItem {
         name = "item_date",
         columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
     )
-    private LocalDateTime itemDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate itemDate;
 
     @Schema(description = "항목 설명")
     @Column(name = "item_description", length = 500)
