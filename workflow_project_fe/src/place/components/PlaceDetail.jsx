@@ -98,7 +98,7 @@ function PlaceDetail() {
                 <div className="place-image">
                     {mainFile ? (
                         <img
-                            src={`http://localhost:8006/workflow${mainFile.filePath}/${mainFile.changeName}`}
+                            src={`workflow${mainFile.filePath}/${mainFile.changeName}`}
                             alt={place.hubName}
                         />
                     ) : (
@@ -117,7 +117,11 @@ function PlaceDetail() {
                 <div className="place-rating">
                     <span className="rating-star">⭐️</span>
                     <span className="rating-score">평점</span>
-                    <span className="rating-value">-</span>
+                    <span className="rating-value">
+                        {place.averageRating != null
+                            ? Number(place.averageRating).toFixed(1)
+                            : "-"}
+                    </span>
                 </div>
 
                 {/* 설명 */}
