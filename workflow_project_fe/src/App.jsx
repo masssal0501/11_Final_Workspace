@@ -72,12 +72,14 @@ import {
     Navigate
 } from "react-router-dom";
 
+const KAKAO_MAP_OPTIONS = {
+    appkey: "a00510cb26a4e33be1647f26b12df5c9", 
+    libraries: ["services"]
+}
+
 function App() {
 
-    useKakaoLoader({
-        appkey: "a00510cb26a4e33be1647f26b12df5c9", 
-        libraries: ["services"],
-    });
+    useKakaoLoader(KAKAO_MAP_OPTIONS);
 
     const [loginUser, setLoginUser] = useState(() => {
 
