@@ -100,7 +100,20 @@
 .workcation-form-table td {
     padding: 6px;
     background-color: transparent;
-    border: none; 
+    border: none;
+}
+
+/* 텍스트 박스 크기 고정 - td 안의 input이 브라우저 기본 폭(약 20자)으로
+   줄어들어 칸을 벗어나 보이던 문제를 막는다 */
+.workcation-form-table td input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--wf-gray-50);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--wf-text-primary);
 }
 
 .cell-box {

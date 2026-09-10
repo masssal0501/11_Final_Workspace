@@ -152,7 +152,7 @@ function WorkcationDetailComponent() {
                 <tbody>
                     <tr>
                         <th>워케이션 제목</th>
-                        <td colSpan={3}>
+                        <td colSpan={5}>
                             <input
                                 type="text"
                                 value={workcationTitle || ""}

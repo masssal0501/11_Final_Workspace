@@ -268,24 +268,49 @@ function Header({ loginUser, onLogout }) {
               !menu.roles ||
               menu.roles.includes(loginUser?.authCode)
             )
-            .map((menu) => (
-            <button
-              key={menu.id}
-              className={`wf-nav-item ${
-                activeMenu === menu.id
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() => handleMenuClick(menu)}
-            >
-              <span className="wf-nav-icon">
-                {menu.icon}
-              </span>
-              <span>
-                {menu.label}
-              </span>
-            </button>
-          ))}
+            .map((menu) => {
+              const visibleChildren = (menu.children || []).filter((child) =>
+                !child.roles ||
+                child.roles.includes(loginUser?.authCode)
+              );
+
+              return (
+                <div key={menu.id} className="wf-nav-dropdown">
+                  <button
+                    className={`wf-nav-item ${
+                      activeMenu === menu.id
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() => handleMenuClick(menu)}
+                  >
+                    <span className="wf-nav-icon">
+                      {menu.icon}
+                    </span>
+                    <span>
+                      {menu.label}
+                    </span>
+                  </button>
+
+                  {visibleChildren.length > 0 && (
+                    <div className="wf-submenu">
+                      {visibleChildren.map((child) => (
+                        <button
+                          key={child.path}
+                          type="button"
+                          onClick={() => {
+                            setActiveMenu(menu.id);
+                            navigate(child.path);
+                          }}
+                        >
+                          {child.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
         </nav>
 
 

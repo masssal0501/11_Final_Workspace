@@ -454,17 +454,24 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 												 @Param("endDate") LocalDateTime endDate);
 	
 	// 남훈님 작업 - 이창현 옮김 0908_0929
+	// BUG: 목록이 권한과 무관하게 항상 전체를 보여주던 문제 수정 - empNo(STAFF 본인 글만)/
+	// depId(MANAGER 소속 부서만) 조건을 추가. ADMIN은 둘 다 null로 호출해 전체 조회.
 	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " + "JOIN Reservation r ON r.workcation = w "
-			+ "JOIN r.hub h " + "WHERE (h.hubType = 1 OR h.hubType = 2) "
+			+ "JOIN r.hub h " + "JOIN w.employee e " + "WHERE (h.hubType = 1 OR h.hubType = 2) "
 			+ "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) "
 			+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion) "
+			+ "AND (:empNo IS NULL OR e.empNo = :empNo) "
+			+ "AND (:depId IS NULL OR e.depId = :depId) "
 			+ "ORDER BY w.workcationNo DESC", countQuery = "SELECT COUNT(DISTINCT w) FROM WorkcationInfo w "
-					+ "JOIN Reservation r ON r.workcation = w " + "JOIN r.hub h "
+					+ "JOIN Reservation r ON r.workcation = w " + "JOIN r.hub h " + "JOIN w.employee e "
 					+ "WHERE (h.hubType = 1 OR h.hubType = 2) "
 					+ "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) "
-					+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion)")
+					+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion) "
+					+ "AND (:empNo IS NULL OR e.empNo = :empNo) "
+					+ "AND (:depId IS NULL OR e.depId = :depId)")
 	Page<WorkcationInfo> searchWorkcationList(@Param("mainRegion") String mainRegion,
-			@Param("subRegion") String subRegion, Pageable pageable);
+			@Param("subRegion") String subRegion, @Param("empNo") Integer empNo, @Param("depId") String depId,
+			Pageable pageable);
 
 	Page<WorkcationInfo> findByEmployeeEmpNo(int empNo, Pageable pageable);
 

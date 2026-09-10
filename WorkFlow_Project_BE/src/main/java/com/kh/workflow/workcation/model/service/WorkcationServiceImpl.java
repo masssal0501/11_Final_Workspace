@@ -75,12 +75,12 @@ public class WorkcationServiceImpl implements WorkcationService {
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
 		int empNo = (int) paramMap.get("empNo");
+		String authCode = (String) paramMap.get("authCode");
+		String depId = (String) paramMap.get("depId");
 
 		// 1. 오라클 DB용 빈문자열 NULL 변환
 		String mainRegion = paramMap != null ? (String) paramMap.get("mainRegion") : null;
 		String subRegion = paramMap != null ? (String) paramMap.get("subRegion") : null;
-
-		Page<WorkcationInfo> workcationPage = workcationDao.findByEmployeeEmpNo(empNo, pageable);
 
 		if (mainRegion != null && mainRegion.trim().isEmpty()) {
 			mainRegion = null;
@@ -89,8 +89,14 @@ public class WorkcationServiceImpl implements WorkcationService {
 			subRegion = null;
 		}
 
-		// 2. 검색 조건 적용된 JPQL 쿼리 호출 (findAll 대신 적용)
-		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, pageable);
+		// BUG: 권한과 무관하게 항상 전체 목록이 노출되던 문제 수정.
+		// STAFF는 본인 신청 건만, MANAGER는 소속 부서 신청 건만, ADMIN은 전체를 본다.
+		Integer filterEmpNo = "STAFF".equals(authCode) ? empNo : null;
+		String filterDepId = "MANAGER".equals(authCode) ? depId : null;
+
+		// 2. 검색 조건 + 권한 조건이 함께 적용된 JPQL 쿼리 호출 (findAll 대신 적용)
+		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, filterEmpNo,
+				filterDepId, pageable);
 
 		return page.map(workcation -> {
 			Map<String, Object> map = new HashMap<>();
@@ -1044,8 +1050,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 			workFile.setFileSize(file.getSize());
 			workFile.setStatus("Y");
 
-			// task가 소속된 work 연결
-			workFile.setWork(task.getWork());
+			// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조한다
+			workFile.setTask(task);
 
 			workFileDao.save(workFile);
 		}
@@ -1107,6 +1113,16 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		Work work = workList.get(0);
 
+		// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조하므로
+		// 첨부파일을 연결할 구체적인 task가 필요하다.
+		List<Task> taskList = taskDao.findByWork_WorkNo(work.getWorkNo());
+
+		if (taskList.isEmpty()) {
+			throw new RuntimeException("첨부파일을 연결할 업무 정보를 찾을 수 없습니다.");
+		}
+
+		Task task = taskList.get(0);
+
 		String originName = file.getOriginalFilename();
 
 		String extension = "";
@@ -1137,7 +1153,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		WorkFile workFile = new WorkFile();
 
-		workFile.setWork(work);
+		workFile.setTask(task);
 		workFile.setOriginName(originName);
 		workFile.setChangeName(changeName);
 		workFile.setFilePath("/uploads/work/");

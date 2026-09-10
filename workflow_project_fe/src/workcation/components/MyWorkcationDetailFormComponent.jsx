@@ -283,9 +283,14 @@ function MyWorkcationDetailFormComponent() {
                         만족도 조사 작성
                     </button>
                 )}
-                <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
-                    워케이션 취소/삭제
-                </button>
+                {/* BUG: 상태와 무관하게 취소/삭제 버튼이 항상 노출되어, 이미 승인(A)되어
+                    업무가 진행 중이거나 이미 취소(C)된 건까지 다시 삭제할 수 있었다.
+                    아직 승인이 확정되지 않았거나(대기/보류/검토) 반려된 건만 취소/삭제 가능. */}
+                {["W", "H", "R", "J"].includes(approverState) && (
+                    <button type="button" className="btn btn-outline-danger" onClick={handleDelete}>
+                        워케이션 취소/삭제
+                    </button>
+                )}
             </div>
 
             {selectedTask && (

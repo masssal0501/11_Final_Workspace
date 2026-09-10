@@ -726,6 +726,104 @@
     box-sizing: border-box;
 }
 
+/* =========================================================
+   14. 비용 정산 신청 폼(AmountForm) 레이아웃
+   ★ .info-row/.info-label 같은 흔한 클래스명이 다른 화면
+   (PlaceList의 .info-label 등)과 전역으로 충돌하던 문제가 있어,
+   AmountForm의 폼 컨테이너(.detail-box)로 스코프를 좁혀서 정의한다.
+   ========================================================= */
+.detail-box {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+}
+
+.detail-box .info-row {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    padding: 18px;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+.detail-box .info-row.comment-row {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.detail-box .info-row.file-section {
+    align-items: flex-start;
+}
+
+.detail-box .info-label {
+    flex: 0 0 120px;
+    width: 120px;
+
+    font-weight: 600;
+    color: var(--wf-text-primary);
+
+    box-sizing: border-box;
+}
+
+.detail-box .info-row.comment-row .info-label {
+    flex: none;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.detail-box .info-value {
+    flex: 1;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+.detail-box .amount-support-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-top: 15px;
+    padding-top: 12px;
+
+    border-top: 1px solid var(--wf-gray-200);
+
+    font-size: 15px;
+}
+
+.detail-box .grand-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-box .info-comment {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 6px;
+
+    resize: vertical;
+
+    font-family: inherit;
+    font-size: 14px;
+}
+
 .sponsor-input:focus,
 .sponsor-input-flex:focus,
 .sponsor-select:focus {
