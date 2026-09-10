@@ -32,7 +32,10 @@ public class HubServiceImpl implements HubService {
 
 	@Autowired
 	private HubFileDao hubFileDao;
-	
+
+	@Autowired
+	private FileRenamePolicy fileRenamePolicy;
+
 	public Page<Hub> selectHubList(Pageable pageable, List<Integer> hubTypes) {
 		
 		return hubDao.findByHubTypeInOrderByHubNoDesc(pageable, hubTypes);
@@ -136,7 +139,7 @@ public class HubServiceImpl implements HubService {
 	        
 	        if (file != null) {
 	        	// 새로운 파일이 업로드된 경우 서버에 저장 후 새로 등록
-	            String changeName = FileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
+	            String changeName = fileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
 	            hubFileDao.save(HubFile.builder().hub(hub).filePath("/resources/upload/hub")
 	                    .originName(file.getOriginalFilename()).changeName(changeName).build());
 	        } else if (existingMap.containsKey(i) && keptNos.contains(existingMap.get(i).getHubfileNo())) {
