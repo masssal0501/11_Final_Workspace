@@ -378,7 +378,7 @@
 
     padding: 10px;
 
-    resize: vertical;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 
     border: 1px solid var(--wf-gray-300);
     border-radius: 4px;

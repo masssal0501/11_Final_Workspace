@@ -14,6 +14,7 @@ function TaskDetailComponent() {
     const loginUser = JSON.parse(localStorage.getItem("user"));
 
     const [data, setData] = useState(null);
+    const [loadError, setLoadError] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [panelTop, setPanelTop] = useState(120);
     const [rejectTask, setRejectTask] = useState(null);
@@ -24,12 +25,16 @@ function TaskDetailComponent() {
     }, [workcationNo]);
 
     // 조회
+    // BUG: 존재하지 않는 workcationNo로 접근하면 에러 상태를 저장하지 않아
+    // "불러오는 중입니다" 로딩 화면에서 영원히 멈춰 있었다.
     const selectWorkcationTasks = async () => {
         try {
+            setLoadError(false);
             const response = await getWorkcationTasks(workcationNo);
             setData(response);
         } catch (error) {
             console.error("워케이션 업무 조회 실패", error);
+            setLoadError(true);
         }
     };
 
@@ -95,6 +100,24 @@ function TaskDetailComponent() {
             console.error("업무 거부 실패", error);
             alert("업무 거부에 실패했습니다.");
         }
+    }
+
+    if (loadError) {
+        return (
+            <main className="wf-container">
+                <section className="wf-page-header">
+                    <div>
+                        <h1 className="wf-page-title">업무 상세</h1>
+                    </div>
+                </section>
+                <div className="wf-state">
+                    <div className="wf-state-title">업무 정보를 찾을 수 없습니다.</div>
+                    <button type="button" className="btn btn-secondary" onClick={() => navigate("/task/list")}>
+                        목록으로
+                    </button>
+                </div>
+            </main>
+        );
     }
 
     if (!data) {
