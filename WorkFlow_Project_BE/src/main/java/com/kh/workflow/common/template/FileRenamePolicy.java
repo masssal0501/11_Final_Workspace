@@ -47,14 +47,25 @@ public class FileRenamePolicy {
 
 		File filePath = new File(HUB_UPLOAD_DIR);
 
-		if (!filePath.exists()) {
-		    filePath.mkdirs();
+		// BUG: mkdirs() 실패/쓰기 실패를 여기서 조용히 삼키고(e.printStackTrace()만 하고)
+		// 항상 changeName을 정상 반환해서, 실제로는 파일이 저장되지 않았는데도
+		// DB에는 "성공"으로 기록되고 API 응답도 200이 나가던 문제. 운영 서버 로그에
+		// 접근하지 않고도 원인을 바로 알 수 있도록 예외를 호출부까지 전파한다.
+		if (!filePath.exists() && !filePath.mkdirs() && !filePath.exists()) {
+			throw new RuntimeException(
+					"이미지 저장 디렉터리를 생성할 수 없습니다: " + HUB_UPLOAD_DIR
+							+ " (systemd 서비스 실행 계정의 쓰기 권한을 확인하세요)"
+			);
 		}
 
 		try {
 			upfile.transferTo(new File(HUB_UPLOAD_DIR + changeName));
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(
+					"이미지 파일 저장에 실패했습니다: " + HUB_UPLOAD_DIR + changeName
+							+ " (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")",
+					e
+			);
 		}
 
 		return changeName;
