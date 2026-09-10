@@ -188,9 +188,9 @@ function AdminComponent() {
                 </div>
                 {/* 우측: 주요 지역별(제주, 강원, 부산) 이용 통계 수치 표출 */}
                 <div className="d-flex w-50 dashboard-3">
-                    <p>제주 : {data.regionData?.find(item => item.name === '제주')?.value ?? 0}%</p>
-                    <p>강원 : {data.regionData?.find(item => item.name === '강원')?.value ?? 0}%</p>
-                    <p>부산 : {data.regionData?.find(item => item.name === '부산')?.value ?? 0}%</p>
+                    <p>제주 : {data.regionData?.find(item => item.name === '제주' || item.name === '제주도')?.value ?? 0}%</p>
+                    <p>강원 : {data.regionData?.find(item => item.name === '강원' || item.name === '강원도')?.value ?? 0}%</p>
+                    <p>부산 : {data.regionData?.find(item => item.name === '부산' || item.name === '부산시')?.value ?? 0}%</p>
                 </div>
             </div>
             <br /><br /><br /><br />
