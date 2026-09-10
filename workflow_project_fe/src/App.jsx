@@ -326,11 +326,16 @@ function App() {
                 <Route path="/reservations/enroll" element={<ReservationEnrollComponent />}/>
                 <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />}/>
                 <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />}/>
-                <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
 
                 {/* 관리자 */}
                 {loginUser.authCode === "ADMIN" && (
                     <>
+                        {/* BUG: Header 메뉴에서는 "시설 예약 관리"가 ADMIN 전용으로
+                            표시되지만, 라우트 자체는 ADMIN 조건 밖에 선언되어 있어
+                            STAFF/MANAGER도 URL 직접 접근 시 정상적으로 페이지가
+                            열리던 문제 - ADMIN 전용 라우트 블록 안으로 이동 */}
+                        <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
+
                         {/* 직원 관리 */}
                         <Route path="/employee/enrollForm" element={ <EmployeeEnrollFormComponent /> }/>
                         <Route path="/employee/list" element={<EmployeeList />} />

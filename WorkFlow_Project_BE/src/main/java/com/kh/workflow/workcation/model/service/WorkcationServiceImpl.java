@@ -98,6 +98,10 @@ public class WorkcationServiceImpl implements WorkcationService {
 		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, filterEmpNo,
 				filterDepId, pageable);
 
+		// 람다식에서 참조하려면 effectively final이어야 하므로 별도 변수로 고정
+		final String filterMainRegion = mainRegion;
+		final String filterSubRegion = subRegion;
+
 		return page.map(workcation -> {
 			Map<String, Object> map = new HashMap<>();
 			map.put("workcationNo", workcation.getWorkcationNo());
@@ -107,30 +111,51 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("employee", workcation.getEmployee());
 
 			// 3. 람다식 내부 변수명 중복 해결 (hubMainRegion, hubSubRegion으로 변경)
+			// BUG: 워케이션 1건에 예약(Reservation)이 여러 건 있는 경우, 지역 필터
+			// 조건과 무관하게 항상 "첫 번째" 예약의 거점 지역만 표시하고 있었다.
+			// 그 결과 mainRegion/subRegion으로 필터링해도 목록에는 필터 조건과
+			// 다른 지역이 노출되는 경우가 있었다(검색 자체는 예약 중 하나라도
+			// 매칭되면 해당 워케이션을 반환하기 때문). 필터가 걸려 있으면 그
+			// 필터와 실제로 일치하는 예약의 거점을 우선 표시한다.
 			List<Reservation> reservations = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 			String hubMainRegion = "";
 			String hubSubRegion = "";
 
 			if (reservations != null && !reservations.isEmpty()) {
+
+				Hub matchedHub = null;
+				Hub firstHub = null;
+
 				for (Reservation r : reservations) {
 
-					if (r.getHub() != null) {
-
-						Hub hub = hubDao.findById(r.getHub().getHubNo()).orElse(null);
-
-						if (hub != null) {
-
-							int hubType = hub.getHubType();
-							if (hubType == 1 || hubType == 2) {
-
-							}
-							hubMainRegion = hub.getMainRegion() != null ? hub.getMainRegion() : "";
-
-							hubSubRegion = hub.getSubRegion() != null ? hub.getSubRegion() : "";
-
-							break;
-						}
+					if (r.getHub() == null) {
+						continue;
 					}
+
+					Hub hub = hubDao.findById(r.getHub().getHubNo()).orElse(null);
+
+					if (hub == null) {
+						continue;
+					}
+
+					if (firstHub == null) {
+						firstHub = hub;
+					}
+
+					boolean matchesMain = filterMainRegion == null || filterMainRegion.equals(hub.getMainRegion());
+					boolean matchesSub = filterSubRegion == null || filterSubRegion.equals(hub.getSubRegion());
+
+					if (matchesMain && matchesSub) {
+						matchedHub = hub;
+						break;
+					}
+				}
+
+				Hub hub = matchedHub != null ? matchedHub : firstHub;
+
+				if (hub != null) {
+					hubMainRegion = hub.getMainRegion() != null ? hub.getMainRegion() : "";
+					hubSubRegion = hub.getSubRegion() != null ? hub.getSubRegion() : "";
 				}
 			}
 
