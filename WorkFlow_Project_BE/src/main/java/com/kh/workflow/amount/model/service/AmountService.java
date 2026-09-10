@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.employee.model.vo.Employee;
 
 public interface AmountService {
 
@@ -71,9 +72,13 @@ public interface AmountService {
     // 8. 비용 신청 수정
     // =========================================================
 
+    // BUG-N03: 소유권 검증 없이 누구나 타인의 정산 신청을 수정할 수 있던 문제 수정.
+    // loginEmployee를 받아 STAFF/MANAGER는 본인이 신청한 정산만, ADMIN은 전체 수정 가능하도록
+    // Service 계층에서 검증한다(Controller의 URL 레벨 차단과 별개로 Service 내부에서도 확인).
     void updateAmount(
             Amount amount,
-            List<MultipartFile> files
+            List<MultipartFile> files,
+            Employee loginEmployee
     );
 
 

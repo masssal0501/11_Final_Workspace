@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -33,6 +35,8 @@ import com.kh.workflow.amount.model.service.AmountService;
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.SupportList;
+import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.vo.Employee;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -55,6 +59,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AmountController {
 
     private final AmountService amountService;
+    private final EmployeeDao employeeDao;
 
 
     // =========================================================
@@ -90,8 +95,9 @@ public class AmountController {
             "/upload/receipts/";
 
 
-    public AmountController(AmountService amountService) {
+    public AmountController(AmountService amountService, EmployeeDao employeeDao) {
         this.amountService = amountService;
+        this.employeeDao = employeeDao;
     }
 
 
@@ -668,7 +674,9 @@ public class AmountController {
                     value = "file",
                     required = false
             )
-            MultipartFile[] files) {
+            MultipartFile[] files,
+
+            Authentication authentication) {
 
         List<String> savedFiles =
                 new ArrayList<>();
@@ -721,6 +729,16 @@ public class AmountController {
 
 
             // -------------------------------------------------
+            // BUG-N03: 로그인 사용자 조회 (Service 계층 소유권 검증용)
+            // -------------------------------------------------
+
+            Employee loginEmployee =
+                    employeeDao.findByEmpId(
+                            authentication.getName()
+                    ).orElse(null);
+
+
+            // -------------------------------------------------
             // 파일 검증
             // -------------------------------------------------
 
@@ -734,7 +752,8 @@ public class AmountController {
 
             amountService.updateAmount(
                     amount,
-                    uploadFiles
+                    uploadFiles,
+                    loginEmployee
             );
 
 
@@ -750,6 +769,14 @@ public class AmountController {
             return ResponseEntity
                     .badRequest()
                     .body(e.getMessage());
+
+
+        } catch (AccessDeniedException e) {
+
+            // BUG-N03: ExceptionTranslationFilter가 AccessDeniedException을 403으로
+            // 변환하도록 그대로 다시 던진다 (아래 catch(Exception)에서 500으로 감싸면 안 됨).
+            deleteSavedFiles(savedFiles);
+            throw e;
 
 
         } catch (Exception e) {

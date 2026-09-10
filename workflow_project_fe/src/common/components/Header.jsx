@@ -66,9 +66,13 @@ function Header({ loginUser, onLogout }) {
           path: "/workcation/enrollform" ,
           roles: ["MANAGER", "STAFF"]
         }, 
-        { 
-          label: "부서 워케이션 목록", 
-          path: "/workcation/deptList",
+        {
+          // BUG-N01: /workcation/deptList 라우트가 App.jsx에 존재하지 않아 클릭 시
+          // ErrorPage로 빠지던 문제. /workcation/list는 WorkcationController.selectWorkcationList가
+          // MANAGER 로그인 시 이미 소속 부서 건만 필터링해 반환하므로(부서 워케이션 목록과 동일한 결과),
+          // 새 화면을 만들지 않고 기존 라우트로 연결한다.
+          label: "부서 워케이션 목록",
+          path: "/workcation/list",
           roles: ["MANAGER"]
         } ,
         { 
@@ -110,8 +114,13 @@ function Header({ loginUser, onLogout }) {
           path: "/cost/list" 
         }, 
         {
+          // BUG-N01: /subsidy/list 라우트가 App.jsx에 존재하지 않아 클릭 시 ErrorPage로
+          // 빠지던 문제. 지원금(SupportList) 전용 목록 화면은 별도로 구현돼 있지 않고,
+          // 지원금 처리(AmountController.updateApprovalWithSponsor)는 정산 상세(AmountDetail)에서
+          // 이뤄지므로 관리자 정산 목록(AdminAmountPage)으로 연결해 기존 구현을 통해 접근하게 한다.
+          // 전용 목록 화면이 필요하면 TODO-N04로 별도 논의.
           label: "지원금 목록",
-          path: "/subsidy/list" ,
+          path: "/admin/cost/list" ,
           roles:["ADMIN"]
         },
       ]
@@ -296,7 +305,10 @@ function Header({ loginUser, onLogout }) {
                     <div className="wf-submenu">
                       {visibleChildren.map((child) => (
                         <button
-                          key={child.path}
+                          // BUG-N01 수정 이후 "부서 워케이션 목록"과 "신청 내역 목록"이 같은
+                          // path(/workcation/list)를 공유하게 되어 path만으로는 더 이상
+                          // 목록 내에서 유일하지 않다. label까지 합쳐 React key 중복을 피한다.
+                          key={`${child.path}-${child.label}`}
                           type="button"
                           onClick={() => {
                             setActiveMenu(menu.id);

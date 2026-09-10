@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,9 @@ import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.workcation.model.dao.WorkcationDao;
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class AmountServiceImpl implements AmountService {
 
     private final AmountDao amountDao;
+    private final WorkcationDao workcationDao;
 
 
     // =========================================================
@@ -342,7 +347,8 @@ public class AmountServiceImpl implements AmountService {
     @Transactional(rollbackFor = Exception.class)
     public void updateAmount(
             Amount amount,
-            List<MultipartFile> files) {
+            List<MultipartFile> files,
+            Employee loginEmployee) {
 
         List<String> savedFiles =
                 new ArrayList<>();
@@ -379,6 +385,34 @@ public class AmountServiceImpl implements AmountService {
                 throw new IllegalArgumentException(
                         "존재하지 않는 비용 신청입니다."
                 );
+            }
+
+
+            // -----------------------------------------------------
+            // BUG-N03: 소유권 검증 - STAFF/MANAGER는 본인이 신청한 정산만 수정 가능,
+            // ADMIN은 전체 수정 가능. amount는 workcationNo만 갖고 있어(연관관계 없음)
+            // WorkcationInfo를 통해 신청자(empNo)를 조회한다.
+            // -----------------------------------------------------
+
+            if (loginEmployee != null
+                    && !"ADMIN".equals(loginEmployee.getAuthCode())) {
+
+                WorkcationInfo workcation =
+                        workcationDao.findById(
+                                existingAmount.getWorkcationNo()
+                        ).orElse(null);
+
+                boolean isOwner =
+                        workcation != null
+                        && workcation.getEmployee() != null
+                        && workcation.getEmployee().getEmpNo()
+                                .equals(loginEmployee.getEmpNo());
+
+                if (!isOwner) {
+                    throw new AccessDeniedException(
+                            "본인이 신청한 정산만 수정할 수 있습니다."
+                    );
+                }
             }
 
             if ("A".equals(existingAmount.getStatus())) {
@@ -555,6 +589,14 @@ public class AmountServiceImpl implements AmountService {
 
         } catch (IllegalArgumentException e) {
 
+            deleteSavedFiles(savedFiles);
+            throw e;
+
+        } catch (AccessDeniedException e) {
+
+            // BUG-N03: Spring Security의 ExceptionTranslationFilter가 AccessDeniedException
+            // 타입 자체를 잡아 403으로 변환하므로, 아래 catch(Exception)에서 RuntimeException으로
+            // 감싸버리면 403이 아닌 500으로 응답이 나가게 된다. 그대로 다시 던진다.
             deleteSavedFiles(savedFiles);
             throw e;
 

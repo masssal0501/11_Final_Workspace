@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.employee.model.vo.Employee;
+import com.kh.workflow.task.model.dao.TaskDao;
 import com.kh.workflow.task.model.dao.WorkFileDao;
+import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.WorkFile;
 import com.kh.workflow.workcation.model.dao.WorkcationDao;
 import com.kh.workflow.workcation.model.service.WorkcationService;
@@ -65,6 +68,9 @@ public class WorkcationController {
 
 	@Autowired
 	private WorkFileDao workFileDao;
+
+	@Autowired
+	private TaskDao taskDao;
 
 	// 워케이션 목록 조회 (STAFF는 본인 신청 건만, MANAGER는 소속 부서 신청 건만, ADMIN은 전체 조회)
 	@Operation(summary = "워케이션 목록 조회", description = "지역/조건/키워드로 검색한 워케이션 신청 목록을 페이징 조회합니다. STAFF는 본인이 신청한 건만, MANAGER는 소속 부서의 신청 건만, ADMIN은 전체를 조회합니다.")
@@ -484,10 +490,47 @@ public class WorkcationController {
 			@Parameter(description = "업무 내용", example = "이번 주 진행한 업무 내용입니다.", required = true)
 			@RequestParam String content,
 			@Parameter(description = "업무 증빙 첨부파일(선택)")
-			@RequestParam(required = false) MultipartFile file) {
+			@RequestParam(required = false) MultipartFile file,
+			Authentication authentication) {
+
+		// BUG-N05: 이 API는 /task/**(TaskController, MANAGER/ADMIN 전용 업무 게시판)와는
+		// 별개로 워케이션 참여자 본인이 자신의 업무 진행 상황을 저장하는 경로라 SecurityConfig의
+		// /task/** 권한 규칙이 적용되지 않는다. 지금까지는 이 경로 자체에 소유권 검증이 없어
+		// 로그인만 하면 타인의 업무도 수정할 수 있었다. STAFF/MANAGER는 본인(같은 부서 소속의
+		// 워케이션 참여자) 업무만, ADMIN은 전체 수정 가능하도록 제한한다.
+		String empId = (String) authentication.getPrincipal();
+
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+		Task task = taskDao.findById(taskNo)
+				.orElseThrow(() -> new RuntimeException("업무 정보를 찾을 수 없습니다."));
+
+		Employee owner = task.getWork().getWorkcationInfo().getEmployee();
+
+		if (!canUpdateTask(owner, loginEmployee)) {
+			throw new AccessDeniedException("해당 업무를 수정할 권한이 없습니다.");
+		}
 
 		workcationService.updateTask(taskNo, progress, title, content, file);
 		return ResponseEntity.ok("업무 진행 상황 저장 완료");
+	}
+
+	// BUG-N05: 업무 수정 권한 검사 - STAFF는 본인 업무만, MANAGER는 같은 부서 소속 업무만,
+	// ADMIN은 전체 업무 수정 가능
+	private boolean canUpdateTask(Employee owner, Employee loginEmployee) {
+
+		String authCode = loginEmployee.getAuthCode();
+
+		if ("ADMIN".equals(authCode)) {
+			return true;
+		}
+
+		if ("MANAGER".equals(authCode)) {
+			return owner.getDepId() != null && owner.getDepId().equals(loginEmployee.getDepId());
+		}
+
+		return owner.getEmpNo() != null && owner.getEmpNo().equals(loginEmployee.getEmpNo());
 	}
 
 	// 워케이션 일정(내 일정/부서 일정) 조회
