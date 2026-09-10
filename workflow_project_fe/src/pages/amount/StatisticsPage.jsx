@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { amountApi } from "../../Amount/api/amountApi";
+import { amountApi } from "../../amount/api/amountApi";
 
 import {
     PieChart,

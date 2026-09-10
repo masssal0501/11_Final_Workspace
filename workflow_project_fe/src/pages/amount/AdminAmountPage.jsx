@@ -1,5 +1,5 @@
 import React from 'react';
-import AdminAmount from '../../Amount/components/AdminAmount';
+import AdminAmount from '../../amount/components/AdminAmount';
 
 export default function AdminAmountPage({ workcationNo }) {
 
