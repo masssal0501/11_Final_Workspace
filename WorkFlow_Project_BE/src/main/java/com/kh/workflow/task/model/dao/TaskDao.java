@@ -13,6 +13,9 @@ import com.kh.workflow.task.model.vo.WorkFile;
 
 public interface TaskDao extends JpaRepository<Task, Integer> {
 
+	// 특정 근무(Work)에 속한 업무 목록 조회 (워케이션 상세화면의 업무계획/진행률 표시용)
+	List<Task> findByWork_WorkNo(Integer workNo);
+
 	/**
 	 * [부서장] 특정 부서의 현재 진행 중인 워케이션 업무 평균 진행률(%) 조회
 	 * 승인('A') 상태이며 현재 날짜 기준 진행 중인 워케이션에 소속된 업무들을 대상으로, 

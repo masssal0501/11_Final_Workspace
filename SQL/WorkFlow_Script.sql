@@ -23,6 +23,7 @@ USE workflow;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS verification;
+DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS notice_file;
 DROP TABLE IF EXISTS survey_answer;
 DROP TABLE IF EXISTS workcation_survey;
@@ -223,8 +224,8 @@ CREATE TABLE workcation_info (
     approver_comment VARCHAR(300) NULL
         COMMENT '결재 의견',
 
-    approver_state VARCHAR(1) NOT NULL DEFAULT 'R'
-        COMMENT 'A 승인, C 취소, H 보류, J 반려, R 검토',
+    approver_state VARCHAR(1) NOT NULL DEFAULT 'W'
+        COMMENT 'W 대기, A 승인, C 취소, H 보류, J 반려, R 검토',
 
     emp_no INT NOT NULL
         COMMENT '신청자 회원 PK',
@@ -392,6 +393,54 @@ CREATE TABLE work_file (
         REFERENCES task (task_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+/* 근태(출근/퇴근) 기록 - 워케이션 거점 위치 인증 기반 */
+CREATE TABLE attendance (
+    attendance_no INT NOT NULL AUTO_INCREMENT
+        COMMENT '근태 PK',
+
+    check_type VARCHAR(3) NOT NULL
+        COMMENT 'IN 출근, OUT 퇴근',
+
+    checked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        COMMENT '출근/퇴근 처리 시각',
+
+    latitude DECIMAL(10,7) NOT NULL
+        COMMENT '체크 시점 위도',
+
+    longitude DECIMAL(10,7) NOT NULL
+        COMMENT '체크 시점 경도',
+
+    distance_m INT NOT NULL
+        COMMENT '거점과의 거리(m) - 인증 근거 기록',
+
+    is_late VARCHAR(1) NOT NULL DEFAULT 'N'
+        COMMENT 'Y 지각, N 정상 (출근 건에만 의미 있음)',
+
+    workcation_no INT NOT NULL
+        COMMENT '워케이션 PK',
+
+    emp_no INT NOT NULL
+        COMMENT '사원 PK',
+
+    hub_no INT NOT NULL
+        COMMENT '거점 PK',
+
+    CONSTRAINT pk_attendance
+        PRIMARY KEY (attendance_no),
+
+    CONSTRAINT fk_attendance_workcation
+        FOREIGN KEY (workcation_no)
+        REFERENCES workcation_info (workcation_no),
+
+    CONSTRAINT fk_attendance_employee
+        FOREIGN KEY (emp_no)
+        REFERENCES employee (emp_no),
+
+    CONSTRAINT fk_attendance_hub
+        FOREIGN KEY (hub_no)
+        REFERENCES hub (hub_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 /* =========================================================
    8. 비용 / 정산
@@ -467,16 +516,26 @@ CREATE TABLE amount_item (
 
 ALTER TABLE amount_item ADD COLUMN amount INT NOT NULL DEFAULT 0 COMMENT '비용 상세 항목 금액';
 
-/* 지원금 목록 */
+/* 지원금 목록
+ *
+ * 하나의 비용 신청(amount) 건에 여러 지원처(지자체/기관)를
+ * 동시에 연결할 수 있도록 amount 1 : N amount_list 구조로 설계.
+ * (기존에는 amount_no가 PK 겸 FK라 신청 1건당 1개 지원처만
+ *  가능했으나, 여러 지원처를 지원하는 실제 비즈니스 요구사항에
+ *  맞춰 별도 auto-increment PK(support_no)로 변경함)
+ */
 CREATE TABLE amount_list (
-    amount_no INT NOT NULL
-        COMMENT '비용 신청 PK',
+    support_no INT NOT NULL AUTO_INCREMENT
+        COMMENT '지원금 PK',
 
     sponsor_name VARCHAR(50) NULL
         COMMENT '지원기관명 / 익명 가능',
 
-    amount INT NOT NULL
-        COMMENT '지원금액',
+    request_amount INT NOT NULL
+        COMMENT '지원 신청금액',
+
+    approved_amount INT NOT NULL DEFAULT 0
+        COMMENT '지원 승인금액',
 
     payment_date TIMESTAMP NOT NULL
         COMMENT '지급일시',
@@ -487,19 +546,21 @@ CREATE TABLE amount_list (
     remark VARCHAR(300) NULL
         COMMENT '특이사항',
 
-    item_no INT NOT NULL
-        COMMENT '비용 상세 PK',
+    transport_supported VARCHAR(1) NOT NULL DEFAULT 'N'
+        COMMENT '교통비 지원 여부 Y/N',
+
+    other_supported VARCHAR(1) NOT NULL DEFAULT 'N'
+        COMMENT '기타 지원 여부 Y/N',
+
+    amount_no INT NOT NULL
+        COMMENT '비용 신청 PK',
 
     CONSTRAINT pk_amount_list
-        PRIMARY KEY (amount_no),
+        PRIMARY KEY (support_no),
 
     CONSTRAINT fk_amount_list_amount
         FOREIGN KEY (amount_no)
-        REFERENCES amount (amount_no),
-
-    CONSTRAINT fk_amount_list_item
-        FOREIGN KEY (item_no)
-        REFERENCES amount_item (item_no)
+        REFERENCES amount (amount_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -744,6 +805,9 @@ CREATE INDEX idx_amount_workcation
 
 CREATE INDEX idx_amount_item_amount
     ON amount_item (amount_no);
+
+CREATE INDEX idx_amount_list_amount
+    ON amount_list (amount_no);
 
 CREATE INDEX idx_amount_file_amount
     ON amount_file (amount_no);

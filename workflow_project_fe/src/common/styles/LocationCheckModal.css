@@ -4,7 +4,7 @@
 
     inset: 0;
 
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(18, 30, 51, 0.45);
 
     display: flex;
 
@@ -22,14 +22,13 @@
 
     max-width: 90vw;
 
-    background: white;
+    background: var(--wf-white);
 
-    border-radius: 12px;
+    border-radius: var(--wf-radius-lg);
 
     overflow: hidden;
 
-    box-shadow:
-        0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--wf-shadow-lg);
 }
 
 
@@ -45,7 +44,7 @@
 
     padding: 20px 24px;
 
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--wf-border);
 }
 
 
@@ -67,7 +66,7 @@
 
     cursor: pointer;
 
-    color: #777;
+    color: var(--wf-text-muted);
 }
 
 
@@ -81,7 +80,7 @@
 
     padding: 15px 24px;
 
-    background: #f8f9fa;
+    background: var(--wf-table-header-bg);
 }
 
 
@@ -93,7 +92,7 @@
 
 .hubInfo span {
 
-    color: #666;
+    color: var(--wf-text-secondary);
 
     font-size: 13px;
 }
@@ -147,9 +146,9 @@
 
     border-radius: 8px;
 
-    background: #eaf8ef;
+    background: var(--wf-success-bg);
 
-    color: #198754;
+    color: var(--wf-success);
 
     font-weight: 600;
 }
@@ -175,9 +174,9 @@
 
     border-radius: 8px;
 
-    background: #fff1f1;
+    background: var(--wf-danger-bg);
 
-    color: #dc3545;
+    color: var(--wf-danger);
 
     font-weight: 600;
 }
@@ -199,7 +198,7 @@
 
 .locationError {
 
-    color: #dc3545;
+    color: var(--wf-danger);
 
     font-size: 14px;
 }
@@ -217,7 +216,7 @@
 
     padding: 16px 24px;
 
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--wf-border);
 }
 
 
@@ -225,11 +224,11 @@
 
     padding: 10px 18px;
 
-    border: 1px solid #ddd;
+    border: 1px solid var(--wf-gray-300);
 
-    border-radius: 6px;
+    border-radius: 9px;
 
-    background: white;
+    background: var(--wf-white);
 
     cursor: pointer;
 }
@@ -237,17 +236,24 @@
 
 .locationModalFooter .checkInBtn {
 
-    background: #2563eb;
+    background: var(--wf-primary);
 
     color: white;
 
     border: none;
+
+    transition: background 0.2s ease;
+}
+
+.locationModalFooter .checkInBtn:hover:not(:disabled) {
+
+    background: var(--wf-primary-dark);
 }
 
 
 .locationModalFooter .checkInBtn:disabled {
 
-    background: #ccc;
+    background: var(--wf-gray-300);
 
     cursor: not-allowed;
 }

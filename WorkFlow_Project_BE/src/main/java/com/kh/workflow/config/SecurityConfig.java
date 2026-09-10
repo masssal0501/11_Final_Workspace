@@ -1,7 +1,9 @@
 package com.kh.workflow.config;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,10 +18,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.kh.workflow.config.jwt.JwtAccessDeniedHandler;
+import com.kh.workflow.config.jwt.JwtAuthenticationEntryPoint;
 import com.kh.workflow.config.jwt.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+
+    // Production에서는 CORS_ALLOWED_ORIGINS 환경변수로 실제 도메인/EC2 접속 주소를 지정한다.
+    // 콤마로 여러 origin을 구분할 수 있다. (와일드카드 "*"는 credentials 허용 시 사용 불가하며,
+    // 이 프로젝트에서는 의도적으로 지원하지 않는다 - 반드시 명시적인 origin 목록을 사용할 것)
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private String allowedOrigins;
 
     // 비밀번호 암호화
     @Bean
@@ -42,12 +52,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler
     ) throws Exception {
 
         return http
 
         		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+        		// BUG-XXX: 커스텀 AuthenticationEntryPoint/AccessDeniedHandler가 없어
+        		// formLogin/httpBasic 미사용 상태의 기본 폴백(Http403ForbiddenEntryPoint)이
+        		// 인증 실패(JWT 없음/만료)에도 그대로 쓰이며 항상 403만 내려가던 문제를 해결.
+        		// 인증 실패 -> 401(JwtAuthenticationEntryPoint), 인가 실패(권한 부족) -> 403(JwtAccessDeniedHandler)
+        		.exceptionHandling(exception -> exception
+        				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        				.accessDeniedHandler(jwtAccessDeniedHandler)
+        		)
 
 
                 .csrf(csrf -> csrf.disable())
@@ -64,6 +85,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
+                        ).permitAll()
+
+                        // 에러 페이지 - 예외 발생 시 서블릿 컨테이너가 내부적으로
+                        // /error 로 재요청(forward)하는데, 이 경로가 인증을 요구하면
+                        // 실제 오류 응답(4xx/5xx + 메시지) 대신 빈 본문의 403이 반환됨
+                        .requestMatchers(
+                                "/error"
                         ).permitAll()
 
                         // 로그인
@@ -83,18 +111,24 @@ public class SecurityConfig {
                                 "/employees/checkId"
                         ).permitAll()
 
-                        // 직원 등록
+                        // 직원 등록 - 관리자 전용 (USR-001: 관리자 계정 등록)
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/employees"
-                        ).permitAll()
+                        ).hasRole("ADMIN")
                         
                         // Swagger UI 및 API 문서화 경로 허용
+                        // context-path(/workflow)는 DispatcherServlet 진입 전에 이미 제거된 상태로
+                        // Security 필터 체인에 도달하므로, matcher에는 context-path를 붙이지 않는다.
+                        // (실제 요청 http://localhost:8006/workflow/swagger-ui/index.html 이
+                        //  Security 관점에서는 "/swagger-ui/index.html"로 보임 - 실행 후 직접 검증 완료)
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs"
                             ).permitAll()
-                        
+
                         .requestMatchers(
                             "/employees/password"
                         ).authenticated()
@@ -103,6 +137,13 @@ public class SecurityConfig {
                         .requestMatchers(
                     	    HttpMethod.POST,
                     	    "/employees/findId"
+                    	).permitAll()
+
+                        // 비밀번호 찾기 (인증번호 발송/확인)
+                        .requestMatchers(
+                    	    HttpMethod.POST,
+                    	    "/employees/password/reset/request",
+                    	    "/employees/password/reset/verify"
                     	).permitAll()
                         
                         // 장소 관련 API
@@ -129,10 +170,44 @@ public class SecurityConfig {
                                 HttpMethod.DELETE,
                                 "/place/**"
                         ).hasRole("ADMIN")
-                        
+
+                        // BUG-XXX 수정: 업로드된 비용 증빙(영수증) 이미지 정적 서빙 경로.
+                        // WebConfig에서 실제 파일 시스템 디렉터리(app.upload.receipts-dir)로
+                        // 매핑해준다. <img src="...">로 직접 요청되므로(Authorization 헤더를
+                        // 실을 수 없음) 기존 "/resources/**"(Hub 이미지)와 동일하게 인증 없이
+                        // 조회 가능하도록 허용한다 - 파일명이 업로드 시 UUID로 치환되어
+                        // 추측이 어렵다는 점도 기존 Hub 이미지 서빙과 동일한 전제.
                         .requestMatchers(
-                        		"/hubs/**"
-                		).permitAll()
+                                "/upload/receipts/**"
+                        ).permitAll()
+                        
+                        // 거점 조회 - 로그인 사용자면 누구나
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/hubs/**"
+                        ).authenticated()
+
+                        // AI 여행 추천 챗봇 - 로그인 사용자면 누구나
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/hubs/send"
+                        ).authenticated()
+
+                        // 거점 등록/수정/삭제 - 관리자 전용
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/hubs"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/hubs/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/hubs/**"
+                        ).hasRole("ADMIN")
 
 	                     // 관리자 - 계정 상태 변경
 	                    .requestMatchers(
@@ -146,7 +221,7 @@ public class SecurityConfig {
 	                            "/employees/*/role"
 	                    ).hasRole("ADMIN")
 	                    
-	                    .requestMatchers(	                    	    
+	                    .requestMatchers(
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
 
@@ -165,49 +240,39 @@ public class SecurityConfig {
 	                            "/approval/**"
 	                    ).hasAnyRole("ADMIN", "MANAGER")
 
-	                    // swagger
-	                    .requestMatchers(
-                        		"/swagger-ui/**",
-	                    		"/v3/api-docs/**"
-                		).permitAll()
-	                    
                         .requestMatchers(
                             "/employees/password"
                         ).authenticated()
 
-                        
-                        // 통계페이지 추후 관리자로 수정
+
+                        // 비용 조회 - 로그인 사용자(STAFF/MANAGER/ADMIN)면 누구나
                         .requestMatchers(
                         	    HttpMethod.GET,
-                        	    "/api/v1/amounts/statistics"
-                        	).permitAll()
-                        
-                        
+                        	    "/api/v1/amounts/**"
+                        	).authenticated()
+
+                        // BUG-XXX 수정: AmountController의 결재/지원금 처리 API에는
+                        // 원래 MANAGER/ADMIN 등 결재 권한에 대한 별도 검증이 전혀 없어
+                        // (Swagger 설명에도 명시되어 있던 기존 알려진 문제) STAFF 계정이
+                        // 본인 정산 신청을 스스로 승인 처리할 수 있는 상태였다.
+                        // 최소 수정으로 결재 상태 변경/지원금 처리 API만 권한을 제한한다
+                        // (본인 신청 취소(/cancel) 등 다른 API는 기존 그대로 유지).
                         .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/workcation/**"
-                        	).permitAll()
-                        
-                        
+                                HttpMethod.PATCH,
+                                "/api/v1/amounts/*/approval"
+                        ).hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts"
-                        	).permitAll()
-                        // 관리자 정산 추후 권한 수정
+                                HttpMethod.PATCH,
+                                "/api/v1/amounts/*/approval/sponsor"
+                        ).hasRole("ADMIN")
+
+                        // 워케이션 반려 - 관리자/부서장만 (GET /approval/queue와 동일 정책, STAFF 차단)
                         .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/admin/cost/list"
-                        	).permitAll()
-                        
-                        .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/cost/detail/**"
-                        	).permitAll()
-                        
-                        .requestMatchers(
-                        	    HttpMethod.GET,
-                        	    "/api/v1/amounts/*"
-                        	).permitAll()
+                                HttpMethod.POST,
+                                "/approval/*"
+                        ).hasAnyRole("ADMIN", "MANAGER")
+
                      // 공지사항
                         .requestMatchers(
                             "/api/v1/notice/**"
@@ -242,9 +307,13 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        // React 개발 서버
+        // 환경변수(CORS_ALLOWED_ORIGINS)로 주입되는 허용 origin 목록
+        // (로컬 개발 기본값: http://localhost:5173)
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
+                Arrays.stream(allowedOrigins.split(","))
+                        .map(String::trim)
+                        .filter(origin -> !origin.isBlank())
+                        .toList()
         );
 
         // 허용 HTTP Method

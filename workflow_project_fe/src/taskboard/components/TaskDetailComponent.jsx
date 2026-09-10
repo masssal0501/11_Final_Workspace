@@ -41,7 +41,7 @@ function TaskDetailComponent() {
         setPanelTop(rect.top);
     }
 
-    //업무승인과 재검토 
+    //업무승인과 재검토
     const handleTaskStatus = async (taskNo, status) => {
         let message = "";
 
@@ -97,12 +97,19 @@ function TaskDetailComponent() {
         }
     }
 
-    //업무 상세내역 첨부파일
     if (!data) {
         return (
-            <div className="content-area">
-                <h2 align="center">업무 상세 조회</h2>
-            </div>
+            <main className="wf-container">
+                <section className="wf-page-header">
+                    <div>
+                        <h1 className="wf-page-title">업무 상세</h1>
+                    </div>
+                </section>
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <div className="wf-state-title">업무 정보를 불러오는 중입니다.</div>
+                </div>
+            </main>
         );
     }
 
@@ -118,8 +125,17 @@ function TaskDetailComponent() {
 
 
     return (
-        <div className="content-area">
-            <h2 align="center">업무 상세 조회</h2>
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">업무 상세</h1>
+                    <p className="wf-page-description">워케이션에 등록된 업무의 진행 상황과 첨부파일을 확인합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="content-area">
 
             <div className="task-summary">
                 <div>
@@ -143,7 +159,7 @@ function TaskDetailComponent() {
                 </div>
             </div>
 
-            <table className="list-area">
+            <table className="wf-table list-area">
                 <thead>
                     <tr>
                         <th>번호</th>
@@ -183,6 +199,7 @@ function TaskDetailComponent() {
                                             <div className="task-approval-buttons">
                                                 <button
                                                     type="button"
+                                                    className="btn btn-primary"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleTaskStatus(task.taskNo, "Y");
@@ -193,6 +210,7 @@ function TaskDetailComponent() {
 
                                                 <button
                                                     type="button"
+                                                    className="btn btn-secondary"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setRejectTask(task);
@@ -207,6 +225,7 @@ function TaskDetailComponent() {
                                     {task.progress === 100 && task.status === "R" && (
                                         <button
                                             type="button"
+                                            className="btn btn-secondary"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleTaskStatus(task.taskNo, "N");
@@ -244,8 +263,8 @@ function TaskDetailComponent() {
                 </div>
             )}
             {(!data.taskList || data.taskList.length === 0) && (
-                <div className="empty-message">
-                    등록된 업무가 없습니다.
+                <div className="wf-state">
+                    <div className="wf-state-title">등록된 업무가 없습니다.</div>
                 </div>
             )}
 
@@ -279,9 +298,10 @@ function TaskDetailComponent() {
                 </div>
             )}
 
-            <div className="btn-set">
+            <div className="wf-page-actions btn-set">
                 <button
                     type="button"
+                    className="btn btn-secondary"
                     onClick={() => navigate("/task/list")}
                 >
                     목록
@@ -306,12 +326,14 @@ function TaskDetailComponent() {
                         <div className="reject-modal-buttons">
                             <button
                                 type="button"
+                                className="btn btn-primary"
                                 onClick={handleReject} >
                                 거부
                             </button>
 
                             <button
                                 type="button"
+                                className="btn btn-secondary"
                                 onClick={() => {
                                     setRejectTask(null);
                                     setRejectContent("");
@@ -322,7 +344,9 @@ function TaskDetailComponent() {
                     </div>
                 </div>
             )}
-        </div>
+            </div>
+            </div>
+        </main>
     );
 }
 

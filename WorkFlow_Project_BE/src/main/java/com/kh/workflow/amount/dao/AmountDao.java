@@ -254,14 +254,20 @@ public interface AmountDao
 
 	/**
 	 * [관리자] 발생한 총 비용 조회
-	 * 
+	 *
+	 * 기존 쿼리는 AmountItem/SupportList를 각각 JOIN해 항목 수 x 지원처 수만큼
+	 * 행이 곱해지는 카티션 곱 위에서 a.approvedAmount(비용 신청 1건당 값)를
+	 * 행마다 중복 차감하고 있어(추가로 sl.approvedAmount까지 또 차감) 실제 비용보다
+	 * 훨씬 큰 음수가 나오는 버그가 있었다. 게다가 INNER JOIN 특성상 지원처가
+	 * 하나도 없는 승인 건은 아예 집계에서 빠지는 문제도 있었다.
+	 * "발생한 총 비용"은 비용 신청 1건당 최종 승인된 금액(amount.approved_amount,
+	 * 스키마 주석상 '최종 승인된 비용')의 합으로 충분하므로 JOIN 없이 계산한다.
+	 *
 	 * @return int 총 비용 합계
 	 */
     @Query("""
-            SELECT COALESCE(SUM(ai.itemAmount - sl.approvedAmount - a.approvedAmount), 0)
+            SELECT COALESCE(SUM(a.approvedAmount), 0)
             FROM Amount a
-            JOIN SupportList sl ON a = sl.amount
-            JOIN AmountItem ai ON ai.amount = a
             WHERE a.status = 'A'
         """)
 	int selectTotalCost();

@@ -43,4 +43,33 @@ public class MailService {
         mailSender.send(message);
     }
 
+    public void sendVerificationCode(
+            String email,
+            String empName,
+            String verificationCode
+    ) {
+
+        SimpleMailMessage message =
+                new SimpleMailMessage();
+
+        message.setTo(email);
+
+        message.setSubject(
+                "[WorkFlow] 비밀번호 재설정 인증번호 안내"
+        );
+
+        String content =
+                "안녕하세요. " + empName + "님.\n\n" +
+                "비밀번호 재설정을 위한 인증번호입니다.\n\n" +
+                "인증번호 : " + verificationCode + "\n\n" +
+                "인증번호는 5분간 유효합니다.\n\n" +
+                "본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다.\n\n" +
+                "감사합니다.\n" +
+                "WorkFlow";
+
+        message.setText(content);
+
+        mailSender.send(message);
+    }
+
 }

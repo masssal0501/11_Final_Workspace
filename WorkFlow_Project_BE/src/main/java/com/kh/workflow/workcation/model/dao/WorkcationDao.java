@@ -132,19 +132,26 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
 	/**
 	 * [관리자] 승인 대기 중인 워케이션 목록 조회 (최신순)
-	 * 
+	 *
+	 * 워케이션 1건에 예약(Reservation)이 2건 이상(예: 오피스 거점 + 숙소 거점)
+	 * 연결된 경우, Reservation을 JOIN하면 워케이션당 예약 건수만큼 행이 곱해져
+	 * 같은 워케이션이 목록에 중복으로 표시되는 버그가 있었다. DISTINCT를 추가해
+	 * 워케이션당 정확히 한 행만 반환하도록 수정.
+	 * (MySQL은 DISTINCT 사용 시 ORDER BY 표현식이 SELECT 목록에 없으면 거부하므로,
+	 * SELECT 목록에 없는 w.workcationNo 대신 이미 프로젝션에 포함된 w.startAt로 정렬한다)
+	 *
 	 * @return List<WaitingListDto> 관리자 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState) 
-		      FROM WorkcationInfo w 
+		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState)
+		      FROM WorkcationInfo w
 		      JOIN w.employee e
 		      JOIN Reservation r ON r.workcation = w
 		      JOIN r.hub h
 		      JOIN Department d ON d.depId = e.depId
-		     WHERE e.depId = d.depId 
-		       AND w.approverState IN ('W', 'R', 'H') 
-		     ORDER BY w.workcationNo DESC
+		     WHERE e.depId = d.depId
+		       AND w.approverState IN ('W', 'R', 'H')
+		     ORDER BY w.startAt DESC
 		    """)
 	List<WaitingListDto> adminSelectWaitingList();
 

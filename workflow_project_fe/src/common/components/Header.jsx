@@ -87,6 +87,9 @@ function Header({ loginUser, onLogout }) {
       label: "업무 관리",
       icon: "☷",
       path: "/task/list",
+
+      // STAFF는 업무관리 메뉴가 보이지 않아야 한다
+      roles: ["ADMIN", "MANAGER"],
     },
     {
       id: "amount",
@@ -106,11 +109,30 @@ function Header({ loginUser, onLogout }) {
           label: "정산 목록", 
           path: "/cost/list" 
         }, 
-        { 
-          label: "지원금 목록", 
+        {
+          label: "지원금 목록",
           path: "/subsidy/list" ,
-          rolse:["ADMIN"]
-        }, 
+          roles:["ADMIN"]
+        },
+      ]
+    },
+    {
+      id: "approval",
+      label: "승인 관리",
+      icon: "✓",
+      path: "/approval/queue/list",
+
+      roles: ["ADMIN", "MANAGER"],
+
+      children: [
+        {
+          label: "승인 대기 목록",
+          path: "/approval/queue/list"
+        },
+        {
+          label: "승인 이력",
+          path: "/approval/history"
+        }
       ]
     },
     {
@@ -142,18 +164,18 @@ function Header({ loginUser, onLogout }) {
 
       children: [ 
         { 
-          label: "장소 정보 등록", 
-          path: "/workflow/place/Form" 
-        }, 
+          label: "장소 정보 등록",
+          path: "/place/Form"
+        },
         { 
           label: "AI 여행 일정 추천", 
           path: "/hub/ai" 
         },     
-        { 
-          label: "거점 등록", 
+        {
+          label: "거점 등록",
           path: "/hub/enrollForm",
           roles:["ADMIN"]
-        } 
+        }
       ]      
     },
     {
@@ -162,7 +184,6 @@ function Header({ loginUser, onLogout }) {
       icon: "♢",
       path: "/notice",
     },
-
   ];
 
 
@@ -243,17 +264,28 @@ function Header({ loginUser, onLogout }) {
         ========================= */}
         <nav className="wf-nav">
           {menus
-            .filter((menu) => !(loginUser?.authCode === "STAFF" && menu.id === "task"))
+            .filter((menu) =>
+              !menu.roles ||
+              menu.roles.includes(loginUser?.authCode)
+            )
             .map((menu) => (
-              <button
-                key={menu.id}
-                className={`wf-nav-item ${activeMenu === menu.id ? "active" : ""}`}
-                onClick={() => handleMenuClick(menu)}
-              >
-                <span className="wf-nav-icon">{menu.icon}</span>
-                <span>{menu.label}</span>
-              </button>
-            ))}
+            <button
+              key={menu.id}
+              className={`wf-nav-item ${
+                activeMenu === menu.id
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() => handleMenuClick(menu)}
+            >
+              <span className="wf-nav-icon">
+                {menu.icon}
+              </span>
+              <span>
+                {menu.label}
+              </span>
+            </button>
+          ))}
         </nav>
 
 

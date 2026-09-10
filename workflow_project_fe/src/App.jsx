@@ -5,6 +5,7 @@ import "./common/styles/common.css";
 
 import Header from "./common/components/Header";
 import Footer from "./common/components/Footer";
+import ErrorPage from "./common/components/ErrorPage";
 
 import NoticeListPage from "./pages/notice/NoticeListPage";
 import NoticeDetailPage from "./pages/notice/NoticeDetailPage";
@@ -32,11 +33,12 @@ import PlaceEdit from "./place/components/PlaceEdit";
 import TaskListComponent from "./taskboard/components/TaskListComponent";
 import TaskDetailComponent from "./taskboard/components/TaskDetailComponent";
 
-import WorkcationListComponent from "./workcation/components/WorkcationListComponent";
-import WorkcationDetailComponent from "./workcation/components/WorkcationDetailComponent";
-import WorkcationEnrollFormComponent from "./workcation/components/WorkcationEnrollFormComponent";
-import MyWorkcationListComponent from "./workcation/components/MyWorkcationListComponent";
-import MyWorkcationDetailFormComponent from "./workcation/components/MyWorkcationDetailFormComponent";
+import WorkcationListComponent from './workcation/components/WorkcationListComponent';
+import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
+import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
+import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
+import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
+import SurveyForm from './survey/components/SurveyForm';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -68,8 +70,11 @@ import StaffComponent from "./dashboard/components/StaffComponent";
 import { useKakaoLoader } from "react-kakao-maps-sdk";
 import { Routes, Route, Navigate } from "react-router-dom";
 
+// 앱 키는 소스에 하드코딩하지 않고 환경변수(VITE_KAKAO_APP_KEY)로 주입한다.
+// 옵션 객체는 렌더마다 새로 만들지 않도록 모듈 스코프 상수로 둔다
+// (매 렌더 새 객체를 넘기면 useKakaoLoader가 SDK를 반복 로드함).
 const KAKAO_MAP_OPTIONS = {
-    appkey: "a00510cb26a4e33be1647f26b12df5c9",
+    appkey: import.meta.env.VITE_KAKAO_APP_KEY,
     libraries: ["services"]
 };
 
@@ -165,6 +170,10 @@ function App() {
                 {loginUser.authCode !== "ADMIN" && (
                     <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
                 )}
+                {/* BUG-009: "내 워케이션"(업무 진행률 관리) 화면이 라우팅되지 않아 접근 불가였음 */}
+                <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
+                <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
+                <Route path="/survey/:workcationNo" element={<SurveyForm />} />
 
                 {/* 대시보드 */}
                 <Route path="/" element={loginUser.authCode === "ADMIN" ? <AdminComponent /> : loginUser.authCode === "MANAGER" ? <ManagerComponent loginUser={loginUser} /> : <StaffComponent loginUser={loginUser} />} />
@@ -191,15 +200,23 @@ function App() {
                         <Route path="/employee/detail/:empNo" element={<EmployeeDetail />} />
                         <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
 
-                        <Route path="/admin/cost/list" element={<AdminAmountPage workcationNo={1} />} />
+                        {/* 관리자용 정산 페이지 */}
+                        <Route path="/admin/cost/list" element={<AdminAmountPage />} />
 
                         <Route path="/notice/insert" element={<NoticeWritePage />} />
                         <Route path="/notice/update/:noticeNo" element={<NoticeUpdatePage />} />
 
                         <Route path="/admin/statistics" element={<StatisticsPage />} />
+                    </>
+                )}
 
-                        <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />} />
-                        <Route path="/approval/history" element={<ApprovalHistoryList />} />
+                {/* 승인 페이지 - Backend(ApprovalController)는 ADMIN/MANAGER 모두 허용(STAFF만 차단) */}
+                {(loginUser.authCode === "ADMIN" ||
+                    loginUser.authCode === "MANAGER") && (
+
+                    <>
+                        <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />}/>
+                        <Route path="/approval/history" element={<ApprovalHistoryList />}/>
                         <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
                         <Route path="/approval/queue/list" element={<ApprovalQueueList />} />
                         <Route path="/approval/queue/detail/:workcationNo" element={<ApprovalQueueDetail />} />
@@ -216,7 +233,21 @@ function App() {
                     <Route path="/staff" element={<div>사원 페이지</div>} />
                 )}
 
-                <Route path="/login" element={<Navigate to="/" replace />} />
+                {/* 그 외 페이지 접속 시 */}
+                <Route path="/login" element={ <Navigate to="/" replace />}/>
+
+                {/* 에러 페이지 - axios 401/403 인터셉터가 이동시키는 경로 */}
+                <Route path="/error" element={ <ErrorPage /> }/>
+
+                {/*
+                 * BUG: 이 catch-all이 없어서 (1) 존재하지 않는 URL과
+                 * (2) 로그인은 했지만 현재 authCode에서 등록되지 않은 Route(위의
+                 * ADMIN/MANAGER/STAFF 조건부 블록 밖의 경로 - 예: STAFF/MANAGER 계정으로
+                 * /employee/list 직접 접근)가 전부 아무 것도 렌더링하지 않는 빈 화면으로
+                 * 남아있었다. 메뉴에서 숨기는 것만으로는 URL 직접 입력을 막을 수 없으므로
+                 * (요구사항 8번), 매치되는 Route가 없으면 항상 에러 페이지로 보낸다.
+                 */}
+                <Route path="*" element={ <ErrorPage /> }/>
 
             </Routes>
 

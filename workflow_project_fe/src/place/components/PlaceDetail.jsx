@@ -42,23 +42,10 @@ function PlaceDetail() {
     };
 
 
-    // 로딩
-    if (!place) {
-
-        return <div>로딩중...</div>;
-
-    }
-
+    // 대표 이미지(status === "Y") 1건
+    // (로딩 처리는 아래 JSX에서 인라인으로 하므로 place가 null일 수 있음 - 옵셔널 체이닝 유지)
     const mainFile = place?.hubFileList?.find(
-    file => file.status === "Y"
-    );
-
-    console.log("mainFile:", mainFile);
-    console.log(
-        "image URL:",
-        mainFile
-            ? `http://localhost:8006/workflow${mainFile.filePath}/${mainFile.changeName}`
-            : "없음"
+        file => file.status === "Y"
     );
 
 
@@ -82,14 +69,46 @@ function PlaceDetail() {
     };
 
 
+    // 허브 상태 뱃지 색상
+    const getHubStatusBadgeClass = (status) => {
+
+        if (status === "OPEN") {
+            return "wf-badge wf-badge-success";
+        }
+
+        if (status === "PAUSED") {
+            return "wf-badge wf-badge-warning";
+        }
+
+        return "wf-badge wf-badge-neutral";
+
+    };
+
+
     return (
 
-        <div className="place-info">
+        <main className="wf-container">
 
-            <h2>지역 정보 상세조회</h2>
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">지역 정보 상세</h1>
+                    <p className="wf-page-description">거점 주변 지역의 상세 정보를 확인합니다.</p>
+                </div>
+            </section>
 
-            <hr />
+            <div className="wf-page-content">
+            <div className="place-info">
 
+            {/* 로딩 상태 */}
+            {!place ? (
+
+                <div className="wf-state">
+                    <div className="wf-spinner" />
+                    <div className="wf-state-title">지역 정보를 불러오는 중입니다.</div>
+                </div>
+
+            ) : (
+            <>
 
             <div>
 
@@ -102,7 +121,11 @@ function PlaceDetail() {
                             alt={place.hubName}
                         />
                     ) : (
-                        <div>등록된 사진이 없습니다.</div>
+
+                        <div className="wf-state">
+                            <div className="wf-state-title">등록된 사진이 없습니다.</div>
+                        </div>
+
                     )}
                 </div>
 
@@ -158,7 +181,9 @@ function PlaceDetail() {
 
                     <strong>운영 상태</strong>
                     <br />
-                    {getHubStatusText(place.hubStatus)}
+                    <span className={getHubStatusBadgeClass(place.hubStatus)}>
+                        {getHubStatusText(place.hubStatus)}
+                    </span>
 
                 </div>
 
@@ -187,7 +212,12 @@ function PlaceDetail() {
 
             </div>
 
-        </div>
+            </>
+            )}
+
+            </div>
+            </div>
+        </main>
 
     );
 

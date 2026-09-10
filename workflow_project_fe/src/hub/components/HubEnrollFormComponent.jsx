@@ -219,11 +219,19 @@ function HubEnrollFormComponent(props) {
 
     // return 구문
     return(
-        <div className="hub-content">
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">거점 등록</h1>
+                    <p className="wf-page-description">워케이션에 사용할 새 거점 정보를 등록합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="hub-content">
             { (loginUser.authCode === "ADMIN") ? (
                 <>
-                    <h2 align="center" className="hub-header"><b>거점 등록</b></h2>
-                    <br />
                     {/* 거점 작성 입력 폼 */}
                     <form ref={formRef}>
                         <table width="100%" className="hub-table">
@@ -438,9 +446,13 @@ function HubEnrollFormComponent(props) {
                     </form>
                 </>
             ) : (
-                <h2 align="center"><b>해당 페이지는 관리자만 올 수 있습니다.</b></h2>
+                <div className="wf-state wf-error-state">
+                    <div className="wf-state-title">해당 페이지는 관리자만 접근할 수 있습니다.</div>
+                </div>
             ) }
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

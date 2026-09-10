@@ -1,9 +1,31 @@
 .content-area {
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
+
     margin: 0 auto;
-    padding: 20px;
+
+    background: var(--wf-white);
+
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
+
+    box-shadow: var(--wf-shadow-sm);
+
+    padding: 32px;
+
     box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 20px;
+}
+
+.content-area h2 {
+    color: var(--wf-text-primary);
+
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
 }
 
 .task-btnset {
@@ -12,54 +34,171 @@
     margin-bottom: 20px;
 }
 
+.task-list-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+}
+
+.task-list-table thead th {
+    padding: 13px 12px;
+
+    background: var(--wf-table-header-bg);
+
+    border-bottom: 1px solid var(--wf-border);
+
+    color: var(--wf-text-secondary);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-align: center;
+}
+
+.task-list-table tbody td {
+    padding: 13px 12px;
+
+    border-bottom: 1px solid var(--wf-border);
+
+    color: var(--wf-text-primary);
+
+    text-align: center;
+}
+
+/*폼 내부 요소*/
 .search-form {
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
+/*드롭다운 전체박스*/
+.list-drop {
+    height: 42px;
+    border-radius: 9px;
+    border: 1px solid var(--wf-gray-300);
+    padding: 0 8px;
+    min-width: 100px;
+
+    color: var(--wf-text-primary);
+
+    outline: none;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/*클릭시*/
+
+.list-drop:hover {
+    border-color: var(--wf-primary);
+}
+
+/*클릭후 스타일유지*/
+.list-drop:focus {
+    border-color: var(--wf-primary);
+
+    box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+/*검색창*/
 .search-input {
-    width: 420px;
+    border-radius: 9px;
+    background-color: #ffffff;
+    border: 1px solid var(--wf-gray-300);
+    height: 42px;
+    width: 400px;
+    padding-left: 16px;
+    padding-right: 16px;
+
+    outline: none;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.list-area {
-    width: 100%;
-    margin: 0 auto;
-    table-layout: fixed;
-    border-collapse: collapse;
+/*검색창 활성화시 아웃라인 커스텀*/
+.search-input:focus {
+    border-color: var(--wf-primary);
+
+    box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
 }
 
-.list-area th,
-.list-area td {
-    text-align: center;
+.search-btn {
+    /*검색버튼*/
+    border: none;
+    background-color: var(--wf-primary);
+    border-radius: 9px;
+    padding: 0 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    width: 80px;
+    height: 42px;
+
+    transition: background-color 0.2s ease;
 }
 
-.list-area tbody tr {
-       display: table-row;
+.task-list-table tbody tr {
+    transition: background-color 0.2s ease-in-out;
+
     cursor: pointer;
 }
 
-.list-area tbody tr:hover {
-    background-color: #f5f5f5;
+.task-list-table tbody tr:hover {
+    background-color: var(--wf-row-hover);
 }
 
-.list-area tbody td {
-    display: table-cell;
-    vertical-align: middle;
+.search-btn:hover {
+    background-color: var(--wf-primary-dark);
 }
 
-.empty-message {
-    width: 100%;
-    height: 80px;
-    display: flex;
-    justify-content: center;
+.up-btn button {
+    /*수정삭제버튼*/
+    margin: 3px;
+}
+
+.page-btn {
+    /*페이지버튼 박스*/
+    min-width: 34px;
+    height: 34px;
+    margin: 0 3px;
+    border-radius: 8px;
+    border: 1px solid var(--wf-gray-300);
+    background-color: #ffffff;
+    color: var(--wf-text-secondary);
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
 }
+
+.page-btn:hover {
+    background-color: var(--wf-gray-50);
+}
+
+.page-btn.active {
+    /*선택된 페이지 강조*/
+    background-color: var(--wf-primary);
+    border-color: var(--wf-primary);
+    color: #ffffff;
+}
+
+.page-btn:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 
 .paging-area {
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 4px;
-    margin-top: 25px;
+
+    gap: 6px;
+
+    margin-top: 24px;
 }
 
+/* 진행도 뱃지 색상은 TaskStatusBadge.css에서 공통으로 관리한다 (중복 제거) */

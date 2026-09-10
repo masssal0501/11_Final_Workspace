@@ -135,7 +135,16 @@ function AdminComponent() {
     };
 
     return(
-        <div className="dashboard-content">
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">대시보드</h1>
+                    <p className="wf-page-description">전사 워케이션 현황, 승인 대기 및 예산 통계를 한눈에 확인합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="dashboard-content">
             {/* 대시보드 상단 타이틀 */}
             <div className="dashboard-1" align="center">이번달 워케이션 현황</div>
             <br />
@@ -175,11 +184,15 @@ function AdminComponent() {
                                         <td>{item.depTitle}</td>
                                         <td>{item.mainRegion}</td>
                                         <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
-                                        <td>[{ (item.approverState === "W") ? "대기" : (item.approverState === "R") ? "검토" : "보류" }]</td>
+                                        <td>{ (item.approverState === "W")
+                                                ? <span className="badge bg-warning">대기</span>
+                                                : (item.approverState === "R")
+                                                    ? <span className="badge bg-info">검토</span>
+                                                    : <span className="badge bg-secondary">보류</span> }</td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">승인 대기 건이 없습니다.</td>
                                 </tr>
                             )}
@@ -200,7 +213,7 @@ function AdminComponent() {
                 <table className="table table-hover">
                     <tbody>
                         { data.noticeData.length === 0 ? (
-                                <tr style={ { cursor : "auto", backgroundColor: "white"} }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5" >
                                         등록된 공지사항이 없습니다.
                                     </td>
@@ -377,7 +390,9 @@ function AdminComponent() {
                 </div>
 
             </div>
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

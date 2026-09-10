@@ -37,7 +37,11 @@ public class SurveyQuestion {
 	@Column(name="question_content", length=200, nullable=false)
 	private String questionContent;
 	
-	@Schema(description = "질문유형", requiredMode=Schema.RequiredMode.REQUIRED, allowableValues = {"S", "T", "M"})
+	@Schema(description = "질문유형", requiredMode=Schema.RequiredMode.REQUIRED, allowableValues = {"SCORE", "TEXT"})
 	@Column(name="question_type", nullable=false)
 	private String questionType;
+
+	@Schema(description = "질문 표시 순서", requiredMode=Schema.RequiredMode.REQUIRED)
+	@Column(name="question_order", nullable=false)
+	private int questionOrder;
 }

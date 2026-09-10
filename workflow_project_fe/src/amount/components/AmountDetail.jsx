@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { amountApi } from "../../Amount/api/amountApi";
+import { amountApi } from "../../amount/api/amountApi";
 
-import "../../Amount/styles/AmountStyle.css";
+import "../../amount/styles/AmountStyle.css";
 
 export default function AmountDetail() {
 
@@ -156,7 +156,7 @@ export default function AmountDetail() {
                 // =================================================
                 // 회사 지원금 초기화
                 //
-                // item.amount
+                // item.itemAmount
                 //      → 신청금액
                 //
                 // item.itemApprovedAmount
@@ -394,7 +394,7 @@ export default function AmountDetail() {
 
                     return sum +
                         (
-                            Number(item.amount) || 0
+                            Number(item.itemAmount) || 0
                         );
 
                 },
@@ -461,7 +461,7 @@ export default function AmountDetail() {
 
 
             const requestAmount =
-                Number(item.amount) || 0;
+                Number(item.itemAmount) || 0;
 
 
             const companyAmount =
@@ -487,7 +487,7 @@ export default function AmountDetail() {
             ) {
 
                 alert(
-                    `${itemTypeMap[item.amountamountitemType] || "비용 항목"}의 회사 지원금은 신청금액을 초과할 수 없습니다.`
+                    `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금은 신청금액을 초과할 수 없습니다.`
                 );
 
                 return;
@@ -697,7 +697,7 @@ export default function AmountDetail() {
 
 
             const requestAmount =
-                Number(item.amount) || 0;
+                Number(item.itemAmount) || 0;
 
 
             const companyAmount =
@@ -723,7 +723,7 @@ export default function AmountDetail() {
             ) {
 
                 alert(
-                    `${itemTypeMap[item.amountamountitemType] || "비용 항목"}의 회사 지원금이 신청금액을 초과했습니다.`
+                    `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금이 신청금액을 초과했습니다.`
                 );
 
                 return;
@@ -884,7 +884,7 @@ export default function AmountDetail() {
             //
             // 중요
             //
-            // item.amount
+            // item.itemAmount
             //      → 신청금액
             //      → 수정하지 않음
             //
@@ -990,18 +990,18 @@ export default function AmountDetail() {
 
     return (
 
-        <div className="amount-detail-container">
+        <main className="amount-detail-container">
 
 
             {/* =================================================
                 제목
             ================================================== */}
 
-            <div className="amount-detail-header">
+            <section className="wf-page-header">
 
-                <h2>
-                    비용 신청 상세
-                </h2>
+                <div>
+                    <h1 className="wf-page-title">비용 신청 상세</h1>
+                </div>
 
                 <span
                     className={`status status-${detail.status}`}
@@ -1014,7 +1014,7 @@ export default function AmountDetail() {
 
                 </span>
 
-            </div>
+            </section>
 
 
             {/* =================================================
@@ -1140,7 +1140,7 @@ export default function AmountDetail() {
 
                                         const requestAmount =
                                             Number(
-                                                item.amount
+                                                item.itemAmount
                                             ) || 0;
 
 
@@ -1166,10 +1166,10 @@ export default function AmountDetail() {
 
                                                     {
                                                         itemTypeMap[
-                                                            item.amountamountitemType
+                                                            item.itemType
                                                         ] ||
 
-                                                        item.amountamountitemType ||
+                                                        item.itemType ||
 
                                                         "-"
                                                     }
@@ -1816,7 +1816,7 @@ export default function AmountDetail() {
 
             </div>
 
-        </div>
+        </main>
 
     );
 

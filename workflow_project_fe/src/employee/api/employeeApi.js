@@ -172,16 +172,18 @@ export const getEmployeeList = async () => {
  */
 export const updateEmployeeRole = async (
     empNo,
-    authCode
+    { authCode, depId, jobCode }
 ) => {
 
+    // 백엔드 EmployeeServiceImpl.updateEmployeeRole()가 요청 DTO의 세 필드를
+    // 무조건 그대로 엔티티에 덮어쓰므로, depId/jobCode를 빠뜨리면 NOT NULL
+    // 제약조건 위반으로 실패한다. 변경하지 않는 값도 항상 함께 보내야 한다.
     const response = await axiosInstance.patch(
         `/employees/${empNo}/role`,
-        null,
         {
-            params: {
-                authCode,
-            },
+            authCode,
+            depId,
+            jobCode,
         }
     );
 
@@ -189,20 +191,50 @@ export const updateEmployeeRole = async (
 };
 
 /*
- * USR-008
+ * USR-009
  * 아이디 찾기
  */
-export const findEmployeeId = async () => {
+export const findEmployeeId = async ({ empName, email }) => {
 
-    const token =
-        localStorage.getItem("accessToken");
-
-    const response = await axiosInstance.get(
-        "/employees",
+    const response = await axiosInstance.post(
+        "/employees/findId",
         {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            empName,
+            email,
+        }
+    );
+
+    return response.data;
+};
+
+/*
+ * 비밀번호 찾기 - 1단계
+ * 인증번호 발송 요청
+ */
+export const requestPasswordReset = async ({ empId, email }) => {
+
+    const response = await axiosInstance.post(
+        "/employees/password/reset/request",
+        {
+            empId,
+            email,
+        }
+    );
+
+    return response.data;
+};
+
+/*
+ * 비밀번호 찾기 - 2단계
+ * 인증번호 확인 및 임시 비밀번호 발급
+ */
+export const verifyPasswordResetCode = async ({ empId, verificationCode }) => {
+
+    const response = await axiosInstance.post(
+        "/employees/password/reset/verify",
+        {
+            empId,
+            verificationCode,
         }
     );
 
