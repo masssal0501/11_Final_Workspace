@@ -325,10 +325,10 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
-			   AND e.empName LIKE '%'||:keyword||'%'
-			   AND w.workcationTitle LIKE '%'||:keyword||'%'
-			   AND w.startAt >= :startDate
-			   AND w.endAt <= :endDate
+			   AND (e.empName LIKE '%'||:keyword||'%' OR w.workcationTitle LIKE '%'||:keyword||'%')
+			   AND (:startDate IS NULL OR w.endAt >= :startDate)
+			   AND (:endDate IS NULL OR  w.startAt <= :endDate)
+			   AND (:startDate IS NULL OR :endDate IS NULL OR :startDate < :endDate)
 			""")
 	List<WorkcationListDto> managerSearchWorkcationList(@Param("depId") String depId, @Param("keyword") String keyword,
 			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
@@ -438,8 +438,9 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
 			   AND h.hubName LIKE '%'||:keyword||'%'
-			   AND w.startAt >= :startDate
-			   AND w.endAt <= :endDate
+			   AND (:startDate IS NULL OR r.rsvEnd >= :startDate)
+			   AND (:endDate IS NULL OR  r.rsvStart <= :endDate)
+			   AND (:startDate IS NULL OR :endDate IS NULL OR :startDate < :endDate)
 			""")
 	List<ReservationListDto> staffSearchReservationList(@Param("empNo") int empNo,
 												 @Param("keyword") String keyword,
