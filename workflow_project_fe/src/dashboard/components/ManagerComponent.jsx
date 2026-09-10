@@ -143,7 +143,7 @@ function ManagerComponent(props) {
                                         <td>{item.empName}</td>
                                         <td>{item.mainRegion}</td>
                                         <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
-                                        <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
+                                        <td>[{ (item.approverState === "W") ? "대기" : (item.approverState === "R") ? "검토" : "보류" }]</td>
                                     </tr>
                                 ))
                             ) : (
