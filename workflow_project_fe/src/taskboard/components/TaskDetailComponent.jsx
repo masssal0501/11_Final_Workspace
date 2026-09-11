@@ -31,6 +31,7 @@ function TaskDetailComponent() {
         try {
             setLoadError(false);
             const response = await getWorkcationTasks(workcationNo);
+            console.log("업무 상세 응답:", response);
             setData(response);
         } catch (error) {
             console.error("워케이션 업무 조회 실패", error);

@@ -1,185 +1,289 @@
-.task-detail-page {
-    width: 100% !important;
-    max-width: 1000px;
-
-    margin: 32px auto 48px !important;
-
-    background: var(--wf-white);
-
-    border: 1px solid var(--wf-border);
-    border-radius: var(--wf-radius-lg);
-
-    box-shadow: var(--wf-shadow-sm);
-
-    padding: 16px 32px 32px;
-
-    box-sizing: border-box;
-}
-
-.task-detail-page h2 {
-    padding: 20px 0 30px;
-
-    color: var(--wf-text-primary);
-
-    font-size: var(--wf-fs-page-title);
-    font-weight: 800;
-}
-
-.task-detail-page .table th,
-.task-detail-page .table td {
-    text-align: center;
-    padding: 16px 12px;
-    vertical-align: middle;
-}
-
-.task-detail-page th {
-    width: 120px;
-
-    background-color: var(--wf-table-header-bg);
-
-    color: var(--wf-text-secondary);
-
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.task-content-area {
-    padding: 12px;
-    border: 1px solid var(--wf-border);
-    border-radius: var(--wf-radius-sm);
+/* 전체 상세 영역 */
+.content-area {
     width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    resize: none;
-
-    color: var(--wf-text-primary);
-
-    font-size: 14px;
-    line-height: 1.6;
 }
 
+/* 상단 요약 정보 */
 .task-summary {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 30px;
-    margin-bottom: 15px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 48px;
+    margin-bottom: 28px;
+    padding: 4px 0;
 }
 
 .task-summary > div {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 24px;
 }
 
-.task-summary > div span:first-child {
-    font-weight: bold;
-    min-width: 100px;
-}
-.task-history-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.3);
-    z-index: 999;
-}
-
-.task-history-panel {
-    position: fixed;
-    right: 50px;
-    width: 360px;
-    max-height: 400px;
-    padding: 20px;
-    background-color: white;
-    border: 1px solid #ccc;
-    overflow-y: auto;
-    box-sizing: border-box;
-    z-index: 1000;
-}
-.task-history-header {
-    margin-bottom: 15px;
-}
-
-.task-history-body {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.task-history-content {
-    padding: 10px 0;
-    border-bottom: 1px solid #ddd;
-    white-space: pre-wrap;
-}
-
-.back,
-.up-btn,
-.del-btn {
-    min-width: 60px;
-    height: 42px;
-
-    padding: 0 14px;
-
-    border: 1px solid var(--wf-gray-300);
-    border-radius: 9px;
-
-    margin: 5px 5px;
-
-    background: #ffffff;
-    color: var(--wf-text-secondary);
-
-    font-size: 13px;
+.task-summary > div > span:first-child {
+    width: 110px;
     font-weight: 700;
+    color: #183153;
+    flex-shrink: 0;
+}
 
+.task-summary > div > span:last-child {
+    color: #253858;
+}
+
+/* 업무 테이블 */
+.list-area {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: 10px;
+}
+
+/* 컬럼 너비 */
+.list-area th:nth-child(1),
+.list-area td:nth-child(1) {
+    width: 10%;
+}
+
+.list-area th:nth-child(2),
+.list-area td:nth-child(2) {
+    width: 38%;
+}
+
+.list-area th:nth-child(3),
+.list-area td:nth-child(3) {
+    width: 25%;
+}
+
+.list-area th:nth-child(4),
+.list-area td:nth-child(4) {
+    width: 27%;
+}
+
+/* 관리자 버튼 컬럼이 있을 때 */
+.list-area th:nth-child(5),
+.list-area td:nth-child(5) {
+    width: 180px;
+}
+
+/* 헤더 */
+.list-area thead th {
+    padding: 15px 14px;
+    text-align: center;
+    background: #f3f6fb;
+    color: #314968;
+    font-weight: 700;
+    border-bottom: 1px solid #dce4ef;
+}
+
+/* 본문 */
+.list-area tbody td {
+    padding: 17px 14px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid #e5eaf1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 업무 제목은 왼쪽 정렬 */
+.list-area tbody td:nth-child(2) {
+    text-align: left;
+}
+
+/* 행 */
+.task-detail-row {
     cursor: pointer;
+    transition: background-color 0.15s ease;
 }
 
-.up-btn {
-    border-color: var(--wf-primary);
-    color: var(--wf-primary);
+.task-detail-row:hover {
+    background: #f8faff;
 }
 
-.del-btn {
-    border-color: #f3c8c8;
-    color: var(--wf-danger);
-}
-
-.back:hover {
-    transition: 0.2s;
-    background-color: var(--wf-gray-50);
-}
-
-.up-btn:hover {
-    transition: 0.2s;
-    background-color: var(--wf-primary-light);
-}
-
-.del-btn:hover {
-    transition: 0.2s;
-    background-color: var(--wf-danger-bg);
-}
-
+/* 승인/거부 버튼 */
 .task-approval-buttons {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 8px;
 }
 
-.task-approval-buttons button {
-    min-width: 55px;
+/* 첨부파일 */
+.task-file-area {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border: 1px solid #e0e6ef;
+    border-radius: 8px;
+    background: #fafbfd;
 }
 
+.task-file-area strong {
+    display: block;
+    margin-bottom: 12px;
+}
+
+.task-file-area button {
+    border: none;
+    background: transparent;
+    padding: 4px 0;
+    color: #2368d9;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* 목록 버튼 */
+.btn-set {
+    margin-top: 28px;
+}
+
+/* 거부 모달 */
 .reject-modal-overlay {
     position: fixed;
     inset: 0;
+    background: rgba(0, 0, 0, 0.35);
     display: flex;
-    justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
+    justify-content: center;
     z-index: 1000;
 }
 
 .reject-modal {
-    width: 400px;
-    padding: 20px;
-    background: white;
+    width: 420px;
+    padding: 24px;
+    background: #fff;
+    border-radius: 10px;
+}
+
+.reject-modal textarea {
+    width: 100%;
+    min-height: 120px;
+    margin-top: 15px;
+    padding: 10px;
     box-sizing: border-box;
+    resize: vertical;
+}
+
+.reject-modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.list-area {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+}
+
+.list-area thead {
+    display: table-header-group !important;
+}
+
+.list-area tbody {
+    display: table-row-group !important;
+}
+
+.list-area tr {
+    display: table-row !important;
+    width: 100% !important;
+}
+
+.list-area th,
+.list-area td {
+    display: table-cell !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+}
+
+.list-area th:nth-child(1),
+.list-area td:nth-child(1) {
+    width: 10% !important;
+}
+
+.list-area th:nth-child(2),
+.list-area td:nth-child(2) {
+    width: 35% !important;
+}
+
+.list-area th:nth-child(3),
+.list-area td:nth-child(3) {
+    width: 25% !important;
+}
+
+.list-area th:nth-child(4),
+.list-area td:nth-child(4) {
+    width: 30% !important;
+}
+
+.list-area thead th {
+    height: 44px;
+    padding: 12px 16px !important;
+    text-align: center !important;
+    background: #f3f6fb;
+    border-bottom: 1px solid #dce4ef;
+}
+
+.list-area tbody td {
+    height: 58px;
+    padding: 14px 16px !important;
+    text-align: center !important;
+    border-bottom: 1px solid #e5eaf1;
+    white-space: nowrap !important;
+    overflow: visible !important;
+}
+
+.list-area tbody td:nth-child(2) {
+    text-align: left !important;
+}
+
+.task-detail-row {
+    display: table-row !important;
+    cursor: pointer;
+}
+
+.task-detail-row:hover {
+    background: #f8faff;
+}
+
+.task-history-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.task-history-panel {
+    position: static !important;
+    width: 500px;
+    max-height: 500px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.task-history-header {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.task-history-body {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.task-history-content {
+    padding: 12px 0;
+    border-bottom: 1px solid #eef1f5;
+}
+
+.task-history-content:last-child {
+    border-bottom: none;
 }

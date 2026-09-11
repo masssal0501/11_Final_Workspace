@@ -9,5 +9,7 @@ import com.kh.workflow.task.model.vo.TaskHistory;
 public interface TaskHistoryDao extends JpaRepository<TaskHistory, Integer>{
 
 	List<TaskHistory> findByTaskTaskNoOrderByCreatedAtDesc(Integer taskNo);
+	
+	
 
 }
