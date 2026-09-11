@@ -6,7 +6,7 @@ const amountApi = {
 
     // =========================================================
     // 1. 전체 비용 신청 목록
-    // GET /api/v1/amounts?page=1
+    // GET /api/v1/amounts?page=0 (Spring Pageable은 0부터 시작)
     // =========================================================
     getAmountList: async (page = 1) => {
 
@@ -14,7 +14,7 @@ const amountApi = {
             API_BASE_URL,
             {
                 params: {
-                    page
+                    page: page - 1
                 }
             }
         );
@@ -40,7 +40,7 @@ const amountApi = {
             `${API_BASE_URL}/my`,
             {
                 params: {
-                    page
+                    page: page - 1
                 }
             }
         );
@@ -51,7 +51,7 @@ const amountApi = {
 
     // =========================================================
     // 3. 워케이션별 비용 신청 목록
-    // GET /api/v1/amounts/workcation/{workcationNo}?page=1
+    // GET /api/v1/amounts/workcation/{workcationNo}?page=0
     // =========================================================
     getAmountListByWorkcation: async (
         workcationNo,
@@ -62,7 +62,7 @@ const amountApi = {
             `${API_BASE_URL}/workcation/${workcationNo}`,
             {
                 params: {
-                    page
+                    page: page - 1
                 }
             }
         );

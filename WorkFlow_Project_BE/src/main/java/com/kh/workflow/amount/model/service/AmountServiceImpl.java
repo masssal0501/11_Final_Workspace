@@ -334,10 +334,9 @@ public class AmountServiceImpl implements AmountService {
             }
 
 
+         // insertAmount(Amount amount) 안
             if (item.getItemDate() == null) {
-
-                // itemDate는 LocalDate 타입이므로 LocalDateTime → LocalDate 변환
-                item.setItemDate(now.toLocalDate());
+                item.setItemDate(now);   // .toLocalDate() 제거, 원래대로
             }
 
 
@@ -787,12 +786,9 @@ public class AmountServiceImpl implements AmountService {
                 }
 
 
+             // updateAmount(...) 안
                 if (item.getItemDate() == null) {
-
-                    // itemDate는 LocalDate 타입이므로 LocalDateTime → LocalDate 변환
-                    item.setItemDate(
-                            LocalDateTime.now().toLocalDate()
-                    );
+                    item.setItemDate(LocalDateTime.now());   // .toLocalDate() 제거, 원래대로
                 }
 
 
@@ -1183,36 +1179,112 @@ public class AmountServiceImpl implements AmountService {
     }
 
 
-    // =========================================================
-    // 13. 전체 통계
-    // =========================================================
+ // =========================================================
+ // 13. 전체 통계
+ // =========================================================
 
-    @Override
-    public Map<String, Object> getFullStatistics() {
+ @Override
+ public Map<String, Object> getFullStatistics() {
 
-        try {
+     try {
 
-            Map<String, Object> result =
-                    new HashMap<>();
+         Map<String, Object> result = new HashMap<>();
+
+         // -----------------------------------------------------
+         // 1. 요약 통계
+         // -----------------------------------------------------
+
+         result.put(
+                 "summary",
+                 amountDao.getStatisticsSummary()
+         );
 
 
-            result.put(
-                    "summary",
-                    amountDao.getStatisticsSummary()
-            );
+         // -----------------------------------------------------
+         // 2. 부서별 통계
+         // -----------------------------------------------------
+
+         List<Object[]> deptRows =
+                 amountDao.getDeptStatistics();
+
+         List<Map<String, Object>> deptList =
+                 new ArrayList<>();
+
+         for (Object[] row : deptRows) {
+
+             Map<String, Object> map = new HashMap<>();
+
+             map.put("departmentName", row[0]);
+             map.put("approvedAmount", row[1]);
+
+             deptList.add(map);
+         }
+
+         result.put("deptStatistics", deptList);
 
 
-            return result;
+         // -----------------------------------------------------
+         // 3. 월별 통계
+         // -----------------------------------------------------
+
+         List<Object[]> monthRows =
+                 amountDao.getMonthlyStatistics();
+
+         List<Map<String, Object>> monthList =
+                 new ArrayList<>();
+
+         for (Object[] row : monthRows) {
+
+             Map<String, Object> map = new HashMap<>();
+
+             map.put(
+                     "month",
+                     row[0] != null ? row[0].toString() : ""
+             );
+             map.put("approvedAmount", row[1]);
+
+             monthList.add(map);
+         }
+
+         result.put("monthlyStatistics", monthList);
 
 
-        } catch (Exception e) {
+         // -----------------------------------------------------
+         // 4. 항목별 통계
+         // -----------------------------------------------------
 
-            throw new RuntimeException(
-                    "정산 통계 조회 중 오류가 발생했습니다.",
-                    e
-            );
-        }
-    }
+         List<Object[]> itemRows =
+                 amountDao.getItemStatistics();
+
+         List<Map<String, Object>> itemList =
+                 new ArrayList<>();
+
+         for (Object[] row : itemRows) {
+
+             Map<String, Object> map = new HashMap<>();
+
+             map.put("itemType", row[0]);
+             map.put("itemCount", row[1]);
+             map.put("requestedAmount", row[2]);
+             map.put("approvedAmount", row[3]);
+
+             itemList.add(map);
+         }
+
+         result.put("itemStatistics", itemList);
+
+
+         return result;
+
+
+     } catch (Exception e) {
+
+         throw new RuntimeException(
+                 "정산 통계 조회 중 오류가 발생했습니다.",
+                 e
+         );
+     }
+ }
 
 
     // =========================================================

@@ -1,13 +1,19 @@
 package com.kh.workflow.amount.controller;
 
+import java.beans.PropertyEditorSupport;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,12 +40,65 @@ public class AmountController {
     }
 
     // =========================================================
+    // ★ 날짜 문자열 바인딩 커스텀 처리
+    // =========================================================
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+
+        binder.registerCustomEditor(
+            LocalDateTime.class,
+            new PropertyEditorSupport() {
+
+                @Override
+                public void setAsText(String text) {
+
+                    if (text == null || text.isBlank()) {
+                        setValue(null);
+                        return;
+                    }
+
+                    try {
+                        setValue(LocalDateTime.parse(text));
+
+                    } catch (DateTimeParseException e) {
+                        setValue(LocalDate.parse(text).atStartOfDay());
+                    }
+                }
+            }
+        );
+    }
+
+    // =========================================================
+    // 관리자 - 전체 비용 신청 목록 (페이지네이션)
+    //
+    // GET /api/v1/amounts
+    // =========================================================
+
+    @GetMapping
+    public ResponseEntity<?> getAmountList(
+            org.springframework.data.domain.Pageable pageable) {
+
+        try {
+
+            return ResponseEntity.ok(
+                    amountService.selectAmountList(pageable)
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("비용 신청 목록 조회 중 오류가 발생했습니다.");
+        }
+    }
+
+    // =========================================================
     // 비용 정산 신청
     //
     // POST /api/v1/amounts
-    //
-    // workcationNo는 프론트에서 받지 않음.
-    // JWT의 로그인 사용자 기준으로 Service에서 결정.
     // =========================================================
     @PostMapping
     public ResponseEntity<?> createAmount(
@@ -49,20 +108,12 @@ public class AmountController {
 
         try {
 
-            // -----------------------------------------------------
-            // 기본값
-            // -----------------------------------------------------
-
             amount.setAmountNo(null);
             amount.setStatus("R");
 
             if (amount.getApprovedAmount() == null) {
                 amount.setApprovedAmount(0);
             }
-
-            // -----------------------------------------------------
-            // 파일은 Service에서 실제 저장 처리
-            // -----------------------------------------------------
 
             int result =
                     amountService.insertAmount(amount, files);
@@ -370,4 +421,3 @@ public class AmountController {
         }
     }
 }
-

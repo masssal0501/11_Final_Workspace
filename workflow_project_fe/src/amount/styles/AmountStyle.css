@@ -1,4 +1,4 @@
-/* =========================================================
+    /* =========================================================
    AmountStyle.css
    비용 정산 신청 / 수정 / 상세 공통
    ========================================================= */
@@ -915,6 +915,170 @@
     padding-right: 15px;
 
     white-space: nowrap;
+}
+
+/* =========================================================
+   26-1. 목록 테이블 (AdminAmount, MyAmount 등)
+   ========================================================= */
+
+.amount-table {
+    width: 100%;
+
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    margin-top: 10px;
+
+    background: var(--wf-white);
+
+    box-sizing: border-box;
+}
+
+.amount-table th,
+.amount-table td {
+    padding: 14px 10px;
+
+    border-bottom: 1px solid var(--wf-gray-200);
+
+    vertical-align: middle;
+
+    font-size: 14px;
+
+    box-sizing: border-box;
+}
+
+.amount-table thead th {
+    background: var(--wf-gray-50);
+
+    color: var(--wf-text-primary);
+
+    font-weight: 700;
+
+    border-top: 1px solid var(--wf-gray-200);
+    border-bottom: 1px solid var(--wf-gray-200);
+}
+
+.amount-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.amount-table tbody tr:hover {
+    background: var(--wf-gray-50);
+}
+
+.amount-table tbody tr:last-child td {
+    border-bottom: 1px solid var(--wf-gray-200);
+}
+
+.amount-table .text-center {
+    text-align: center;
+}
+
+.amount-table .text-right {
+    text-align: right;
+    padding-right: 16px;
+}
+
+
+/* =========================================================
+   26-2. 상태 배지 (getStatusBadge)
+   ========================================================= */
+
+.amount-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 64px;
+    height: 26px;
+
+    padding: 0 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.amount-status-badge.status-A {
+    background: var(--wf-success-bg);
+    color: var(--wf-success);
+}
+
+.amount-status-badge.status-R {
+    background: var(--wf-warning-bg);
+    color: var(--wf-warning);
+}
+
+.amount-status-badge.status-H {
+    background: var(--wf-neutral-bg);
+    color: var(--wf-neutral);
+}
+
+.amount-status-badge.status-J {
+    background: var(--wf-danger-bg);
+    color: var(--wf-danger);
+}
+
+.amount-status-badge.status-C {
+    background: var(--wf-neutral-bg);
+    color: var(--wf-neutral);
+}
+
+
+/* =========================================================
+   26-3. 결재 처리 텍스트 (getApprovalStatus)
+   ========================================================= */
+
+.text-pending {
+    color: var(--wf-warning);
+    font-weight: 600;
+}
+
+.text-disabled {
+    color: var(--wf-text-muted);
+}
+
+
+/* =========================================================
+   26-4. 페이지 헤더 (wf-page-header)
+   ========================================================= */
+
+.wf-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    width: 100%;
+    margin-bottom: 25px;
+
+    gap: 20px;
+}
+
+.wf-page-title {
+    margin: 0;
+
+    color: var(--wf-text-primary);
+
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.wf-page-description {
+    margin: 9px 0 0;
+
+    color: var(--wf-text-secondary);
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.wf-page-actions {
+    flex-shrink: 0;
 }
 
 

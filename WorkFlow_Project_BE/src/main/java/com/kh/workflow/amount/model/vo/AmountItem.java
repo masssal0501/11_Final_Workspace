@@ -1,8 +1,6 @@
 package com.kh.workflow.amount.model.vo;
 
-import java.time.LocalDate;
-
-import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -52,13 +50,15 @@ public class AmountItem {
     @Column(name = "item_approved_amount", nullable = false)
     private Integer itemApprovedAmount = 0;
 
+    // ★ LocalDateTime으로 원복. @DateTimeFormat 어노테이션은 제거한다.
+    //   날짜 문자열("yyyy-MM-dd") → LocalDateTime 변환은
+    //   AmountController의 @InitBinder에서 커스텀 처리한다.
     @Schema(description = "항목 일자")
     @Column(
         name = "item_date",
         columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
     )
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate itemDate;
+    private LocalDateTime itemDate;
 
     @Schema(description = "항목 설명")
     @Column(name = "item_description", length = 500)

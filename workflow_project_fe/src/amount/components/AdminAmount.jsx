@@ -66,17 +66,15 @@ export default function AdminAmount() {
             // 목록 데이터 처리
             // =====================================================
 
+            // TO-BE
             let list = [];
 
-
             if (Array.isArray(data)) {
-
                 list = data;
-
+            } else if (Array.isArray(data?.content)) {
+                list = data.content;
             } else if (Array.isArray(data?.list)) {
-
                 list = data.list;
-
             }
 
 
@@ -158,45 +156,37 @@ export default function AdminAmount() {
             // 페이징 정보 저장
             // =====================================================
 
+            // TO-BE
+            const pageLimit = 5; // 화면에 보여줄 페이지 번호 버튼 개수
+
+            // Spring Page의 number는 0부터 시작하므로 +1
+            const springCurrentPage =
+                Number(data?.number ?? (currentPage - 1)) + 1;
+
+            const maxPage =
+                Number(data?.totalPages ?? 1) || 1;
+
+            // 페이지 버튼 그룹 계산 (예: pageLimit=5면 1~5, 6~10 ...)
+            const startPage =
+                Math.floor((springCurrentPage - 1) / pageLimit) * pageLimit + 1;
+
+            const endPage =
+                Math.min(startPage + pageLimit - 1, maxPage);
+
             const newPageInfo = {
 
-                currentPage:
-                    Number(
-                        data?.page ??
-                        data?.currentPage ??
-                        currentPage
-                    ),
+                currentPage: springCurrentPage,
 
-                pageLimit:
-                    Number(
-                        data?.pageLimit ??
-                        5
-                    ),
+                pageLimit,
 
                 boardLimit:
-                    Number(
-                        data?.boardLimit ??
-                        data?.limit ??
-                        10
-                    ),
+                    Number(data?.size ?? 10),
 
-                maxPage:
-                    Number(
-                        data?.maxPage ??
-                        1
-                    ),
+                maxPage,
 
-                startPage:
-                    Number(
-                        data?.startPage ??
-                        1
-                    ),
+                startPage,
 
-                endPage:
-                    Number(
-                        data?.endPage ??
-                        1
-                    )
+                endPage
 
             };
 
