@@ -1,7 +1,5 @@
 package com.kh.workflow.place.controller;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +22,9 @@ import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.common.template.FileRenamePolicy;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
+import com.kh.workflow.place.model.dto.PlaceDto;
 import com.kh.workflow.place.model.service.PlaceService;
 
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -160,15 +157,15 @@ public class PlaceController {
     })
     // 장소 상세 조회
     @GetMapping("/{hubNo}")
-    public ResponseEntity<Hub> selectPlace(
+    public ResponseEntity<PlaceDto> selectPlace(
             @Parameter(description = "조회할 거점(장소) 번호", example = "1", required = true)
             @PathVariable int hubNo) {
 
-        Hub h = placeService.selectPlace(hubNo);
+        PlaceDto place = placeService.selectPlace(hubNo);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(h);
+                .body(place);
     }
 
 
