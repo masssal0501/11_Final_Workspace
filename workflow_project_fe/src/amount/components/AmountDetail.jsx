@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { amountApi } from "../../amount/api/amountApi";
-import "../../Amount/styles/AmountStyle.css";
+import "../../amount/styles/AmountStyle.css";
 
 
 /* =========================================================

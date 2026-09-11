@@ -375,6 +375,10 @@ export default function AdminAmount() {
 
         const statusMap = {
 
+            // BUG-NEW: 공식 상태값에는 없는 'W'(구버전 코드가 남긴 데이터)가 일부
+            // 기존 신청 건에 남아 있어 방어적으로 매핑을 추가한다.
+            W: '대기',
+
             R: '검토중',
 
             A: '승인됨',
