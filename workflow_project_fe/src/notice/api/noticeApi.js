@@ -40,6 +40,13 @@ export const noticeApi = {
         return response.data;
     },
 
+
+    deleteFile: async (noticefileNo) => {
+    const response = await axiosInstance.delete(
+        `${API_URL}/file/${noticefileNo}`
+    );
+    return response.data;
+},
     // =========================================================
     // 공지사항 등록
     // POST /api/v1/notice

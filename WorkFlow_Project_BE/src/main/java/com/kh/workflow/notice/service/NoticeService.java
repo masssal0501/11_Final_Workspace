@@ -3,6 +3,9 @@ package com.kh.workflow.notice.service;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+
 import com.kh.workflow.notice.vo.Notice;
 
 public interface NoticeService {
@@ -20,7 +23,7 @@ public interface NoticeService {
     // =========================================================
     ArrayList<Notice> selectNoticeList(Map<String, Object> map);
 
-
+    int deleteFile(int noticefileNo);
     // =========================================================
     // 공지사항 상세 조회용 서비스
     // =========================================================
@@ -59,5 +62,10 @@ public interface NoticeService {
     // =========================================================
     boolean isAdmin(String loginId);
 
-}
 
+    // =========================================================
+    // 첨부파일 다운로드
+    // =========================================================
+    ResponseEntity<Resource> downloadFile(int noticefileNo);
+
+}

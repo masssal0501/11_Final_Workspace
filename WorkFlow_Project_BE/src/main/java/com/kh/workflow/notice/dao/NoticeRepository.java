@@ -1,12 +1,16 @@
 package com.kh.workflow.notice.dao;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.notice.vo.Notice;
+import com.kh.workflow.notice.vo.NoticeFile;
 
 public interface NoticeRepository extends JpaRepository<Notice, Integer> {
 
@@ -59,4 +63,21 @@ public interface NoticeRepository extends JpaRepository<Notice, Integer> {
         ORDER BY CASE WHEN n.noticeStatus = 'IMPORTANT' THEN 0 ELSE 1 END, n.createdAt DESC
     """)
     Page<Notice> findByTitleOrContentVisible(@Param("keyword") String keyword, Pageable pageable);
+
+
+    // =========================================================
+    // 첨부파일 단건 조회 (다운로드용)
+    //
+    // NoticeFile 전용 Repository를 별도로 만들지 않고,
+    // 이 Repository에서 JPQL로 직접 조회한다.
+    // =========================================================
+
+    @Query("SELECT nf FROM NoticeFile nf WHERE nf.noticefileNo = :noticefileNo")
+    Optional<NoticeFile> findNoticeFileById(
+            @Param("noticefileNo") Integer noticefileNo
+    );
+    
+    @Modifying
+    @Query("DELETE FROM NoticeFile nf WHERE nf.noticefileNo = :noticefileNo")
+    int deleteNoticeFile(@Param("noticefileNo") Integer noticefileNo);
 }

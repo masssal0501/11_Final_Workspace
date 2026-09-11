@@ -583,4 +583,68 @@ public class NoticeController {
                     );
         }
     }
+    @Operation(summary = "공지사항 첨부파일 삭제", description = "첨부파일 번호로 파일을 삭제합니다. ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
+    @SecurityRequirement(name = "JWT")
+    @DeleteMapping("/file/{noticefileNo}")
+    public ResponseEntity<?> deleteFile(
+
+            @PathVariable int noticefileNo,
+            Authentication authentication) {
+
+        try {
+
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            }
+
+            String loginId = authentication.getName();
+
+            if (!noticeService.isAdmin(loginId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 첨부파일을 삭제할 수 있습니다.");
+            }
+
+            int result = noticeService.deleteFile(noticefileNo);
+
+            if (result > 0) {
+                return ResponseEntity.ok("첨부파일이 삭제되었습니다.");
+            }
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("첨부파일 삭제에 실패했습니다.");
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("첨부파일 삭제 중 오류가 발생했습니다.");
+        }
+    }
+    
+ // =========================================================
+ // 첨부파일 다운로드
+ //
+ // GET /api/v1/notice/file/{noticefileNo}
+ // =========================================================
+
+ @Operation(summary = "공지사항 첨부파일 다운로드", description = "첨부파일 번호로 파일을 다운로드합니다. 로그인 없이 누구나 다운로드할 수 있습니다.")
+ @GetMapping("/file/{noticefileNo}")
+ public ResponseEntity<?> downloadFile(
+         @PathVariable int noticefileNo) {
+
+     try {
+
+         return noticeService.downloadFile(noticefileNo);
+
+     } catch (Exception e) {
+
+         e.printStackTrace();
+
+         return ResponseEntity
+                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body("파일 다운로드 중 오류가 발생했습니다.");
+     }
+ }
 }
