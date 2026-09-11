@@ -67,7 +67,7 @@ function HubUpdateFormComponent(props) {
                     }
                 } else {
                     alert("이미 삭제되었거나 없는 거점입니다.");
-                    navigate("/placeInfo/list")
+                    navigate("/hub/list")
                 }
             } catch(error) {
                 console.error(error);
@@ -276,11 +276,19 @@ function HubUpdateFormComponent(props) {
 
     // return 구문
     return(
-        <div className="hub-content">
+        <main className="wf-container">
+
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">거점 수정</h1>
+                    <p className="wf-page-description">등록된 거점 정보를 수정합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="hub-content">
             { (loginUser.authCode === "ADMIN") ? (
                 <>
-                    <h2 align="center" className="hub-header"><b>거점 수정</b></h2>
-                    <br />
                     <form ref={formRef}>
                         <table width="100%" className="hub-table">
                             <tbody>
@@ -479,9 +487,13 @@ function HubUpdateFormComponent(props) {
                     </form>
                 </>
             ) : (
-                <h2 align="center"><b>해당 페이지는 관리자만 올 수 있습니다.</b></h2>
+                <div className="wf-state wf-error-state">
+                    <div className="wf-state-title">해당 페이지는 관리자만 접근할 수 있습니다.</div>
+                </div>
             ) }
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

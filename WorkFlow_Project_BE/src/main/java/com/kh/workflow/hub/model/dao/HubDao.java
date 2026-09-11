@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
+import com.kh.workflow.dashboard.model.dto.CurrentHubDto;
 import com.kh.workflow.hub.model.vo.Hub;
 
 /**
@@ -38,13 +39,18 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
      * @param keyword 거점 이름 검색 키워드
      * @return 검색 조건이 적용된 페이징 처리된 거점 목록
      */
+    // BUG-XXX 수정: mainRegion/subRegion/keyword 중 하나라도 null(파라미터 미지정)이면
+    // "h.xxx LIKE %:param%"이 JPQL/SQL 3치 논리(NULL 비교)에 의해 항상 UNKNOWN이 되어
+    // 결과가 무조건 0건이 되던 문제. 검색 조건 미지정을 "필터링 없음"으로 취급하도록
+    // (:param IS NULL OR :param = '' OR ...) 가드를 추가했다. 조건이 실제로 주어졌을 때의
+    // 매칭 동작(LIKE %값%)은 기존과 동일하다.
     @EntityGraph(attributePaths = {"hubFileList"})
     @Query("""
     		SELECT h FROM Hub h WHERE
-            h.mainRegion LIKE %:mainRegion% AND
-            h.subRegion LIKE %:subRegion% AND
+            (:mainRegion IS NULL OR :mainRegion = '' OR h.mainRegion LIKE %:mainRegion%) AND
+            (:subRegion IS NULL OR :subRegion = '' OR h.subRegion LIKE %:subRegion%) AND
             h.hubType IN :hubTypes AND
-            h.hubName LIKE %:keyword%
+            (:keyword IS NULL OR :keyword = '' OR h.hubName LIKE %:keyword%)
             ORDER BY h.hubNo DESC
             """)
      Page<Hub> searchHubList(
@@ -111,20 +117,28 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 
 	List<Hub> findByMainRegionAndSubRegionAndHubType(String mainRegion, String subRegion, int hubType);
 
-	@Query("SELECT h.mainRegion FROM Hub h")
+	// BUG: DISTINCT가 없어 거점이 여러 개인 지역이 드롭다운에 중복 노출되던 문제 수정
+	@Query("SELECT DISTINCT h.mainRegion FROM Hub h")
 	List<String> selectMainRegionList();
 
+    // BUG-011: 직원이 워케이션을 2건 이상 신청하면 이 쿼리가 여러 건을 반환해
+    // IncorrectResultSizeDataAccessException(500)이 발생했다. "오늘의 근태"에 쓰이는
+    // 값이므로 현재 진행 중(승인 + 오늘이 기간 내)인 워케이션 하나로 범위를 좁히고,
+    // 그래도 여러 건이 나오는 예외적인 경우를 대비해 List로 받아 서비스에서 첫 값만 사용한다.
+    // 근태(출근/퇴근) 체크 시 필요한 workcationNo/hubNo도 함께 반환한다.
     @Query("""
-    		SELECT h.hubAddress
+    		SELECT new com.kh.workflow.dashboard.model.dto.CurrentHubDto(w.workcationNo, h.hubNo, h.hubAddress)
     		  FROM Hub h
     		  JOIN Reservation r ON r.hub = h
     		  JOIN WorkcationInfo w ON r.workcation = w
     		  JOIN w.employee e
     		 WHERE e.empNo = :empNo
     		   AND h.hubType = 1
+    		   AND w.approverState = 'A'
+    		   AND CURRENT_TIMESTAMP BETWEEN w.startAt AND w.endAt
     		""")
-	String selectHubAddress(@Param("empNo") int empNo);
+	List<CurrentHubDto> selectHubAddress(@Param("empNo") int empNo);
 
-    @Query("SELECT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
+    @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
 	List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
 }

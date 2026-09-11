@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,7 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * 직급별 대시보드 통계 조회 및 워케이션/예약 목록 검색을 담당합니다.
  */
 @Tag(name="Dashboard API", description="직급별 대시보드 조회 관련 API")
-@CrossOrigin
+// CORS는 SecurityConfig에서 중앙 관리 (기본 @CrossOrigin은 모든 origin을 허용해 제거함)
 @RestController
 public class DashboardController {
 	

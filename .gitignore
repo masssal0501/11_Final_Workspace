@@ -1,3 +1,26 @@
 /.metadata/
 /.vscode/
 WorkFlow_Project_BE/uploads/
+
+# =========================================================
+# 민감 정보 - 절대 커밋하지 않는다 (STEP 8 AWS 배포 준비)
+# =========================================================
+
+# 환경변수 파일 (.env.example 템플릿은 예외적으로 커밋 허용)
+.env
+.env.*
+!.env.example
+!workflow_project_fe/.env.example
+
+# 로컬 전용 Spring 프로필 (실제 비밀번호/키가 들어갈 수 있음)
+application-local.properties
+application-*-secret.properties
+
+# EC2용 실제 환경변수 파일 (deploy/workflow.env.example 템플릿만 커밋)
+workflow.env
+!deploy/workflow.env.example
+
+# AWS 자격 증명이 로컬에 잘못 생성된 경우 대비
+.aws/
+*.pem
+*.ppk

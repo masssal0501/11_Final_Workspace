@@ -162,15 +162,23 @@ function ApprovalQueueList() {
     };
 
 
+    // 상태 코드 -> 한글 라벨 + 배지 톤(표시 전용, 데이터 값 자체는 변경하지 않음)
+    const renderStatusBadge = (state) => {
+        const labelMap = { W: "대기", H: "보류", R: "검토", A: "승인", J: "반려", C: "취소" };
+        const toneMap = { W: "bg-warning", H: "bg-secondary", R: "bg-primary", A: "bg-success", J: "bg-danger", C: "bg-secondary" };
+        return <span className={`badge ${toneMap[state] || "bg-secondary"}`}>{labelMap[state] || state || "-"}</span>;
+    };
+
     return (
 
-        <div className="QueueList">
+        <main className="wf-container QueueList">
 
-            <h2 align="center">
-                승인 대기 목록
-            </h2>
-
-            <hr />
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">승인 대기 목록</h1>
+                    <p className="wf-page-description">부서원의 워케이션 신청 중 승인이 필요한 건을 확인합니다.</p>
+                </div>
+            </section>
 
 
             {/* 검색 영역 */}
@@ -343,14 +351,7 @@ function ApprovalQueueList() {
 
 
                                     <td>
-                                        {item.approverState === "W"
-                                            ? "대기"
-                                            : item.approverState === "H"
-                                            ? "보류"
-                                            : item.approverState === "R"
-                                            ? "검토"
-                                            : item.approverState
-                                        }
+                                        {renderStatusBadge(item.approverState)}
                                     </td>
 
                                 </tr>
@@ -359,12 +360,9 @@ function ApprovalQueueList() {
 
                         ) : (
 
-                            <tr>
+                            <tr className="wf-empty-row">
 
-                                <td
-                                    colSpan={6}
-                                    align="center"
-                                >
+                                <td colSpan={6}>
                                     조회된 내역이 없습니다.
                                 </td>
 
@@ -451,7 +449,7 @@ function ApprovalQueueList() {
 
             )}
 
-        </div>
+        </main>
     );
 }
 

@@ -1,13 +1,15 @@
 /* 전체 페이지 */
 .rejectPage {
-    width: 1000px;
+    width: 100%;
+    max-width: 1000px;
     margin: 50px auto;
     padding: 35px 45px;
 
-    background-color: #ffffff;
-    border-radius: 12px;
+    background-color: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-lg);
 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wf-shadow-sm);
 
     box-sizing: border-box;
 }
@@ -20,7 +22,7 @@
     font-size: 24px;
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 
@@ -31,7 +33,7 @@
     font-size: 26px;
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 
@@ -52,7 +54,7 @@
     font-size: 16px;
     font-weight: 600;
 
-    color: #323232;
+    color: var(--wf-text-primary);
 }
 
 
@@ -61,7 +63,7 @@
     display: inline-block;
 
     font-size: 14px;
-    color: #333;
+    color: var(--wf-text-primary);
 }
 
 
@@ -72,7 +74,7 @@
     font-size: 17px;
     font-weight: 700;
 
-    color: #222;
+    color: var(--wf-text-primary);
 }
 
 
@@ -83,9 +85,9 @@
 
     padding: 15px 20px;
 
-    background-color: #ffffff;
+    background-color: var(--wf-white);
 
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--wf-border);
     border-radius: 13px;
 
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
@@ -106,10 +108,10 @@
 
     padding: 0 12px;
 
-    border: 1px solid #d5d5d5;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 8px;
 
-    background-color: #ffffff;
+    background-color: var(--wf-white);
 
     font-size: 14px;
 
@@ -119,7 +121,7 @@
 }
 
 #approverState:focus {
-    border-color: #27d9f0;
+    border-color: var(--wf-primary);
 }
 
 
@@ -130,9 +132,9 @@
 
     padding: 15px 20px;
 
-    background-color: #ffffff;
+    background-color: var(--wf-white);
 
-    border: 1px solid #d5d5d5;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 13px;
 
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
@@ -142,13 +144,13 @@
     font-size: 16px;
     line-height: 1.6;
 
-    resize: vertical;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
 
     outline: none;
 }
 
 .rejectBox:focus {
-    border-color: #27d9f0;
+    border-color: var(--wf-primary);
 
     box-shadow: 0 4px 10px rgba(39, 217, 240, 0.15);
 }
@@ -174,7 +176,7 @@
     border: none;
     border-radius: 8px;
 
-    background-color: #27d9f0;
+    background-color: var(--wf-primary);
     color: white;
 
     font-size: 14px;
@@ -186,7 +188,7 @@
 }
 
 .submit-btn:hover {
-    background-color: #1bbbd0;
+    background-color: var(--wf-primary-dark);
 
     transform: translateY(-2px);
 
@@ -198,11 +200,11 @@
 .back-btn {
     padding: 10px 20px;
 
-    border: 1px solid #d5d5d5;
+    border: 1px solid var(--wf-gray-300);
     border-radius: 8px;
 
-    background-color: #f5f5f5;
-    color: #555;
+    background-color: var(--wf-gray-50);
+    color: var(--wf-text-secondary);
 
     font-size: 14px;
     font-weight: 600;
@@ -213,8 +215,8 @@
 }
 
 .back-btn:hover {
-    background-color: #e5e5e5;
-    color: #333;
+    background-color: var(--wf-gray-100);
+    color: var(--wf-text-primary);
 
     transform: translateY(-2px);
 }

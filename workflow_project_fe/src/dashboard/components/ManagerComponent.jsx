@@ -105,7 +105,16 @@ function ManagerComponent(props) {
     };
 
     return (
-        <div className="dashboard-content">
+        <main className="wf-container">
+            <section className="wf-page-header">
+                <div>
+                    <h1 className="wf-page-title">대시보드</h1>
+                    <p className="wf-page-description">부서 워케이션 현황과 승인/정산 대기 목록을 확인합니다.</p>
+                </div>
+            </section>
+
+            <div className="wf-page-content">
+            <div className="dashboard-content">
             {/* 대시보드 상단 타이틀 (부서명 동적 표시) */}
             <div className="dashboard-1" align="center">{data.depTitle} 워케이션 현황</div>
             <br />
@@ -143,11 +152,15 @@ function ManagerComponent(props) {
                                         <td>{item.empName}</td>
                                         <td>{item.mainRegion}</td>
                                         <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
-                                        <td>[{ (item.approverState === "W") ? "대기" : (item.approverState === "R") ? "검토" : "보류" }]</td>
+                                        <td>{ (item.approverState === "W")
+                                                ? <span className="badge bg-warning">대기</span>
+                                                : (item.approverState === "R")
+                                                    ? <span className="badge bg-info">검토</span>
+                                                    : <span className="badge bg-secondary">보류</span> }</td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">승인 대기 건이 없습니다.</td>
                                 </tr>
                             )}
@@ -168,7 +181,7 @@ function ManagerComponent(props) {
                 <table className="table table-hover">
                     <tbody>
                         { data.noticeData?.length === 0 ? (
-                                <tr style={ { cursor : "auto", backgroundColor: "white"} }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">
                                         등록된 공지사항이 없습니다.
                                     </td>
@@ -237,11 +250,11 @@ function ManagerComponent(props) {
                                         <td>{item.empName}</td>
                                         <td>{item.empId}</td>
                                         <td>{item.amount?.toLocaleString('ko-KR')}원</td>
-                                        <td>[{ (item.approverState === "W") ? "대기" : ""}]</td>
+                                        <td>{ (item.status === "R") && <span className="badge bg-warning">대기</span>}</td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr style={ { cursor : "auto" } }>
+                                <tr className="wf-empty-row">
                                     <td colSpan="5">정산 대기 건이 없습니다.</td>
                                 </tr>
                             )}
@@ -270,7 +283,7 @@ function ManagerComponent(props) {
             <div>
                 <table className="table table-hover">
                     <thead>
-                        <tr>
+                        <tr style={ { cursor: "auto" } }>
                             <th>번호</th>
                             <th>제목</th>
                             <th>지역</th>
@@ -288,22 +301,27 @@ function ManagerComponent(props) {
                                     <td>{item.mainRegion} {item.subRegion}</td>
                                     <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>
                                     <td>{item.empName}</td>
-                                    <td>{ (item.approverState === "W") ? "대기" : 
-                                          (item.approverState === "A") ? "승인" :
-                                          (item.approverState === "C") ? "취소" :
-                                          (item.approverState === "H") ? "보류" :
-                                          (item.approverState === "J") ? "반려" : "검토"}</td>
+                                    <td>
+                                        {item.approverState === "W" ? <span className="badge bg-warning">대기</span> :
+                                         item.approverState === "A" ? <span className="badge bg-success">승인</span> :
+                                         item.approverState === "C" ? <span className="badge bg-secondary">취소</span> :
+                                         item.approverState === "H" ? <span className="badge bg-secondary">보류</span> :
+                                         item.approverState === "J" ? <span className="badge bg-danger">반려</span> :
+                                         <span className="badge bg-primary">검토</span>}
+                                    </td>
                                 </tr>
                             ))
                         ) : (
-                            <tr style={ { cursor : "auto", backgroundColor : "white" } }>
+                            <tr className="wf-empty-row">
                                 <td colSpan="6">워케이션 신청 건이 없습니다.</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
-        </div>
+            </div>
+            </div>
+        </main>
     )
 }
 

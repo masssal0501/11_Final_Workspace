@@ -132,19 +132,26 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 
 	/**
 	 * [관리자] 승인 대기 중인 워케이션 목록 조회 (최신순)
-	 * 
+	 *
+	 * 워케이션 1건에 예약(Reservation)이 2건 이상(예: 오피스 거점 + 숙소 거점)
+	 * 연결된 경우, Reservation을 JOIN하면 워케이션당 예약 건수만큼 행이 곱해져
+	 * 같은 워케이션이 목록에 중복으로 표시되는 버그가 있었다. DISTINCT를 추가해
+	 * 워케이션당 정확히 한 행만 반환하도록 수정.
+	 * (MySQL은 DISTINCT 사용 시 ORDER BY 표현식이 SELECT 목록에 없으면 거부하므로,
+	 * SELECT 목록에 없는 w.workcationNo 대신 이미 프로젝션에 포함된 w.startAt로 정렬한다)
+	 *
 	 * @return List<WaitingListDto> 관리자 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState) 
-		      FROM WorkcationInfo w 
+		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState)
+		      FROM WorkcationInfo w
 		      JOIN w.employee e
 		      JOIN Reservation r ON r.workcation = w
 		      JOIN r.hub h
 		      JOIN Department d ON d.depId = e.depId
-		     WHERE e.depId = d.depId 
-		       AND w.approverState IN ('W', 'R', 'H') 
-		     ORDER BY w.workcationNo DESC
+		     WHERE e.depId = d.depId
+		       AND w.approverState IN ('W', 'R', 'H')
+		     ORDER BY w.startAt DESC
 		    """)
 	List<WaitingListDto> adminSelectWaitingList();
 
@@ -155,7 +162,10 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
-				h.mainRegion,
+				CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주'
+    			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
+    			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
+    			     ELSE '' END,
 				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
 			)
 			  FROM WorkcationInfo w
@@ -243,7 +253,13 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WaitingListDto> 부서 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, e.depId, h.mainRegion, w.startAt, w.endAt, w.approverState) 
+		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(
+			 	e.empName,
+			 	e.depId,
+			 	h.mainRegion,
+			 	w.startAt,
+			 	w.endAt,
+			 	w.approverState) 
 		      FROM WorkcationInfo w 
 		      JOIN w.employee e
 		      JOIN Reservation r ON r.workcation = w
@@ -325,10 +341,10 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
-			   AND e.empName LIKE '%'||:keyword||'%'
-			   AND w.workcationTitle LIKE '%'||:keyword||'%'
-			   AND w.startAt >= :startDate
-			   AND w.endAt <= :endDate
+			   AND (e.empName LIKE '%'||:keyword||'%' OR w.workcationTitle LIKE '%'||:keyword||'%')
+			   AND (:startDate IS NULL OR w.endAt >= :startDate)
+			   AND (:endDate IS NULL OR  w.startAt <= :endDate)
+			   AND (:startDate IS NULL OR :endDate IS NULL OR :startDate < :endDate)
 			""")
 	List<WorkcationListDto> managerSearchWorkcationList(@Param("depId") String depId, @Param("keyword") String keyword,
 			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
@@ -438,8 +454,9 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
 			   AND h.hubName LIKE '%'||:keyword||'%'
-			   AND w.startAt >= :startDate
-			   AND w.endAt <= :endDate
+			   AND (:startDate IS NULL OR r.rsvEnd >= :startDate)
+			   AND (:endDate IS NULL OR  r.rsvStart <= :endDate)
+			   AND (:startDate IS NULL OR :endDate IS NULL OR :startDate < :endDate)
 			""")
 	List<ReservationListDto> staffSearchReservationList(@Param("empNo") int empNo,
 												 @Param("keyword") String keyword,
@@ -447,17 +464,24 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 												 @Param("endDate") LocalDateTime endDate);
 	
 	// 남훈님 작업 - 이창현 옮김 0908_0929
+	// BUG: 목록이 권한과 무관하게 항상 전체를 보여주던 문제 수정 - empNo(STAFF 본인 글만)/
+	// depId(MANAGER 소속 부서만) 조건을 추가. ADMIN은 둘 다 null로 호출해 전체 조회.
 	@Query(value = "SELECT DISTINCT w FROM WorkcationInfo w " + "JOIN Reservation r ON r.workcation = w "
-			+ "JOIN r.hub h " + "WHERE (h.hubType = 1 OR h.hubType = 2) "
+			+ "JOIN r.hub h " + "JOIN w.employee e " + "WHERE (h.hubType = 1 OR h.hubType = 2) "
 			+ "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) "
 			+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion) "
+			+ "AND (:empNo IS NULL OR e.empNo = :empNo) "
+			+ "AND (:depId IS NULL OR e.depId = :depId) "
 			+ "ORDER BY w.workcationNo DESC", countQuery = "SELECT COUNT(DISTINCT w) FROM WorkcationInfo w "
-					+ "JOIN Reservation r ON r.workcation = w " + "JOIN r.hub h "
+					+ "JOIN Reservation r ON r.workcation = w " + "JOIN r.hub h " + "JOIN w.employee e "
 					+ "WHERE (h.hubType = 1 OR h.hubType = 2) "
 					+ "AND (:mainRegion IS NULL OR h.mainRegion = :mainRegion) "
-					+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion)")
+					+ "AND (:subRegion IS NULL OR h.subRegion = :subRegion) "
+					+ "AND (:empNo IS NULL OR e.empNo = :empNo) "
+					+ "AND (:depId IS NULL OR e.depId = :depId)")
 	Page<WorkcationInfo> searchWorkcationList(@Param("mainRegion") String mainRegion,
-			@Param("subRegion") String subRegion, Pageable pageable);
+			@Param("subRegion") String subRegion, @Param("empNo") Integer empNo, @Param("depId") String depId,
+			Pageable pageable);
 
 	Page<WorkcationInfo> findByEmployeeEmpNo(int empNo, Pageable pageable);
 

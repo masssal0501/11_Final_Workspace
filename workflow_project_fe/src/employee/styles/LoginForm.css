@@ -29,7 +29,7 @@ a {
         0 12px 30px rgba(25, 55, 90, 0.08);
 
     /* 기본 글자 */
-    color: #142d50;
+    color: var(--wf-text-primary);
     font-size: 14px;
 }
 
@@ -65,7 +65,7 @@ a {
 
     margin-bottom: 34px;
 
-    color: #142d50;
+    color: var(--wf-text-primary);
 }
 
 .loginLogoMark {
@@ -101,7 +101,7 @@ a {
 .subtitle {
     margin-bottom: 32px;
 
-    color: #142d50;
+    color: var(--wf-text-primary);
 
     font-size: 28px;
     font-weight: 800;
@@ -132,7 +132,7 @@ a {
 
     background: #ffffff;
 
-    color: #142d50;
+    color: var(--wf-text-primary);
 
     font-size: 14px;
 

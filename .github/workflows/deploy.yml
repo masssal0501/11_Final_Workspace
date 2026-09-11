@@ -1,0 +1,185 @@
+name: Deploy WorkFlow to AWS
+
+# Deploy 브랜치에 push될 때만 실행된다 (main에 push해도 배포되지 않음)
+on:
+  push:
+    branches:
+      - Deploy
+
+# 이 워크플로우는 GitHub OIDC를 사용하지 않고, GitHub Secrets에 저장된
+# 장기 AWS Access Key / Secret Key로 인증한다 (permissions: id-token 불필요)
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------------------------------
+      # 1. 소스 checkout (Deploy 브랜치)
+      # ----------------------------------------------------------------
+      - name: Checkout Deploy branch
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------
+      # 2. Backend: JDK 21 + Maven 빌드
+      # ----------------------------------------------------------------
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: WorkFlow_Project_BE/pom.xml
+
+      - name: Build backend (Maven)
+        working-directory: WorkFlow_Project_BE
+        run: ./mvnw -B clean package -DskipTests
+
+      - name: Locate backend JAR
+        id: backend_jar
+        working-directory: WorkFlow_Project_BE
+        run: |
+          JAR_PATH=$(ls target/*.jar | grep -v '\.original$' | head -n1)
+          if [ -z "$JAR_PATH" ]; then
+            echo "실행 가능한 JAR을 찾지 못했습니다 (target/*.jar)" >&2
+            exit 1
+          fi
+          echo "jar_path=WorkFlow_Project_BE/${JAR_PATH}" >> "$GITHUB_OUTPUT"
+
+      # ----------------------------------------------------------------
+      # 3. Frontend: Node.js 22 + npm 빌드
+      # ----------------------------------------------------------------
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workflow_project_fe/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: workflow_project_fe
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: workflow_project_fe
+        env:
+          # Nginx가 "/workflow"를 같은 origin에서 프록시하므로 상대경로를 사용한다
+          # (동일 오리진이라 CORS 자체가 필요 없어짐)
+          VITE_API_BASE_URL: /workflow
+          VITE_KAKAO_APP_KEY: ${{ secrets.KAKAO_APP_KEY }}
+        run: npm run build
+
+      - name: Package frontend build artifact
+        working-directory: workflow_project_fe
+        run: tar -czf frontend-dist.tar.gz -C dist .
+
+      # ----------------------------------------------------------------
+      # 4. AWS 인증 (장기 Access Key/Secret Key - GitHub OIDC 미사용)
+      # ----------------------------------------------------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # ----------------------------------------------------------------
+      # 5. 빌드 산출물을 S3에 업로드 (EC2가 SSM으로 이곳에서 내려받는다)
+      # ----------------------------------------------------------------
+      - name: Upload artifacts to S3
+        env:
+          S3_BUCKET: ${{ secrets.AWS_DEPLOY_BUCKET }}
+          BACKEND_JAR: ${{ steps.backend_jar.outputs.jar_path }}
+        run: |
+          aws s3 cp "${BACKEND_JAR}" "s3://${S3_BUCKET}/backend/workflow-backend.jar"
+          aws s3 cp workflow_project_fe/frontend-dist.tar.gz "s3://${S3_BUCKET}/frontend/frontend-dist.tar.gz"
+
+      # ----------------------------------------------------------------
+      # 6. AWS SSM으로 EC2에 배포 스크립트 실행 (SSH 미사용)
+      #    - EC2가 S3에서 산출물을 내려받아 systemd 재시작 + Nginx 갱신
+      # ----------------------------------------------------------------
+      - name: Deploy to EC2 via SSM
+        env:
+          S3_BUCKET: ${{ secrets.AWS_DEPLOY_BUCKET }}
+          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+        run: |
+          set -euo pipefail
+
+          sed "s|__S3_BUCKET__|${S3_BUCKET}|g" deploy/scripts/remote-deploy.sh > /tmp/remote-deploy.sh
+
+          # --parameters를 shorthand(commands=[...])로 넘기면 스크립트 안의 개행이
+          # 문자 그대로 "\n" 텍스트로 깨져서 전달되는 문제가 있었다(원격에서
+          # "/usr/bin/env: 'bash\n# ...': No such file or directory" 발생).
+          # 순수 JSON을 --parameters에 통째로 넘겨 shorthand 파서를 우회한다.
+          PARAMS_JSON=$(jq -Rn --rawfile script /tmp/remote-deploy.sh '{"commands": [$script]}')
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${EC2_INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "WorkFlow deploy (run ${{ github.run_id }})" \
+            --timeout-seconds 300 \
+            --parameters "${PARAMS_JSON}" \
+            --query "Command.CommandId" --output text)
+
+          echo "SSM Command ID: ${COMMAND_ID}"
+          echo "command_id=${COMMAND_ID}" >> "$GITHUB_ENV"
+
+          # 명령 종료까지 대기 (성공/실패와 무관하게 먼저 대기만 함)
+          aws ssm wait command-executed \
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${EC2_INSTANCE_ID}" || true
+
+      # ----------------------------------------------------------------
+      # 7. 배포 결과 검증 (SSM 명령의 실제 실행 로그 + 상태 확인)
+      # ----------------------------------------------------------------
+      - name: Verify deployment result
+        env:
+          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+        run: |
+          set -euo pipefail
+
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "${command_id}" \
+            --instance-id "${EC2_INSTANCE_ID}" \
+            --query "Status" --output text)
+
+          echo "=== remote-deploy.sh stdout ==="
+          aws ssm get-command-invocation \
+            --command-id "${command_id}" \
+            --instance-id "${EC2_INSTANCE_ID}" \
+            --query "StandardOutputContent" --output text
+
+          echo "=== remote-deploy.sh stderr ==="
+          aws ssm get-command-invocation \
+            --command-id "${command_id}" \
+            --instance-id "${EC2_INSTANCE_ID}" \
+            --query "StandardErrorContent" --output text
+
+          echo "SSM command status: ${STATUS}"
+
+          if [ "${STATUS}" != "Success" ]; then
+            echo "배포 실패 - 위 로그(특히 stderr)와 EC2의 journalctl -u workflow 를 확인할 것"
+            exit 1
+          fi
+
+      # ----------------------------------------------------------------
+      # 8. 외부에서 실제 접속 가능한지 마지막 확인 (선택 사항)
+      #    EC2_PUBLIC_URL 시크릿이 설정된 경우에만 수행
+      # ----------------------------------------------------------------
+      - name: External smoke test
+        env:
+          # if: 조건에서는 secrets 컨텍스트를 직접 참조할 수 없어
+          # (GitHub Actions 제약: "Unrecognized named-value: 'secrets'")
+          # env로 한 번 거쳐서 사용한다.
+          EC2_PUBLIC_URL: ${{ secrets.EC2_PUBLIC_URL }}
+        if: ${{ env.EC2_PUBLIC_URL != '' }}
+        run: |
+          curl -fsS "${EC2_PUBLIC_URL}/workflow/v3/api-docs" -o /dev/null \
+            && echo "외부에서 backend 접근 확인 완료" \
+            || (echo "외부에서 backend 접근 실패" && exit 1)
+
+          curl -fsS "${EC2_PUBLIC_URL}/" -o /dev/null \
+            && echo "외부에서 frontend 접근 확인 완료" \
+            || (echo "외부에서 frontend 접근 실패" && exit 1)

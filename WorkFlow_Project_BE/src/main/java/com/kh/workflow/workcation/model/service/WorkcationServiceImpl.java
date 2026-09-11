@@ -75,12 +75,12 @@ public class WorkcationServiceImpl implements WorkcationService {
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
 		int empNo = (int) paramMap.get("empNo");
+		String authCode = (String) paramMap.get("authCode");
+		String depId = (String) paramMap.get("depId");
 
 		// 1. 오라클 DB용 빈문자열 NULL 변환
 		String mainRegion = paramMap != null ? (String) paramMap.get("mainRegion") : null;
 		String subRegion = paramMap != null ? (String) paramMap.get("subRegion") : null;
-
-		Page<WorkcationInfo> workcationPage = workcationDao.findByEmployeeEmpNo(empNo, pageable);
 
 		if (mainRegion != null && mainRegion.trim().isEmpty()) {
 			mainRegion = null;
@@ -89,8 +89,18 @@ public class WorkcationServiceImpl implements WorkcationService {
 			subRegion = null;
 		}
 
-		// 2. 검색 조건 적용된 JPQL 쿼리 호출 (findAll 대신 적용)
-		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, pageable);
+		// BUG: 권한과 무관하게 항상 전체 목록이 노출되던 문제 수정.
+		// STAFF는 본인 신청 건만, MANAGER는 소속 부서 신청 건만, ADMIN은 전체를 본다.
+		Integer filterEmpNo = "STAFF".equals(authCode) ? empNo : null;
+		String filterDepId = "MANAGER".equals(authCode) ? depId : null;
+
+		// 2. 검색 조건 + 권한 조건이 함께 적용된 JPQL 쿼리 호출 (findAll 대신 적용)
+		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, filterEmpNo,
+				filterDepId, pageable);
+
+		// 람다식에서 참조하려면 effectively final이어야 하므로 별도 변수로 고정
+		final String filterMainRegion = mainRegion;
+		final String filterSubRegion = subRegion;
 
 		return page.map(workcation -> {
 			Map<String, Object> map = new HashMap<>();
@@ -101,30 +111,51 @@ public class WorkcationServiceImpl implements WorkcationService {
 			map.put("employee", workcation.getEmployee());
 
 			// 3. 람다식 내부 변수명 중복 해결 (hubMainRegion, hubSubRegion으로 변경)
+			// BUG: 워케이션 1건에 예약(Reservation)이 여러 건 있는 경우, 지역 필터
+			// 조건과 무관하게 항상 "첫 번째" 예약의 거점 지역만 표시하고 있었다.
+			// 그 결과 mainRegion/subRegion으로 필터링해도 목록에는 필터 조건과
+			// 다른 지역이 노출되는 경우가 있었다(검색 자체는 예약 중 하나라도
+			// 매칭되면 해당 워케이션을 반환하기 때문). 필터가 걸려 있으면 그
+			// 필터와 실제로 일치하는 예약의 거점을 우선 표시한다.
 			List<Reservation> reservations = reservationDao.findByWorkcationWorkcationNo(workcation.getWorkcationNo());
 			String hubMainRegion = "";
 			String hubSubRegion = "";
 
 			if (reservations != null && !reservations.isEmpty()) {
+
+				Hub matchedHub = null;
+				Hub firstHub = null;
+
 				for (Reservation r : reservations) {
 
-					if (r.getHub() != null) {
-
-						Hub hub = hubDao.findById(r.getHub().getHubNo()).orElse(null);
-
-						if (hub != null) {
-
-							int hubType = hub.getHubType();
-							if (hubType == 1 || hubType == 2) {
-
-							}
-							hubMainRegion = hub.getMainRegion() != null ? hub.getMainRegion() : "";
-
-							hubSubRegion = hub.getSubRegion() != null ? hub.getSubRegion() : "";
-
-							break;
-						}
+					if (r.getHub() == null) {
+						continue;
 					}
+
+					Hub hub = hubDao.findById(r.getHub().getHubNo()).orElse(null);
+
+					if (hub == null) {
+						continue;
+					}
+
+					if (firstHub == null) {
+						firstHub = hub;
+					}
+
+					boolean matchesMain = filterMainRegion == null || filterMainRegion.equals(hub.getMainRegion());
+					boolean matchesSub = filterSubRegion == null || filterSubRegion.equals(hub.getSubRegion());
+
+					if (matchesMain && matchesSub) {
+						matchedHub = hub;
+						break;
+					}
+				}
+
+				Hub hub = matchedHub != null ? matchedHub : firstHub;
+
+				if (hub != null) {
+					hubMainRegion = hub.getMainRegion() != null ? hub.getMainRegion() : "";
+					hubSubRegion = hub.getSubRegion() != null ? hub.getSubRegion() : "";
 				}
 			}
 
@@ -210,27 +241,29 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		WorkcationInfo workcation = workcationDao.save(info);
 
-		Work work = new Work();
-		work.setWorkcationInfo(workcation);
-		work.setSubmittedAt(LocalDateTime.now());
+		// BUG-009: 업무계획을 workcation_info.work_plan 텍스트로만 저장하고 실제
+		// work/task 레코드를 만들지 않아, "내 워케이션" 화면의 업무 진행률 변경이
+		// 동작할 수 없었다(진행률을 저장할 실제 task_no가 존재하지 않았음). 신청 시점에
+		// 실제 Work 1건 + 업무계획 항목별 Task를 생성해 진행률 추적이 가능하도록 한다.
+		if (planList != null && !planList.isEmpty()) {
 
-		Work saveWork = workDao.save(work);
-
-		if (planList != null) {
+			Work work = new Work();
+			work.setWorkcationInfo(workcation);
+			work = workDao.save(work);
 
 			for (Map<String, Object> planItem : planList) {
-
 				String taskName = (String) planItem.get("taskName");
+				Object daysObj = planItem.get("days");
+				int days = daysObj != null ? Integer.parseInt(daysObj.toString()) : 1;
 
 				Task task = new Task();
-
+				task.setWork(work);
 				task.setTaskTitle(taskName);
-				task.setTaskContent("");
-				task.setTasktimeAt(LocalDateTime.now());
+				task.setTaskContent(taskName + " (" + days + "일)");
+				task.setTasktimeAt(startAt);
+				task.setTaskendAt(startAt.plusDays(days));
 				task.setProgress(0);
 				task.setStatus("N");
-				task.setWork(saveWork);
-
 				taskDao.save(task);
 			}
 		}
@@ -262,6 +295,14 @@ public class WorkcationServiceImpl implements WorkcationService {
 		}
 
 		amount.setApprovedAmount(approvedAmount);
+
+		// amount.requested_amount는 NOT NULL 컬럼인데 설정이 누락되어 있었음(BUG-003).
+		// 프론트가 신청 시점에 계산해 보내는 실제 지출 총액(totalCost)을 사용한다.
+		Integer requestedAmount = 0;
+		if (paramMap.get("totalCost") != null) {
+			requestedAmount = Integer.parseInt(paramMap.get("totalCost").toString());
+		}
+		amount.setRequestedAmount(requestedAmount);
 
 		amount.setRequestedAt(LocalDateTime.now());
 		amount.setCreatedAt(LocalDateTime.now());
@@ -367,6 +408,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 		Map<String, Object> result = new HashMap<>();
 		result.put("workcationNo", workcation.getWorkcationNo());
 		result.put("workcationTitle", workcation.getWorkcationTitle());
+		// BUG-008: 상세 화면이 승인 상태를 표시하지 못해 항상 "신청 완료"로 고정 노출되던
+		// 문제의 근본 원인 - 이 맵에 approverState 자체가 빠져 있었음.
 		result.put("writerEmpNo", workcation.getEmployee() != null ? workcation.getEmployee().getEmpNo() : null);
 
 		result.put("approverState", workcation.getApproverState());
@@ -421,44 +464,39 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("totalCost", totalCost);
 		result.put("personalCost", Math.max(0, totalCost - totalSupport));
 
-		// workPlan 파싱
+		// BUG-009 수정: workPlan 텍스트를 매 요청마다 파싱해 매번 새로운 임의 id를
+		// 부여하던 방식(진행률 저장이 원천적으로 불가능했음) 대신, 실제 Work/Task
+		// 레코드를 조회해 진짜 taskNo/progress를 반환한다. "[근무 목적] ..." 부분만
+		// 여전히 텍스트에서 추출한다(별도 컬럼이 없음).
 		List<Map<String, Object>> planList = new ArrayList<>();
 		String workPlan = workcation.getWorkPlan();
 		String actualPurpose = "";
 
-		if (workPlan != null && !workPlan.isEmpty()) {
-			String[] tokens = workPlan.split(" / ");
-			for (String token : tokens) {
-				token = token.trim();
-				if (token.startsWith("[근무 목적]")) {
-					actualPurpose = token.replace("[근무 목적]", "").trim();
-				} else {
-					int idxOpen = token.lastIndexOf("(");
-					int idxClose = token.lastIndexOf("일)");
-					if (idxOpen != -1 && idxClose != -1 && idxClose > idxOpen) {
-						String taskName = token.substring(0, idxOpen).trim();
-						try {
-							int days = Integer.parseInt(token.substring(idxOpen + 1, idxClose).trim());
-							Map<String, Object> planMap = new HashMap<>();
-							planMap.put("id", System.currentTimeMillis() + Math.random());
-							planMap.put("taskName", taskName);
-							planMap.put("days", days);
-							planList.add(planMap);
-						} catch (NumberFormatException e) {
-							Map<String, Object> planMap = new HashMap<>();
-							planMap.put("id", System.currentTimeMillis() + Math.random());
-							planMap.put("taskName", token);
-							planMap.put("days", 1);
-							planList.add(planMap);
-						}
-					} else if (!token.isEmpty()) {
-						Map<String, Object> planMap = new HashMap<>();
-						planMap.put("id", System.currentTimeMillis() + Math.random());
-						planMap.put("taskName", token);
-						planMap.put("days", 1);
-						planList.add(planMap);
-					}
+		if (workPlan != null && workPlan.startsWith("[근무 목적]")) {
+			int sepIdx = workPlan.indexOf(" / ");
+			String purposeToken = sepIdx != -1 ? workPlan.substring(0, sepIdx) : workPlan;
+			actualPurpose = purposeToken.replace("[근무 목적]", "").trim();
+		}
+
+		// 워케이션 1건에 Work가 여러 건(예: 날짜별 근무) 있을 수 있으므로 전부 순회한다.
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcation.getWorkcationNo());
+		for (Work work : workList) {
+			List<Task> taskList = taskDao.findByWork_WorkNo(work.getWorkNo());
+			for (Task task : taskList) {
+				long days = 1;
+				if (task.getTasktimeAt() != null && task.getTaskendAt() != null) {
+					days = java.time.temporal.ChronoUnit.DAYS.between(
+							task.getTasktimeAt().toLocalDate(), task.getTaskendAt().toLocalDate());
 				}
+				Map<String, Object> planMap = new HashMap<>();
+				planMap.put("id", task.getTaskNo());
+				planMap.put("taskNo", task.getTaskNo());
+				planMap.put("taskName", task.getTaskTitle());
+				planMap.put("taskContent", task.getTaskContent());
+				planMap.put("progress", task.getProgress());
+				planMap.put("status", task.getStatus());
+				planMap.put("days", days);
+				planList.add(planMap);
 			}
 		}
 
@@ -949,6 +987,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 		task.setProgress(progress);
 		task.setTaskTitle(title);
 		task.setTaskContent(content);
+		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
+		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
+		task.setStatus(progress == 100 ? "Y" : "N");
 
 		// 워케이션 업무계획 제목 동기화
 		Work work = task.getWork();
@@ -1034,8 +1075,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 			workFile.setFileSize(file.getSize());
 			workFile.setStatus("Y");
 
-			// task가 소속된 work 연결
-			workFile.setWork(task.getWork());
+			// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조한다
+			workFile.setTask(task);
 
 			workFileDao.save(workFile);
 		}
@@ -1097,6 +1138,16 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		Work work = workList.get(0);
 
+		// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조하므로
+		// 첨부파일을 연결할 구체적인 task가 필요하다.
+		List<Task> taskList = taskDao.findByWork_WorkNo(work.getWorkNo());
+
+		if (taskList.isEmpty()) {
+			throw new RuntimeException("첨부파일을 연결할 업무 정보를 찾을 수 없습니다.");
+		}
+
+		Task task = taskList.get(0);
+
 		String originName = file.getOriginalFilename();
 
 		String extension = "";
@@ -1127,7 +1178,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		WorkFile workFile = new WorkFile();
 
-		workFile.setWork(work);
+		workFile.setTask(task);
 		workFile.setOriginName(originName);
 		workFile.setChangeName(changeName);
 		workFile.setFilePath("/uploads/work/");
