@@ -147,7 +147,11 @@ function PlaceDetail() {
                 <div className="place-rating">
                     <span className="rating-star">⭐️</span>
                     <span className="rating-score">평점</span>
-                    <span className="rating-value">-</span>
+                    <span className="rating-value">
+                        {place.averageRating != null
+                            ? Number(place.averageRating).toFixed(1)
+                            : "-"}
+                    </span>
                 </div>
 
                 {/* 설명 */}

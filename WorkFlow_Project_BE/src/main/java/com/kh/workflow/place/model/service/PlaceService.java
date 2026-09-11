@@ -5,27 +5,28 @@ import java.util.List;
 import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
-import org.springframework.web.multipart.MultipartFile;
+import com.kh.workflow.place.model.dto.PlaceDto;
 
 public interface PlaceService {
 
-	List<Hub> selectPlaceList(
-	        int cpage,
-	        String keyword,
-	        String type,
-	        String region,
-	        String subRegion
-	);
+    List<Hub> selectPlaceList(
+            int cpage,
+            String keyword,
+            String type,
+            String region,
+            String subRegion
+    );
 
-	PageInfo getPlacePageInfo(
-	        int cpage,
-	        String keyword,
-	        String type,
-	        String region,
-	        String subRegion
-	);
+    PageInfo getPlacePageInfo(
+            int cpage,
+            String keyword,
+            String type,
+            String region,
+            String subRegion
+    );
 
-    Hub selectPlace(int hubNo);
+    // 상세조회는 장소 정보 + 평균 평점을 DTO로 반환
+    PlaceDto selectPlace(int hubNo);
 
     Hub insertPlace(Hub h);
 

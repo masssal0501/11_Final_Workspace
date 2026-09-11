@@ -74,6 +74,24 @@ public interface PlaceDao extends JpaRepository<Hub, Integer> {
     // - hubNo를 기준으로 장소 상세정보 조회
     // =========================================================
     Hub findByHubNo(int hubNo);
+    @Query("""
+    		SELECT AVG(sa.score)
+    		  FROM Hub h
+    		  JOIN Reservation r
+    		  	ON r.hub.hubNo = h.hubNo
+    		  JOIN WorkcationSurvey ws
+    		  	ON ws.workcationInfo.workcationNo = r.workcation.workcationNo
+    		  JOIN SurveyAnswer sa
+    		  	ON sa.workcationSurvey.surveyNo = ws.surveyNo
+    		 WHERE h.hubNo = :hubNo
+    		   AND (
+    		   		(h.hubType = 3 AND sa.surveyQuestion.questionNo = 4)
+    		   		OR
+    		   		(h.hubType IN (4, 5) AND sa.surveyQuestion.questionNo = 1)    		   		
+    		   )
+    		 
+    		""")
+    		Double findAverageRating(@Param("hubNo") int hubNo);
 
 
     // =========================================================
