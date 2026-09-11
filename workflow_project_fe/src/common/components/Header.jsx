@@ -76,8 +76,8 @@ function Header({ loginUser, onLogout }) {
           roles: ["MANAGER"]
         } ,
         { 
-          label: "신청 내역 목록", 
-          path: "/workcation/list"
+          label: "내 신청 내역 목록", 
+          path: "/workcation/mylist"
         } ,
         { 
           label: "시설 예약 관리", 
