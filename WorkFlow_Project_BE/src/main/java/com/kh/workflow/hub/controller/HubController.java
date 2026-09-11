@@ -254,14 +254,12 @@ public class HubController {
 					.body("AI 챗봇 기능을 사용할 수 없습니다. (GEMINI_API_KEY 미설정)");
 		}
 
-		Pageable pageable = Pageable.unpaged();
-        Page<Hub> hubPage = hubService.selectHubList(pageable, List.of(1, 2)); // 예시 타입 목록
-        List<Hub> hubList = hubPage.getContent();
+        List<Hub> hubList = hubService.selectAIHubList();
         
         StringBuilder dbHubInfo = new StringBuilder();
         for (Hub hub : hubList) {
-            dbHubInfo.append(String.format("- 거점명: %s, 지역: %s, 상세지역: %s, 상세설명: %s, 거점 주소: %s, 전화번호: %s, 최대수용인원: %d, 기본 이용요금: %d, 운영상태: %s\n", 
-                hub.getHubName(), hub.getMainRegion(), hub.getSubRegion(), hub.getDescription(), hub.getHubAddress(), hub.getPhone(), hub.getMaxCapacity(), hub.getPrice(), hub.getHubStatus()));
+            dbHubInfo.append(String.format("- 거점이름: %s, 시설 유형: %d 지역: %s, 상세지역: %s, 상세설명: %s, 거점 주소: %s, 전화번호: %s, 최대수용인원: %d, 기본 이용요금: %d, 운영상태: %s\n", 
+                hub.getHubName(), hub.getHubType(), hub.getMainRegion(), hub.getSubRegion(), hub.getDescription(), hub.getHubAddress(), hub.getPhone(), hub.getMaxCapacity(), hub.getPrice(), hub.getHubStatus()));
         }
         
         // 동적 시스템 프롬프트 작성 (기본 규칙 + DB 실시간 데이터)
@@ -274,6 +272,7 @@ public class HubController {
                 
                 [현재 DB에 등록된 실제 거점 데이터 목록]
                 %s
+                (시설 유형 => 1:공유오피스 2:숙소 3:체험프로그램 4: 맛집 5: 관광지)
                 
                 [답변 형식]
 				1. 상대가 지역을 언급하면 해당 지역을 고르고 지역을 언급하지 않았다면 강원도, 제주도, 부산광역시 중에서 하나를 골라줘
