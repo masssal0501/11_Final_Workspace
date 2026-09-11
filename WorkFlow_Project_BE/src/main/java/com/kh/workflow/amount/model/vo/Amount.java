@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kh.workflow.workcation.model.vo.WorkcationInfo;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,9 +14,12 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,50 +27,66 @@ import lombok.ToString;
 
 @Entity
 @Table(name = "amount")
-
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString(exclude = {
         "itemList",
         "supportList",
-        "amountFile"
+        "amountFile",
+        "workcationInfo"
 })
 public class Amount {
 
     // =========================================================
-    // 1. amount_support
+    // 1. amount
     // =========================================================
 
-    @Schema(description = "비용번호", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(
+        description = "비용번호",
+        accessMode = Schema.AccessMode.READ_ONLY
+    )
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "amount_no")
     private Integer amountNo;
 
+
     @Schema(description = "신청 금액")
     @Column(name = "requested_amount")
     private Integer requestedAmount;
+
 
     @Schema(description = "승인 금액")
     @Column(name = "approved_amount")
     private Integer approvedAmount;
 
+
     @Schema(description = "신청일")
-    @Column(name = "requested_at", nullable = false)
+    @Column(
+        name = "requested_at",
+        nullable = false
+    )
     private LocalDateTime requestedAt;
+
 
     @Schema(description = "승인일")
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
+
     @Schema(description = "등록일")
-    @Column(name = "created_at", nullable = false)
+    @Column(
+        name = "created_at",
+        nullable = false
+    )
     private LocalDateTime createdAt;
+
 
     @Schema(description = "수정일")
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
 
     /**
      * A : 승인
@@ -76,36 +97,97 @@ public class Amount {
      */
     @Schema(
         description = "비용 상태",
-        allowableValues = {"A", "C", "H", "J", "R"}
+        allowableValues = {
+            "A",
+            "C",
+            "H",
+            "J",
+            "R"
+        }
     )
-    @Column(name = "status", length = 10, nullable = false)
+    @Column(
+        name = "status",
+        length = 10,
+        nullable = false
+    )
     private String status;
 
+
     @Schema(description = "비용 신청 사유")
-    @Column(name = "amount_comment", length = 300)
+    @Column(
+        name = "amount_comment",
+        length = 300
+    )
     private String amountComment;
 
+
+    // =========================================================
+    // 2. 워케이션 번호
+    // =========================================================
+
     @Schema(description = "워케이션 번호")
-    @Column(name = "workcation_no", nullable = false)
+    @Column(
+        name = "workcation_no",
+        nullable = false
+    )
     private Integer workcationNo;
 
 
     // =========================================================
-    // 조회용
+    // 3. WorkcationInfo 연관관계
+    //
+    // amount.workcation_no
+    //        ↓
+    // workcation_info.workcation_no
     // =========================================================
 
-    /**
-     * employee.emp_name
-     *
-     * 조회 시 JOIN하여 사용하는 값
-     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "workcation_no",
+        nullable = false,
+        insertable = false,
+        updatable = false
+    )
+    private WorkcationInfo workcationInfo;
+
+
+    // =========================================================
+    // 4. 사원명
+    //
+    // amount
+    //   ↓
+    // workcationInfo
+    //   ↓
+    // employee
+    //   ↓
+    // empName
+    //
+    // amount 테이블에는 emp_name 컬럼이 없으므로
+    // @Transient 조회용 프로퍼티로 처리
+    // =========================================================
+
     @Transient
-    @Schema(description = "사원명", accessMode = Schema.AccessMode.READ_ONLY)
-    private String empName;
+    @Schema(
+        description = "사원명",
+        accessMode = Schema.AccessMode.READ_ONLY
+    )
+    public String getEmpName() {
+
+        if (workcationInfo == null) {
+            return null;
+        }
+
+        if (workcationInfo.getEmployee() == null) {
+            return null;
+        }
+
+        return workcationInfo.getEmployee().getEmpName();
+    }
 
 
     // =========================================================
-    // 2. amount_item
+    // 5. amount_item
+    //
     // Amount 1 : N AmountItem
     // =========================================================
 
@@ -119,7 +201,8 @@ public class Amount {
 
 
     // =========================================================
-    // 3. support_list
+    // 6. amount_list
+    //
     // Amount 1 : N SupportList
     // =========================================================
 
@@ -133,7 +216,8 @@ public class Amount {
 
 
     // =========================================================
-    // 4. amount_file
+    // 7. amount_file
+    //
     // Amount 1 : N AmountFile
     // =========================================================
 
@@ -147,35 +231,78 @@ public class Amount {
 
 
     // =========================================================
-    // 연관관계 편의 메서드
+    // 8. AmountItem 연관관계 편의 메서드
     // =========================================================
 
     public void addItem(AmountItem item) {
+
+        if (item == null) {
+            return;
+        }
+
         itemList.add(item);
         item.setAmount(this);
     }
 
+
     public void removeItem(AmountItem item) {
+
+        if (item == null) {
+            return;
+        }
+
         itemList.remove(item);
         item.setAmount(null);
     }
 
+
+    // =========================================================
+    // 9. SupportList 연관관계 편의 메서드
+    // =========================================================
+
     public void addSupport(SupportList support) {
+
+        if (support == null) {
+            return;
+        }
+
         supportList.add(support);
         support.setAmount(this);
     }
 
+
     public void removeSupport(SupportList support) {
+
+        if (support == null) {
+            return;
+        }
+
         supportList.remove(support);
         support.setAmount(null);
     }
 
+
+    // =========================================================
+    // 10. AmountFile 연관관계 편의 메서드
+    // =========================================================
+
     public void addAmountFile(AmountFile file) {
+
+        if (file == null) {
+            return;
+        }
+
         amountFile.add(file);
         file.setAmount(this);
     }
 
+
     public void removeAmountFile(AmountFile file) {
+
+        if (file == null) {
+            return;
+        }
+
         amountFile.remove(file);
         file.setAmount(null);
     }

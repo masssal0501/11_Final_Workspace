@@ -252,6 +252,17 @@ public class SecurityConfig {
                         ).authenticated()
 
 
+                        // KS PR 병합 중 발견: GET /api/v1/amounts(전체 목록, 관리자 전용
+                        // AdminAmount.jsx에서만 호출)가 다른 사람의 정산 데이터를 전부
+                        // 반환하는데도 authenticated()만 걸려 있어 STAFF/MANAGER도 직접
+                        // API를 호출하면 전체 목록을 볼 수 있었다. /api/v1/amounts/**보다
+                        // 먼저 선언해 이 정확한 경로만 ADMIN 전용으로 좁힌다
+                        // (Spring Security는 먼저 선언된 규칙을 우선 적용).
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/amounts"
+                        ).hasRole("ADMIN")
+
                         // 비용 조회 - 로그인 사용자(STAFF/MANAGER/ADMIN)면 누구나
                         .requestMatchers(
                         	    HttpMethod.GET,
