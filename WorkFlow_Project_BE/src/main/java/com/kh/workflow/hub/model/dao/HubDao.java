@@ -142,4 +142,12 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 
     @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion")
 	List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
+
+    /**
+     * 거점 목록 조회 (AI 전용)
+     * 
+     * @param hubStatus 운영 상태 정보
+     * @return OPEN 상태인 거점 목록
+     */
+	List<Hub> findByHubStatus(String hubStatus);
 }
