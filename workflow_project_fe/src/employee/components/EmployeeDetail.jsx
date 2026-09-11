@@ -162,8 +162,9 @@ function EmployeeDetail() {
                                 </tr>
                             </tbody>
                         </table>
+                        {/* BUG-002: navigate(-1) 대신 직원 목록으로 고정 이동(직접 URL 접근 대응) */}
                         <button type="button" className="btn btn-secondary"
-                        onClick={() => navigate(-1)}>
+                        onClick={() => navigate("/employee/list")}>
                             돌아가기
                         </button>
                         <button type="button" className="btnPrimary"

@@ -58,15 +58,6 @@ function ApprovalQueueDetail() {
         <div className="workcation-detail-container">
             <h2 align="center">워케이션 상세 조회</h2>
 
-            <div className="common-btn-group">
-                <button
-                    type="button"
-                    className="back-space"
-                    onClick={() => navigate('/workcation/list')}>
-                    뒤로가기
-                </button>
-            </div>
-
             <table className="workcation-form-table">
                 <tbody>
                     <tr>
@@ -261,9 +252,12 @@ function ApprovalQueueDetail() {
                     상태 처리
                 </button>
 
+                {/* BUG-003: 상단 "뒤로가기"(잘못된 /workcation/list로 이동)와 기능이 중복되어
+                    삭제하고 이 버튼만 유지. BUG-002 원칙에 따라 navigate(-1) 대신
+                    이 상세 페이지의 실제 목록인 승인 대기 목록으로 고정 이동한다. */}
                 <button
                     type="button"
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate('/approval/queue/list')}
                 >
                     이전으로
                 </button>

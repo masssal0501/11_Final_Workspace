@@ -215,8 +215,11 @@ function PlaceDetail() {
                 )}
 
 
+                {/* BUG-001: navigate(-1)은 목록에서 정상적으로 들어온 경우가 아니라
+                    URL 직접 접근 등으로 history가 다른 페이지일 때 엉뚱한 곳으로 이동했다.
+                    지역 정보 목록으로 고정 이동하도록 수정. */}
                 <button className="backButton"
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate("/place/list")}
                 >
                     뒤로가기
                 </button>

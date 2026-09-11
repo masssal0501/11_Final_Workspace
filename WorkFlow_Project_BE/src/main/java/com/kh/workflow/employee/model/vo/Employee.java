@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -130,6 +131,12 @@ public class Employee {
         length = 20
     )
     private String jobCode;
+
+    // BUG-004: 승인 이력 상세에서 "부서코드-직원명"이 아니라 "부서명-직원명"으로 표시하기 위한 필드.
+    // DB 컬럼이 아니라 서비스 계층에서 EmployeeDao.selectDepTitle(depId)로 조회해 채워 넣는
+    // 응답 전용 필드이며, dep_id 컬럼 매핑(depId)이나 DB 스키마에는 영향이 없다.
+    @Transient
+    private String depTitle;
 
 
     @PrePersist

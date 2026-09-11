@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getMainRegionList, getSubRegionList, getWorkcationList } from "../api/WorkcationApi";
+import { getStatusText, getStatusTone } from "../utils/StatusBadge";
 
 import WorkcationScheduleComponent from "./WorkcationScheduleComponent";
 
@@ -82,20 +83,11 @@ function WorkcationListComponent({ loginUser }) {
         }
     };
 
-    // 상태값을 배지로 표시하기 위한 톤 매핑(표시 전용, 데이터 값 자체는 변경하지 않음)
+    // BUG-006: 상태 코드(R/D 등)가 매핑되지 않아 화면에 코드 그대로 노출되던 문제 -
+    // 공통 유틸(StatusBadge.js)로 라벨/톤 변환을 통일한다.
     const renderStatusBadge = (item) => {
-        const raw = item.approverState || item.workcationStatus || "대기";
-        const toneMap = {
-            "대기": "bg-warning", "W": "bg-warning",
-            "승인": "bg-success", "A": "bg-success",
-            "취소": "bg-secondary", "C": "bg-secondary",
-            "보류": "bg-secondary", "H": "bg-secondary",
-            "반려": "bg-danger", "J": "bg-danger",
-        };
-        const labelMap = { "W": "대기", "A": "승인", "C": "취소", "H": "보류", "J": "반려" };
-        const label = labelMap[raw] || raw;
-        const tone = toneMap[raw] || "bg-primary";
-        return <span className={`badge ${tone}`}>{label}</span>;
+        const raw = item.approverState || item.workcationStatus || "W";
+        return <span className={`badge ${getStatusTone(raw)}`}>{getStatusText(raw)}</span>;
     };
 
     // 응답 데이터 처리 후 공통 함수 (dataList, pageList)

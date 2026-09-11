@@ -100,6 +100,19 @@ export default function AmountDetail() {
     const navigate = useNavigate();
     const { amountNo } = useParams();
 
+    // BUG-002: "목록" 버튼이 role과 무관하게 항상 ADMIN 전용 라우트(/admin/cost/list)로
+    // 고정돼 있어, STAFF/MANAGER가 자신의 정산 상세(/cost/detail/:amountNo)에서 클릭하면
+    // 접근 권한이 없는 관리자 화면으로 이동해 에러 페이지로 튕기는 문제가 있었다.
+    // 로그인 사용자의 role에 맞는 목록 경로로 이동하도록 수정.
+    const costListPath = (() => {
+        try {
+            const savedUser = JSON.parse(localStorage.getItem("user"));
+            return savedUser?.authCode === "ADMIN" ? "/admin/cost/list" : "/cost/list";
+        } catch {
+            return "/cost/list";
+        }
+    })();
+
     const [detail, setDetail] = useState(null);
 
     const [loading, setLoading] = useState(true);
@@ -198,7 +211,7 @@ export default function AmountDetail() {
                     "비용 정산 상세 정보를 불러오지 못했습니다."
                 );
 
-                navigate("/admin/cost/list");
+                navigate(costListPath);
 
             } finally {
 
@@ -680,7 +693,7 @@ export default function AmountDetail() {
                     <button
                         type="button"
                         onClick={() =>
-                            navigate("/admin/cost/list")
+                            navigate(costListPath)
                         }
                     >
                         목록
@@ -1327,7 +1340,7 @@ export default function AmountDetail() {
                 <button
                     type="button"
                     onClick={() =>
-                        navigate("/admin/cost/list")
+                        navigate(costListPath)
                     }
                 >
                     목록

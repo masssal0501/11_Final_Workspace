@@ -1,4 +1,10 @@
-.workcation-form-table,
+/* BUG-009: 이 규칙이 원래 .workcation-form-table에도 display:flex를 적용하고 있었다.
+   테이블에 display:flex가 걸리면(아래 77번째 줄 주석 "display: flex 절대 금지"가 원래
+   의도했던 바) 표는 table-layout 대신 flex 레이아웃으로 계산되어 열 너비가 콘텐츠에 따라
+   불안정해지고, 거점 유형(office/accommodation)을 바꿔 라벨/옵션 텍스트가 달라질 때마다
+   입력창/셀렉트 폭이 흔들리며 글자가 잘리는 원인이었다. table에는 display:flex를 적용하지
+   않도록 .task-plan-box / .all-price-container만 남긴다(둘 다 아래에서 display:flex를
+   다시 선언하므로 동작은 그대로 유지된다). */
 .task-plan-box,
 .all-price-container {
     margin: auto;
@@ -140,6 +146,18 @@
 
 .workcation-form-table td {
     color: var(--wf-text-primary);
+}
+
+.workcation-form-table input {
+    /* BUG-009: 너비 지정이 없으면 브라우저 기본 폭으로 렌더링되어 셀 밖으로 값이
+       넘쳐 보이는 문제가 있었다 - 셀 너비에 맞춰 채우도록 고정한다.
+       select에는 적용하지 않는다: "지역" 셀처럼 select 두 개를 .drop-group(flex)로
+       나란히 배치하는 곳에서 width:100%를 주면 각 select가 flex 폭의 절반으로
+       강제로 줄어들어 오히려 "제주도"/"서귀포시" 같은 긴 지역명이 잘리는
+       회귀가 발생했다. select는 기본 동작(선택된 option 텍스트 기준 크기)이
+       더 안전하다. */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .workcation-form-table input,

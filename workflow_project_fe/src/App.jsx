@@ -36,6 +36,7 @@ import TaskDetailComponent from './taskboard/components/TaskDetailComponent';
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
+import WorkcationUpdateFormComponent from './workcation/components/WorkcationUpdateFormComponent';
 import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
 import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
 import SurveyForm from './survey/components/SurveyForm';
@@ -283,6 +284,10 @@ function App() {
                 {/* 워케이션 라우트 */}
                 <Route path="/workcation/list" element={<WorkcationListComponent loginUser={loginUser} />} />
                 <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
+                {/* BUG-NEW: WorkcationDetailComponent의 "수정" 버튼이 이 경로로 이동하지만
+                    Route가 등록돼 있지 않아 항상 에러 페이지로 빠지던 문제 - 이미 구현되어
+                    있던 WorkcationUpdateFormComponent를 연결한다. */}
+                <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
                 {/* 관리자는 워케이션을 직접 신청하지 않는다 */}
                 {loginUser.authCode !== "ADMIN" && (
                     <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />

@@ -80,9 +80,19 @@
     width: 100%;
     max-width: 880px;
     margin: 0 auto;
-    border-collapse: separate; 
-    border-spacing: 0 6px;     
+    border-collapse: separate;
+    border-spacing: 0 6px;
     box-sizing: border-box;
+}
+
+/* BUG-005: .workcation-form-table 클래스명이 WorkcationEnrollForm.css에서도
+   재사용되면서(margin 초기화 등) 최종 번들 순서에 따라 위 규칙이 덮여쓰여
+   Workcation Detail 화면에서 테이블이 가운데 정렬되지 않는 문제가 있었다.
+   Workcation Detail 페이지(.wf-page-content로 감싼 구조)에만 한정된 선택자로
+   다른 페이지(신청/수정 폼 등)의 스타일에는 영향을 주지 않고 정렬을 보장한다. */
+.wf-page-content .workcation-form-table {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .workcation-form-table tr {

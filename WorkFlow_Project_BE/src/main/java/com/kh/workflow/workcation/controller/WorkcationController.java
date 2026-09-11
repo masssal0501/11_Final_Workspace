@@ -365,6 +365,12 @@ public class WorkcationController {
 			canDelete = false;
 		}
 
+		// BUG-007/008: 승인완료(A)/최종완료(D) 상태의 워케이션은 ADMIN/MANAGER/STAFF
+		// 누구도 수정할 수 없다 - 프런트 버튼 노출 여부를 이 값 하나로 통일한다.
+		if (isEditLocked((String) detail.get("approverState"))) {
+			canUpdate = false;
+		}
+
 		detail.put("canUpdate", canUpdate);
 		detail.put("canDelete", canDelete);
 
@@ -440,8 +446,19 @@ public class WorkcationController {
 		return ResponseEntity.ok("삭제완료");
 	}
 
-	// 수정 권한 검사 - STAFF/MANAGER는 본인 글만, ADMIN은 모든 글
+	// BUG-007/008: 승인완료(A) 또는 최종완료(D) 상태는 결재/완료 처리가 끝난 건이므로
+	// role/소유자 여부와 무관하게 수정 자체를 차단한다. DB 상태값은 그대로 두고
+	// 애플리케이션 계층에서만 검증한다.
+	private boolean isEditLocked(String approverState) {
+		return "A".equals(approverState) || "D".equals(approverState);
+	}
+
+	// 수정 권한 검사 - STAFF/MANAGER는 본인 글만, ADMIN은 모든 글 (단, 승인완료/최종완료 상태는 불가)
 	private boolean canUpdateWorkcation(WorkcationInfo workcation, Employee loginEmployee) {
+
+		if (isEditLocked(workcation.getApproverState())) {
+			return false;
+		}
 
 		String authCode = loginEmployee.getAuthCode();
 

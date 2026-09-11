@@ -100,26 +100,31 @@ function Header({ loginUser, onLogout }) {
       label: "비용 관리",
       icon: "₩",
       path: "/cost/list",
+      // BUG-011: 상위 "비용 관리" 탭 자체를 클릭했을 때 ADMIN은 일반 정산 신청 화면이 아니라
+      // 관리자용 비용 관리 화면으로 이동해야 한다. 하위 메뉴("지원금 목록")만 별도 경로가 있고
+      // 상위 탭은 role 구분 없이 path 하나만 쓰고 있어 handleMenuClick에서 role별로 분기한다.
+      adminPath: "/admin/cost/list",
 
       roles: ["ADMIN", "MANAGER", "STAFF"],
 
-      children: [ 
-        { 
-          label: "정산 신청", 
+      children: [
+        {
+          label: "정산 신청",
           path: "/cost/apply" ,
           roles: ["MANAGER", "STAFF"]
         } ,
-        { 
-          label: "정산 목록", 
-          path: "/cost/list" 
-        }, 
+        {
+          label: "정산 목록",
+          path: "/cost/list" ,
+          roles: ["MANAGER", "STAFF"]
+        },
         {
           // BUG-N01: /subsidy/list 라우트가 App.jsx에 존재하지 않아 클릭 시 ErrorPage로
           // 빠지던 문제. 지원금(SupportList) 전용 목록 화면은 별도로 구현돼 있지 않고,
           // 지원금 처리(AmountController.updateApprovalWithSponsor)는 정산 상세(AmountDetail)에서
           // 이뤄지므로 관리자 정산 목록(AdminAmountPage)으로 연결해 기존 구현을 통해 접근하게 한다.
           // 전용 목록 화면이 필요하면 TODO-N04로 별도 논의.
-          label: "지원금 목록",
+          label: "비용 관리",
           path: "/admin/cost/list" ,
           roles:["ADMIN"]
         },
@@ -199,8 +204,14 @@ function Header({ loginUser, onLogout }) {
   // 메뉴 클릭
   const handleMenuClick = (menu) => {
     setActiveMenu(menu.id);
-    navigate(menu.path);
-    // React Router를 사용한다면 navigate(menu.path) 사용
+
+    // BUG-011: adminPath가 지정된 메뉴는 ADMIN 로그인 시 해당 경로로 이동한다.
+    const targetPath =
+      menu.adminPath && loginUser?.authCode === "ADMIN"
+        ? menu.adminPath
+        : menu.path;
+
+    navigate(targetPath);
   };
 
 
