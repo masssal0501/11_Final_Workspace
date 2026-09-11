@@ -19,6 +19,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public class WaitingListDto {
+	private int workcationNo;
 	private String empName;
 	private String depTitle;
 	private String mainRegion;

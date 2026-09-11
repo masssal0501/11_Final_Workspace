@@ -48,7 +48,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 이번 달 생성된 전체 신청 건수
 	 */
 	@Query("""
-			SELECT COUNT(w)
+			SELECT COUNT(DISTINCT w)
 			  FROM WorkcationInfo w
 			 WHERE EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
 			""")
@@ -60,7 +60,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 승인 대기('W') 상태인 신청 건수
 	 */
 	@Query("""
-			SELECT COUNT(w)
+			SELECT COUNT(DISTINCT w)
 			  FROM WorkcationInfo w
 			 WHERE w.approverState = 'W'
 			   AND EXTRACT(MONTH FROM CURRENT_TIMESTAMP) = EXTRACT(MONTH FROM w.createdAt)
@@ -73,7 +73,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 승인('A') 상태이면서 현재 날짜가 시작일과 종료일 사이에 포함되는 건수
 	 */
 	@Query("""
-			SELECT COUNT(w)
+			SELECT COUNT(DISTINCT w)
 			  FROM WorkcationInfo w
 			 WHERE w.approverState = 'A'
 			   AND w.startAt <= CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP <= w.endAt
@@ -143,7 +143,14 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WaitingListDto> 관리자 승인 대기 리스트
 	 */
 	@Query("""
-		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(e.empName, d.depTitle, h.mainRegion, w.startAt, w.endAt, w.approverState)
+		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(
+		    	w.workcationNo,
+		    	e.empName, 
+		    	d.depTitle, 
+		    	h.mainRegion, 
+		    	w.startAt, 
+		    	w.endAt, 
+		    	w.approverState)
 		      FROM WorkcationInfo w
 		      JOIN w.employee e
 		      JOIN Reservation r ON r.workcation = w
@@ -165,15 +172,15 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 				CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주'
     			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
     			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
-    			     ELSE '' END,
-				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
+    			     ELSE '' END region,
+				(COUNT(DISTINCT w) * 100.0)/ (SELECT COUNT(DISTINCT w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
 			)
 			  FROM WorkcationInfo w
 			  JOIN Reservation r ON r.workcation = w
 			  JOIN r.hub h
 			 WHERE w.approverState = 'A'
 			   AND w.startAt <= CURRENT_TIMESTAMP
-			 GROUP BY h.mainRegion
+			 GROUP BY region
 			""")
 	List<ChartDataDto> adminSelectRegionData();
 
@@ -185,8 +192,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
-			    CAST(MONTH(w.startAt) AS string),
-			    1.0 * COUNT(w)
+			    CAST(MONTH(DISTINCT w.startAt) AS string),
+			    1.0 * COUNT(DISTINCT w)
 			)
 			  FROM WorkcationInfo w
 			 WHERE w.approverState = 'A'
@@ -208,7 +215,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 부서원 전체 신청 건수
 	 */
 	@Query("""
-			SELECT COUNT(w) FROM WorkcationInfo w
+			SELECT COUNT(DISTINCT w) FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
 			""")
@@ -221,7 +228,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 부서 내 승인 대기 건수
 	 */
 	@Query("""
-			SELECT COUNT(w)
+			SELECT COUNT(DISTINCT w)
 			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE w.approverState = 'W'
@@ -236,7 +243,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return int 진행 중인 인원 수
 	 */
 	@Query("""
-			SELECT COUNT(w)
+			SELECT COUNT(DISTINCT w)
 			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE w.approverState = 'A'
@@ -254,6 +261,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 	@Query("""
 		    SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WaitingListDto(
+			 	w.workcationNo,
 			 	e.empName,
 			 	e.depId,
 			 	h.mainRegion,
@@ -279,7 +287,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
 				h.mainRegion,
-				(COUNT(w) * 100.0)/ (SELECT COUNT(w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
+				(COUNT(DISTINCT w) * 100.0)/ (SELECT COUNT(DISTINCT w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
 			)
 			  FROM WorkcationInfo w
 			  JOIN Reservation r ON r.workcation = w
@@ -298,7 +306,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WorkcationListDto> 부서 워케이션 전체 목록
 	 */
 	@Query("""
-			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
+			SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
 				w.workcationNo,
 				w.workcationTitle,
 				h.mainRegion,
@@ -326,7 +334,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return List<WorkcationListDto> 조건에 부합하는 부서 워케이션 검색 목록
 	 */
 	@Query("""
-			SELECT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
+			SELECT DISTINCT NEW com.kh.workflow.dashboard.model.dto.WorkcationListDto(
 				w.workcationNo,
 				w.workcationTitle,
 				h.mainRegion,
@@ -364,7 +372,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 */
 
 	@Query("""
-			SELECT COUNT(w)
+			SELECT COUNT(DISTINCT w)
 			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
@@ -380,7 +388,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return boolean 진행 중이면 true, 아니면 false
 	 */
 	@Query("""
-			SELECT COUNT(w) > 0
+			SELECT COUNT(DISTINCT w) > 0
 			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
@@ -397,7 +405,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	 * @return String 업무 계획 텍스트
 	 */
 	@Query("""
-			SELECT w.workPlan
+			SELECT DISTINCT w.workPlan
 			  FROM WorkcationInfo w
 			  JOIN w.employee e
 			 WHERE e.empNo = :empNo
