@@ -31,7 +31,6 @@ public class ManagerDto {
 	/* --- 리스트 데이터 --- */
 	private List<WaitingListDto> waitingList;
 	private List<Notice> noticeData;
-	private List<BalanceListDto> balanceList;
 	private List<WorkcationListDto> workcationList;
 	
 	/* --- 시각화 차트용 데이터 (ChartDataDto) --- */
