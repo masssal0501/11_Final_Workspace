@@ -177,19 +177,28 @@ function Header({ loginUser, onLogout }) {
       roles: ["ADMIN", "MANAGER", "STAFF"],
 
       children: [ 
-        { 
-          label: "장소 정보 등록",
-          path: "/place/Form"
-        },
-        { 
-          label: "AI 여행 일정 추천", 
-          path: "/hub/ai" 
-        },     
         {
           label: "거점 등록",
           path: "/hub/enrollForm",
           roles:["ADMIN"]
-        }
+        },
+        { 
+          label: "장소 정보 등록",
+          path: "/place/Form",
+          roles:["ADMIN"]
+        },
+        { 
+          label: "거점 목록", 
+          path: "/hub/list" 
+        }, 
+        { 
+          label: "지역정보 목록", 
+          path: "/place/list" 
+        }, 
+        { 
+          label: "AI 여행 일정 추천", 
+          path: "/hub/ai" 
+        },     
       ]      
     },
     {
