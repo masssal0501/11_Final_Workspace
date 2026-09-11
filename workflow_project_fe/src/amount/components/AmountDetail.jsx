@@ -644,6 +644,45 @@ export default function AmountDetail() {
 
 
     /* =====================================================
+       첨부파일 보기
+       ===================================================== */
+
+    const handleFileView = (file) => {
+
+        const filePath =
+            file?.filePath ||
+            file?.file_path;
+
+        if (!filePath) {
+
+            alert(
+                "파일 경로를 찾을 수 없습니다."
+            );
+
+            return;
+        }
+
+
+        const baseUrl =
+            "http://localhost:8006/workflow";
+
+
+        const fileUrl =
+            filePath.startsWith("http")
+                ? filePath
+                : `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
+
+
+        window.open(
+            fileUrl,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+    };
+
+
+    /* =====================================================
        Loading
        ===================================================== */
 
@@ -1022,6 +1061,80 @@ export default function AmountDetail() {
 
 
             {/* =================================================
+                첨부파일
+               ================================================= */}
+
+            <div className="amount-section">
+
+                <h3>
+                    첨부파일
+                </h3>
+
+
+                {Array.isArray(detail.amountFile) &&
+                detail.amountFile.length > 0 ? (
+
+                    <div className="amount-file-list">
+
+                        {detail.amountFile.map(
+                            (file, index) => {
+
+                                const fileName =
+                                    file?.originName ||
+                                    file?.origin_name ||
+                                    file?.changeName ||
+                                    file?.change_name ||
+                                    `첨부파일 ${index + 1}`;
+
+
+                                return (
+
+                                    <div
+                                        key={
+                                            file?.amountattachmentNo ||
+                                            file?.amountAttachmentNo ||
+                                            file?.fileNo ||
+                                            index
+                                        }
+                                        className="amount-file-item"
+                                    >
+
+                                        <span className="amount-file-name">
+                                            {fileName}
+                                        </span>
+
+
+                                        <button
+                                            type="button"
+                                            className="amount-file-view"
+                                            onClick={() =>
+                                                handleFileView(file)
+                                            }
+                                        >
+                                            보기
+                                        </button>
+
+                                    </div>
+
+                                );
+
+                            }
+                        )}
+
+                    </div>
+
+                ) : (
+
+                    <div className="empty-message">
+                        첨부된 파일이 없습니다.
+                    </div>
+
+                )}
+
+            </div>
+
+
+            {/* =================================================
                 회사 지원금
                ================================================= */}
 
@@ -1261,17 +1374,17 @@ export default function AmountDetail() {
                             </th>
 
                             <td className="money-cell">
+
                                 <strong>
                                     {formatMoney(
                                         totalSupport
                                     )}
                                 </strong>
+
                             </td>
 
                         </tr>
 
-
-                        
 
                     </tbody>
 
@@ -1300,6 +1413,7 @@ export default function AmountDetail() {
                         onChange={(e) =>
                             setComment(e.target.value)
                         }
+                        style={{ resize: "none" }}
                     />
 
                 ) : (
@@ -1381,4 +1495,3 @@ export default function AmountDetail() {
     );
 
 }
-
