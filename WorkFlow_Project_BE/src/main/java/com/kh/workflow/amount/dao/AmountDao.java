@@ -298,14 +298,15 @@ public interface AmountDao
                      WHEN ai.itemType = 'E' THEN '체험'
                      WHEN ai.itemType = 'F' THEN '식비'
                      WHEN ai.itemType = 'V' THEN '차량'
-                     ELSE '기타'
-                END,
+                     WHEN ai.itemType = 'O' THEN '기타'
+                ELSE '' END type,
                 COALESCE(SUM(ai.itemAmount), 0)
             )
               FROM AmountItem ai
               JOIN Amount a ON ai.amount = a
              WHERE a.status = 'A'
-             GROUP BY ai.itemType
+               AND ai.itemType IN ('S', 'T', 'E', 'F', 'V', 'O')
+             GROUP BY type
         """)
 	List<ChartDataDto> selectCategoryData();
 

@@ -199,6 +199,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			 WHERE w.approverState = 'A'
 			   AND w.startAt >= :startDate
 			 GROUP BY CAST(MONTH(w.startAt) AS string)
+			 ORDER BY 1
 			""")
 	List<ChartDataDto> selectMonthlyData(@Param("startDate") LocalDateTime startDate);
 
