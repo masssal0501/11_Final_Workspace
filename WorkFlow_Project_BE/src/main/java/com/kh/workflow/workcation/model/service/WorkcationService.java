@@ -38,4 +38,6 @@ public interface WorkcationService {
 
 	void uploadWorkFile(Integer workcationNo, MultipartFile file);
 
+	void deleteWorkFile(Integer taskFileNo);
+
 }

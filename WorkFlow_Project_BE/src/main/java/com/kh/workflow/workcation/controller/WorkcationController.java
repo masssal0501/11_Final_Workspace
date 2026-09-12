@@ -608,5 +608,11 @@ public class WorkcationController {
 
 		return ResponseEntity.ok("첨부파일 등록 완료");
 	}
+	
+	@DeleteMapping("/file/{taskFileNo}")
+	public ResponseEntity<?> deleteWorkFile(@PathVariable Integer taskFileNo) {
+	    workcationService.deleteWorkFile(taskFileNo);
+	    return ResponseEntity.ok("첨부파일 삭제 완료");
+	}
 
 }

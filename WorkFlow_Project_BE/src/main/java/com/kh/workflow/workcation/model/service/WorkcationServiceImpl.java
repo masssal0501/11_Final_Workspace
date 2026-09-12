@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import com.kh.workflow.amount.dao.SupportListDao;
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
+import com.kh.workflow.employee.model.dao.EmployeeDao;
 import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.reservation.model.dao.ReservationDao;
@@ -71,6 +73,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 	@Autowired
 	private WorkFileDao workFileDao;
 
+	@Autowired
+	private EmployeeDao employeeDao;
+
 	@Override
 	public Page<Map<String, Object>> selectWorkcationList(Map<String, Object> paramMap, Pageable pageable) {
 
@@ -95,8 +100,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 		String filterDepId = "MANAGER".equals(authCode) ? depId : null;
 
 		// 2. 검색 조건 + 권한 조건이 함께 적용된 JPQL 쿼리 호출 (findAll 대신 적용)
-		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, filterEmpNo,
-				filterDepId, pageable);
+		Page<WorkcationInfo> page = workcationDao.searchWorkcationList(mainRegion, subRegion, filterEmpNo, filterDepId,
+				pageable);
 
 		// 람다식에서 참조하려면 effectively final이어야 하므로 별도 변수로 고정
 		final String filterMainRegion = mainRegion;
@@ -284,47 +289,42 @@ public class WorkcationServiceImpl implements WorkcationService {
 		reservation.setRsvStatus("N");
 
 		reservationDao.save(reservation);
-		
+
 		// 프로그램 / 맛집 / 관광지 옵션 예약 저장
 		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> options =
-		        (List<Map<String, Object>>) paramMap.get("options");
+		List<Map<String, Object>> options = (List<Map<String, Object>>) paramMap.get("options");
 
 		if (options != null) {
 
-		    for (Map<String, Object> optionMap : options) {
+			for (Map<String, Object> optionMap : options) {
 
-		        Object optionHubNoObj = optionMap.get("hubNo");
-		        Object visitDateObj = optionMap.get("visitDate");
+				Object optionHubNoObj = optionMap.get("hubNo");
+				Object visitDateObj = optionMap.get("visitDate");
 
-		        if (optionHubNoObj == null ||
-		                optionHubNoObj.toString().trim().isEmpty()) {
-		            continue;
-		        }
+				if (optionHubNoObj == null || optionHubNoObj.toString().trim().isEmpty()) {
+					continue;
+				}
 
-		        Integer optionHubNo =
-		                Integer.parseInt(optionHubNoObj.toString());
+				Integer optionHubNo = Integer.parseInt(optionHubNoObj.toString());
 
-		        LocalDateTime visitDate =
-		                parseDateSafely(visitDateObj, startAt);
+				LocalDateTime visitDate = parseDateSafely(visitDateObj, startAt);
 
-		        Hub optionHub = hubDao.findById(optionHubNo)
-		                .orElse(null);
+				Hub optionHub = hubDao.findById(optionHubNo).orElse(null);
 
-		        if (optionHub == null) {
-		            continue;
-		        }
+				if (optionHub == null) {
+					continue;
+				}
 
-		        Reservation optionReservation = new Reservation();
+				Reservation optionReservation = new Reservation();
 
-		        optionReservation.setWorkcation(workcation);
-		        optionReservation.setHub(optionHub);
-		        optionReservation.setUserCapacity(peopleCount);
-		        optionReservation.setRsvStart(visitDate);
-		        optionReservation.setRsvEnd(visitDate);
+				optionReservation.setWorkcation(workcation);
+				optionReservation.setHub(optionHub);
+				optionReservation.setUserCapacity(peopleCount);
+				optionReservation.setRsvStart(visitDate);
+				optionReservation.setRsvEnd(visitDate);
 
-		        reservationDao.save(optionReservation);
-		    }
+				reservationDao.save(optionReservation);
+			}
 		}
 
 		// 프론트에서 넘어온 총 지원금(예상금액)
@@ -527,8 +527,8 @@ public class WorkcationServiceImpl implements WorkcationService {
 			for (Task task : taskList) {
 				long days = 1;
 				if (task.getTasktimeAt() != null && task.getTaskendAt() != null) {
-					days = java.time.temporal.ChronoUnit.DAYS.between(
-							task.getTasktimeAt().toLocalDate(), task.getTaskendAt().toLocalDate());
+					days = java.time.temporal.ChronoUnit.DAYS.between(task.getTasktimeAt().toLocalDate(),
+							task.getTaskendAt().toLocalDate());
 				}
 				Map<String, Object> planMap = new HashMap<>();
 				planMap.put("id", task.getTaskNo());
@@ -969,15 +969,31 @@ public class WorkcationServiceImpl implements WorkcationService {
 		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
 		List<Map<String, Object>> taskList = new ArrayList<>();
-
 		List<Map<String, Object>> historyList = new ArrayList<>();
+		List<Map<String, Object>> fileList = new ArrayList<>();
 
 		for (Work work : workList) {
 
 			List<Task> tasks = taskDao.findByWorkWorkNo(work.getWorkNo());
+			List<WorkFile> files = workFileDao.findByWorkWorkNo(work.getWorkNo());
+
+			for (WorkFile file : files) {
+
+				if (!"Y".equals(file.getStatus())) {
+					continue;
+				}
+
+				Map<String, Object> fileMap = new HashMap<>();
+
+				fileMap.put("taskFileNo", file.getTaskFileNo());
+				fileMap.put("originName", file.getOriginName());
+				fileMap.put("changeName", file.getChangeName());
+				fileMap.put("filePath", file.getFilePath());
+				fileMap.put("fileSize", file.getFileSize());
+				fileList.add(fileMap);
+			}
 
 			for (Task task : tasks) {
-
 				Map<String, Object> taskMap = new HashMap<>();
 
 				taskMap.put("taskNo", task.getTaskNo());
@@ -1008,6 +1024,10 @@ public class WorkcationServiceImpl implements WorkcationService {
 		result.put("planList", taskList);
 		result.put("historyList", historyList);
 
+		fileList.sort(Comparator.comparing(item -> (Integer) item.get("taskFileNo")));
+
+		result.put("fileList", fileList);
+
 		return result;
 	}
 
@@ -1032,7 +1052,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
 		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
 		if (!"Y".equals(task.getStatus()) && !"R".equals(task.getStatus())) {
-		    task.setStatus("N");
+			task.setStatus("N");
 		}
 
 		// 워케이션 업무계획 제목 동기화
@@ -1130,36 +1150,51 @@ public class WorkcationServiceImpl implements WorkcationService {
 	public Map<String, Object> getWorkcationSchedule(LocalDate date, int empNo) {
 
 		LocalDateTime startOfDay = date.atStartOfDay();
-
 		LocalDateTime endOfDay = date.plusDays(1).atStartOfDay().minusNanos(1);
+
 		List<WorkcationInfo> list = workcationDao.findWorkcationByDate(startOfDay, endOfDay);
+
 		List<Map<String, Object>> mySchedule = new ArrayList<>();
 		List<Map<String, Object>> departmentSchedule = new ArrayList<>();
+
 		for (WorkcationInfo workcation : list) {
 
 			Employee employee = workcation.getEmployee();
+
 			if (employee == null) {
 				continue;
 			}
+
+			String depTitle = employeeDao.selectDepTitle(employee.getDepId());
+
+			String jobName = switch (employee.getJobCode()) {
+			case "J1" -> "사원";
+			case "J2" -> "대리";
+			case "J3" -> "과장";
+			case "J4" -> "차장";
+			case "J5" -> "부장";
+			default -> employee.getJobCode();
+			};
 
 			Map<String, Object> schedule = new HashMap<>();
 
 			schedule.put("workcationNo", workcation.getWorkcationNo());
 			schedule.put("empNo", employee.getEmpNo());
 			schedule.put("empName", employee.getEmpName());
+			schedule.put("jobName", jobName);
+			schedule.put("depTitle", depTitle);
 			schedule.put("startAt", workcation.getStartAt());
 			schedule.put("endAt", workcation.getEndAt());
+
 			if (employee.getEmpNo() == empNo) {
-
 				mySchedule.add(schedule);
-
 			} else {
-
 				departmentSchedule.add(schedule);
 			}
 		}
 
 		Map<String, Object> result = new HashMap<>();
+
 		result.put("mySchedule", mySchedule);
 		result.put("departmentSchedule", departmentSchedule);
 
@@ -1170,50 +1205,64 @@ public class WorkcationServiceImpl implements WorkcationService {
 	@Override
 	public void uploadWorkFile(Integer workcationNo, MultipartFile file) {
 
-	    if (file == null || file.isEmpty()) {
-	        throw new IllegalArgumentException("첨부파일이 없습니다.");
-	    }
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("첨부파일이 없습니다.");
+		}
 
-	    List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
-	    if (workList.isEmpty()) {
-	        throw new RuntimeException("업무 정보를 찾을 수 없습니다.");
-	    }
+		if (workList.isEmpty()) {
+			throw new RuntimeException("업무 정보를 찾을 수 없습니다.");
+		}
 
-	    Work work = workList.get(0);
+		Work work = workList.get(0);
 
-	    String originName = file.getOriginalFilename();
-	    String extension = "";
+		String originName = file.getOriginalFilename();
+		String extension = "";
 
-	    if (originName != null && originName.contains(".")) {
-	        extension = originName.substring(originName.lastIndexOf("."));
-	    }
+		if (originName != null && originName.contains(".")) {
+			extension = originName.substring(originName.lastIndexOf("."));
+		}
 
-	    String changeName = UUID.randomUUID().toString() + extension;
-	    String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
+		String changeName = UUID.randomUUID().toString() + extension;
+		String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
 
-	    File dir = new File(uploadDir);
+		File dir = new File(uploadDir);
 
-	    if (!dir.exists()) {
-	        dir.mkdirs();
-	    }
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
 
-	    try {
-	        file.transferTo(new File(uploadDir + changeName));
-	    } catch (IOException e) {
-	        throw new RuntimeException("파일 저장 실패", e);
-	    }
+		try {
+			file.transferTo(new File(uploadDir + changeName));
+		} catch (IOException e) {
+			throw new RuntimeException("파일 저장 실패", e);
+		}
 
-	    WorkFile workFile = new WorkFile();
+		WorkFile workFile = new WorkFile();
 
-	    workFile.setWork(work);
-	    workFile.setOriginName(originName);
-	    workFile.setChangeName(changeName);
-	    workFile.setFilePath("/uploads/work/");
-	    workFile.setFileSize(file.getSize());
-	    workFile.setStatus("Y");
+		workFile.setWork(work);
+		workFile.setOriginName(originName);
+		workFile.setChangeName(changeName);
+		workFile.setFilePath("/uploads/work/");
+		workFile.setFileSize(file.getSize());
+		workFile.setStatus("Y");
 
-	    workFileDao.save(workFile);
+		workFileDao.save(workFile);
 	}
 
+	@Transactional
+	@Override
+	public void deleteWorkFile(Integer taskFileNo) {
+		WorkFile workFile = workFileDao.findById(taskFileNo)
+				.orElseThrow(() -> new RuntimeException("첨부파일을 찾을 수 없습니다."));
+
+		File file = new File(System.getProperty("user.dir") + workFile.getFilePath() + workFile.getChangeName());
+
+		if (file.exists()) {
+			file.delete();
+		}
+
+		workFileDao.delete(workFile);
+	}
 }
