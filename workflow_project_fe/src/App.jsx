@@ -36,6 +36,7 @@ import TaskDetailComponent from "./taskboard/components/TaskDetailComponent";
 import WorkcationListComponent from './workcation/components/WorkcationListComponent';
 import WorkcationDetailComponent from './workcation/components/WorkcationDetailComponent';
 import WorkcationEnrollFormComponent from './workcation/components/WorkcationEnrollFormComponent';
+import WorkcationUpdateFormComponent from "./workcation/components/WorkcationUpdateFormComponent";
 import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
 import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
 import SurveyForm from './survey/components/SurveyForm';
@@ -161,10 +162,12 @@ function App() {
                 {/* 워케이션 */}
                 <Route path="/workcation/list" element={<WorkcationListComponent loginUser={loginUser} />} />
                 <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
+                <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
 
                 {/* 내 워케이션 */}
                 <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
                 <Route path="/workcation/mylist/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
+
 
                 {/* 관리자 제외 워케이션 신청 */}
                 {loginUser.authCode !== "ADMIN" && (
@@ -186,10 +189,10 @@ function App() {
                 <Route path="/changePW" element={<ChangePWForm />} />
 
                 {/* 예약 */}
-                <Route path="/reservations" element={<ReservationListComponent />}/>
-                <Route path="/reservations/enroll" element={<ReservationEnrollComponent />}/>
-                <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />}/>
-                <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />}/>
+                <Route path="/reservations" element={<ReservationListComponent />} />
+                <Route path="/reservations/enroll" element={<ReservationEnrollComponent />} />
+                <Route path="/reservations/:rsvNo" element={<ReservationDetailComponent />} />
+                <Route path="/reservations/:rsvNo/update" element={<ReservationUpdateComponent />} />
 
                 {/* 관리자 */}
                 {loginUser.authCode === "ADMIN" && (
@@ -198,10 +201,10 @@ function App() {
                             표시되지만, 라우트 자체는 ADMIN 조건 밖에 선언되어 있어
                             STAFF/MANAGER도 URL 직접 접근 시 정상적으로 페이지가
                             열리던 문제 - ADMIN 전용 라우트 블록 안으로 이동 */}
-                        <Route path="/reservations/schedules" element={<ReservationScheduleComponent />}/>
+                        <Route path="/reservations/schedules" element={<ReservationScheduleComponent />} />
 
                         {/* 직원 관리 */}
-                        <Route path="/employee/enrollForm" element={ <EmployeeEnrollFormComponent /> }/>
+                        <Route path="/employee/enrollForm" element={<EmployeeEnrollFormComponent />} />
                         <Route path="/employee/list" element={<EmployeeList />} />
                         <Route path="/employee/detail/:empNo" element={<EmployeeDetail />} />
                         <Route path="/employee/edit/:empNo" element={<EmployeeEdit />} />
@@ -220,14 +223,14 @@ function App() {
                 {(loginUser.authCode === "ADMIN" ||
                     loginUser.authCode === "MANAGER") && (
 
-                    <>
-                        <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />}/>
-                        <Route path="/approval/history" element={<ApprovalHistoryList />}/>
-                        <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
-                        <Route path="/approval/queue/list" element={<ApprovalQueueList />} />
-                        <Route path="/approval/queue/detail/:workcationNo" element={<ApprovalQueueDetail />} />
-                    </>
-                )}
+                        <>
+                            <Route path="/approval/reject/:workcationNo" element={<ApprovalReject />} />
+                            <Route path="/approval/history" element={<ApprovalHistoryList />} />
+                            <Route path="/approval/history/detail/:workcationNo" element={<ApprovalHistoryDetail />} />
+                            <Route path="/approval/queue/list" element={<ApprovalQueueList />} />
+                            <Route path="/approval/queue/detail/:workcationNo" element={<ApprovalQueueDetail />} />
+                        </>
+                    )}
 
                 {/* 부서장 */}
                 {loginUser.authCode === "MANAGER" && (
@@ -240,10 +243,10 @@ function App() {
                 )}
 
                 {/* 그 외 페이지 접속 시 */}
-                <Route path="/login" element={ <Navigate to="/" replace />}/>
+                <Route path="/login" element={<Navigate to="/" replace />} />
 
                 {/* 에러 페이지 - axios 401/403 인터셉터가 이동시키는 경로 */}
-                <Route path="/error" element={ <ErrorPage /> }/>
+                <Route path="/error" element={<ErrorPage />} />
 
                 {/*
                  * BUG: 이 catch-all이 없어서 (1) 존재하지 않는 URL과
@@ -253,7 +256,7 @@ function App() {
                  * 남아있었다. 메뉴에서 숨기는 것만으로는 URL 직접 입력을 막을 수 없으므로
                  * (요구사항 8번), 매치되는 Route가 없으면 항상 에러 페이지로 보낸다.
                  */}
-                <Route path="*" element={ <ErrorPage /> }/>
+                <Route path="*" element={<ErrorPage />} />
 
             </Routes>
 

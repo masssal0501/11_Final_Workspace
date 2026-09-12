@@ -284,6 +284,48 @@ public class WorkcationServiceImpl implements WorkcationService {
 		reservation.setRsvStatus("N");
 
 		reservationDao.save(reservation);
+		
+		// 프로그램 / 맛집 / 관광지 옵션 예약 저장
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> options =
+		        (List<Map<String, Object>>) paramMap.get("options");
+
+		if (options != null) {
+
+		    for (Map<String, Object> optionMap : options) {
+
+		        Object optionHubNoObj = optionMap.get("hubNo");
+		        Object visitDateObj = optionMap.get("visitDate");
+
+		        if (optionHubNoObj == null ||
+		                optionHubNoObj.toString().trim().isEmpty()) {
+		            continue;
+		        }
+
+		        Integer optionHubNo =
+		                Integer.parseInt(optionHubNoObj.toString());
+
+		        LocalDateTime visitDate =
+		                parseDateSafely(visitDateObj, startAt);
+
+		        Hub optionHub = hubDao.findById(optionHubNo)
+		                .orElse(null);
+
+		        if (optionHub == null) {
+		            continue;
+		        }
+
+		        Reservation optionReservation = new Reservation();
+
+		        optionReservation.setWorkcation(workcation);
+		        optionReservation.setHub(optionHub);
+		        optionReservation.setUserCapacity(peopleCount);
+		        optionReservation.setRsvStart(visitDate);
+		        optionReservation.setRsvEnd(visitDate);
+
+		        reservationDao.save(optionReservation);
+		    }
+		}
 
 		// 프론트에서 넘어온 총 지원금(예상금액)
 		Amount amount = new Amount();
@@ -989,7 +1031,9 @@ public class WorkcationServiceImpl implements WorkcationService {
 		task.setTaskContent(content);
 		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
 		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
-		task.setStatus(progress == 100 ? "Y" : "N");
+		if (!"Y".equals(task.getStatus()) && !"R".equals(task.getStatus())) {
+		    task.setStatus("N");
+		}
 
 		// 워케이션 업무계획 제목 동기화
 		Work work = task.getWork();
@@ -1076,7 +1120,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 			workFile.setStatus("Y");
 
 			// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조한다
-			workFile.setTask(task);
+			workFile.setWork(task.getWork());
 
 			workFileDao.save(workFile);
 		}
@@ -1126,66 +1170,50 @@ public class WorkcationServiceImpl implements WorkcationService {
 	@Override
 	public void uploadWorkFile(Integer workcationNo, MultipartFile file) {
 
-		if (file == null || file.isEmpty()) {
-			throw new IllegalArgumentException("첨부파일이 없습니다.");
-		}
+	    if (file == null || file.isEmpty()) {
+	        throw new IllegalArgumentException("첨부파일이 없습니다.");
+	    }
 
-		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+	    List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
-		if (workList.isEmpty()) {
-			throw new RuntimeException("업무 정보를 찾을 수 없습니다.");
-		}
+	    if (workList.isEmpty()) {
+	        throw new RuntimeException("업무 정보를 찾을 수 없습니다.");
+	    }
 
-		Work work = workList.get(0);
+	    Work work = workList.get(0);
 
-		// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조하므로
-		// 첨부파일을 연결할 구체적인 task가 필요하다.
-		List<Task> taskList = taskDao.findByWork_WorkNo(work.getWorkNo());
+	    String originName = file.getOriginalFilename();
+	    String extension = "";
 
-		if (taskList.isEmpty()) {
-			throw new RuntimeException("첨부파일을 연결할 업무 정보를 찾을 수 없습니다.");
-		}
+	    if (originName != null && originName.contains(".")) {
+	        extension = originName.substring(originName.lastIndexOf("."));
+	    }
 
-		Task task = taskList.get(0);
+	    String changeName = UUID.randomUUID().toString() + extension;
+	    String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
 
-		String originName = file.getOriginalFilename();
+	    File dir = new File(uploadDir);
 
-		String extension = "";
+	    if (!dir.exists()) {
+	        dir.mkdirs();
+	    }
 
-		if (originName != null && originName.contains(".")) {
+	    try {
+	        file.transferTo(new File(uploadDir + changeName));
+	    } catch (IOException e) {
+	        throw new RuntimeException("파일 저장 실패", e);
+	    }
 
-			extension = originName.substring(originName.lastIndexOf("."));
-		}
+	    WorkFile workFile = new WorkFile();
 
-		String changeName = UUID.randomUUID() + extension;
+	    workFile.setWork(work);
+	    workFile.setOriginName(originName);
+	    workFile.setChangeName(changeName);
+	    workFile.setFilePath("/uploads/work/");
+	    workFile.setFileSize(file.getSize());
+	    workFile.setStatus("Y");
 
-		String uploadDir = System.getProperty("user.dir") + "/uploads/work/";
-
-		File dir = new File(uploadDir);
-
-		if (!dir.exists()) {
-			dir.mkdirs();
-		}
-
-		try {
-
-			file.transferTo(new File(uploadDir + changeName));
-
-		} catch (IOException e) {
-
-			throw new RuntimeException("파일 저장 실패", e);
-		}
-
-		WorkFile workFile = new WorkFile();
-
-		workFile.setTask(task);
-		workFile.setOriginName(originName);
-		workFile.setChangeName(changeName);
-		workFile.setFilePath("/uploads/work/");
-		workFile.setFileSize(file.getSize());
-		workFile.setStatus("Y");
-
-		workFileDao.save(workFile);
+	    workFileDao.save(workFile);
 	}
 
 }

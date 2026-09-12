@@ -1,275 +1,446 @@
-.workcation-detail-container {
-    max-width: 880px;
+/* =========================================================
+   워케이션 상세 전체
+   ========================================================= */
+
+.wf-container {
+    width: 100%;
+    max-width: 835px;
     margin: 0 auto;
-    padding: 20px 0;
+    padding: 28px 20px 60px;
     box-sizing: border-box;
 }
 
+.wf-page-content {
+    width: 100%;
+}
+
+
+/* =========================================================
+   상단 정보 테이블
+   ========================================================= */
+
+.workcation-form-table {
+    width: 100%;
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
+
+    background: #fff;
+
+    border: 1px solid #dce4ee;
+    border-radius: 12px;
+    overflow: hidden;
+
+    box-shadow: 0 3px 12px rgba(30, 55, 85, 0.05);
+}
+
+.workcation-form-table tr {
+    height: 52px;
+}
+
+.workcation-form-table th {
+    width: 120px;
+
+    padding: 10px 12px;
+
+    background: #f3f6fa;
+
+    color: #17345c;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+
+    border-right: 1px solid #e1e7ef;
+    border-bottom: 1px solid #e1e7ef;
+
+    white-space: nowrap;
+}
+
+.workcation-form-table td {
+    padding: 8px 10px;
+
+    background: #fff;
+
+    color: #24364b;
+    font-size: 13px;
+    vertical-align: middle;
+
+    border-bottom: 1px solid #e1e7ef;
+
+    box-sizing: border-box;
+}
+
+.workcation-form-table tr:last-child th,
+.workcation-form-table tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   상세 값 박스
+   ========================================================= */
+
+.cell-box {
+    min-height: 34px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 6px 10px;
+
+    background: #f8fafc;
+
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+.status-cell-box {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.workcation-form-table input[type="text"] {
+    width: 100%;
+    height: 36px;
+
+    padding: 7px 10px;
+
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+
+    background: #f8fafc;
+
+    color: #24364b;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   라디오
+   ========================================================= */
+
+.radio-group-box {
+    gap: 18px;
+}
+
+.radio-btn {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+    margin-right: 12px;
+
+    color: #31445d;
+}
+
+.radio-btn input {
+    margin: 0;
+}
+
+
+/* =========================================================
+   업무 계획
+   ========================================================= */
+
+.task-plan-container {
+    width: 100%;
+    margin-top: 42px;
+}
+
+.task-plan-title {
+    margin: 0 0 16px;
+
+    text-align: center;
+
+    font-size: 21px;
+    font-weight: 800;
+
+    color: #17345c;
+}
+
+
+/* 3열 전체 영역 */
+
+.detail-task-plan-container {
+    width: 100%;
+    max-width: 800px;
+
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: minmax(0, 2.5fr) 185px 185px;
+
+    gap: 20px;
+
+    align-items: stretch;
+}
+
+
+/* 각 카드 */
+
+.detail-task-box {
+    min-height: 110px;
+
+    padding: 12px 22px;
+
+    background: #fff;
+
+    border: 1px solid #dce4ee;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+
+    box-shadow: 0 3px 10px rgba(20, 50, 80, 0.04);
+}
+
+
+/* 리스트 */
+
+.detail-task-list {
+    width: 100%;
+
+    list-style: none;
+
+    margin: 0;
+    padding: 0;
+}
+
+
+/* 각 업무 행 */
+
+.detail-task-row {
+    width: 100%;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 10px;
+
+    border-bottom: 1px solid #e6ebf1;
+
+    color: #17345c;
+
+    font-size: 13px;
+
+    box-sizing: border-box;
+}
+
+.detail-task-row:last-child {
+    border-bottom: none;
+}
+
+
+/* 업무명 */
+
+.detail-task-name-box .detail-task-row {
+    justify-content: flex-start;
+}
+
+
+/* 일수 */
+
+.detail-task-days-box .detail-task-row {
+    justify-content: center;
+
+    font-weight: 700;
+}
+
+
+/* 진행률 */
+
+.detail-task-progress-box .detail-task-row {
+    justify-content: center;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   지출 / 지원금 카드
+   ========================================================= */
+
 .all-price-container {
+    width: 100%;
+    max-width: 660px;
+
+    margin: 56px auto 0;
+
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
     align-items: stretch;
-    max-width: 880px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-    box-sizing: border-box;
+
+    gap: 16px;
 }
 
 .price-box-sync {
-    flex: 1;
-    max-width: 430px;
-    border: 1px solid var(--wf-border);
-    padding: 20px;
-    border-radius: var(--wf-radius);
-    background-color: var(--wf-white);
-    box-shadow: var(--wf-shadow-sm);
-    box-sizing: border-box;
+    width: 320px;
+    min-height: 225px;
+
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
+    padding: 22px 18px;
+
+    background: #fff;
+
+    border: 1px solid #dce4ee;
+    border-radius: 12px;
+
+    box-sizing: border-box;
+
+    box-shadow: 0 4px 14px rgba(20, 50, 80, 0.05);
 }
 
 .price-box-sync h3 {
+    margin: 0 0 18px;
+
     text-align: center;
-    margin-top: 0;
-    margin-bottom: 20px;
 
-    color: var(--wf-text-primary);
+    color: #17345c;
 
-    font-size: var(--wf-fs-card-title);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.price-row-sync {
+    min-height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 14px;
+
+    color: #34465e;
+    font-size: 13px;
+}
+
+.price-row-sync.total-row {
     font-weight: 700;
+}
+
+.price-row-sync strong {
+    color: #075ec6;
 }
 
 .box-bottom-area {
     margin-top: auto;
-    width: 100%;
-}
-
-.price-row-sync {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
-    white-space: nowrap;
-}
-
-.price-row-sync.total-row {
-    font-weight: bold;
 }
 
 .price-divider {
-    width: 100%;
-    border: none;
-    border-top: 1px solid var(--wf-border);
-    margin: 15px 0;
+    margin: 14px 0;
+
+    border: 0;
+    border-top: 1px solid #e1e7ef;
 }
 
 .notice-text-sync {
-    font-size: 12px;
-    color: var(--wf-text-muted);
-    margin-top: 8px;
-    margin-bottom: 0;
-    line-height: 1.4;
-    white-space: normal;
+    margin: 8px 0 0;
+
+    color: #8a96a6;
+
+    font-size: 11px;
+    line-height: 1.5;
 }
 
-.workcation-form-table {
-    width: 100%;
-    max-width: 880px;
-    margin: 0 auto;
-    border-collapse: separate; 
-    border-spacing: 0 6px;     
-    box-sizing: border-box;
-}
 
-.workcation-form-table tr {
-    border: none;
-}
-
-.workcation-form-table th {
-    white-space: nowrap;
-    padding: 6px 8px;
-    background-color: transparent;
-    border: none;
-    font-size: 14px;
-}
-
-.workcation-form-table td {
-    padding: 6px;
-    background-color: transparent;
-    border: none;
-}
-
-/* 텍스트 박스 크기 고정 - td 안의 input이 브라우저 기본 폭(약 20자)으로
-   줄어들어 칸을 벗어나 보이던 문제를 막는다 */
-.workcation-form-table td input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-    background-color: var(--wf-gray-50);
-    border: 1px solid var(--wf-border);
-    border-radius: var(--wf-radius-sm);
-    padding: 8px 12px;
-    font-size: 14px;
-    color: var(--wf-text-primary);
-}
-
-.cell-box {
-    background-color: var(--wf-gray-50);
-    border: 1px solid var(--wf-border);
-    border-radius: var(--wf-radius-sm);
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    width: 100%;
-}
-
-.status-cell-box {
-    justify-content: center;
-    border: none;
-    background-color: transparent;
-    padding: 0;
-}
-
-.workcation-status-badge {
-    background-color: var(--wf-success-bg);
-    color: var(--wf-success);
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 12px;
-    display: inline-block;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.cell-box.radio-group-box {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.radio-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    white-space: nowrap;
-}
-
-.task-plan-container {
-    margin-top: 30px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.task-plan-title {
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: var(--wf-fs-page-title);
-    font-weight: 800;
-    color: var(--wf-text-primary);
-}
-
-.task-plan-split-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    max-width: 880px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.task-plan-box {
-    flex: 3;
-    max-width: 660px;
-    border: 1px solid var(--wf-border);
-    border-radius: var(--wf-radius-sm);
-    background-color: var(--wf-white);
-    box-shadow: var(--wf-shadow-sm);
-    padding: 10px 20px;
-    box-sizing: border-box;
-}
-
-.task-plan-box.right-box {
-    flex: 1;
-    max-width: 200px;
-}
-
-.task-plan-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-}
-
-.task-item-row {
-    display: flex;
-    align-items: center;
-    height: 44px;
-    border-bottom: 1px solid var(--wf-border);
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.task-plan-box:not(.right-box) .task-item-row {
-    padding-left: 10px;
-}
-
-.right-box .task-item-row {
-    justify-content: center;
-}
-
-.task-item-row:last-child {
-    border-bottom: none;
-}
-
-.task-name {
-    color: var(--wf-text-primary);
-}
-
-.task-days {
-    font-weight: bold;
-    color: var(--wf-text-primary);
-}
-
-.common-btn-group {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    max-width: 880px;
-    margin: 0 auto 10px auto;
-    box-sizing: border-box;
-}
-
-.back-space,
-.detail-button-area button {
-    background-color: var(--wf-primary);
-    color: #fff;
-    border: none;
-    border-radius: 9px;
-    padding: 0 24px;
-    height: 42px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    box-sizing: border-box;
-    transition: background-color 0.2s;
-}
-
-.back-space:hover,
-.detail-button-area button:hover {
-    background-color: var(--wf-primary-dark);
-}
+/* =========================================================
+   수정 / 삭제 버튼
+   ========================================================= */
 
 .detail-button-area {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-top: 30px;
+
+    gap: 10px;
+
+    margin-top: 32px;
+}
+
+
+/* =========================================================
+   상태 배지
+   ========================================================= */
+
+.wf-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 24px;
+
+    padding: 3px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.wf-badge-warning {
+    background: #fff1d6;
+    color: #e88900;
+}
+
+.wf-badge-success {
+    background: #def7e9;
+    color: #17995a;
+}
+
+.wf-badge-danger {
+    background: #ffe7e7;
+    color: #df4c4c;
+}
+
+.wf-badge-info {
+    background: #e5efff;
+    color: #3375d6;
+}
+
+.wf-badge-neutral {
+    background: #edf0f4;
+    color: #677386;
+}
+
+
+/* =========================================================
+   반응형
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .wf-container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .detail-task-plan-container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .detail-task-days-box .detail-task-row,
+    .detail-task-progress-box .detail-task-row {
+        justify-content: flex-start;
+    }
+
+    .all-price-container {
+        max-width: 100%;
+
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .price-box-sync {
+        width: 100%;
+        max-width: 420px;
+    }
 }

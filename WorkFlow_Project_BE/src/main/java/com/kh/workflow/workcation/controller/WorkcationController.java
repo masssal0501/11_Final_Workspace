@@ -227,21 +227,40 @@ public class WorkcationController {
 	})
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/hub/list")
-	public ResponseEntity<List<com.kh.workflow.hub.model.vo.Hub>> selectHubList(
-			@Parameter(description = "메인 지역 필터(선택)", example = "제주도")
-			@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
-			@Parameter(description = "세부 지역 필터(선택)", example = "서귀포시")
-			@RequestParam(value = "subRegion", defaultValue = "") String subRegion,
-			@Parameter(description = "거점 유형 코드(0: 전체)", example = "0")
-			@RequestParam(value = "hubType", defaultValue = "0") int hubType) {
+	public ResponseEntity<?> selectHubList(
+	        @RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
+	        @RequestParam(value = "subRegion", defaultValue = "") String subRegion,
+	        @RequestParam(value = "hubType", defaultValue = "0") int hubType) {
 
-		// hubDao를 이용해 DB의 거점(workcation_hub) 테이블을 조회합니다.
-		List<com.kh.workflow.hub.model.vo.Hub> list = hubDao.findByMainRegionAndSubRegionAndHubType(mainRegion,
-				subRegion, hubType);
+	    List<com.kh.workflow.hub.model.vo.Hub> list =
+	            hubDao.findByMainRegionAndSubRegionAndHubType(
+	                    mainRegion,
+	                    subRegion,
+	                    hubType
+	            );
 
-		return ResponseEntity.ok(list);
+	    List<Map<String, Object>> result = list.stream()
+	            .map(hub -> {
+	                Map<String, Object> map = new HashMap<>();
+
+	                map.put("hubNo", hub.getHubNo());
+	                map.put("hubName", hub.getHubName());
+	                map.put("hubAddress", hub.getHubAddress());
+	                map.put("hubType", hub.getHubType());
+	                map.put("mainRegion", hub.getMainRegion());
+	                map.put("subRegion", hub.getSubRegion());
+	                map.put("price", hub.getPrice());
+	                map.put("hubStatus", hub.getHubStatus());
+	                map.put("maxCapacity", hub.getMaxCapacity());
+	                map.put("phone", hub.getPhone());
+	                map.put("description", hub.getDescription());
+
+	                return map;
+	            })
+	            .toList();
+
+	    return ResponseEntity.ok(result);
 	}
-
 	// 메인지역 드롭에 따른 목록 조회
 	@Operation(summary = "메인 지역 드롭다운 목록 조회", description = "워케이션 신청/검색 화면의 메인 지역 드롭다운을 채우기 위한 지역명 목록을 조회합니다.")
 	@ApiResponses({
@@ -277,29 +296,56 @@ public class WorkcationController {
 		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
 		@ApiResponse(responseCode = "403", description = "관리자 계정은 신청 불가", content = @Content)
 	})
-	@SecurityRequirement(name = "JWT")
 	@PostMapping("/hub/enrollForm")
 	public ResponseEntity<String> insertWorkcationEnrollForm(
-				@Parameter(description = "워케이션 신청 정보(거점, 기간 등 키-값 쌍)", required = true)
-				@RequestBody Map<String, Object> paramMap,
-				Authentication authentication) {
+	        @RequestBody Map<String, Object> paramMap,
+	        Authentication authentication) {
 
-		String empId = (String) authentication.getPrincipal();
+	    try {
 
-		Employee employee = employeeDao.findByEmpId(empId)
-				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+	        System.out.println("===== 워케이션 신청 요청 시작 =====");
+	        System.out.println("받은 데이터 : " + paramMap);
 
-		// 관리자는 워케이션을 직접 신청하지 않는다 (프런트엔드 라우트도 ADMIN에게는 노출되지 않음)
-		if ("ADMIN".equals(employee.getAuthCode())) {
+	        String empId = (String) authentication.getPrincipal();
 
-			return ResponseEntity.status(403).body("관리자계정으로는 신청할 수 없습니다.");
-		}
+	        System.out.println("로그인 empId : " + empId);
 
-		int empNo = employee.getEmpNo();
-		paramMap.put("empNo", empNo);
+	        Employee employee = employeeDao.findByEmpId(empId)
+	                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-		workcationService.insertWorkcationEnrollForm(paramMap);
-		return ResponseEntity.ok("신청 완료");
+	        System.out.println("로그인 empNo : " + employee.getEmpNo());
+	        System.out.println("권한 : " + employee.getAuthCode());
+
+	        if ("ADMIN".equals(employee.getAuthCode())) {
+	            return ResponseEntity
+	                    .status(403)
+	                    .body("관리자계정으로는 신청할 수 없습니다.");
+	        }
+
+	        int empNo = employee.getEmpNo();
+
+	        paramMap.put("empNo", empNo);
+
+	        System.out.println("서비스 전달 데이터 : " + paramMap);
+
+	        workcationService.insertWorkcationEnrollForm(paramMap);
+
+	        System.out.println("===== 워케이션 신청 성공 =====");
+
+	        return ResponseEntity.ok("신청 완료");
+
+	    } catch (Exception e) {
+
+	        System.err.println("===== 워케이션 신청 실패 =====");
+	        System.err.println("에러 타입 : " + e.getClass().getName());
+	        System.err.println("에러 메시지 : " + e.getMessage());
+
+	        e.printStackTrace();
+
+	        return ResponseEntity
+	                .status(500)
+	                .body("신청 실패 : " + e.getMessage());
+	    }
 	}
 
 	// 회사 지원금 정보 조회 API추가

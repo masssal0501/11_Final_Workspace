@@ -1,0 +1,724 @@
+/* =========================================================
+   Workcation Update
+   ========================================================= */
+
+.workcatrion-enroll-container {
+    width: 100%;
+    max-width: 835px;
+    margin: 0 auto;
+    padding: 26px 14px 60px;
+    box-sizing: border-box;
+    color: #17345c;
+}
+
+/* =========================================================
+   제목
+   ========================================================= */
+
+.workcatrion-enroll-container > h2 {
+    margin: 0 0 18px;
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+    color: #17345c;
+}
+
+
+/* =========================================================
+   상단 수정 / 취소 버튼
+   ========================================================= */
+
+.common-btn-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.insert-btn,
+.back-space {
+    min-width: 105px;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.insert-btn {
+    border: none;
+    background: #246fd6;
+    color: #fff;
+}
+
+.insert-btn:hover {
+    background: #1d60bd;
+}
+
+.back-space {
+    border: 1px solid #d5deea;
+    background: #fff;
+    color: #52647a;
+}
+
+.back-space:hover {
+    background: #f6f8fb;
+}
+
+
+/* =========================================================
+   기본 정보 테이블
+   ========================================================= */
+
+.workcation-form-table {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+
+    background: #fff;
+
+    border: 1px solid #dce4ee;
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 3px 12px rgba(25, 55, 90, 0.05);
+}
+
+.workcation-form-table tr {
+    height: 52px;
+}
+
+.workcation-form-table th {
+    width: 140px;
+
+    padding: 11px 10px;
+
+    background: #f3f6fa;
+
+    color: #17345c;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+
+    box-sizing: border-box;
+}
+
+.workcation-form-table td {
+    padding: 9px 11px;
+
+    background: #fff;
+
+    color: #24364b;
+    font-size: 13px;
+    vertical-align: middle;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    box-sizing: border-box;
+}
+
+.workcation-form-table tr:last-child th,
+.workcation-form-table tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   공통 입력창
+   ========================================================= */
+
+.workcation-form-table input[type="text"],
+.workcation-form-table input[type="number"],
+.workcation-form-table input[type="date"],
+.workcation-form-table select,
+.workcation-form-table textarea {
+    min-height: 38px;
+
+    padding: 7px 10px;
+
+    border: 1px solid #d3ddea;
+    border-radius: 8px;
+
+    background: #fff;
+
+    color: #24364b;
+    font-size: 13px;
+
+    box-sizing: border-box;
+}
+
+.workcation-form-table input[type="text"],
+.workcation-form-table textarea {
+    width: 100%;
+}
+
+.workcation-form-table textarea {
+    min-height: 62px;
+    resize: vertical;
+}
+
+.workcation-form-table input:focus,
+.workcation-form-table textarea:focus,
+.workcation-form-table select:focus {
+    outline: none;
+
+    border-color: #397bda;
+
+    box-shadow:
+        0 0 0 3px rgba(57, 123, 218, 0.08);
+}
+
+
+/* =========================================================
+   신청기간
+   ========================================================= */
+
+.startDate,
+.endDate {
+    width: 160px;
+}
+
+.startDate {
+    margin-right: 5px;
+}
+
+.endDate {
+    margin-left: 5px;
+}
+
+
+/* =========================================================
+   신청 인원
+   ========================================================= */
+
+.workcation-form-table input[type="number"] {
+    max-width: 180px;
+}
+
+
+/* =========================================================
+   지역
+   ========================================================= */
+
+.drop-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.drop-group select {
+    flex: 1;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   라디오
+   ========================================================= */
+
+.radio-btn {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    margin-right: 16px;
+
+    color: #31445d;
+    cursor: pointer;
+}
+
+.radio-btn input[type="radio"] {
+    width: auto;
+    height: auto;
+    margin: 0;
+}
+
+
+/* =========================================================
+   오피스 / 숙소 선택
+   ========================================================= */
+
+.workcation-form-table select {
+    max-width: 100%;
+}
+
+
+/* =========================================================
+   체험 / 맛집 / 관광지
+   ========================================================= */
+
+.option-btn-empty td {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.add-option-btn {
+    height: 36px;
+
+    padding: 0 14px;
+
+    border: 1px dashed #aac0dc;
+    border-radius: 8px;
+
+    background: #f8fbff;
+
+    color: #2568c4;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.add-option-btn:hover:not(:disabled) {
+    background: #edf5ff;
+}
+
+.add-option-btn:disabled {
+    color: #9fa9b7;
+
+    border-color: #d8dfe7;
+
+    background: #f6f7f9;
+
+    cursor: default;
+}
+
+.optionBtn-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.optionBtn-date input[type="date"] {
+    width: 165px;
+}
+
+
+/* X 버튼 */
+
+.remove-btn,
+.delete-btn {
+    width: 28px;
+    height: 28px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #fff0f0;
+
+    color: #ff6a6a;
+
+    font-size: 12px;
+
+    cursor: pointer;
+}
+
+.remove-btn:hover,
+.delete-btn:hover {
+    background: #ffe2e2;
+}
+
+
+/* =========================================================
+   업무 계획
+   ========================================================= */
+
+.task-plan-container {
+    width: 100%;
+    margin-top: 34px;
+}
+
+.task-plan-container > h3 {
+    margin: 0 0 16px;
+
+    text-align: center;
+
+    color: #17345c;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+
+/* 업무 입력 전체 영역 */
+
+.task-paln-input {
+    width: 100%;
+    max-width: 960px;
+
+    margin: 0 auto;
+}
+
+
+/* 업무명 + 예상기간 + 일 + 추가 버튼 */
+
+.task-plan-box {
+    display: grid;
+
+    grid-template-columns:
+        minmax(300px, 1fr)
+        180px
+        25px
+        90px;
+
+    align-items: center;
+
+    gap: 8px;
+
+    width: 100%;
+
+    padding: 10px 12px;
+
+    background: #fff;
+
+    border: 1px solid #dce4ee;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 3px 10px rgba(20, 50, 80, 0.04);
+}
+
+
+/* 업무계획 입력 */
+
+.task-plan-box input {
+    width: 100%;
+    height: 38px;
+
+    padding: 7px 10px;
+
+    border: 1px solid #d3ddea;
+    border-radius: 7px;
+
+    color: #24364b;
+
+    box-sizing: border-box;
+}
+
+.task-plan-box input:focus {
+    outline: none;
+
+    border-color: #397bda;
+
+    box-shadow:
+        0 0 0 3px rgba(57, 123, 218, 0.08);
+}
+
+
+/* + 추가 */
+
+.task-plan-box .add-btn {
+    width: 90px;
+    height: 38px;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #246fd6;
+
+    color: #fff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.task-plan-box .add-btn:hover {
+    background: #1d60bd;
+}
+
+
+/* 업무 리스트 */
+
+.task-plan-list {
+    width: 100%;
+
+    margin: 10px 0 0;
+
+    padding: 0;
+
+    list-style: none;
+}
+
+.plan-item {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    min-height: 42px;
+
+    margin-bottom: 7px;
+
+    padding: 0 14px;
+
+    background: #fff;
+
+    border: 1px solid #e0e6ee;
+    border-radius: 8px;
+
+    color: #263a55;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   지출 / 지원금
+   ========================================================= */
+
+.all-price-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+
+    width: 100%;
+    max-width: 760px;
+
+    margin: 34px auto 0;
+}
+
+.left-price-box {
+    flex: 1;
+    min-width: 0;
+    max-width: 360px;
+
+    min-height: 250px;
+
+    padding: 22px 20px;
+
+    background: #fff;
+    border: 1px solid #dce4ee;
+    border-radius: 12px;
+    box-sizing: border-box;
+
+    box-shadow: 0 4px 14px rgba(20, 50, 80, 0.05);
+}
+
+.left-price-box h3 {
+    margin: 0 0 20px;
+
+    text-align: center;
+
+    color: #17345c;
+
+    font-size: 17px;
+    font-weight: 800;
+}
+
+
+/* 가격 행 */
+
+.left-price-row,
+.right-price-row,
+.left-price-total,
+.right-price-pay {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    min-height: 34px;
+
+    margin-bottom: 7px;
+
+    color: #34465e;
+}
+
+
+/* 비용 입력 */
+
+.left-price-input {
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 5px;
+}
+
+.left-price-input input {
+    width: 105px;
+    height: 34px;
+
+    padding: 5px 8px;
+
+    text-align: right;
+
+    border: 1px solid #d3ddea;
+    border-radius: 7px;
+
+    box-sizing: border-box;
+}
+
+.left-price-input input:focus {
+    outline: none;
+
+    border-color: #397bda;
+}
+
+
+/* 현재 JSX상 기타 행 내부 중복 부담금 표시 숨김 */
+
+.left-price-personal {
+    display: none;
+}
+
+
+/* 구분선 */
+
+.left-price-box hr {
+    width: 100%;
+
+    margin: 14px 0;
+
+    border: none;
+    border-top: 1px solid #e2e8f0;
+}
+
+
+/* 합계 */
+
+.left-price-total,
+.right-price-pay,
+.right-price-row.total {
+    font-weight: 700;
+}
+
+.left-price-total strong,
+.right-price-pay strong,
+.right-price-row.total span:last-child {
+    color: #075ec6;
+}
+
+
+/* =========================================================
+   반응형
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .workcatrion-enroll-container {
+        max-width: 100%;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .task-paln-input {
+        max-width: 850px;
+    }
+}
+
+
+@media (max-width: 850px) {
+
+    .workcation-form-table,
+    .workcation-form-table tbody,
+    .workcation-form-table tr,
+    .workcation-form-table th,
+    .workcation-form-table td {
+        display: block;
+
+        width: 100%;
+
+        box-sizing: border-box;
+    }
+
+    .workcation-form-table tr {
+        height: auto;
+    }
+
+    .workcation-form-table th {
+        padding-bottom: 6px;
+
+        text-align: left;
+
+        border-right: none;
+        border-bottom: none;
+    }
+
+    .workcation-form-table td {
+        padding-top: 6px;
+        padding-bottom: 12px;
+    }
+
+    .drop-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .startDate,
+    .endDate {
+        width: calc(50% - 12px);
+    }
+
+    .task-plan-box {
+        grid-template-columns:
+            minmax(0, 1fr)
+            150px
+            25px
+            85px;
+    }
+
+    .all-price-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .workcatrion-enroll-container {
+        padding: 18px 8px 40px;
+    }
+
+    .task-plan-box {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .task-plan-box input,
+    .task-plan-box .add-btn {
+        width: 100%;
+    }
+
+    .all-price-container {
+        gap: 14px;
+    }
+}
+
+.day-unit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #34465e;
+
+    font-size: 13px;
+}
