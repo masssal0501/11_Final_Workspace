@@ -155,34 +155,30 @@ public class NoticeServiceImpl implements NoticeService {
     // 공지사항 상세 조회
     // =========================================================
 
-    @Override
-    @Transactional(readOnly = true)
-    public Notice selectNotice(int noticeNo) {
+ // =========================================================
+ // 공지사항 상세 조회 (조회수 증가 O)
+ // =========================================================
 
-        Notice notice =
-                noticeRepository.findById(noticeNo)
-                        .orElse(null);
+ @Override
+ @Transactional(rollbackFor = Exception.class)
+ public Notice selectNotice(int noticeNo) {
 
-        if (notice != null) {
+     Notice notice = loadNoticeWithDetails(noticeNo);
 
-            employeeDao.findById(notice.getEmpNo())
-                    .ifPresent(e ->
-                            notice.setEmpName(e.getEmpName())
-                    );
+     if (notice != null) {
 
-            // -------------------------------------------------
-            // LAZY 연관관계를 트랜잭션 안에서 초기화한다.
-            //
-            // fileList
-            // -------------------------------------------------
+         int currentViewCount =
+                 notice.getViewCount() != null
+                         ? notice.getViewCount()
+                         : 0;
 
-            if (notice.getFileList() != null) {
-                notice.getFileList().size();
-            }
-        }
+         notice.setViewCount(currentViewCount + 1);
 
-        return notice;
-    }
+         noticeRepository.save(notice);
+     }
+
+     return notice;
+ }
 
 
     // =========================================================
@@ -336,7 +332,55 @@ public class NoticeServiceImpl implements NoticeService {
         return noticeRepository.deleteNoticeFile(noticefileNo);
     }
     
-    
+ // =========================================================
+ // 공지사항 상세 조회 (조회수 증가 O)
+ // =========================================================
+
+
+
+
+ // =========================================================
+ // 공지사항 조회 (조회수 증가 없음) - 수정 화면 전용
+ // =========================================================
+
+ @Override
+ @Transactional(readOnly = true)
+ public Notice selectNoticeForEdit(int noticeNo) {
+
+     return loadNoticeWithDetails(noticeNo);
+ }
+ 
+ 
+ private Notice loadNoticeWithDetails(int noticeNo) {
+
+	    Notice notice =
+	            noticeRepository.findById(noticeNo)
+	                    .orElse(null);
+
+	    if (notice != null) {
+
+	        employeeDao.findById(notice.getEmpNo())
+	                .ifPresent(e ->
+	                        notice.setEmpName(e.getEmpName())
+	                );
+
+	        if (notice.getFileList() != null) {
+	            notice.getFileList().size();
+	        }
+	    }
+
+	    return notice;
+	}
+
+
+ // =========================================================
+ // 공지사항 단건 조회 공통 로직
+ //
+ // empName, fileList까지 채워서 반환한다.
+ // 조회수 증감은 호출하는 쪽에서 각각 처리한다.
+ // =========================================================
+
+
     
     // =========================================================
     // 첨부파일 다운로드

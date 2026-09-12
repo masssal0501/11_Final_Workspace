@@ -317,51 +317,73 @@ export default function AmountDetail() {
        회사 지원금 적용
        ===================================================== */
 
-    const handleCompanySupportApply = (item) => {
+    const handleCompanySupportApply = async (item) => {
 
-        if (!canEditable) {
-            return;
-        }
+    if (!canEditable) {
+        return;
+    }
 
-        const row =
-            companySupportRows.find(
-                (r) =>
-                    String(r.itemNo) ===
-                    String(item.itemNo)
-            );
+    const row =
+        companySupportRows.find(
+            (r) =>
+                String(r.itemNo) ===
+                String(item.itemNo)
+        );
 
-        const companyAmount =
-            Number(row?.amount) || 0;
+    const companyAmount =
+        Number(row?.amount) || 0;
 
-        const requestAmount =
-            Number(item.itemAmount) || 0;
-
-
-        if (companyAmount < 0) {
-
-            alert(
-                "회사 지원금은 0원 이상이어야 합니다."
-            );
-
-            return;
-        }
+    const requestAmount =
+        Number(item.itemAmount) || 0;
 
 
-        if (companyAmount > requestAmount) {
+    if (companyAmount < 0) {
 
-            alert(
-                `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금은 신청금액을 초과할 수 없습니다.`
-            );
+        alert(
+            "회사 지원금은 0원 이상이어야 합니다."
+        );
 
-            return;
-        }
+        return;
+    }
 
+
+    if (companyAmount > requestAmount) {
+
+        alert(
+            `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금은 신청금액을 초과할 수 없습니다.`
+        );
+
+        return;
+    }
+
+
+    try {
+
+        await amountApi.updateItemSupport(
+            item.itemNo,
+            detail.amountNo,
+            companyAmount
+        );
 
         alert(
             `${itemTypeMap[item.itemType] || "비용 항목"} 회사 지원금이 적용되었습니다.`
         );
 
-    };
+    } catch (error) {
+
+        console.error(
+            "회사 지원금 저장 실패:",
+            error
+        );
+
+        alert(
+            error.response?.data?.message ||
+            "회사 지원금 저장 중 오류가 발생했습니다."
+        );
+
+    }
+
+};
 
 
     /* =====================================================
@@ -572,12 +594,11 @@ export default function AmountDetail() {
 
 
             await amountApi.updateApproval(
-                detail.amountNo,
-                approvalStatus,
-                approvalStatus === "A"
-                    ? totalCompanySupport
-                    : 0,
-                comment.trim()
+            detail.amountNo,
+            approvalStatus,
+            approvalStatus === "A" ? totalCompanySupport : 0,
+            comment.trim(),
+            approvalStatus === "A" ? companySupportRows : []   // 항목별 지원금 추가
             );
 
 

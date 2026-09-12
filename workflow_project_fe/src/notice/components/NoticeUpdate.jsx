@@ -30,8 +30,7 @@ export default function NoticeUpdate() {
 
         try {
 
-            const data =
-                await noticeApi.getNoticeDetail(noticeNo);
+            const data = await noticeApi.getNoticeForEdit(noticeNo);
 
             console.log(
                 '공지사항 수정 조회:',

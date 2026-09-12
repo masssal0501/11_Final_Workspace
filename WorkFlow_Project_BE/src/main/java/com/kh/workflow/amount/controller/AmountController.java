@@ -4,6 +4,8 @@ import java.beans.PropertyEditorSupport;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -305,64 +308,94 @@ public class AmountController {
             @PathVariable("amountNo") int amountNo,
             @RequestParam("status") String status,
             @RequestParam("approvedAmount") int approvedAmount,
-            @RequestParam(value = "comment", required = false)
-            String comment,
-            @RequestParam(value = "sponsorName", required = false)
-            String sponsorName,
-            @RequestParam(value = "sponsorAmount", defaultValue = "0")
-            int sponsorAmount,
-            @RequestParam(value = "sponsorStatus", required = false)
-            String sponsorStatus,
-            @RequestParam(value = "remark", required = false)
-            String remark) {
+            @RequestParam(value = "comment", required = false) String comment,
+            @RequestParam(value = "sponsorName", required = false) String sponsorName,
+            @RequestParam(value = "sponsorAmount", defaultValue = "0") int sponsorAmount,
+            @RequestParam(value = "sponsorStatus", required = false) String sponsorStatus,
+            @RequestParam(value = "remark", required = false) String remark,
+            @RequestBody(required = false) Map<String, Object> body) {
 
         try {
 
             SupportList sponsor = null;
 
-            if (sponsorName != null &&
-                !sponsorName.trim().isEmpty()) {
-
+            if (sponsorName != null && !sponsorName.trim().isEmpty()) {
                 sponsor = new SupportList();
-
                 sponsor.setSponsorName(sponsorName);
                 sponsor.setRequestAmount(sponsorAmount);
                 sponsor.setApprovedAmount(sponsorAmount);
-                sponsor.setStatus(
-                        sponsorStatus == null
-                                ? "UNPAID"
-                                : sponsorStatus
-                );
+                sponsor.setStatus(sponsorStatus == null ? "UNPAID" : sponsorStatus);
                 sponsor.setRemark(remark);
                 sponsor.setTransportSupported("N");
                 sponsor.setOtherSupported("N");
             }
 
+            // itemSupports 파싱
+            List<Map<String, Object>> itemSupports = new ArrayList<>();
+
+            if (body != null && body.get("itemSupports") instanceof List<?> rawList) {
+                for (Object o : rawList) {
+                    if (o instanceof Map<?, ?> m) {
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("itemNo", m.get("itemNo"));
+                        item.put("amount", m.get("amount"));
+                        itemSupports.add(item);
+                    }
+                }
+            }
+
             amountService.updateApprovalWithSponsor(
-                    amountNo,
-                    status,
-                    approvedAmount,
-                    comment,
-                    sponsor
+                    amountNo, status, approvedAmount, comment, sponsor, itemSupports
             );
 
             return ResponseEntity.ok().build();
 
         } catch (IllegalArgumentException e) {
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
-
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-
             e.printStackTrace();
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("결재 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결재 처리 중 오류가 발생했습니다.");
         }
     }
+    
+    
+ // =========================================================
+ // 항목별 회사 지원금 저장 (승인 전 임시 저장용)
+ //
+ // PATCH /api/v1/amounts/item/{itemNo}/support
+ // =========================================================
+
+ @PatchMapping("/item/{itemNo}/support")
+ public ResponseEntity<?> updateItemSupport(
+         @PathVariable int itemNo,
+         @RequestParam int amountNo,
+         @RequestParam int amount) {
+
+     try {
+
+         amountService.updateItemCompanySupport(
+                 itemNo,
+                 amountNo,
+                 amount
+         );
+
+         return ResponseEntity.ok("회사 지원금이 저장되었습니다.");
+
+     } catch (IllegalArgumentException e) {
+
+         return ResponseEntity
+                 .status(HttpStatus.BAD_REQUEST)
+                 .body(e.getMessage());
+
+     } catch (Exception e) {
+
+         e.printStackTrace();
+
+         return ResponseEntity
+                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body("회사 지원금 저장 중 오류가 발생했습니다.");
+     }
+ }
 
     // =========================================================
     // 파일 삭제

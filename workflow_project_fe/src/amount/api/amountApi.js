@@ -133,26 +133,44 @@ const amountApi = {
     // PATCH /api/v1/amounts/{amountNo}/approval
     // =========================================================
     updateApproval: async (
-        amountNo,
+    amountNo,
+    status,
+    approvedAmount,
+    amountComment,
+    itemSupports = []   // [{ itemNo, amount }, ...]
+) => {
+
+    const params = {
         status,
         approvedAmount,
-        amountComment
-    ) => {
+        comment: amountComment
+    };
 
-        const params = {
-            status,
-            approvedAmount,
-            comment: amountComment
-        };
+    const response = await axiosInstance.patch(
+        `${API_BASE_URL}/${amountNo}/approval`,
+        { itemSupports },   // body로 전송
+        { params }
+    );
 
-        const response = await axiosInstance.patch(
-            `${API_BASE_URL}/${amountNo}/approval`,
-            null,
-            { params }
-        );
+    return response.data;
+},
 
-        return response.data;
-    },
+// =========================================================
+// 항목별 회사 지원금 저장 (승인 전 임시 저장)
+// PATCH /api/v1/amounts/item/{itemNo}/support
+// =========================================================
+updateItemSupport: async (itemNo, amountNo, amount) => {
+
+    const response = await axiosInstance.patch(
+        `${API_BASE_URL}/item/${itemNo}/support`,
+        null,
+        {
+            params: { amountNo, amount }
+        }
+    );
+
+    return response.data;
+},
 
 
     // =========================================================

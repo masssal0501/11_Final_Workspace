@@ -123,13 +123,14 @@ public interface AmountService {
     // 13. 결재 + 지원금
     // =========================================================
 
+ // TO-BE
     void updateApprovalWithSponsor(
             int amountNo,
             String status,
             int approvedAmount,
             String comment,
-            SupportList sponsor
-    );
+            SupportList sponsor,
+            List<Map<String, Object>> itemSupports);
 
 
     // =========================================================

@@ -131,7 +131,7 @@ public interface AmountDao
     @Modifying
     @Query("""
         UPDATE AmountItem ai
-        SET ai.itemAmount = :amount
+        SET ai.itemApprovedAmount = :amount
         WHERE ai.itemNo = :itemNo
           AND ai.amount.amountNo = :amountNo
     """)

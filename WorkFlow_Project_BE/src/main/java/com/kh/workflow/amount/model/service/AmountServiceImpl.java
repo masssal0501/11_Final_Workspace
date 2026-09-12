@@ -1052,7 +1052,8 @@ public class AmountServiceImpl implements AmountService {
             String status,
             int approvedAmount,
             String comment,
-            SupportList sponsor) {
+            SupportList sponsor,
+            List<Map<String, Object>> itemSupports) {
 
         if (amountNo <= 0) {
 
@@ -1176,9 +1177,65 @@ public class AmountServiceImpl implements AmountService {
         // ---------------------------------------------------------
 
         amountDao.save(amount);
+
+
+        // =========================================================
+        // ★ 승인 시 항목별 회사 지원금(amount_item.item_approved_amount) 반영
+        //
+        // 통계(부서별/월별/항목별)가 ai.itemApprovedAmount를 집계하는데
+        // 이 값이 채워지지 않으면 승인해도 통계가 0으로만 나오는 원인이 된다.
+        // =========================================================
+
+        if ("A".equals(status)
+                && itemSupports != null
+                && !itemSupports.isEmpty()) {
+
+            for (Map<String, Object> row : itemSupports) {
+
+                if (row == null) {
+                    continue;
+                }
+
+                Object itemNoObj = row.get("itemNo");
+                Object amountObj = row.get("amount");
+
+                if (itemNoObj == null) {
+                    continue;
+                }
+
+                int itemNo;
+                int itemAmount;
+
+                try {
+
+                    itemNo = Integer.parseInt(
+                            itemNoObj.toString()
+                    );
+
+                    itemAmount = amountObj != null
+                            ? Integer.parseInt(amountObj.toString())
+                            : 0;
+
+                } catch (NumberFormatException e) {
+
+                    continue;
+                }
+
+                if (itemAmount < 0) {
+
+                    throw new IllegalArgumentException(
+                            "항목별 회사 지원금은 0원 이상이어야 합니다."
+                    );
+                }
+
+                amountDao.updateItemCompanySupport(
+                        itemNo,
+                        amountNo,
+                        itemAmount
+                );
+            }
+        }
     }
-
-
  // =========================================================
  // 13. 전체 통계
  // =========================================================
