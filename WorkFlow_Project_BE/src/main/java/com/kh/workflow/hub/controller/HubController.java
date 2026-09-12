@@ -50,6 +50,9 @@ public class HubController {
 	@Autowired
 	private HubService hubService;
 
+	@Autowired
+	private FileRenamePolicy fileRenamePolicy;
+
 	// GEMINI_API_KEY가 없는 환경(AIConfig 참조)에서는 이 빈이 아예 존재하지 않으므로
 	// required=false로 받아 null을 허용하고, sendMessage()에서 명시적으로 처리한다.
 	@Autowired(required = false)
@@ -314,7 +317,7 @@ public class HubController {
 		if(upfiles != null && !upfiles.isEmpty()) {
 			for (MultipartFile file : upfiles) {
 				if(file != null && !file.isEmpty()) {
-					String changeName = FileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
+					String changeName = fileRenamePolicy.saveFile(file, session, "/resources/upload/hub/");
 					
 					HubFile hf = new HubFile();
 					hf.setFilePath("/resources/upload/hub");

@@ -5,11 +5,13 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.workflow.amount.model.vo.Amount;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.common.model.vo.PageInfo;
+import com.kh.workflow.employee.model.vo.Employee;
 
 public interface AmountService {
 
@@ -28,7 +30,7 @@ public interface AmountService {
 
 
     // =========================================================
-    // 3. 전체 비용 신청 목록
+    // 3. 전체 비용 신청 목록 - 기존 PageInfo 방식
     // =========================================================
 
     List<Amount> selectAmountList(PageInfo pi);
@@ -58,7 +60,7 @@ public interface AmountService {
 
 
     // =========================================================
-    // 7. 워케이션별 비용 신청 목록
+    // 7. 워케이션별 비용 신청 목록 - 기존 PageInfo 방식
     // =========================================================
 
     List<Amount> selectAmountListByWorkcationNo(
@@ -71,9 +73,13 @@ public interface AmountService {
     // 8. 비용 신청 수정
     // =========================================================
 
+    // BUG-N03: 소유권 검증 없이 누구나 타인의 정산 신청을 수정할 수 있던 문제 수정.
+    // loginEmployee를 받아 STAFF/MANAGER는 본인이 신청한 정산만, ADMIN은 전체 수정 가능하도록
+    // Service 계층에서 검증한다(Controller의 URL 레벨 차단과 별개로 Service 내부에서도 확인).
     void updateAmount(
             Amount amount,
-            List<MultipartFile> files
+            List<MultipartFile> files,
+            Employee loginEmployee
     );
 
 
@@ -138,15 +144,68 @@ public interface AmountService {
     Map<String, Object> getFullStatistics();
 
 
-	Page<Amount> selectAmountList(Pageable pageable);
+    // =========================================================
+    // 15. 전체 비용 신청 목록 - Spring Data Page 방식
+    // =========================================================
+
+    Page<Amount> selectAmountList(
+            Pageable pageable
+    );
 
 
-	int insertAmount(Amount amount, MultipartFile[] files);
+    // =========================================================
+    // 16. 비용 신청 등록 + 파일
+    // =========================================================
+
+    int insertAmount(
+            Amount amount,
+            MultipartFile[] files
+    );
 
 
-	Page<Amount> selectAmountListByWorkcationNo(int workcationNo, Pageable pageable);
+    // =========================================================
+    // 17. 워케이션별 비용 신청 목록 - Spring Data Page 방식
+    // =========================================================
+
+    Page<Amount> selectAmountListByWorkcationNo(
+            int workcationNo,
+            Pageable pageable
+    );
 
 
-	Amount selectAmountById(Integer amountNo);
+    // =========================================================
+    // 18. 비용 상세 조회 - Integer 방식
+    // =========================================================
+
+    Amount selectAmountById(
+            Integer amountNo
+    );
+
+
+    // =========================================================
+    // 19. 로그인 사용자 비용 신청 목록
+    //
+    // JWT
+    //   ↓
+    // Authentication.getName()
+    //   ↓
+    // empId
+    //   ↓
+    // Employee
+    //   ↓
+    // empNo
+    //   ↓
+    // WorkcationInfo
+    //   ↓
+    // workcationNo
+    //   ↓
+    // Amount
+    // =========================================================
+
+    Page<Amount> selectMyAmountList(
+            Pageable pageable,
+            Authentication authentication
+    );
 
 }
+

@@ -40,6 +40,7 @@ import WorkcationUpdateFormComponent from "./workcation/components/WorkcationUpd
 import MyWorkcationListComponent from './workcation/components/MyWorkcationListComponent';
 import MyWorkcationDetailFormComponent from './workcation/components/MyWorkcationDetailFormComponent';
 import SurveyForm from './survey/components/SurveyForm';
+import WorkcationReviewForm from './review/components/WorkcationReviewForm';
 
 import LoginForm from "./employee/components/LoginForm";
 import FindIDForm from "./employee/components/FindIDForm";
@@ -132,9 +133,12 @@ function App() {
 
             <Routes>
 
-                {/* 비용 정산 */}
-                <Route path="/cost/list" element={<AmountPage workcationNo={1} />} />
-                <Route path="/cost/apply/:amountNo" element={<AmountForm workcationNo={1} />} />
+                {/* 📌 /cost/list 요청을 사원용 정산 페이지로 연결 */}
+                <Route path="/cost/list" element={<AmountPage />} />
+
+                {/* 📌 비용 신청 페이지 경로 추가 */}
+                <Route path="/cost/apply/:amountNo" element={<AmountForm  />} />
+
                 <Route path="/cost/apply" element={<AmountForm />} />
                 <Route path="/cost/detail/:amountNo" element={<AmountDetail />} />
 
@@ -170,6 +174,11 @@ function App() {
 
 
                 {/* 관리자 제외 워케이션 신청 */}
+                {/* BUG-NEW: WorkcationDetailComponent의 "수정" 버튼이 이 경로로 이동하지만
+                    Route가 등록돼 있지 않아 항상 에러 페이지로 빠지던 문제 - 이미 구현되어
+                    있던 WorkcationUpdateFormComponent를 연결한다. */}
+                <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
+                {/* 관리자는 워케이션을 직접 신청하지 않는다 */}
                 {loginUser.authCode !== "ADMIN" && (
                     <Route path="/workcation/enrollform" element={<WorkcationEnrollFormComponent />} />
                 )}
@@ -177,6 +186,7 @@ function App() {
                 <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
                 <Route path="/workcation/mydetail/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
                 <Route path="/survey/:workcationNo" element={<SurveyForm />} />
+                <Route path="/workcation/:workcationNo/review" element={<WorkcationReviewForm />} />
 
                 {/* 대시보드 */}
                 <Route path="/" element={loginUser.authCode === "ADMIN" ? <AdminComponent /> : loginUser.authCode === "MANAGER" ? <ManagerComponent loginUser={loginUser} /> : <StaffComponent loginUser={loginUser} />} />

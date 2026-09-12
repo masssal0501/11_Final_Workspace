@@ -60,10 +60,11 @@ function ApprovalHistoryDetail() {
                     <p className="wf-page-description">{workcationInfo.workcationTitle}</p>
                 </div>
                 <div className="wf-page-actions">
+                    {/* BUG-002: navigate(-1) 대신 승인 이력 목록으로 고정 이동(직접 URL 접근 대응) */}
                     <button
                         type="button"
                         className="btn btn-secondary"
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate('/approval/history')}
                     >
                         이전으로
                     </button>
@@ -86,7 +87,7 @@ function ApprovalHistoryDetail() {
                     <div>
                         <h6>신청자</h6>
                         <span>
-                            {workcationInfo.employee?.deptTitle ||
+                            {workcationInfo.employee?.depTitle ||
                             workcationInfo.employee?.depId ||
                             "-"}
                             &nbsp;-&nbsp;
@@ -107,7 +108,7 @@ function ApprovalHistoryDetail() {
                         <h6>승인자</h6>
                         {workcationInfo.approver ? (
                             <span>
-                                {workcationInfo.approver?.deptTitle ||
+                                {workcationInfo.approver?.depTitle ||
                                 workcationInfo.approver?.depId ||
                                 "-"}
                                 &nbsp;-&nbsp;

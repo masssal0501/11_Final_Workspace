@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,6 +30,8 @@ import com.kh.workflow.employee.model.dto.LoginResponse;
 import com.kh.workflow.employee.model.dto.PasswordResetRequest;
 import com.kh.workflow.employee.model.dto.PasswordResetVerifyRequest;
 import com.kh.workflow.employee.model.service.EmployeeService;
+import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.vo.Employee;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -51,6 +54,26 @@ import lombok.RequiredArgsConstructor;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final EmployeeDao employeeDao;
+
+    // BUG-N02: GET/PUT /employees/{empNo}가 로그인 여부만 확인하고 대상 직원에 대한
+    // 권한/소유권 검증이 전혀 없어, STAFF/MANAGER도 다른 직원의 개인정보를 조회·수정할 수
+    // 있었다. ADMIN은 전체 접근 가능, 그 외(STAFF/MANAGER)는 본인 정보만 접근 가능하도록
+    // 제한한다. Frontend에서 /employee/** 라우트 자체를 ADMIN 전용으로 숨기고 있지만
+    // API를 직접 호출하면 우회 가능했으므로 Backend에서도 반드시 차단한다.
+    private void checkSelfOrAdmin(Integer targetEmpNo, Authentication authentication) {
+
+        Employee loginEmployee = employeeDao
+                .findByEmpId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("로그인 사용자 정보를 찾을 수 없습니다."));
+
+        boolean isAdmin = "ADMIN".equals(loginEmployee.getAuthCode());
+        boolean isSelf = loginEmployee.getEmpNo().equals(targetEmpNo);
+
+        if (!isAdmin && !isSelf) {
+            throw new AccessDeniedException("본인 정보만 조회/수정할 수 있습니다.");
+        }
+    }
 
 
     // USR-001
@@ -258,8 +281,11 @@ public class EmployeeController {
             required = true,
             example = "1001"
         )
-        @PathVariable Integer empNo
+        @PathVariable Integer empNo,
+        Authentication authentication
     ) {
+
+        checkSelfOrAdmin(empNo, authentication);
 
         return ResponseEntity.ok(
             employeeService.getEmployee(empNo)
@@ -305,8 +331,11 @@ public class EmployeeController {
                 schema = @Schema(implementation = EmployeeUpdateRequest.class)
             )
         )
-        @RequestBody EmployeeUpdateRequest request
+        @RequestBody EmployeeUpdateRequest request,
+        Authentication authentication
     ) {
+
+        checkSelfOrAdmin(empNo, authentication);
 
         return ResponseEntity.ok(
             employeeService.updateEmployee(

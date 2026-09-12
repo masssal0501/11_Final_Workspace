@@ -351,10 +351,206 @@
     line-height: 1.5;
 }
 
+.workcation-form-table {
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    box-sizing: border-box;
+}
 
-/* =========================================================
-   수정 / 삭제 버튼
-   ========================================================= */
+/* BUG-005: .workcation-form-table 클래스명이 WorkcationEnrollForm.css에서도
+   재사용되면서(margin 초기화 등) 최종 번들 순서에 따라 위 규칙이 덮여쓰여
+   Workcation Detail 화면에서 테이블이 가운데 정렬되지 않는 문제가 있었다.
+   Workcation Detail 페이지(.wf-page-content로 감싼 구조)에만 한정된 선택자로
+   다른 페이지(신청/수정 폼 등)의 스타일에는 영향을 주지 않고 정렬을 보장한다. */
+.wf-page-content .workcation-form-table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.workcation-form-table tr {
+    border: none;
+}
+
+.workcation-form-table th {
+    white-space: nowrap;
+    padding: 6px 8px;
+    background-color: transparent;
+    border: none;
+    font-size: 14px;
+}
+
+.workcation-form-table td {
+    padding: 6px;
+    background-color: transparent;
+    border: none;
+}
+
+/* 텍스트 박스 크기 고정 - td 안의 input이 브라우저 기본 폭(약 20자)으로
+   줄어들어 칸을 벗어나 보이던 문제를 막는다 */
+.workcation-form-table td input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--wf-gray-50);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--wf-text-primary);
+}
+
+.cell-box {
+    background-color: var(--wf-gray-50);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.status-cell-box {
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    padding: 0;
+}
+
+.workcation-status-badge {
+    background-color: var(--wf-success-bg);
+    color: var(--wf-success);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-block;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.cell-box.radio-group-box {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.radio-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.task-plan-container {
+    margin-top: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.task-plan-title {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: var(--wf-fs-page-title);
+    font-weight: 800;
+    color: var(--wf-text-primary);
+}
+
+.task-plan-split-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 880px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.task-plan-box {
+    flex: 3;
+    max-width: 660px;
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius-sm);
+    background-color: var(--wf-white);
+    box-shadow: var(--wf-shadow-sm);
+    padding: 10px 20px;
+    box-sizing: border-box;
+}
+
+.task-plan-box.right-box {
+    flex: 1;
+    max-width: 200px;
+}
+
+.task-plan-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.task-item-row {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    border-bottom: 1px solid var(--wf-border);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.task-plan-box:not(.right-box) .task-item-row {
+    padding-left: 10px;
+}
+
+.right-box .task-item-row {
+    justify-content: center;
+}
+
+.task-item-row:last-child {
+    border-bottom: none;
+}
+
+.task-name {
+    color: var(--wf-text-primary);
+}
+
+.task-days {
+    font-weight: bold;
+    color: var(--wf-text-primary);
+}
+
+.common-btn-group {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto 10px auto;
+    box-sizing: border-box;
+}
+
+.back-space,
+.detail-button-area button {
+    background-color: var(--wf-primary);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 0 24px;
+    height: 42px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+.back-space:hover,
+.detail-button-area button:hover {
+    background-color: var(--wf-primary-dark);
+}
 
 .detail-button-area {
     display: flex;

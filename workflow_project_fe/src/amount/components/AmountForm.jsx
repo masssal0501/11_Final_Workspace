@@ -1,1422 +1,1131 @@
-import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { amountApi } from '../api/amountApi';
-
-export default function AmountForm({
-  workcationNo: workcationNoProp,
-  onSuccess
-}) {
-
-  // BUG-012: UserAmountList의 "새 비용 신청" 버튼은
-  // /cost/apply?workcationNo=... 형태의 쿼리스트링으로 이동하지만
-  // App.jsx의 /cost/apply 라우트는 <AmountForm />을 prop 없이 렌더링해서
-  // workcationNo가 항상 undefined였다. 그 결과 STAFF가 실제 화면에서
-  // 비용 정산을 신청하면 항상 "워케이션 정보가 없습니다." 알림만 뜨고
-  // 제출이 막혀 있었다. prop이 없을 때는 쿼리스트링 값을 사용한다.
-  const [searchParams] = useSearchParams();
-  const workcationNo =
-    workcationNoProp ?? searchParams.get('workcationNo');
-
-  // =========================================================
-  // 1. 비용 상세 항목
-  //
-  // amount_item.amount
-  //   → 신청금액
-  //
-  // amount_item.item_approved_amount
-  //   → 회사 지원금
-  //   → 신청 화면에서는 입력하지 않음
-  //   → 관리자 승인 시 입력
-  // =========================================================
-  const [itemList, setItemList] = useState([
-    {
-      tempId: Date.now(),
-      itemType: 'S',
-      amount: '',
-      itemDate: '',
-      itemDescription: ''
-    }
-  ]);
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { amountApi } from "../api/amountApi";
+import "../styles/AmountStyle.css";
 
 
-  // =========================================================
-  // 2. 지자체 지원금
-  //
-  // amount_list
-  // 현재 DB PK가 amount_no이므로
-  // 신청 건당 1건 사용
-  // =========================================================
-  const [sponsor, setSponsor] = useState({
-    sponsorName: '',
-    amount: '',
-    status: 'UNPAID',
-    paymentDate: null,
-    remark: ''
-  });
+// =========================================================
+// 비용 항목
+// =========================================================
+const ITEM_TYPES = [
+    { value: "S", label: "숙박" },
+    { value: "T", label: "교통" },
+    { value: "E", label: "체험" },
+    { value: "F", label: "식비" },
+    { value: "V", label: "차량" },
+    { value: "O", label: "기타" }
+];
 
 
-  const [hasLocalSupport, setHasLocalSupport] =
-    useState(false);
+export default function AmountForm() {
+
+    const navigate = useNavigate();
+    const { amountNo } = useParams();
+
+    const isEditMode = Boolean(amountNo);
 
 
-  // =========================================================
-  // 3. 신청 사유 / 파일
-  // =========================================================
-  const [amountComment, setAmountComment] =
-    useState('');
+    // =========================================================
+    // 기본 상태
+    // =========================================================
 
-  const [files, setFiles] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(isEditMode);
 
+    const [status, setStatus] = useState("R");
 
-  // =========================================================
-  // 비용 항목
-  // =========================================================
-  const typeMap = {
-    S: '숙박',
-    T: '교통',
-    E: '체험',
-    F: '식비',
-    V: '차량',
-    O: '기타'
-  };
+    const [amountComment, setAmountComment] = useState("");
 
 
-  // =========================================================
-  // 금액 표시
-  // =========================================================
-  const formatMoney = (value) => {
+    // =========================================================
+    // 비용 항목
+    // =========================================================
 
-    const number = Number(value) || 0;
-
-    return `${number.toLocaleString('ko-KR')} 원`;
-  };
-
-
-  // =========================================================
-  // 신청금액 합계
-  //
-  // amount_item.amount 합계
-  // =========================================================
-  const totalRequestedAmount =
-    itemList.reduce(
-      (sum, item) =>
-        sum + (Number(item.amount) || 0),
-      0
-    );
-
-
-  // =========================================================
-  // 지자체 지원금
-  // =========================================================
-  const totalLocalSupport =
-    hasLocalSupport
-      ? Number(sponsor.amount) || 0
-      : 0;
-
-
-  // =========================================================
-  // 신청 단계에서는 회사 지원금이 없음
-  //
-  // 회사 지원금은 관리자 승인 시
-  // item_approved_amount에 입력
-  // =========================================================
-  const totalCompanySupport = 0;
-
-
-  // =========================================================
-  // 현재 신청 화면에서의 전체 지원금
-  //
-  // 신청 시점에는 지자체 지원금만 존재
-  // =========================================================
-  const grandTotal =
-    totalCompanySupport +
-    totalLocalSupport;
-
-
-  // =========================================================
-  // 비용 항목 추가
-  // =========================================================
-  const handleAddItem = () => {
-
-    setItemList(prev => [
-      ...prev,
-
-      {
-        tempId: Date.now() + Math.random(),
-        itemType: 'S',
-        amount: '',
-        itemDate: '',
-        itemDescription: ''
-      }
+    const [itemList, setItemList] = useState([
+        {
+            itemNo: null,
+            itemType: "S",
+            itemAmount: "",
+            itemDate: "",
+            itemDescription: ""
+        }
     ]);
-  };
 
 
-  // =========================================================
-  // 비용 항목 삭제
-  // =========================================================
-  const handleRemoveItem = (tempId) => {
+    // =========================================================
+    // 파일
+    // =========================================================
 
-    if (itemList.length <= 1) {
-
-      alert(
-        '비용 항목은 최소 1개가 필요합니다.'
-      );
-
-      return;
-    }
-
-    setItemList(prev =>
-      prev.filter(
-        item => item.tempId !== tempId
-      )
-    );
-  };
+    const [files, setFiles] = useState([]);
 
 
-  // =========================================================
-  // 비용 항목 수정
-  // =========================================================
-  const handleItemChange = (
-    tempId,
-    field,
-    value
-  ) => {
+    // =========================================================
+    // 수정 화면 기존 파일
+    // =========================================================
 
-    setItemList(prev =>
-      prev.map(item =>
-        item.tempId === tempId
-          ? {
-              ...item,
-              [field]: value
+    const [existingFiles, setExistingFiles] = useState([]);
+
+
+    // =========================================================
+    // 기존 비용 조회
+    // =========================================================
+
+    useEffect(() => {
+
+        if (!isEditMode) {
+            setPageLoading(false);
+            return;
+        }
+
+        loadAmount();
+
+    }, [amountNo, isEditMode]);
+
+
+    // =========================================================
+    // 비용 상세 조회
+    // =========================================================
+
+    const loadAmount = async () => {
+
+        try {
+
+            setPageLoading(true);
+
+            const data =
+                await amountApi.getAmountById(amountNo);
+
+            if (!data) {
+                alert("비용 신청 정보를 찾을 수 없습니다.");
+                navigate("/cost/list");
+                return;
             }
-          : item
-      )
-    );
-  };
 
 
-  // =========================================================
-  // 지자체 지원금 사용
-  // =========================================================
-  const handleEnableLocalSupport = () => {
+            // -------------------------------------------------
+            // 수정 가능 상태 확인
+            // R = 검토중
+            // H = 보류
+            // -------------------------------------------------
 
-    setHasLocalSupport(true);
-  };
+            if (
+                data.status !== "R" &&
+                data.status !== "H"
+            ) {
 
+                alert(
+                    "검토중 또는 보류 상태의 비용만 수정할 수 있습니다."
+                );
 
-  // =========================================================
-  // 지자체 지원금 해제
-  // =========================================================
-  const handleRemoveLocalSupport = () => {
-
-    setHasLocalSupport(false);
-
-    setSponsor({
-      sponsorName: '',
-      amount: '',
-      status: 'UNPAID',
-      paymentDate: null,
-      remark: ''
-    });
-  };
+                navigate("/cost/list");
+                return;
+            }
 
 
-  // =========================================================
-  // 지자체 지원금 입력
-  // =========================================================
-  const handleSponsorChange = (
-    field,
-    value
-  ) => {
+            setStatus(data.status || "R");
 
-    setSponsor(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+            setAmountComment(
+                data.amountComment || ""
+            );
 
 
-  // =========================================================
-  // 파일 선택
-  // =========================================================
-  const handleFileChange = (e) => {
+            // -------------------------------------------------
+            // 비용 항목
+            // -------------------------------------------------
 
-    const selectedFiles =
-      Array.from(
-        e.target.files || []
-      );
+            if (
+                Array.isArray(data.itemList) &&
+                data.itemList.length > 0
+            ) {
 
-    setFiles(selectedFiles);
-  };
+                const loadedItems =
+                    data.itemList.map((item) => ({
 
+                        itemNo:
+                            item.itemNo ?? null,
 
-  // =========================================================
-  // 제출
-  // =========================================================
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+                        itemType:
+                            item.itemType || "S",
 
+                        itemAmount:
+                            item.itemAmount ??
+                            item.amount ??
+                            "",
 
-    // -------------------------------------------------------
-    // workcationNo 확인
-    // -------------------------------------------------------
-    if (!workcationNo) {
+                        itemDate:
+                            item.itemDate
+                                ? String(item.itemDate).substring(0, 10)
+                                : "",
 
-      alert(
-        '워케이션 정보가 없습니다.'
-      );
+                        itemDescription:
+                            item.itemDescription || ""
 
-      return;
-    }
+                    }));
 
+                setItemList(loadedItems);
 
-    // -------------------------------------------------------
-    // 비용 항목 확인
-    // -------------------------------------------------------
-    if (itemList.length === 0) {
+            } else {
 
-      alert(
-        '비용 항목을 최소 1개 이상 입력해주세요.'
-      );
+                setItemList([
+                    {
+                        itemNo: null,
+                        itemType: "S",
+                        itemAmount: "",
+                        itemDate: "",
+                        itemDescription: ""
+                    }
+                ]);
 
-      return;
-    }
-
-
-    // -------------------------------------------------------
-    // 비용 항목 검증
-    // -------------------------------------------------------
-    for (
-      let i = 0;
-      i < itemList.length;
-      i++
-    ) {
-
-      const item = itemList[i];
+            }
 
 
-      // 신청금액
-      if (
-        item.amount === '' ||
-        Number(item.amount) <= 0
-      ) {
+            // -------------------------------------------------
+            // 기존 첨부파일
+            // -------------------------------------------------
 
-        alert(
-          `${i + 1}번째 ${typeMap[item.itemType] || '비용 항목'}의 신청금액을 입력해주세요.`
+            if (
+                Array.isArray(data.amountFile)
+            ) {
+
+                setExistingFiles(
+                    data.amountFile
+                );
+
+            } else if (
+                Array.isArray(data.fileList)
+            ) {
+
+                setExistingFiles(
+                    data.fileList
+                );
+
+            } else {
+
+                setExistingFiles([]);
+
+            }
+
+
+            /*
+             * =================================================
+             * 중요
+             * =================================================
+             *
+             * 지자체지원금은 여기서 가져오지 않는다.
+             *
+             * 신청 Form에서는 입력하지 않는다.
+             *
+             * 수정 Form에서도 supportList를 state로 만들지 않는다.
+             *
+             * DB의 amount_list는 별도로 관리되는 지원금 데이터이며,
+             * 목록/상세 조회에서 backend가 읽어서 내려준다.
+             *
+             * =================================================
+             */
+
+        } catch (error) {
+
+            console.error(
+                "비용 상세 조회 실패:",
+                error
+            );
+
+            alert(
+                error?.response?.data?.message ||
+                "비용 신청 정보를 불러오지 못했습니다."
+            );
+
+            navigate("/cost/list");
+
+        } finally {
+
+            setPageLoading(false);
+
+        }
+    };
+
+
+    // =========================================================
+    // 항목 추가
+    // =========================================================
+
+    const addItem = () => {
+
+        setItemList((prev) => [
+
+            ...prev,
+
+            {
+                itemNo: null,
+                itemType: "S",
+                itemAmount: "",
+                itemDate: "",
+                itemDescription: ""
+            }
+
+        ]);
+
+    };
+
+
+    // =========================================================
+    // 항목 삭제
+    // =========================================================
+
+    const removeItem = (index) => {
+
+        if (itemList.length === 1) {
+
+            alert(
+                "비용 항목은 최소 1개 이상 필요합니다."
+            );
+
+            return;
+        }
+
+        setItemList((prev) =>
+            prev.filter(
+                (_, itemIndex) =>
+                    itemIndex !== index
+            )
         );
 
-        return;
-      }
+    };
 
 
-      // 사용일
-      if (!item.itemDate) {
+    // =========================================================
+    // 항목 수정
+    // =========================================================
 
-        alert(
-          `${i + 1}번째 비용 항목의 사용일을 입력해주세요.`
+    const updateItem = (
+        index,
+        field,
+        value
+    ) => {
+
+        setItemList((prev) => {
+
+            const next =
+                [...prev];
+
+            next[index] = {
+                ...next[index],
+                [field]: value
+            };
+
+            return next;
+
+        });
+
+    };
+
+
+    // =========================================================
+    // 금액 숫자 변환
+    // =========================================================
+
+    const parseAmount = (value) => {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return 0;
+        }
+
+        const number =
+            Number(
+                String(value)
+                    .replace(/,/g, "")
+            );
+
+        return Number.isFinite(number)
+            ? number
+            : 0;
+    };
+
+
+    // =========================================================
+    // 전체 신청금액
+    // =========================================================
+
+    const getRequestedAmount = () => {
+
+        return itemList.reduce(
+            (total, item) =>
+                total +
+                parseAmount(item.itemAmount),
+            0
         );
 
-        return;
-      }
+    };
 
 
-      // 설명
-      if (
-        !item.itemDescription ||
-        !item.itemDescription.trim()
-      ) {
+    // =========================================================
+    // 파일 선택
+    // =========================================================
 
-        alert(
-          `${i + 1}번째 비용 항목의 설명을 입력해주세요.`
-        );
+    const handleFileChange = (event) => {
 
-        return;
-      }
-    }
+        const selectedFiles =
+            Array.from(
+                event.target.files || []
+            );
 
+        setFiles(selectedFiles);
 
-    // -------------------------------------------------------
-    // 신청금액 확인
-    // -------------------------------------------------------
-    if (totalRequestedAmount <= 0) {
+    };
 
-      alert(
-        '신청금액이 0원입니다.'
-      );
 
-      return;
-    }
+    // =========================================================
+    // 제출
+    // =========================================================
 
+    const handleSubmit = async (event) => {
 
-    // -------------------------------------------------------
-    // 지자체 지원금 검증
-    // -------------------------------------------------------
-    if (hasLocalSupport) {
+        event.preventDefault();
 
-      const localAmount =
-        Number(sponsor.amount);
 
+        if (loading) {
+            return;
+        }
 
-      if (
-        sponsor.amount === '' ||
-        Number.isNaN(localAmount) ||
-        localAmount < 0
-      ) {
 
-        alert(
-          '지자체 지원금 금액을 입력해주세요.'
-        );
+        // -----------------------------------------------------
+        // 항목 검증
+        // -----------------------------------------------------
 
-        return;
-      }
+        if (
+            !Array.isArray(itemList) ||
+            itemList.length === 0
+        ) {
 
+            alert(
+                "비용 항목을 최소 1개 이상 입력해주세요."
+            );
 
-      // 지자체 지원금이 신청금액보다 클 수 없음
-      if (
-        localAmount >
-        totalRequestedAmount
-      ) {
+            return;
+        }
 
-        alert(
-          `지자체 지원금은 신청금액을 초과할 수 없습니다.\n\n` +
-          `신청금액: ${formatMoney(totalRequestedAmount)}\n` +
-          `지자체 지원금: ${formatMoney(localAmount)}`
-        );
 
-        return;
-      }
+        for (
+            let index = 0;
+            index < itemList.length;
+            index++
+        ) {
 
+            const item =
+                itemList[index];
 
-      // 지원금이 0보다 크면 기관명 필수
-      if (
-        localAmount > 0 &&
-        !sponsor.sponsorName.trim()
-      ) {
 
-        alert(
-          '지원기관명을 입력해주세요.'
-        );
+            if (!item.itemType) {
 
-        return;
-      }
-    }
+                alert(
+                    `${index + 1}번째 비용 항목의 유형을 선택해주세요.`
+                );
 
-
-    // -------------------------------------------------------
-    // 파일 확인
-    // -------------------------------------------------------
-    if (files.length === 0) {
-
-      alert(
-        '영수증 또는 증빙 파일을 최소 1개 첨부해주세요.'
-      );
-
-      return;
-    }
-
-
-    // -------------------------------------------------------
-    // 최종 확인
-    // -------------------------------------------------------
-    const confirmed =
-      window.confirm(
-        `비용 정산 신청을 제출하시겠습니까?\n\n` +
-
-        `신청금액: ${formatMoney(totalRequestedAmount)}\n` +
-
-        `지자체 지원금: ${formatMoney(totalLocalSupport)}\n\n` +
-
-        `※ 회사 지원금은 관리자 승인 단계에서 결정됩니다.`
-      );
-
-
-    if (!confirmed) {
-      return;
-    }
-
-
-    // =======================================================
-    // API 요청 데이터 (multipart/form-data)
-    //
-    // Backend AmountController.createAmount()는
-    // @ModelAttribute Amount amount + @RequestParam MultipartFile[] file
-    // 로 바인딩하므로, 중첩 리스트는 Spring의 인덱스 표기법
-    // (itemList[0].필드명, supportList[0].필드명)을 그대로 key로 사용해야
-    // Amount.itemList / Amount.supportList 에 자동으로 바인딩된다.
-    // =======================================================
-    const formData = new FormData();
-
-    // -------------------------------------------------------
-    // amount
-    // -------------------------------------------------------
-    formData.append(
-      'workcationNo',
-      String(Number(workcationNo))
-    );
-
-    formData.append(
-      'requestedAmount',
-      String(totalRequestedAmount)
-    );
-
-    formData.append(
-      'amountComment',
-      amountComment.trim()
-    );
-
-    // -------------------------------------------------------
-    // amount_item (itemList)
-    // -------------------------------------------------------
-    itemList.forEach((item, index) => {
-
-      formData.append(
-        `itemList[${index}].itemType`,
-        item.itemType
-      );
-
-      formData.append(
-        `itemList[${index}].itemAmount`,
-        String(Number(item.amount))
-      );
-
-      formData.append(
-        `itemList[${index}].itemDate`,
-        `${item.itemDate}T00:00:00`
-      );
-
-      formData.append(
-        `itemList[${index}].itemDescription`,
-        item.itemDescription.trim()
-      );
-    });
-
-    // -------------------------------------------------------
-    // amount_list (supportList) - 지자체 지원금 입력 시에만
-    //
-    // approvedAmount/paymentDate는 화면에 입력란이 없어
-    // 신청 단계에서는 기본값(0원 / 현재 시각)으로 채운다.
-    // (실제 승인 금액과 지급일은 관리자 승인 단계에서 반영됨)
-    // -------------------------------------------------------
-    if (hasLocalSupport) {
-
-      formData.append(
-        'supportList[0].sponsorName',
-        sponsor.sponsorName.trim()
-      );
-
-      formData.append(
-        'supportList[0].requestAmount',
-        String(Number(sponsor.amount) || 0)
-      );
-
-      formData.append(
-        'supportList[0].approvedAmount',
-        '0'
-      );
-
-      formData.append(
-        'supportList[0].paymentDate',
-        sponsor.paymentDate
-          ? `${sponsor.paymentDate}T00:00:00`
-          : new Date().toISOString().slice(0, 19)
-      );
-
-      formData.append(
-        'supportList[0].status',
-        sponsor.status
-      );
-
-      formData.append(
-        'supportList[0].remark',
-        sponsor.remark.trim()
-      );
-
-      formData.append(
-        'supportList[0].transportSupported',
-        'N'
-      );
-
-      formData.append(
-        'supportList[0].otherSupported',
-        'N'
-      );
-    }
-
-    // -------------------------------------------------------
-    // amount_file (첨부파일)
-    // -------------------------------------------------------
-    files.forEach(file => {
-      formData.append('file', file);
-    });
-
-
-    // =======================================================
-    // API 요청
-    // =======================================================
-    try {
-
-      const createdAmount =
-        await amountApi.insertAmount(
-          formData
-        );
-
-
-      alert(
-        '비용 정산 신청이 완료되었습니다.'
-      );
-
-
-      if (onSuccess) {
-
-        onSuccess(
-          createdAmount?.amountNo
-        );
-      }
-
-
-    } catch (error) {
-
-      console.error(
-        '❌ 비용 정산 신청 실패:',
-        error
-      );
-
-      console.error(
-        '❌ 서버 응답:',
-        error?.response?.data
-      );
-
-      alert(
-        error?.response?.data?.message ||
-        '비용 정산 신청 중 오류가 발생했습니다.'
-      );
-    }
-  };
-
-
-  // =========================================================
-  // JSX
-  // =========================================================
-  return (
-
-    <main className="amount-container">
-
-      <section className="wf-page-header">
-        <div>
-          <h1 className="wf-page-title">비용 정산 신청</h1>
-          <p className="wf-page-description">지출 항목과 증빙을 입력하여 비용 정산을 신청합니다.</p>
-        </div>
-      </section>
-
-
-      <form
-        className="detail-box"
-        onSubmit={handleSubmit}
-      >
-
-
-        {/* ================================================= */}
-        {/* 1. 비용 상세 항목 */}
-        {/* ================================================= */}
-        <div
-          className="info-row comment-row"
-          style={{
-            display: 'block'
-          }}
-        >
-
-          <span
-            className="info-label"
-            style={{
-              display: 'block',
-              width: '100%',
-              marginBottom: '15px'
-            }}
-          >
-            비용 상세 항목
-          </span>
-
-
-          <div className="amount-form-item-table-wrap">
-
-            <table className="amount-form-item-table">
-
-              <colgroup>
-
-                <col
-                  style={{
-                    width: '120px'
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: '280px'
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: '150px'
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: '160px'
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: '80px'
-                  }}
-                />
-
-              </colgroup>
-
-
-              <thead>
-
-                <tr>
-
-                  <th>
-                    비용 항목
-                  </th>
-
-                  <th>
-                    설명
-                  </th>
-
-                  <th>
-                    사용일
-                  </th>
-
-                  <th>
-                    신청금액
-                  </th>
-
-                  <th>
-                    관리
-                  </th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody>
-
-                {itemList.map(item => (
-
-                  <tr
-                    key={item.tempId}
-                  >
-
-                    {/* 비용 항목 */}
-                    <td>
-
-                      <select
-                        value={
-                          item.itemType
-                        }
-                        onChange={e =>
-                          handleItemChange(
-                            item.tempId,
-                            'itemType',
-                            e.target.value
-                          )
-                        }
-                        className="amount-item-select"
-                      >
-
-                        <option value="S">
-                          숙박
-                        </option>
-
-                        <option value="T">
-                          교통
-                        </option>
-
-                        <option value="E">
-                          체험
-                        </option>
-
-                        <option value="F">
-                          식비
-                        </option>
-
-                        <option value="V">
-                          차량
-                        </option>
-
-                        <option value="O">
-                          기타
-                        </option>
-
-                      </select>
-
-                    </td>
-
-
-                    {/* 설명 */}
-                    <td>
-
-                      <input
-                        type="text"
-                        value={
-                          item.itemDescription
-                        }
-                        onChange={e =>
-                          handleItemChange(
-                            item.tempId,
-                            'itemDescription',
-                            e.target.value
-                          )
-                        }
-                        className="amount-item-description"
-                        placeholder="비용 설명"
-                      />
-
-                    </td>
-
-
-                    {/* 사용일 */}
-                    <td>
-
-                      <input
-                        type="date"
-                        value={
-                          item.itemDate
-                        }
-                        onChange={e =>
-                          handleItemChange(
-                            item.tempId,
-                            'itemDate',
-                            e.target.value
-                          )
-                        }
-                        className="amount-item-date"
-                      />
-
-                    </td>
-
-
-                    {/* 신청금액 */}
-                    <td>
-
-                      <input
-                        type="number"
-                        min="0"
-                        value={
-                          item.amount
-                        }
-                        onChange={e =>
-                          handleItemChange(
-                            item.tempId,
-                            'amount',
-                            e.target.value
-                          )
-                        }
-                        className="amount-item-amount"
-                        placeholder="신청금액"
-                      />
-
-                    </td>
-
-
-                    {/* 관리 */}
-                    <td>
-
-                      {itemList.length > 1 && (
-
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={() =>
-                            handleRemoveItem(
-                              item.tempId
-                            )
-                          }
-                        >
-                          삭제
-                        </button>
-
-                      )}
-
-                    </td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-
-          {/* 비용 항목 추가 */}
-          <div
-            style={{
-              marginTop: '15px',
-              textAlign: 'right'
-            }}
-          >
-
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleAddItem}
-            >
-              + 비용 항목 추가
-            </button>
-
-          </div>
-
-
-          {/* 신청금액 합계 */}
-          <div className="amount-support-summary">
-
-            <span>
-              신청금액 합계
-            </span>
-
-            <strong>
-              {formatMoney(
-                totalRequestedAmount
-              )}
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        {/* ================================================= */}
-        {/* 2. 지자체 지원금 */}
-        {/* ================================================= */}
-        <div
-          className="info-row comment-row"
-          style={{
-            display: 'block'
-          }}
-        >
-
-          <span
-            className="info-label"
-            style={{
-              display: 'block',
-              width: '100%',
-              marginBottom: '15px'
-            }}
-          >
-            지자체 지원금
-          </span>
-
-
-          {!hasLocalSupport ? (
-
-            <div
-              style={{
-                textAlign: 'right'
-              }}
-            >
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={
-                  handleEnableLocalSupport
+                return;
+            }
+
+
+            if (
+                parseAmount(item.itemAmount) <= 0
+            ) {
+
+                alert(
+                    `${index + 1}번째 비용 항목의 금액을 입력해주세요.`
+                );
+
+                return;
+            }
+
+
+            if (!item.itemDate) {
+
+                alert(
+                    `${index + 1}번째 비용 항목의 비용 날짜를 입력해주세요.`
+                );
+
+                return;
+            }
+
+        }
+
+
+        // -----------------------------------------------------
+        // 신청금액
+        // -----------------------------------------------------
+
+        const requestedAmount =
+            getRequestedAmount();
+
+
+        if (requestedAmount <= 0) {
+
+            alert(
+                "신청 금액을 확인해주세요."
+            );
+
+            return;
+        }
+
+
+        // -----------------------------------------------------
+        // 신규 신청 시 영수증 필수
+        // -----------------------------------------------------
+
+        if (
+            !isEditMode &&
+            files.length === 0
+        ) {
+
+            alert(
+                "영수증 파일을 첨부해주세요."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            setLoading(true);
+
+
+            const formData =
+                new FormData();
+
+
+            // =================================================
+            // amount
+            // =================================================
+
+            formData.append(
+                "requestedAmount",
+                requestedAmount
+            );
+
+            formData.append(
+                "amountComment",
+                amountComment || ""
+            );
+
+
+            // =================================================
+            // amount_item
+            // =================================================
+
+            itemList.forEach(
+                (item, index) => {
+
+                    formData.append(
+                        `itemList[${index}].itemType`,
+                        item.itemType
+                    );
+
+                    formData.append(
+                        `itemList[${index}].itemAmount`,
+                        parseAmount(
+                            item.itemAmount
+                        )
+                    );
+
+                    formData.append(
+                        `itemList[${index}].itemDate`,
+                        item.itemDate
+                    );
+
+                    formData.append(
+                        `itemList[${index}].itemDescription`,
+                        item.itemDescription || ""
+                    );
+
+                    /*
+                     * 기존 itemNo는 수정 시에도 굳이 전송하지 않는다.
+                     *
+                     * Backend에서 기존 상세 항목을 삭제한 후
+                     * 현재 화면의 항목을 다시 등록하는 방식으로 처리한다.
+                     */
                 }
-              >
-                + 지자체 지원금 입력
-              </button>
+            );
+
+
+            // =================================================
+            // 지자체지원금
+            // =================================================
+            //
+            // 절대로 보내지 않는다.
+            //
+            // supportList
+            // sponsorName
+            // sponsorAmount
+            // amount_list
+            // paymentDate
+            //
+            // 전부 신청자가 입력하지 않는다.
+            //
+            // DB에 이미 존재하는 amount_list 데이터를
+            // 목록/상세 조회 API에서 가져온다.
+            //
+            // =================================================
+
+
+            // =================================================
+            // 첨부파일
+            // =================================================
+
+            files.forEach(
+                (file) => {
+
+                    formData.append(
+                        "file",
+                        file
+                    );
+
+                }
+            );
+
+
+            // =================================================
+            // 신규 / 수정
+            // =================================================
+
+            if (isEditMode) {
+
+                await amountApi.updateAmount(
+                    amountNo,
+                    formData
+                );
+
+                alert(
+                    "비용 신청이 수정되었습니다."
+                );
+
+            } else {
+
+                await amountApi.insertAmount(
+                    formData
+                );
+
+                alert(
+                    "비용 신청이 등록되었습니다."
+                );
+
+            }
+
+
+            navigate("/cost/list");
+
+        } catch (error) {
+
+            console.error(
+                "비용 신청 처리 실패:",
+                error
+            );
+
+            alert(
+                error?.response?.data?.message ||
+                "비용 신청 처리 중 오류가 발생했습니다."
+            );
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+
+    // =========================================================
+    // 취소
+    // =========================================================
+
+    const handleCancel = () => {
+
+        if (loading) {
+            return;
+        }
+
+        navigate("/cost/list");
+
+    };
+
+
+    // =========================================================
+    // 로딩
+    // =========================================================
+
+    if (pageLoading) {
+
+        return (
+
+            <div className="amount-container">
+
+                <div className="amount-loading">
+                    비용 신청 정보를 불러오는 중입니다...
+                </div>
 
             </div>
 
-          ) : (
+        );
 
-            <>
-
-              <div className="sponsor-form-box">
+    }
 
 
-                {/* 지원기관 */}
-                <div className="sponsor-input-row">
+    // =========================================================
+    // 화면
+    // =========================================================
 
-                  <label className="sponsor-label">
-                    지원기관
-                  </label>
+    return (
 
-                  <input
-                    type="text"
-                    value={
-                      sponsor.sponsorName
-                    }
-                    onChange={e =>
-                      handleSponsorChange(
-                        'sponsorName',
-                        e.target.value
-                      )
-                    }
-                    className="sponsor-input-flex"
-                    placeholder="지원기관명"
-                  />
+        <div className="amount-container">
 
-                </div>
+            <div className="amount-form-wrapper">
 
 
-                {/* 지원금 */}
-                <div className="sponsor-input-row">
+                {/* =================================================
+                    제목
+                ================================================= */}
 
-                  <label className="sponsor-label">
-                    지원금
-                  </label>
+                <div className="amount-page-header">
 
-                  <input
-                    type="number"
-                    min="0"
-                    value={
-                      sponsor.amount
-                    }
-                    onChange={e =>
-                      handleSponsorChange(
-                        'amount',
-                        e.target.value
-                      )
-                    }
-                    className="sponsor-input"
-                    placeholder="지원금액"
-                  />
+                    <h2>
+                        {isEditMode
+                            ? "비용 정산 수정"
+                            : "비용 정산 신청"
+                        }
+                    </h2>
+
+                    <p>
+                        {isEditMode
+                            ? "비용 신청 내용을 수정합니다."
+                            : "워크케이션 중 발생한 비용을 신청합니다."
+                        }
+                    </p>
 
                 </div>
 
 
-                {/* 지급 상태 */}
-                <div className="sponsor-input-row">
-
-                  <label className="sponsor-label">
-                    지급 상태
-                  </label>
-
-                  <select
-                    value={
-                      sponsor.status
-                    }
-                    onChange={e =>
-                      handleSponsorChange(
-                        'status',
-                        e.target.value
-                      )
-                    }
-                    className="sponsor-select"
-                  >
-
-                    <option value="UNPAID">
-                      미지급
-                    </option>
-
-                    <option value="PAID">
-                      지급완료
-                    </option>
-
-                    <option value="HOLD">
-                      보류
-                    </option>
-
-                  </select>
-
-                </div>
-
-
-                {/* 비고 */}
-                <div className="sponsor-input-row">
-
-                  <label className="sponsor-label">
-                    비고
-                  </label>
-
-                  <input
-                    type="text"
-                    value={
-                      sponsor.remark
-                    }
-                    onChange={e =>
-                      handleSponsorChange(
-                        'remark',
-                        e.target.value
-                      )
-                    }
-                    className="sponsor-input-flex"
-                    placeholder="비고"
-                  />
-
-                </div>
-
-
-                {/* 삭제 */}
-                <div
-                  style={{
-                    marginTop: '12px',
-                    textAlign: 'right'
-                  }}
+                <form
+                    onSubmit={handleSubmit}
+                    className="amount-form"
                 >
 
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={
-                      handleRemoveLocalSupport
-                    }
-                  >
-                    지자체 지원금 삭제
-                  </button>
 
-                </div>
+                    {/* =================================================
+                        비용 항목
+                    ================================================= */}
 
-              </div>
+                    <section className="amount-section">
 
+                        <div className="amount-section-header">
 
-              {/* 지자체 지원금 표시 */}
-              <div
-                className="amount-form-item-table-wrap"
-                style={{
-                  marginTop: '15px'
-                }}
-              >
+                            <h3>
+                                비용 항목
+                            </h3>
 
-                <table
-                  className="amount-form-item-table"
-                >
+                            <button
+                                type="button"
+                                className="amount-add-button"
+                                onClick={addItem}
+                            >
+                                + 항목 추가
+                            </button>
 
-                  <colgroup>
-
-                    <col
-                      style={{
-                        width: '25%'
-                      }}
-                    />
-
-                    <col
-                      style={{
-                        width: '20%'
-                      }}
-                    />
-
-                    <col
-                      style={{
-                        width: '20%'
-                      }}
-                    />
-
-                    <col
-                      style={{
-                        width: '25%'
-                      }}
-                    />
-
-                    <col
-                      style={{
-                        width: '10%'
-                      }}
-                    />
-
-                  </colgroup>
+                        </div>
 
 
-                  <thead>
+                        {itemList.map(
+                            (item, index) => (
 
-                    <tr>
-
-                      <th>
-                        지원기관
-                      </th>
-
-                      <th>
-                        지원금
-                      </th>
-
-                      <th>
-                        상태
-                      </th>
-
-                      <th>
-                        비고
-                      </th>
-
-                      <th>
-                        관리
-                      </th>
-
-                    </tr>
-
-                  </thead>
+                                <div
+                                    className="amount-item-card"
+                                    key={
+                                        item.itemNo ||
+                                        `new-${index}`
+                                    }
+                                >
 
 
-                  <tbody>
+                                    <div className="amount-item-header">
 
-                    <tr>
+                                        <strong>
+                                            비용 항목 {index + 1}
+                                        </strong>
 
-                      <td>
-                        {sponsor.sponsorName || '-'}
-                      </td>
 
-                      <td>
-                        {formatMoney(
-                          sponsor.amount
+                                        {itemList.length > 1 && (
+
+                                            <button
+                                                type="button"
+                                                className="amount-remove-button"
+                                                onClick={() =>
+                                                    removeItem(index)
+                                                }
+                                            >
+                                                삭제
+                                            </button>
+
+                                        )}
+
+                                    </div>
+
+
+                                    {/* ---------------------------------
+                                        항목 유형
+                                    --------------------------------- */}
+
+                                    <div className="amount-form-row">
+
+                                        <label>
+                                            비용 유형
+                                        </label>
+
+                                        <select
+                                            value={
+                                                item.itemType
+                                            }
+                                            onChange={(e) =>
+                                                updateItem(
+                                                    index,
+                                                    "itemType",
+                                                    e.target.value
+                                                )
+                                            }
+                                        >
+
+                                            {ITEM_TYPES.map(
+                                                (type) => (
+
+                                                    <option
+                                                        key={type.value}
+                                                        value={type.value}
+                                                    >
+                                                        {type.label}
+                                                    </option>
+
+                                                )
+                                            )}
+
+                                        </select>
+
+                                    </div>
+
+
+                                    {/* ---------------------------------
+                                        금액
+                                    --------------------------------- */}
+
+                                    <div className="amount-form-row">
+
+                                        <label>
+                                            신청 금액
+                                        </label>
+
+                                        <div className="amount-input-with-unit">
+
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={
+                                                    item.itemAmount
+                                                }
+                                                onChange={(e) =>
+                                                    updateItem(
+                                                        index,
+                                                        "itemAmount",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="금액을 입력하세요"
+                                            />
+
+                                            <span>
+                                                원
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    {/* ---------------------------------
+                                        날짜
+                                    --------------------------------- */}
+
+                                    <div className="amount-form-row">
+
+                                        <label>
+                                            비용 날짜
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            value={
+                                                item.itemDate
+                                            }
+                                            onChange={(e) =>
+                                                updateItem(
+                                                    index,
+                                                    "itemDate",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+
+                                    </div>
+
+
+                                    {/* ---------------------------------
+                                        설명
+                                    --------------------------------- */}
+
+                                    <div className="amount-form-row">
+
+                                        <label>
+                                            상세 내용
+                                        </label>
+
+                                        <textarea
+                                            value={
+                                                item.itemDescription
+                                            }
+                                            onChange={(e) =>
+                                                updateItem(
+                                                    index,
+                                                    "itemDescription",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="비용 사용 내용을 입력하세요."
+                                            rows={4}
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                            )
                         )}
-                      </td>
 
-                      <td>
+                    </section>
 
-                        {sponsor.status === 'PAID'
-                          ? '지급완료'
-                          : sponsor.status === 'HOLD'
-                            ? '보류'
-                            : '미지급'}
 
-                      </td>
+                    {/* =================================================
+                        신청 금액 합계
+                    ================================================= */}
 
-                      <td>
-                        {sponsor.remark || '-'}
-                      </td>
+                    <section className="amount-summary-section">
 
-                      <td
-                        style={{
-                          textAlign: 'center'
-                        }}
-                      >
+                        <div className="amount-summary-row">
+
+                            <span>
+                                총 신청 금액
+                            </span>
+
+                            <strong>
+                                {getRequestedAmount().toLocaleString("ko-KR")}
+                                원
+                            </strong>
+
+                        </div>
+
+                    </section>
+
+
+                    {/* =================================================
+                        지자체 지원금 안내
+                    ================================================= */}
+
+                    <section className="amount-section">
+
+                        <div className="amount-section-header">
+
+                            <h3>
+                                지자체 지원금
+                            </h3>
+
+                        </div>
+
+                        <div className="amount-db-info">
+
+                            <p>
+                                지자체 지원금은 신청자가 입력하지 않습니다.
+                            </p>
+
+                            <p>
+                                지원금이 등록된 경우 DB의 지원금 정보를
+                                비용 목록 및 상세 화면에서 자동으로 표시합니다.
+                            </p>
+
+                        </div>
+
+                    </section>
+
+
+                    {/* =================================================
+                        신청자 의견
+                    ================================================= */}
+
+                    <section className="amount-section">
+
+                        <div className="amount-section-header">
+
+                            <h3>
+                                신청자 의견
+                            </h3>
+
+                        </div>
+
+                        <textarea
+                            value={amountComment}
+                            onChange={(e) =>
+                                setAmountComment(
+                                    e.target.value
+                                )
+                            }
+                            placeholder="관리자에게 전달할 내용을 입력하세요."
+                            rows={5}
+                        />
+
+                    </section>
+
+
+                    {/* =================================================
+                        영수증
+                    ================================================= */}
+
+                    <section className="amount-section">
+
+                        <div className="amount-section-header">
+
+                            <h3>
+                                영수증 첨부
+                            </h3>
+
+                        </div>
+
+
+                        {isEditMode &&
+                            existingFiles.length > 0 && (
+
+                            <div className="amount-existing-files">
+
+                                <p>
+                                    기존 첨부파일
+                                </p>
+
+                                {existingFiles.map(
+                                    (file, index) => (
+
+                                        <div
+                                            key={
+                                                file.amountFileNo ||
+                                                file.amountattachmentNo ||
+                                                index
+                                            }
+                                            className="amount-existing-file"
+                                        >
+                                            {file.originName ||
+                                                file.originalName ||
+                                                "첨부파일"}
+                                        </div>
+
+                                    )
+                                )}
+
+                            </div>
+
+                        )}
+
+
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            multiple
+                            onChange={
+                                handleFileChange
+                            }
+                        />
+
+
+                        {files.length > 0 && (
+
+                            <div className="amount-selected-files">
+
+                                {files.map(
+                                    (file, index) => (
+
+                                        <div
+                                            key={index}
+                                        >
+                                            {file.name}
+                                        </div>
+
+                                    )
+                                )}
+
+                            </div>
+
+                        )}
+
+                        <p className="amount-file-help">
+
+                            {isEditMode
+                                ? "새 파일을 선택하면 기존 첨부파일 대신 새 파일이 등록됩니다."
+                                : "JPG, PNG, GIF, WEBP / 파일당 최대 10MB"
+                            }
+
+                        </p>
+
+                    </section>
+
+
+                    {/* =================================================
+                        버튼
+                    ================================================= */}
+
+                    <div className="amount-form-buttons">
 
                         <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={
-                            handleRemoveLocalSupport
-                          }
+                            type="button"
+                            className="amount-cancel-button"
+                            onClick={
+                                handleCancel
+                            }
+                            disabled={loading}
                         >
-                          삭제
+                            취소
                         </button>
 
-                      </td>
 
-                    </tr>
+                        <button
+                            type="submit"
+                            className="amount-submit-button"
+                            disabled={loading}
+                        >
 
-                  </tbody>
+                            {loading
+                                ? "처리 중..."
+                                : isEditMode
+                                    ? "수정하기"
+                                    : "신청하기"
+                            }
 
-                </table>
+                        </button>
 
-              </div>
-
-            </>
-
-          )}
-
-
-          {/* 지자체 지원금 합계 */}
-          <div
-            className="amount-support-summary"
-            style={{
-              marginTop: '15px'
-            }}
-          >
-
-            <span>
-              지자체 지원금 합계
-            </span>
-
-            <strong>
-              {formatMoney(
-                totalLocalSupport
-              )}
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        {/* ================================================= */}
-        {/* 3. 금액 합계 */}
-        {/* ================================================= */}
-        <div className="info-row">
-
-          <span className="info-label">
-            금액 합계
-          </span>
-
-
-          <div className="info-value">
-
-
-            {/* 신청금액 */}
-            <div className="grand-total-row">
-
-              <span>
-                신청금액
-              </span>
-
-              <strong>
-                {formatMoney(
-                  totalRequestedAmount
-                )}
-              </strong>
-
-            </div>
-
-
-            {/* 지자체 지원금 */}
-            <div
-              className="grand-total-row"
-              style={{
-                marginTop: '10px'
-              }}
-            >
-
-              <span>
-                지자체 지원금
-              </span>
-
-              <strong>
-                {formatMoney(
-                  totalLocalSupport
-                )}
-              </strong>
-
-            </div>
-
-
-            {/* 전체 지원금 */}
-            <div
-              className="grand-total-row"
-              style={{
-                marginTop: '10px'
-              }}
-            >
-
-              <span>
-                현재 입력된 지원금
-              </span>
-
-              <strong>
-                {formatMoney(
-                  grandTotal
-                )}
-              </strong>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* ================================================= */}
-        {/* 4. 첨부 파일 */}
-        {/* ================================================= */}
-        <div className="file-section info-row">
-
-          <span className="info-label">
-            첨부 파일
-          </span>
-
-
-          <div className="info-value">
-
-            <input
-              type="file"
-              multiple
-              onChange={
-                handleFileChange
-              }
-            />
-
-
-            {files.length > 0 && (
-
-              <div className="file-list">
-
-                {files.map(
-                  (file, index) => (
-
-                    <div
-                      className="file-item"
-                      key={`${file.name}-${index}`}
-                    >
-                      {file.name}
                     </div>
 
-                  )
-                )}
 
-              </div>
+                </form>
 
-            )}
-
-          </div>
+            </div>
 
         </div>
 
+    );
 
-        {/* ================================================= */}
-        {/* 5. 신청 사유 */}
-        {/* ================================================= */}
-        <div className="info-row comment-row">
-
-          <span className="info-label">
-            신청 사유
-          </span>
-
-
-          <div className="info-value">
-
-            <textarea
-              value={
-                amountComment
-              }
-              onChange={e =>
-                setAmountComment(
-                  e.target.value
-                )
-              }
-              className="info-comment"
-              placeholder="비용 정산 신청 사유를 입력해주세요."
-              rows="5"
-            />
-
-          </div>
-
-        </div>
-
-
-        {/* ================================================= */}
-        {/* 6. 버튼 */}
-        {/* ================================================= */}
-        <div className="btn-group">
-
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() =>
-              window.history.back()
-            }
-          >
-            취소
-          </button>
-
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-          >
-            비용 정산 신청
-          </button>
-
-        </div>
-
-      </form>
-    </main>
-  );
 }
+

@@ -6,6 +6,7 @@ import {
     getSubRegionList,
     getMyWorkcationList
 } from "../api/WorkcationApi";
+import { getStatusText, getStatusTone } from "../utils/StatusBadge";
 
 import "../styles/MyWorkcationList.css";
 
@@ -203,18 +204,11 @@ function MyWorkcationListComponent() {
     };
 
 
-    // 상태 코드를 한글 라벨 + 배지 톤으로 변환(표시 전용, 데이터 값은 변경하지 않음)
-    // 기존에는 approverState 코드값("W"/"A"/"J" 등)이 번역 없이 그대로 노출되던 문제가 있었다.
+    // BUG-006: "D"(최종완료) 코드가 매핑에 없어 화면에 코드 그대로 노출되던 문제 -
+    // 공통 유틸(StatusBadge.js)로 라벨/톤 변환을 통일한다.
     const renderStatusBadge = (item) => {
         const raw = item.approverState || item.workcationStatus || "W";
-        const labelMap = { W: "대기", A: "승인", C: "취소", H: "보류", J: "반려", R: "검토" };
-        const toneMap = {
-            W: "bg-warning", A: "bg-success", C: "bg-secondary",
-            H: "bg-secondary", J: "bg-danger", R: "bg-primary",
-        };
-        const label = labelMap[raw] || raw;
-        const tone = toneMap[raw] || "bg-primary";
-        return <span className={`badge ${tone}`}>{label}</span>;
+        return <span className={`badge ${getStatusTone(raw)}`}>{getStatusText(raw)}</span>;
     };
 
     return (

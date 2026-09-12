@@ -1,7 +1,5 @@
 package com.kh.workflow.place.controller;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +22,9 @@ import com.kh.workflow.common.model.vo.PageInfo;
 import com.kh.workflow.common.template.FileRenamePolicy;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
+import com.kh.workflow.place.model.dto.PlaceDto;
 import com.kh.workflow.place.model.service.PlaceService;
 
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +42,9 @@ public class PlaceController {
 
     @Autowired
     private PlaceService placeService;
+
+    @Autowired
+    private FileRenamePolicy fileRenamePolicy;
 
 
     @Operation(summary = "거점(장소) 등록", description = "워케이션 거점(장소) 정보를 등록합니다. 대표 이미지 파일을 함께 업로드할 수 있으며, ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
@@ -74,7 +74,7 @@ public class PlaceController {
                 && !file.isEmpty()) {
 
             String changeName =
-                    FileRenamePolicy.saveFile(
+                    fileRenamePolicy.saveFile(
                             file,
                             session,
                             "/resources/upload/hub/"
@@ -157,15 +157,15 @@ public class PlaceController {
     })
     // 장소 상세 조회
     @GetMapping("/{hubNo}")
-    public ResponseEntity<Hub> selectPlace(
+    public ResponseEntity<PlaceDto> selectPlace(
             @Parameter(description = "조회할 거점(장소) 번호", example = "1", required = true)
             @PathVariable int hubNo) {
 
-        Hub h = placeService.selectPlace(hubNo);
+        PlaceDto place = placeService.selectPlace(hubNo);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(h);
+                .body(place);
     }
 
 
@@ -196,7 +196,7 @@ public class PlaceController {
                 && !file.isEmpty()) {
 
             String changeName =
-                    FileRenamePolicy.saveFile(
+                    fileRenamePolicy.saveFile(
                             file,
                             session,
                             "/resources/upload/hub/"

@@ -13,8 +13,8 @@ import com.kh.workflow.common.template.Pagination;
 import com.kh.workflow.hub.model.dao.HubFileDao;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.hub.model.vo.HubFile;
-
 import com.kh.workflow.place.model.dao.PlaceDao;
+import com.kh.workflow.place.model.dto.PlaceDto;
 
 @Service
 public class PlaceServiceImpl implements PlaceService {
@@ -146,11 +146,34 @@ public class PlaceServiceImpl implements PlaceService {
     // =========================================================
     @Transactional(readOnly = true)
     @Override
-    public Hub selectPlace(int hubNo) {
+    public PlaceDto selectPlace(int hubNo) {
 
-        return placeDao.findByHubNo(hubNo);
+        Hub place = placeDao.findByHubNo(hubNo);
+
+        if (place == null) {
+            return null;
+        }
+
+        Double averageRating =
+                placeDao.findAverageRating(hubNo);
+
+        PlaceDto dto = new PlaceDto();
+
+        dto.setHubNo(place.getHubNo());
+        dto.setMainRegion(place.getMainRegion());
+        dto.setSubRegion(place.getSubRegion());
+        dto.setHubName(place.getHubName());
+        dto.setHubAddress(place.getHubAddress());
+        dto.setPhone(place.getPhone());
+        dto.setDescription(place.getDescription());
+        dto.setHubType(place.getHubType());
+        dto.setHubStatus(place.getHubStatus());
+        dto.setHubFileList(place.getHubFileList());
+
+        dto.setAverageRating(averageRating);
+
+        return dto;
     }
-
 
     // =========================================================
     // 장소 등록

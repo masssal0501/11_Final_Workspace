@@ -198,10 +198,17 @@ public interface AmountDao
     // Statistics
     // =========================================================
 
+    // ★ 요약 통계 - 상태별 건수, 총 신청/승인 금액까지 포함하도록 확장
     @Query("""
         SELECT new map(
             COUNT(a.amountNo) as totalCount,
-            COALESCE(SUM(a.approvedAmount), 0) as totalApprovedAmount
+            COALESCE(SUM(a.requestedAmount), 0) as totalRequestedAmount,
+            COALESCE(SUM(a.approvedAmount), 0) as totalApprovedAmount,
+            SUM(CASE WHEN a.status = 'R' THEN 1 ELSE 0 END) as reviewCount,
+            SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) as approvedCount,
+            SUM(CASE WHEN a.status = 'H' THEN 1 ELSE 0 END) as holdCount,
+            SUM(CASE WHEN a.status = 'J' THEN 1 ELSE 0 END) as rejectedCount,
+            SUM(CASE WHEN a.status = 'C' THEN 1 ELSE 0 END) as cancelledCount
         )
         FROM Amount a
     """)
@@ -302,8 +309,10 @@ public interface AmountDao
                 END,
                 COALESCE(SUM(ai.itemAmount), 0)
             )
-            FROM AmountItem ai
-            GROUP BY ai.itemType
+              FROM AmountItem ai
+              JOIN Amount a ON ai.amount = a
+             WHERE a.status = 'A'
+             GROUP BY ai.itemType
         """)
 	List<ChartDataDto> selectCategoryData();
 
@@ -424,32 +433,45 @@ public interface AmountDao
 		""")
 	List<Amount> selectAmountListByWorkcationNo(@Param("workcationNo") int workcationNo, PageInfo pi);
 
+	// ★ 부서별 통계 - 승인된 항목의 회사 지원금(itemApprovedAmount) 기준, Object[] 반환으로 변경
 	@Query("""
-		SELECT FUNCTION('MONTH', a.createdAt), SUM(ai.itemAmount)
+		SELECT d.depTitle, COALESCE(SUM(ai.itemApprovedAmount), 0)
+          FROM Amount a
+          JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo 
+          JOIN AmountItem ai ON ai.amount = a
+          JOIN Employee e ON w.employee = e
+          JOIN Department d ON e.depId = d.depId
+         WHERE a.status = 'A'
+         GROUP BY d.depTitle
+           """)
+	List<Object[]> getDeptStatistics();
+
+	// ★ 월별 통계 - 승인일(approvedAt) 기준 월별 회사 지원금 합계, Object[] 반환으로 변경
+	@Query("""
+		SELECT FUNCTION('MONTH', a.approvedAt), COALESCE(SUM(ai.itemApprovedAmount), 0)
           FROM Amount a
           JOIN AmountItem ai ON ai.amount = a
-         GROUP BY FUNCTION('MONTH', a.createdAt)
+         WHERE a.status = 'A'
+         GROUP BY FUNCTION('MONTH', a.approvedAt)
          """)
-	Object getMonthlyStatistics();
+	List<Object[]> getMonthlyStatistics();
 
+	
+	// ★ 항목별 통계 - 승인된 비용 신청 건만 집계
 	@Query("""
-			SELECT d.depTitle, SUM(ai.itemAmount)
-	          FROM Amount a
-	          JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo 
-	          JOIN AmountItem ai ON ai.amount = a
-	          JOIN Employee e ON w.employee = e
-	          JOIN Department d ON e.depId = d.depId
-	         GROUP BY d.depTitle
-	           """)
-	Object getDeptStatistics();
-
-	@Query("""
-		SELECT ai.itemType, SUM(ai.itemAmount)
-	      FROM AmountItem ai 
-	      GROUP BY ai.itemType
-			""")
-	Object getItemStatistics();
+	    SELECT ai.itemType,
+	           COUNT(ai),
+	           COALESCE(SUM(ai.itemAmount), 0),
+	           COALESCE(SUM(ai.itemApprovedAmount), 0)
+	      FROM AmountItem ai
+	     WHERE ai.amount.status = 'A'
+	     GROUP BY ai.itemType
+	        """)
+	List<Object[]> getItemStatistics();
 
 	List<Amount> findByWorkcationNo(Integer workcationNo);
-
+	Page<Amount> findByWorkcationNoInOrderByCreatedAtDescAmountNoDesc(
+	        List<Integer> workcationNos,
+	        Pageable pageable
+	);
 }

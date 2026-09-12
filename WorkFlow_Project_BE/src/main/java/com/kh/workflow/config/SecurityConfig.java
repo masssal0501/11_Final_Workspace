@@ -180,6 +180,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/upload/receipts/**"
                         ).permitAll()
+
+                        // TODO-N02: 워케이션 후기 사진 정적 서빙 - <img src="...">로 직접
+                        // 요청되므로(Authorization 헤더를 실을 수 없음) 영수증 이미지와 동일하게
+                        // 인증 없이 조회 가능하도록 허용한다(파일명이 UUID라 추측 어려움)
+                        .requestMatchers(
+                                "/upload/reviews/**"
+                        ).permitAll()
                         
                         // 거점 조회 - 로그인 사용자면 누구나
                         .requestMatchers(
@@ -245,6 +252,17 @@ public class SecurityConfig {
                         ).authenticated()
 
 
+                        // KS PR 병합 중 발견: GET /api/v1/amounts(전체 목록, 관리자 전용
+                        // AdminAmount.jsx에서만 호출)가 다른 사람의 정산 데이터를 전부
+                        // 반환하는데도 authenticated()만 걸려 있어 STAFF/MANAGER도 직접
+                        // API를 호출하면 전체 목록을 볼 수 있었다. /api/v1/amounts/**보다
+                        // 먼저 선언해 이 정확한 경로만 ADMIN 전용으로 좁힌다
+                        // (Spring Security는 먼저 선언된 규칙을 우선 적용).
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/amounts"
+                        ).hasRole("ADMIN")
+
                         // 비용 조회 - 로그인 사용자(STAFF/MANAGER/ADMIN)면 누구나
                         .requestMatchers(
                         	    HttpMethod.GET,
@@ -267,6 +285,14 @@ public class SecurityConfig {
                                 "/api/v1/amounts/*/approval/sponsor"
                         ).hasRole("ADMIN")
 
+                        // BUG-N06: 항목별 회사 지원금(company-support) 처리 API에 역할 검증이
+                        // 전혀 없어 STAFF도 호출할 수 있었다. 같은 성격의 /approval/sponsor와
+                        // 동일하게 관리자 전용으로 제한한다.
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/v1/amounts/*/items/*/company-support"
+                        ).hasRole("ADMIN")
+
                         // 워케이션 반려 - 관리자/부서장만 (GET /approval/queue와 동일 정책, STAFF 차단)
                         .requestMatchers(
                                 HttpMethod.POST,
@@ -274,16 +300,34 @@ public class SecurityConfig {
                         ).hasAnyRole("ADMIN", "MANAGER")
 
                      // 공지사항
+                        // BUG-N07: 기존에는 /api/v1/notice/** 전체(POST/PUT/DELETE 포함)가
+                        // permitAll이었고 등록/수정/삭제의 실제 관리자 검증은
+                        // NoticeController 내부의 수동 isAdmin() 체크 하나에만 의존하고 있었다.
+                        // 이 프로젝트의 다른 관리자 전용 리소스(직원/거점/업무상태 등)와 동일하게
+                        // Security 레벨에서도 명확히 ADMIN을 요구하도록 조회/쓰기를 분리한다.
+                        // (NoticeController의 기존 isAdmin() 체크는 이중 방어로 그대로 유지)
+                        // 기존의 "/api/v1/notice/insert/", "/api/v1/notice/update/**" permitAll
+                        // 규칙은 실제 컨트롤러 경로(POST /api/v1/notice, PUT /{noticeNo})와
+                        // 매칭되지 않는 죽은 규칙이라 함께 정리한다.
                         .requestMatchers(
-                            "/api/v1/notice/**"
+                                HttpMethod.GET,
+                                "/api/v1/notice/**"
                         ).permitAll()
-                        
+
                         .requestMatchers(
-                                "/api/v1/notice/insert/"
-                            ).permitAll()
+                                HttpMethod.POST,
+                                "/api/v1/notice"
+                        ).hasRole("ADMIN")
+
                         .requestMatchers(
-                                "/api/v1/notice/update/**"
-                            ).permitAll()
+                                HttpMethod.PUT,
+                                "/api/v1/notice/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/v1/notice/**"
+                        ).hasRole("ADMIN")
                         
                        
             
