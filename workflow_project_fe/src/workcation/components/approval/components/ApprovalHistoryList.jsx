@@ -250,7 +250,10 @@ function ApprovalHistoryList() {
                                     </td>
 
 
+                                    {/* BUG-01: 신청자를 이름만 표시해 어느 부서 소속인지 알 수 없었다 */}
                                     <td>
+                                        {item.employee?.depTitle || item.employee?.depId}
+                                        {"-"}
                                         {item.employee?.empName}
                                     </td>
 
@@ -271,7 +274,9 @@ function ApprovalHistoryList() {
 
 
                                     <td>
-                                        {item.approver?.empName || "-"}
+                                        {item.approver
+                                            ? `${item.approver.depTitle || item.approver.depId}-${item.approver.empName}`
+                                            : "-"}
                                     </td>
 
 

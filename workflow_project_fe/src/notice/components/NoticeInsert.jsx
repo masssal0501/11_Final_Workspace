@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { noticeApi } from '../api/noticeApi';
 import '../styles/Notice.css';
 
+// BUG-03: 백엔드 Notice.noticeTitle(varchar 200)/noticeContent(앱 레벨 상한 10,000자)와
+// 동일한 값을 사용해, 두 쪽 제한이 어긋나지 않도록 한다. (NoticeForm.jsx의 상수와 동일)
+const TITLE_MAX_LENGTH = 200;
+const CONTENT_MAX_LENGTH = 10000;
+
 export default function NoticeInsert() {
 
     const navigate = useNavigate();
@@ -370,17 +375,25 @@ export default function NoticeInsert() {
                         제목<span className="wf-required">*</span>
                     </label>
 
-                    <input
-                        id="noticeTitle"
-                        type="text"
-                        value={noticeTitle}
-                        onChange={
-                            handleTitleChange
-                        }
-                        placeholder="공지사항 제목을 입력해주세요."
-                        maxLength={200}
-                        disabled={loading}
-                    />
+                    <div className="notice-form-field">
+
+                        <input
+                            id="noticeTitle"
+                            type="text"
+                            value={noticeTitle}
+                            onChange={
+                                handleTitleChange
+                            }
+                            placeholder="공지사항 제목을 입력해주세요."
+                            maxLength={TITLE_MAX_LENGTH}
+                            disabled={loading}
+                        />
+
+                        <p className="notice-length-counter">
+                            {noticeTitle.length} / {TITLE_MAX_LENGTH}
+                        </p>
+
+                    </div>
 
                 </div>
 
@@ -433,16 +446,25 @@ export default function NoticeInsert() {
                         내용<span className="wf-required">*</span>
                     </label>
 
-                    <textarea
-                        id="noticeContent"
-                        value={noticeContent}
-                        onChange={
-                            handleContentChange
-                        }
-                        placeholder="공지사항 내용을 입력해주세요."
-                        rows={15}
-                        disabled={loading}
-                    />
+                    <div className="notice-form-field">
+
+                        <textarea
+                            id="noticeContent"
+                            value={noticeContent}
+                            onChange={
+                                handleContentChange
+                            }
+                            placeholder="공지사항 내용을 입력해주세요."
+                            rows={15}
+                            maxLength={CONTENT_MAX_LENGTH}
+                            disabled={loading}
+                        />
+
+                        <p className="notice-length-counter">
+                            {noticeContent.length} / {CONTENT_MAX_LENGTH}
+                        </p>
+
+                    </div>
 
                 </div>
 

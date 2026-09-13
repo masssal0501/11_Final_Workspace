@@ -14,12 +14,27 @@ import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.WaitingListDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
+import com.kh.workflow.hub.model.dao.HubDao;
 import com.kh.workflow.reservation.model.vo.Reservation;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 import com.kh.workflow.task.model.vo.Task;
 import com.kh.workflow.task.model.vo.Work;
 
 public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
+
+	// BUG-06/BUG-11: 이 파일의 대시보드용 쿼리들은 워케이션 1건에 딸린 모든 Reservation을
+	// JOIN한다. WorkcationServiceImpl.getWorkcationDetail()의 기존 로직을 보면 워케이션
+	// 1건에는 "메인 거점" 예약이 하나 있고(hubType 1=오피스 또는 2=숙소 중 하나) 나머지는
+	// 체험/맛집/관광지 같은 0~N개의 "옵션" 예약이라는 게 원래 데이터 모델이다. 그런데
+	// 실제 DB를 확인해보니 일부 워케이션은(수기 시딩 등으로) 오피스/숙소 예약이 동시에
+	// 2건 들어가 있는 경우도 있어, 단순히 "hubType IN (1, 2)"로만 걸러도 여전히 워케이션당
+	// 최대 2행이 남아 지역/서브지역이 다르면 지역 집계가 부풀려지거나(BUG-06) 목록에 같은
+	// 워케이션이 중복 표시(BUG-11)되는 문제가 재현됐다. 정상/비정상 데이터 모두에서 항상
+	// 워케이션당 정확히 한 행만 남도록, "메인 거점(hubType 1 또는 2) 예약 중 가장 최근에
+	// 생성된 것 하나"만 선택하는 상관 서브쿼리로 대표 거점을 결정한다.
+	String PRIMARY_HUB_ONLY = "AND r.rsvNo = (SELECT MAX(r2.rsvNo) FROM Reservation r2 "
+			+ "JOIN r2.hub h2 WHERE r2.workcation = w AND h2.hubType IN (1, 2))";
+
 //AND w.approverState ='Y' --> 승인 기능 추가후
 	@Query("""
 			SELECT w
@@ -161,13 +176,19 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 		      JOIN Department d ON d.depId = e.depId
 		     WHERE e.depId = d.depId
 		       AND w.approverState IN ('W', 'R', 'H')
+		       """ + PRIMARY_HUB_ONLY + """
+
 		     ORDER BY w.startAt DESC
 		    """)
 	List<WaitingListDto> adminSelectWaitingList();
 
 	/**
 	 * [관리자] 지역별 워케이션 이용 통계 비율 데이터 조회 (차트용)
-	 * 
+	 *
+	 * BUG-06: 분자는 "이미 시작된(startAt <= 오늘)" 승인 건만 세는데 분모는 이 조건이
+	 * 없어 아직 시작하지 않은 승인 건까지 포함하고 있었다 - 그런 미래 예정 건이 하나라도
+	 * 있으면 지역별 비율 합계가 100%에 못 미치던 원인. 분모도 동일한 조건으로 맞춘다.
+	 *
 	 * @return List<ChartDataDto> 지역별 점유율 데이터 목록
 	 */
 	@Query("""
@@ -176,13 +197,15 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
     			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
     			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
     			     ELSE '' END region,
-				(COUNT(DISTINCT w) * 100.0)/ (SELECT COUNT(DISTINCT w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
+				(COUNT(DISTINCT w) * 100.0)/ (SELECT COUNT(DISTINCT w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A' AND w2.startAt <= CURRENT_TIMESTAMP)
 			)
 			  FROM WorkcationInfo w
 			  JOIN Reservation r ON r.workcation = w
 			  JOIN r.hub h
 			 WHERE w.approverState = 'A'
 			   AND w.startAt <= CURRENT_TIMESTAMP
+			   """ + PRIMARY_HUB_ONLY + """
+
 			 GROUP BY region
 			""")
 	List<ChartDataDto> adminSelectRegionData();
@@ -196,6 +219,15 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 	// BUG: MONTH(DISTINCT ...)는 유효한 JPQL이 아니라(DISTINCT는 집계함수 인자에만 붙일 수 있음)
 	// 애플리케이션 기동 시 @Query 파싱 자체가 실패했다. COUNT만 DISTINCT로 중복(Reservation
 	// JOIN에 의한 fan-out)을 제거하고 MONTH()는 그룹 기준 컬럼에만 그대로 적용한다.
+	//
+	// BUG-04: SELECT 목록의 첫 항목이 CAST(...AS string)이라 ORDER BY 1이 문자열 사전식
+	// 정렬을 해서(월이 두자리가 되는 순간 "10" < "2") 월 순서가 뒤틀렸다. 그렇다고 SELECT는
+	// 문자열로 두고 GROUP BY/ORDER BY만 숫자 표현식(MONTH(w.startAt))으로 바꾸면, MySQL의
+	// sql_mode=only_full_group_by 아래에서는 GROUP BY 표현식과 문자적으로 다른 표현식을
+	// ORDER BY에 쓰는 것 자체가 거부된다(둘 다 "함수적으로 동일한 값"이어도 SQL 엔진이
+	// 문자열 비교로만 판단하기 때문). 이 제약을 SQL 단에서 우회하려 하지 않고, GROUP BY는
+	// SELECT와 동일한 표현식으로 유지해 DB 제약을 만족시키되, 실제 "1~12월 순서" 정렬은
+	// DB가 아닌 애플리케이션(자바) 레벨에서 문자열을 숫자로 변환해 처리한다.
 	@Query("""
 			SELECT NEW com.kh.workflow.dashboard.model.dto.ChartDataDto(
 			    CAST(MONTH(w.startAt) AS string),
@@ -205,9 +237,14 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			 WHERE w.approverState = 'A'
 			   AND w.startAt >= :startDate
 			 GROUP BY CAST(MONTH(w.startAt) AS string)
-			 ORDER BY 1
 			""")
-	List<ChartDataDto> selectMonthlyData(@Param("startDate") LocalDateTime startDate);
+	List<ChartDataDto> selectMonthlyDataUnordered(@Param("startDate") LocalDateTime startDate);
+
+	default List<ChartDataDto> selectMonthlyData(LocalDateTime startDate) {
+		List<ChartDataDto> result = selectMonthlyDataUnordered(startDate);
+		result.sort(java.util.Comparator.comparingInt(dto -> Integer.parseInt(dto.getName())));
+		return result;
+	}
 
 	/*
 	 * ===================================================================== 2. 부서장
@@ -284,13 +321,20 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN r.hub h
 		     WHERE e.depId = :depId
 		       AND w.approverState IN ('W', 'R', 'H')
+		       """ + PRIMARY_HUB_ONLY + """
+
 		     ORDER BY w.workcationNo DESC
 		    """)
 	List<WaitingListDto> managerSelectWaitingList(@Param("depId") String depId);
 
 	/**
 	 * [부서장] 특정 부서의 지역별 이용 통계 비율 데이터 조회 (차트용)
-	 * 
+	 *
+	 * BUG-06: 분모가 회사 전체(전 부서) 승인 건수로 고정되어 있어, 이 부서의 지역별
+	 * 비율 합계가 100%가 아니라 "회사 전체 대비 이 부서의 비중"처럼 나오고 있었다.
+	 * 관리자 화면은 회사 전체 기준이 맞지만(HubDao.HubShareData 등), 부서장 화면은
+	 * "내 부서 안에서의 지역별 비율"이어야 하므로 분모도 동일하게 이 부서(depId)로 좁힌다.
+	 *
 	 * @param depId 부서 아이디
 	 * @return List<ChartDataDto> 부서원 지역 선호도 데이터
 	 */
@@ -300,7 +344,7 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
     			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
     			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
     			     ELSE '' END region,
-				(COUNT(DISTINCT w) * 100.0)/ (SELECT COUNT(DISTINCT w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 WHERE w2.approverState = 'A')
+				(COUNT(DISTINCT w) * 100.0)/ (SELECT COUNT(DISTINCT w2) FROM WorkcationInfo w2 JOIN Reservation r2 ON r2.workcation = w2 JOIN w2.employee e2 WHERE w2.approverState = 'A' AND e2.depId = :depId)
 			)
 			  FROM WorkcationInfo w
 			  JOIN Reservation r ON r.workcation = w
@@ -308,6 +352,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN w.employee e
 			 WHERE w.approverState = 'A'
 			   AND e.depId = :depId
+			   """ + PRIMARY_HUB_ONLY + """
+
 			 GROUP BY region
 			""")
 	List<ChartDataDto> managerSelectRegionData(@Param("depId") String depId);
@@ -337,6 +383,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
+			   """ + PRIMARY_HUB_ONLY + """
+
 			""")
 	List<WorkcationListDto> managerSelectWorkcationList(@Param("depId") String depId);
 
@@ -368,6 +416,8 @@ public interface WorkcationDao extends JpaRepository<WorkcationInfo, Integer> {
 			  JOIN r.hub h
 			  JOIN w.employee e
 			 WHERE e.depId = :depId
+			   """ + PRIMARY_HUB_ONLY + """
+
 			   AND (e.empName LIKE '%'||:keyword||'%' OR w.workcationTitle LIKE '%'||:keyword||'%')
 			   AND (:startDate IS NULL OR w.endAt >= :startDate)
 			   AND (:endDate IS NULL OR  w.startAt <= :endDate)

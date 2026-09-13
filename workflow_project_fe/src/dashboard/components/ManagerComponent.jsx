@@ -23,6 +23,7 @@ function ManagerComponent(props) {
         budgetExhaustionRate: 0,
         avgProgressRate: 100,
         waitingList: [],
+        settlementWaitingList: [],
         regionData: [],
         noticeData: [],
         workcationList: []
@@ -173,7 +174,50 @@ function ManagerComponent(props) {
                     <p>부산 : {data.regionData?.find(item => item.name === '부산' || item.name === '부산시')?.value ?? 0}%</p>
                 </div>
             </div>
-            <br /><br /><br /><br />
+            <br /><br />
+            {/* BUG-10: 정산 대기 목록 - 부서원의 비용 신청 중 최종 처리(승인/취소/반려)되지
+                않아 부서장의 확인이 필요한 건. 실제 Amount 데이터를 부서 범위로만 조회하며,
+                클릭 시 실제 정산 상세 화면(/cost/detail/:amountNo)으로 이동한다. */}
+            <div className="dashboard-1" align="center">정산 대기 목록</div>
+            <br />
+            <div>
+                <table className="table table-hover">
+                    <thead>
+                        <tr style={ { cursor: "auto" } }>
+                            <th>사번</th>
+                            <th>신청자명</th>
+                            <th>금액</th>
+                            <th>상태</th>
+                            <th>신청일</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.settlementWaitingList?.length > 0 ? (
+                            data.settlementWaitingList.map((item) => (
+                                <tr
+                                    key={item.amountNo}
+                                    onClick={() => navigate(`/cost/detail/${item.amountNo}`)}
+                                >
+                                    <td>{item.empNo}</td>
+                                    <td>{item.empName}</td>
+                                    <td>{item.requestedAmount?.toLocaleString('ko-KR')}원</td>
+                                    <td>
+                                        {item.status === "R" ? <span className="badge bg-info">검토</span> :
+                                         item.status === "H" ? <span className="badge bg-secondary">보류</span> :
+                                         <span className="badge bg-warning">{item.status}</span>}
+                                    </td>
+                                    <td>{formatDate(item.requestedAt)}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr className="wf-empty-row">
+                                <td colSpan="5">정산 대기 건이 없습니다.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            <br /><br />
             {/* 공지사항 섹션 타이틀 및 게시판 목록 테이블 */}
             <div className="dashboard-1" align="center">공지사항</div>
             <div className="dashboard-4">

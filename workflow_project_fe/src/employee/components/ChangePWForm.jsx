@@ -1,9 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../styles/LoginForm.css";
 import { changePassword } from "../api/employeeApi";
 
-function ChangePWForm() {
+function ChangePWForm({ loginUser, onLogin }) {
+
+    const navigate = useNavigate();
 
     const [form, setForm] = useState({
         currentPassword: "",
@@ -61,15 +63,29 @@ function ChangePWForm() {
 
         try {
 
-            await changePassword({
+            const result = await changePassword({
                 currentPassword,
                 newPassword,
             });
 
             alert("비밀번호가 정상적으로 변경되었습니다.");
 
-            // 변경 후 로그인 페이지 이동
-            window.location.href = "/login";
+            // BUG-08: window.location.href = "/login"으로 강제 새로고침하면
+            // localStorage에 남아있던 이전 pwChgRequired:true가 그대로 다시
+            // 읽혀 App.jsx의 비밀번호 변경 강제 화면 게이트에 걸려 대시보드로
+            // 진입하지 못했다. 서버가 내려준 최신 정보(pwChgRequired:false 포함)로
+            // 로그인 상태(React state + localStorage)를 갱신한 뒤, 새로고침 없이
+            // 라우터로 이동한다 - accessToken 등 기존 로그인 정보는 그대로 유지한다.
+            if (onLogin) {
+
+                onLogin({
+                    ...loginUser,
+                    ...result,
+                    pwChgRequired: false,
+                });
+            }
+
+            navigate("/", { replace: true });
 
         } catch (error) {
 

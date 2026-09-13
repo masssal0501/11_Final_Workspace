@@ -30,6 +30,8 @@ public class ManagerDto {
 	
 	/* --- 리스트 데이터 --- */
 	private List<WaitingListDto> waitingList;
+	// BUG-10: 정산 대기 목록 - 부서원의 비용 신청 중 아직 최종 처리되지 않은 건
+	private List<SettlementWaitingDto> settlementWaitingList;
 	private List<Notice> noticeData;
 	private List<WorkcationListDto> workcationList;
 	

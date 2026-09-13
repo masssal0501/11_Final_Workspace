@@ -25,6 +25,8 @@ import com.kh.workflow.notice.service.NoticeService;
 import com.kh.workflow.notice.vo.Notice;
 import com.kh.workflow.notice.service.NoticeService;
 
+import jakarta.validation.Valid;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -217,6 +219,7 @@ public class NoticeController {
     public ResponseEntity<?> insertNotice(
 
             @Parameter(description = "등록할 공지사항 정보(JSON)", required = true)
+            @Valid
             @RequestPart("notice")
             Notice notice,
 
@@ -370,6 +373,7 @@ public class NoticeController {
             @PathVariable int noticeNo,
 
             @Parameter(description = "수정할 공지사항 정보(JSON)", required = true)
+            @Valid
             @RequestPart("notice")
             Notice notice,
 

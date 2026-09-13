@@ -16,6 +16,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,9 +36,18 @@ public class Notice {
     @Column(name = "notice_no")
     private Integer noticeNo;
 
+    // BUG-03: notice_title 컬럼이 실제로 varchar(200)이라 200자를 넘기면 DB에서
+    // "Data too long" SQL 예외(500)로 튕겨나갔다. 프런트(입력 카운터)뿐 아니라
+    // 백엔드에서도 동일한 길이 제한을 명시적으로 검증해 400으로 응답하도록 한다.
+    @NotBlank(message = "제목을 입력해주세요.")
+    @Size(max = 200, message = "제목은 200자 이하로 입력해주세요.")
     @Column(name = "notice_title", length = 200, nullable = false)
     private String noticeTitle;
 
+    // notice_content는 DB상 TEXT(최대 약 65,535바이트)라 여유는 있지만, 무제한 입력을
+    // 막기 위해 화면에서 다루기 적절한 상한(10,000자)을 애플리케이션 레벨에서 강제한다.
+    @NotBlank(message = "내용을 입력해주세요.")
+    @Size(max = 10000, message = "내용은 10,000자 이하로 입력해주세요.")
     @Column(name = "notice_content", nullable = false, columnDefinition = "TEXT")
     private String noticeContent;
 

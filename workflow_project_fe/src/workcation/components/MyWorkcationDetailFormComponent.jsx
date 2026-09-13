@@ -117,8 +117,18 @@ function MyWorkcationDetailFormComponent() {
         approverState = ""
     } = detailData;
 
+    // BUG-09: 승인된 워케이션이어도 기간(endDate)이 지나면 출근/업무계획/업무보고를
+    // 더 이상 수정할 수 없어야 한다 - 백엔드도 동일하게 거부하지만(방어적 이중 검증),
+    // 프런트에서도 버튼을 눌러도 소용없다는 것을 미리 보여준다.
+    const isPeriodOver = Boolean(endDate) && new Date() > new Date(endDate);
+
     // 업무 상세 모달 열기
     const openTaskModal = (task) => {
+        if (isPeriodOver) {
+            alert("워케이션 기간이 종료되어 업무 내용을 수정할 수 없습니다.");
+            return;
+        }
+
         setSelectedTask(task);
         setTaskProgress(task.progress ?? 0);
         setTaskReportTitle(task.taskTitle ?? "");
@@ -154,6 +164,11 @@ function MyWorkcationDetailFormComponent() {
 
     // 업무 진행상황 저장
     const handleTaskSave = async () => {
+        if (isPeriodOver) {
+            alert("워케이션 기간이 종료되어 업무 내용을 수정할 수 없습니다.");
+            return;
+        }
+
         if (!selectedTask?.taskNo) {
             alert("업무 번호가 없습니다.");
             return;
@@ -211,6 +226,12 @@ function MyWorkcationDetailFormComponent() {
 
     // 첨부파일 선택 즉시 업로드
     const handleWorkFileChange = async (e) => {
+        if (isPeriodOver) {
+            alert("워케이션 기간이 종료되어 첨부파일을 등록할 수 없습니다.");
+            e.target.value = "";
+            return;
+        }
+
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
 
@@ -446,7 +467,7 @@ function MyWorkcationDetailFormComponent() {
                     {/* 파일 선택 */}
                     <div className="file-upload-row">
                         <label
-                            className={`custom-file-upload ${isFileUploading ? "disabled" : ""}`}
+                            className={`custom-file-upload ${(isFileUploading || isPeriodOver) ? "disabled" : ""}`}
                         >
                             파일 선택
 
@@ -454,14 +475,16 @@ function MyWorkcationDetailFormComponent() {
                                 type="file"
                                 multiple
                                 onChange={handleWorkFileChange}
-                                disabled={isFileUploading}
+                                disabled={isFileUploading || isPeriodOver}
                             />
                         </label>
 
                         <span className="file-upload-guide">
                             {isFileUploading
                                 ? "업로드 중..."
-                                : "여러 파일 선택 가능"}
+                                : isPeriodOver
+                                    ? "워케이션 기간이 종료되어 등록할 수 없습니다."
+                                    : "여러 파일 선택 가능"}
                         </span>
                     </div>
 
@@ -699,6 +722,7 @@ function MyWorkcationDetailFormComponent() {
                                 type="button"
                                 className="btn btn-primary"
                                 onClick={handleTaskSave}
+                                disabled={isPeriodOver}
                             >
                                 저장
                             </button>

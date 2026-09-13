@@ -319,7 +319,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
-    public void changePassword(
+    public EmployeeResponse changePassword(
     		String empId, ChangePasswordRequest request
     ) {
 
@@ -353,7 +353,12 @@ public class EmployeeServiceImpl implements EmployeeService{
         // 비밀번호 변경 필요 상태 해제
         employee.setPwChgRequired(false);
 
-        employeeDao.save(employee);
+        Employee saved = employeeDao.save(employee);
+
+        // BUG-08: 기존에는 메시지만 반환해 프런트가 로그인 상태(localStorage/React
+        // state)의 pwChgRequired를 갱신할 방법이 없었다 - 갱신된 사용자 정보를
+        // 반환해 로그인 응답과 동일한 형태로 프런트 상태를 그대로 교체할 수 있게 한다.
+        return convertToResponse(saved);
     }
     
 //    @Override

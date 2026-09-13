@@ -46,7 +46,7 @@ public class ApprovalServiceImpl implements ApprovalService {
             LocalDateTime endDate,
             Pageable pageable) {
 
-        return approvalDao.searchApprovalHistory(
+        Page<WorkcationInfo> page = approvalDao.searchApprovalHistory(
         		authCode,
         		empNo,
         		depId,
@@ -56,6 +56,15 @@ public class ApprovalServiceImpl implements ApprovalService {
                 endDate,
                 pageable
         );
+
+        // BUG-01: 상세 조회(selectApproval)에만 부서명 채우기가 적용되어 있어 목록
+        // 화면(승인 이력)에는 신청자/승인자 부서가 여전히 코드로만 내려가고 있었다.
+        page.getContent().forEach(w -> {
+            fillDepTitle(w.getEmployee());
+            fillDepTitle(w.getApprover());
+        });
+
+        return page;
     }
 
     // 승인 이력 상세 조회
@@ -108,7 +117,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
         // BUG-NEW: TODO-N03에서 추가된 최종완료("D") 상태가 이 제외 목록에 반영되지 않아
         // 이미 모든 처리가 끝난 건이 승인 대기 목록에 계속 남아 보이던 문제.
-        return approvalDao.searchApprovalQueue(
+        Page<WorkcationInfo> page = approvalDao.searchApprovalQueue(
         		authCode,
         		empNo,
         		depId,
@@ -120,6 +129,14 @@ public class ApprovalServiceImpl implements ApprovalService {
                 endDate,
                 pageable
         );
+
+        // BUG-01: 승인 대기 목록도 이력 목록과 동일하게 부서명을 채워서 내려준다.
+        page.getContent().forEach(w -> {
+            fillDepTitle(w.getEmployee());
+            fillDepTitle(w.getApprover());
+        });
+
+        return page;
     }
 
 }

@@ -1,5 +1,10 @@
 import React from 'react';
 
+// BUG-03: 백엔드 notice_title(varchar 200)/noticeContent(앱 레벨 상한 10,000자)와
+// 동일한 값을 사용해, 두 쪽 제한이 어긋나지 않도록 한다.
+const TITLE_MAX_LENGTH = 200;
+const CONTENT_MAX_LENGTH = 10000;
+
 export default function NoticeForm({
     form,
     setForm,
@@ -41,14 +46,23 @@ export default function NoticeForm({
                     제목<span className="wf-required">*</span>
                 </label>
 
-                <input
-                    type="text"
-                    name="noticeTitle"
-                    value={form.noticeTitle || ''}
-                    onChange={handleChange}
-                    placeholder="공지사항 제목을 입력하세요."
-                    required
-                />
+                <div className="notice-form-field">
+
+                    <input
+                        type="text"
+                        name="noticeTitle"
+                        value={form.noticeTitle || ''}
+                        onChange={handleChange}
+                        placeholder="공지사항 제목을 입력하세요."
+                        maxLength={TITLE_MAX_LENGTH}
+                        required
+                    />
+
+                    <p className="notice-length-counter">
+                        {(form.noticeTitle || '').length} / {TITLE_MAX_LENGTH}
+                    </p>
+
+                </div>
 
             </div>
 
@@ -88,13 +102,22 @@ export default function NoticeForm({
                     내용<span className="wf-required">*</span>
                 </label>
 
-                <textarea
-                    name="noticeContent"
-                    value={form.noticeContent || ''}
-                    onChange={handleChange}
-                    placeholder="공지사항 내용을 입력하세요."
-                    required
-                />
+                <div className="notice-form-field">
+
+                    <textarea
+                        name="noticeContent"
+                        value={form.noticeContent || ''}
+                        onChange={handleChange}
+                        placeholder="공지사항 내용을 입력하세요."
+                        maxLength={CONTENT_MAX_LENGTH}
+                        required
+                    />
+
+                    <p className="notice-length-counter">
+                        {(form.noticeContent || '').length} / {CONTENT_MAX_LENGTH}
+                    </p>
+
+                </div>
 
             </div>
 

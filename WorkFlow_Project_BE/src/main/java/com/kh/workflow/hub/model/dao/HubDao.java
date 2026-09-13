@@ -29,6 +29,16 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 			+ "WHEN h.mainRegion IN ('강원', '강원도') THEN '강원도' "
 			+ "ELSE h.mainRegion END";
 
+	// 대시보드 통계(거점 점유율/지역별 이용 통계) 전용 지역 정규화 - 위 REGION_NORMALIZE_EXPR과는
+	// 별도 계층(차트 표시용 짧은 표기 + 부산 포함)이라 하나로 합치지 않되, 대시보드 통계
+	// 쿼리끼리는 이 상수 하나만 재사용해서 서로 다른 CASE WHEN 문구가 따로 놀지 않게 한다.
+	// BUG-06: 대상 alias는 각 쿼리에서 h(Hub)로 통일해서 사용한다.
+	String REGION_STATS_NORMALIZE_EXPR =
+			"CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주' "
+			+ "WHEN h.mainRegion IN ('강원도', '강원') THEN '강원' "
+			+ "WHEN h.mainRegion IN ('부산시', '부산') THEN '부산' "
+			+ "ELSE h.mainRegion END";
+
 	/**
      * 시설 유형 목록에 해당하는 거점 목록 조회 (페이징 및 N+1 문제 해결을 위한 첨부파일 즉시 로딩)
      * 
@@ -111,18 +121,20 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 	 * 
 	 * @return List<ChartDataDto> 거점 오피스 지역별 점유율 데이터 목록
 	 */
+    // BUG-05: 분자(outer query)는 hubStatus='OPEN'으로 걸러져 있는데 분모(subquery)는
+    // 상태 필터가 없어 운영중단(PAUSED)/종료(CLOSED) 거점까지 분모에 포함되고 있었다 -
+    // 운영중이 아닌 거점이 하나라도 있으면 비율 합계가 100%에 못 미치던 원인.
+    // 분모도 동일하게 OPEN 상태만 세도록 맞춘다.
     @Query("""
     		SELECT new com.kh.workflow.dashboard.model.dto.ChartDataDto(
-    			CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주'
-    			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
-    			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
-    			     ELSE '' END region,
-    			(COUNT(h) * 100) / (SELECT COUNT(h2) FROM Hub h2 WHERE h2.hubType = 2)
+    			""" + REGION_STATS_NORMALIZE_EXPR + """
+    			,
+    			(COUNT(h) * 100.0) / (SELECT COUNT(h2) FROM Hub h2 WHERE h2.hubType = 2 AND h2.hubStatus = 'OPEN')
     		)
     		FROM Hub h
     		WHERE h.hubType = 2
     		  AND h.hubStatus = 'OPEN'
-    		GROUP BY region
+    		GROUP BY \s""" + REGION_STATS_NORMALIZE_EXPR + """
     		""")
     List<ChartDataDto> HubShareData();
 

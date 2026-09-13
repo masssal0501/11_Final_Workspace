@@ -242,17 +242,24 @@ public class EmployeeController {
 
         String empId = authentication.getName();
 
-        employeeService.changePassword(
+        var updatedEmployee = employeeService.changePassword(
             empId,
             request
         );
 
-        return ResponseEntity.ok(
-            Map.of(
-                "message",
-                "비밀번호가 정상적으로 변경되었습니다."
-            )
-        );
+        // BUG-08: 변경된 pwChgRequired 등 최신 사용자 정보를 함께 내려줘,
+        // 프런트가 로그인 응답과 동일하게 로컬 상태/localStorage를 갱신할 수 있게 한다.
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("message", "비밀번호가 정상적으로 변경되었습니다.");
+        body.put("empNo", updatedEmployee.getEmpNo());
+        body.put("empId", updatedEmployee.getEmpId());
+        body.put("empName", updatedEmployee.getEmpName());
+        body.put("authCode", updatedEmployee.getAuthCode());
+        body.put("depId", updatedEmployee.getDepId());
+        body.put("jobCode", updatedEmployee.getJobCode());
+        body.put("pwChgRequired", updatedEmployee.getPwChgRequired());
+
+        return ResponseEntity.ok(body);
     }
 
 
