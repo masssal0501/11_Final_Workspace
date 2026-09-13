@@ -7,8 +7,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.hub.model.service.HubService;
 import com.kh.workflow.hub.model.vo.Hub;
 import com.kh.workflow.reservation.model.dto.ReservationCreateRequest;
@@ -35,6 +39,45 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     private final HubService hubService;
+
+    private final EmployeeDao employeeDao;
+
+    // BUG-N09: GET/PUT/{rsvNo}, PATCH/{rsvNo}/cancel에 소유권 검증이 전혀 없어
+    // 로그인만 하면 타인의 예약을 조회·수정·취소할 수 있었다. 예약은
+    // 워케이션(Reservation.workcation)에 직접 연관관계가 있으므로 그 신청자를
+    // 기준으로 STAFF는 본인, MANAGER는 같은 부서, ADMIN은 전체 접근을 허용한다
+    // (BUG-N05의 업무 권한 정책과 동일한 원칙).
+    private void checkReservationAccess(Reservation reservation, Authentication authentication) {
+
+        Employee loginEmployee = employeeDao.findByEmpId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("로그인 사용자 정보를 찾을 수 없습니다."));
+
+        String authCode = loginEmployee.getAuthCode();
+
+        if ("ADMIN".equals(authCode)) {
+            return;
+        }
+
+        Employee owner = reservation.getWorkcation() != null
+                ? reservation.getWorkcation().getEmployee()
+                : null;
+
+        boolean allowed;
+
+        if ("MANAGER".equals(authCode)) {
+            allowed = owner != null
+                    && owner.getDepId() != null
+                    && owner.getDepId().equals(loginEmployee.getDepId());
+        } else {
+            allowed = owner != null
+                    && owner.getEmpNo() != null
+                    && owner.getEmpNo().equals(loginEmployee.getEmpNo());
+        }
+
+        if (!allowed) {
+            throw new AccessDeniedException("해당 예약에 접근할 권한이 없습니다.");
+        }
+    }
 
 
     // =========================================================
@@ -191,11 +234,14 @@ public class ReservationController {
     @GetMapping("/{rsvNo}")
     public ResponseEntity<Reservation> getReservationDetail(
             @Parameter(description = "조회할 예약 번호", example = "1", required = true)
-            @PathVariable Integer rsvNo) {
+            @PathVariable Integer rsvNo,
+            Authentication authentication) {
 
-        return ResponseEntity.ok(
-                reservationService.getReservationDetail(rsvNo)
-        );
+        Reservation reservation = reservationService.getReservationDetail(rsvNo);
+
+        checkReservationAccess(reservation, authentication);
+
+        return ResponseEntity.ok(reservation);
     }
 
 
@@ -217,7 +263,13 @@ public class ReservationController {
             @Parameter(description = "수정할 예약 번호", example = "1", required = true)
             @PathVariable Integer rsvNo,
             @Parameter(description = "수정할 예약 정보", required = true)
-            @RequestBody ReservationUpdateRequest request) {
+            @RequestBody ReservationUpdateRequest request,
+            Authentication authentication) {
+
+        checkReservationAccess(
+                reservationService.getReservationDetail(rsvNo),
+                authentication
+        );
 
         return ResponseEntity.ok(
                 reservationService.updateReservation(
@@ -243,7 +295,13 @@ public class ReservationController {
     @PatchMapping("/{rsvNo}/cancel")
     public ResponseEntity<Void> cancelReservation(
             @Parameter(description = "취소할 예약 번호", example = "1", required = true)
-            @PathVariable Integer rsvNo) {
+            @PathVariable Integer rsvNo,
+            Authentication authentication) {
+
+        checkReservationAccess(
+                reservationService.getReservationDetail(rsvNo),
+                authentication
+        );
 
         reservationService.cancelReservation(rsvNo);
 

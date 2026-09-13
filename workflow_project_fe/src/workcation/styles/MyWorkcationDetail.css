@@ -5,8 +5,7 @@
     margin: 40px auto;
 }
 
-
-/* 상단 제목 + 목록 버튼 */
+/* 상단 제목 / 목록 버튼 */
 .detail-top-nav {
     position: relative;
     margin-bottom: 20px;
@@ -20,13 +19,11 @@
     position: absolute;
     left: 0;
     top: 0;
-
     padding: 6px 12px;
     cursor: pointer;
 }
 
-
-/* 워케이션 기본 정보 카드 */
+/* 워케이션 기본 정보 */
 .workcation-info-card {
     border: 1px solid var(--wf-border);
     border-radius: var(--wf-radius);
@@ -61,8 +58,7 @@
     font-size: 15px;
 }
 
-
-/* 업무 관리 전체 */
+/* 업무 관리 영역 */
 .task-manage-section {
     border: 1px solid var(--wf-gray-300);
     padding: 20px;
@@ -76,8 +72,7 @@
     margin: 0;
 }
 
-
-/* 전체 진행률 영역 */
+/* 전체 업무 진행률 */
 .progress-overview-box {
     border: 1px solid var(--wf-border);
     padding: 15px;
@@ -89,37 +84,27 @@
     font-weight: bold;
 }
 
-.task-modal-box {
-    user-select: none;
-}
-
-/* 진행바 */
+/* 전체 진행률 바 */
 .progress-bar-bg {
     width: 100%;
     height: 25px;
-
     background-color: var(--wf-gray-200);
     border: 1px solid var(--wf-gray-300);
-
     overflow: hidden;
 }
 
 .progress-bar-fill {
     height: 100%;
-
+    min-width: 0;
     background-color: var(--wf-success);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
-    min-width: 0;
 }
 
 .progress-text {
     font-size: 13px;
 }
-
 
 /* 진행률 설명 */
 .progress-status-text {
@@ -132,7 +117,6 @@
     color: var(--wf-text-muted);
 }
 
-
 /* 업무 목록 */
 .my-task-list {
     list-style: none;
@@ -144,11 +128,9 @@
     border: 1px solid var(--wf-border);
     padding: 12px 15px;
     margin-bottom: 8px;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     cursor: pointer;
 }
 
@@ -156,31 +138,167 @@
     background-color: var(--wf-gray-50);
 }
 
-
-/* 업무 왼쪽 */
+/* 업무 목록 왼쪽 */
 .task-item-left {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-
-/* 업무 오른쪽 */
+/* 업무 목록 오른쪽 */
 .task-item-right {
     font-size: 14px;
 }
 
+/* 승인된 업무 */
 .approved-task {
     text-decoration: line-through;
     color: var(--wf-text-muted);
 }
 
+/* 거부된 업무 */
 .rejected-task {
     color: var(--wf-danger);
 }
 
+/* 첨부파일 전체 영역 */
+.work-file-area {
+    margin-top: 20px;
+}
 
-/* 삭제 버튼 영역 */
+.work-file-area h4 {
+    margin: 0 0 10px;
+}
+
+/* 파일 선택 영역 */
+.file-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.custom-file-upload {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 14px;
+    background: #f8fafc;
+    border: 1px solid #cfd8e3;
+    border-radius: 7px;
+    color: #17345c;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.custom-file-upload:hover {
+    background: #eef4fb;
+    border-color: #9fb8d4;
+}
+
+.custom-file-upload input {
+    display: none;
+}
+
+.file-upload-guide {
+    font-size: 12px;
+    color: #777;
+}
+
+/* 이미지 썸네일 목록 */
+.work-file-thumbnail-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+/* 이미지 썸네일 카드 */
+.work-file-thumbnail-item {
+    min-width: 0;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #dce4ee;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.work-file-thumbnail-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+    border-radius: 7px;
+}
+
+/* 썸네일 파일명 */
+.thumbnail-file-name {
+    width: 100%;
+    margin-top: 7px;
+    font-size: 12px;
+    color: #24364b;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 썸네일 삭제 버튼 */
+.work-file-delete-btn {
+    width: 100%;
+    margin-top: 7px;
+    padding: 5px 0;
+    border: 1px solid #ffb4b4;
+    background: #fff;
+    color: #e74c4c;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.work-file-delete-btn:hover {
+    background: #fff3f3;
+}
+
+/* 일반 파일 / 5번째 이후 이미지 */
+.non-image-file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.non-image-file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.non-image-file-name {
+    font-size: 13px;
+    color: #24364b;
+    white-space: nowrap;
+}
+
+/* 일반 파일 삭제 버튼 */
+.non-image-file-delete-btn {
+    width: auto;
+    min-width: 44px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid #ffb4b4;
+    background: #fff;
+    color: #e74c4c;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.non-image-file-delete-btn:hover {
+    background: #fff3f3;
+}
+
+/* 하단 버튼 영역 */
 .my-detail-button-area {
     margin-top: 30px;
     text-align: center;
@@ -191,55 +309,37 @@
     cursor: pointer;
 }
 
-/* =========================
-   업무 모달 전체 배경
-========================= */
+/* 업무 모달 배경 */
 .task-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-
     width: 100vw;
     height: 100vh;
-
     background: rgba(0, 0, 0, 0.35);
-
     display: flex;
     justify-content: center;
     align-items: center;
-
     z-index: 9999;
 }
 
-
-/* =========================
-   모달 본체
-========================= */
+/* 업무 모달 본체 */
 .task-modal-box {
     width: 520px;
     max-height: 85vh;
-
     background: white;
     border-radius: 12px;
-
     padding: 24px;
-
     box-sizing: border-box;
-
     overflow-y: auto;
-
     user-select: none;
 }
 
-
-/* =========================
-   모달 상단
-========================= */
+/* 모달 상단 */
 .task-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     margin-bottom: 24px;
 }
 
@@ -251,16 +351,11 @@
 .task-modal-header button {
     border: none;
     background: none;
-
     font-size: 26px;
-
     cursor: pointer;
 }
 
-
-/* =========================
-   각 영역
-========================= */
+/* 모달 공통 영역 */
 .task-modal-section {
     margin-bottom: 22px;
 }
@@ -269,73 +364,49 @@
     margin: 0 0 10px 0;
 }
 
-
-/* =========================
-   진행률 바
-========================= */
+/* 모달 진행률 바 */
 .modal-progress-bar-bg {
     position: relative;
-
     width: 100%;
     height: 24px;
-
     background: var(--wf-border);
     border: 1px solid var(--wf-gray-300);
-
     overflow: hidden;
-
     cursor: pointer;
     user-select: none;
 }
 
 .modal-progress-bar-fill {
     position: absolute;
-
     top: 0;
     left: 0;
-
     height: 100%;
-
     background: var(--wf-primary);
-
     pointer-events: none;
 }
 
 .modal-progress-text {
     position: absolute;
-
     left: 50%;
     top: 50%;
-
     transform: translate(-50%, -50%);
-
     z-index: 2;
-
     font-size: 13px;
 }
 
-
-/* =========================
-   최근 활동
-========================= */
+/* 최근 활동 */
 .activity-list {
     border: 1px solid var(--wf-border);
     border-radius: 6px;
-
     overflow: hidden;
 }
 
 .activity-item {
     display: grid;
-
     grid-template-columns: 1fr 110px 60px;
-
     gap: 10px;
-
     padding: 10px 12px;
-
     border-bottom: 1px solid var(--wf-gray-200);
-
     font-size: 14px;
 }
 
@@ -343,67 +414,43 @@
     border-bottom: none;
 }
 
-
-/* =========================
-   파일
-========================= */
+/* 모달 파일 입력 */
 .task-modal-section input[type="file"] {
     width: 100%;
 }
 
-
-/* =========================
-   리포트
-========================= */
+/* 업무 리포트 입력 */
 .task-modal-section input[type="text"] {
     width: 100%;
-
     box-sizing: border-box;
-
     padding: 10px;
-
     margin-bottom: 10px;
-
     border: 1px solid var(--wf-gray-300);
     border-radius: 4px;
-
     user-select: text;
 }
 
 .task-modal-section textarea {
     width: 100%;
     min-height: 120px;
-
     box-sizing: border-box;
-
     padding: 10px;
-
-    resize: none; /* BUG-007: 텍스트박스 크기 고정 - 사용자가 임의로 늘리거나 줄일 수 없도록 함 */
-
+    resize: none;
     border: 1px solid var(--wf-gray-300);
     border-radius: 4px;
-
     user-select: text;
 }
 
-
-/* =========================
-   하단 버튼
-========================= */
+/* 모달 하단 버튼 */
 .task-modal-buttons {
     display: flex;
-
     justify-content: flex-end;
-
     gap: 8px;
-
     padding-top: 16px;
-
     border-top: 1px solid var(--wf-gray-200);
 }
 
 .task-modal-buttons button {
     padding: 8px 16px;
-
     cursor: pointer;
 }

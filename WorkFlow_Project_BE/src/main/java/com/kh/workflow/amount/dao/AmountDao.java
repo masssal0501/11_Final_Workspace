@@ -15,7 +15,6 @@ import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.common.model.vo.PageInfo;
-import com.kh.workflow.dashboard.model.dto.BalanceListDto;
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 
 public interface AmountDao
@@ -131,7 +130,7 @@ public interface AmountDao
     @Modifying
     @Query("""
         UPDATE AmountItem ai
-        SET ai.itemAmount = :amount
+        SET ai.itemApprovedAmount = :amount
         WHERE ai.itemNo = :itemNo
           AND ai.amount.amountNo = :amountNo
     """)
@@ -198,10 +197,17 @@ public interface AmountDao
     // Statistics
     // =========================================================
 
+    // ★ 요약 통계 - 상태별 건수, 총 신청/승인 금액까지 포함하도록 확장
     @Query("""
         SELECT new map(
             COUNT(a.amountNo) as totalCount,
-            COALESCE(SUM(a.approvedAmount), 0) as totalApprovedAmount
+            COALESCE(SUM(a.requestedAmount), 0) as totalRequestedAmount,
+            COALESCE(SUM(a.approvedAmount), 0) as totalApprovedAmount,
+            SUM(CASE WHEN a.status = 'R' THEN 1 ELSE 0 END) as reviewCount,
+            SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) as approvedCount,
+            SUM(CASE WHEN a.status = 'H' THEN 1 ELSE 0 END) as holdCount,
+            SUM(CASE WHEN a.status = 'J' THEN 1 ELSE 0 END) as rejectedCount,
+            SUM(CASE WHEN a.status = 'C' THEN 1 ELSE 0 END) as cancelledCount
         )
         FROM Amount a
     """)
@@ -298,14 +304,15 @@ public interface AmountDao
                      WHEN ai.itemType = 'E' THEN '체험'
                      WHEN ai.itemType = 'F' THEN '식비'
                      WHEN ai.itemType = 'V' THEN '차량'
-                     ELSE '기타'
-                END,
+                     WHEN ai.itemType = 'O' THEN '기타'
+                ELSE '' END type,
                 COALESCE(SUM(ai.itemAmount), 0)
             )
               FROM AmountItem ai
               JOIN Amount a ON ai.amount = a
              WHERE a.status = 'A'
-             GROUP BY ai.itemType
+               AND ai.itemType IN ('S', 'T', 'E', 'F', 'V', 'O')
+             GROUP BY type
         """)
 	List<ChartDataDto> selectCategoryData();
 
@@ -350,28 +357,6 @@ public interface AmountDao
               AND a.status = 'A'
         """)
 	int managerSelectBudgetExhaustionRate(String depId);
-
-	/**
-	 * [부서장] 특정 부서의 정산 대기 목록 조회
-	 * 
-	 * @param depId 부서 아이디
-	 * @return List<BalanceListDto> 부서원들의 정산 대기 내역 리스트
-	 */
-    @Query("""
-            SELECT new com.kh.workflow.dashboard.model.dto.BalanceListDto(
-                e.empName,
-                e.empNo,
-                ai.itemAmount,
-                a.status
-            )
-            FROM Amount a
-            JOIN AmountItem ai ON a = ai.amount
-            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
-            JOIN Employee e ON w.employee = e
-            WHERE e.depId = :depId
-              AND a.status IN ('H', 'R', 'W')
-        """)
-	List<BalanceListDto> selectBalanceList(String depId);
 
 	/* =====================================================================
 	 * 3. 사원 대시보드 관련 메서드
@@ -426,32 +411,45 @@ public interface AmountDao
 		""")
 	List<Amount> selectAmountListByWorkcationNo(@Param("workcationNo") int workcationNo, PageInfo pi);
 
+	// ★ 부서별 통계 - 승인된 항목의 회사 지원금(itemApprovedAmount) 기준, Object[] 반환으로 변경
 	@Query("""
-		SELECT FUNCTION('MONTH', a.createdAt), SUM(ai.itemAmount)
+		SELECT d.depTitle, COALESCE(SUM(ai.itemApprovedAmount), 0)
+          FROM Amount a
+          JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo 
+          JOIN AmountItem ai ON ai.amount = a
+          JOIN Employee e ON w.employee = e
+          JOIN Department d ON e.depId = d.depId
+         WHERE a.status = 'A'
+         GROUP BY d.depTitle
+           """)
+	List<Object[]> getDeptStatistics();
+
+	// ★ 월별 통계 - 승인일(approvedAt) 기준 월별 회사 지원금 합계, Object[] 반환으로 변경
+	@Query("""
+		SELECT FUNCTION('MONTH', a.approvedAt), COALESCE(SUM(ai.itemApprovedAmount), 0)
           FROM Amount a
           JOIN AmountItem ai ON ai.amount = a
-         GROUP BY FUNCTION('MONTH', a.createdAt)
+         WHERE a.status = 'A'
+         GROUP BY FUNCTION('MONTH', a.approvedAt)
          """)
-	Object getMonthlyStatistics();
+	List<Object[]> getMonthlyStatistics();
 
+	
+	// ★ 항목별 통계 - 승인된 비용 신청 건만 집계
 	@Query("""
-			SELECT d.depTitle, SUM(ai.itemAmount)
-	          FROM Amount a
-	          JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo 
-	          JOIN AmountItem ai ON ai.amount = a
-	          JOIN Employee e ON w.employee = e
-	          JOIN Department d ON e.depId = d.depId
-	         GROUP BY d.depTitle
-	           """)
-	Object getDeptStatistics();
-
-	@Query("""
-		SELECT ai.itemType, SUM(ai.itemAmount)
-	      FROM AmountItem ai 
-	      GROUP BY ai.itemType
-			""")
-	Object getItemStatistics();
+	    SELECT ai.itemType,
+	           COUNT(ai),
+	           COALESCE(SUM(ai.itemAmount), 0),
+	           COALESCE(SUM(ai.itemApprovedAmount), 0)
+	      FROM AmountItem ai
+	     WHERE ai.amount.status = 'A'
+	     GROUP BY ai.itemType
+	        """)
+	List<Object[]> getItemStatistics();
 
 	List<Amount> findByWorkcationNo(Integer workcationNo);
-
+	Page<Amount> findByWorkcationNoInOrderByCreatedAtDescAmountNoDesc(
+	        List<Integer> workcationNos,
+	        Pageable pageable
+	);
 }

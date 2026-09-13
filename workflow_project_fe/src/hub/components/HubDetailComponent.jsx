@@ -293,8 +293,8 @@ function HubDetailComponent(props) {
                         <button className='btn btn-danger' onClick={ deleteHub }>중단하기</button>
                     </>
                 )}
-                {/* 공통 뒤로가기 버튼 */}
-                <button className='btn btn-dark' onClick={ () => { navigate(-1) } }>뒤로가기</button>
+                {/* BUG-002: navigate(-1) 대신 거점 목록으로 고정 이동(직접 URL 접근 대응) */}
+                <button className='btn btn-dark' onClick={ () => { navigate("/hub/list") } }>뒤로가기</button>
             </div>
             </div>
             </div>

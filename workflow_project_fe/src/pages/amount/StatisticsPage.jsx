@@ -629,7 +629,7 @@ export default function Statistics() {
                 <div className="summary-card">
 
                     <div className="summary-title">
-                        총 지급액
+                        총 회사 지원금
                     </div>
 
                     <div className="summary-value">

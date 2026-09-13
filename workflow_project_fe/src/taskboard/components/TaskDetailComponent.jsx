@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { getWorkcationTasks, updateTaskStatus } from "../api/Task";
-import { downloadWorkFile } from "../../workcation/api/WorkcationApi";
+import { downloadWorkFile, getWorkFilePreview } from "../../workcation/api/WorkcationApi";
 
 import TaskStatusBadge from "./TaskStatusBadge";
 
@@ -20,9 +20,61 @@ function TaskDetailComponent() {
     const [rejectTask, setRejectTask] = useState(null);
     const [rejectContent, setRejectContent] = useState("");
 
+    // 첨부파일 썸네일
+    const [thumbnailUrls, setThumbnailUrls] = useState([]);
+
     useEffect(() => {
         selectWorkcationTasks();
     }, [workcationNo]);
+
+    // 첨부 이미지 최대 4개 썸네일 생성
+    useEffect(() => {
+        if (!data?.taskList) {
+            setThumbnailUrls([]);
+            return;
+        }
+
+        const files = data.taskList
+            .flatMap(task => task.fileList || [])
+            .filter(
+                (file, index, arr) =>
+                    arr.findIndex(item => item.taskFileNo === file.taskFileNo) === index
+            );
+
+        const imageFiles = files
+            .filter(file => /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.originName || ""))
+            .slice(0, 4);
+
+        let objectUrls = [];
+
+        const loadThumbnails = async () => {
+            try {
+                const result = [];
+
+                for (const file of imageFiles) {
+                    const blob = await getWorkFilePreview(file.taskFileNo);
+                    const url = URL.createObjectURL(blob);
+
+                    objectUrls.push(url);
+                    result.push({
+                        taskFileNo: file.taskFileNo,
+                        originName: file.originName,
+                        url
+                    });
+                }
+
+                setThumbnailUrls(result);
+            } catch (error) {
+                console.error("첨부파일 썸네일 조회 실패", error);
+            }
+        };
+
+        loadThumbnails();
+
+        return () => {
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [data]);
 
     // 조회
     // BUG: 존재하지 않는 workcationNo로 접근하면 에러 상태를 저장하지 않아
@@ -31,6 +83,7 @@ function TaskDetailComponent() {
         try {
             setLoadError(false);
             const response = await getWorkcationTasks(workcationNo);
+            console.log("업무 상세 응답:", response);
             setData(response);
         } catch (error) {
             console.error("워케이션 업무 조회 실패", error);
@@ -145,6 +198,39 @@ function TaskDetailComponent() {
                 ) === index
         ) || [];
 
+    // 이미지 파일
+    const imageFileList = fileList.filter(file =>
+        /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.originName || "")
+    );
+
+    // 앞의 이미지 4개만 썸네일
+    const thumbnailFileIds = new Set(
+        imageFileList.slice(0, 4).map(file => file.taskFileNo)
+    );
+
+    // 썸네일 제외 파일
+    const normalFileList = fileList.filter(
+        file => !thumbnailFileIds.has(file.taskFileNo)
+    );
+
+    // 긴 파일명 축약 + 확장자 유지
+    const getShortFileName = (fileName) => {
+        const lastDot = fileName.lastIndexOf(".");
+
+        if (lastDot === -1) {
+            return fileName.length > 10
+                ? `${fileName.substring(0, 10)}...`
+                : fileName;
+        }
+
+        const name = fileName.substring(0, lastDot);
+        const ext = fileName.substring(lastDot);
+
+        return name.length > 10
+            ? `${name.substring(0, 10)}...${ext}`
+            : fileName;
+    };
+
 
 
     return (
@@ -158,216 +244,245 @@ function TaskDetailComponent() {
             </section>
 
             <div className="wf-page-content">
-            <div className="content-area">
+                <div className="content-area">
 
-            <div className="task-summary">
-                <div>
-                    <span>워케이션 제목</span>
-                    <span>{data.workcationTitle}</span>
-                </div>
+                    <div className="task-summary">
+                        <div>
+                            <span>워케이션 제목</span>
+                            <span>{data.workcationTitle}</span>
+                        </div>
 
-                <div>
-                    <span>작성자</span>
-                    <span>{data.writer}</span>
-                </div>
+                        <div>
+                            <span>작성자</span>
+                            <span>{data.writer}</span>
+                        </div>
 
-                <div>
-                    <span>업무 수</span>
-                    <span>{data.taskCount}개</span>
-                </div>
+                        <div>
+                            <span>업무 수</span>
+                            <span>{data.taskCount}개</span>
+                        </div>
 
-                <div>
-                    <span>전체 진행도</span>
-                    <span>{data.overallProgress}%</span>
-                </div>
-            </div>
+                        <div>
+                            <span>전체 진행도</span>
+                            <span>{data.overallProgress}%</span>
+                        </div>
+                    </div>
 
-            <table className="wf-table list-area">
-                <thead>
-                    <tr>
-                        <th>번호</th>
-                        <th>업무 제목</th>
-                        <th>진행도</th>
-                        <th>업무 시작일</th>
-                        {loginUser?.authCode === "ADMIN" && (
-                            <th></th>
-                        )}
-                    </tr>
-                </thead>
+                    <table className="wf-table list-area">
+                        <thead>
+                            <tr>
+                                <th>번호</th>
+                                <th>업무 제목</th>
+                                <th>진행도</th>
+                                <th>업무 시작일</th>
+                                {loginUser?.authCode === "ADMIN" && (
+                                    <th></th>
+                                )}
+                            </tr>
+                        </thead>
 
-                <tbody>
-                    {data.taskList?.map((task) => (
-                        <tr key={task.taskNo}
-                            onClick={(e) => handleTaskClick(task, e)}
-                            className="task-detail-row">
-                            <td>{task.taskNo}</td>
+                        <tbody>
+                            {data.taskList?.map((task) => (
+                                <tr key={task.taskNo}
+                                    onClick={(e) => handleTaskClick(task, e)}
+                                    className="task-detail-row">
+                                    <td>{task.taskNo}</td>
 
-                            <td>{task.taskTitle}</td>
+                                    <td>{task.taskTitle}</td>
 
-                            <td>
-                                <TaskStatusBadge
-                                    progress={task.progress}
-                                    status={task.status} />
-                            </td>
+                                    <td>
+                                        <TaskStatusBadge
+                                            progress={task.progress}
+                                            status={task.status} />
+                                    </td>
 
-                            <td>
-                                {task.tasktimeAt
-                                    ? task.tasktimeAt.substring(0, 10)
-                                    : "-"}
-                            </td>
-                            {loginUser?.authCode === "ADMIN" && (
-                                <td>
-                                    {task.progress === 100 &&
-                                        (!task.status || task.status === "N") && (
-                                            <div className="task-approval-buttons">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-primary"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleTaskStatus(task.taskNo, "Y");
-                                                    }}
-                                                >
-                                                    승인
-                                                </button>
+                                    <td>
+                                        {task.tasktimeAt
+                                            ? task.tasktimeAt.substring(0, 10)
+                                            : "-"}
+                                    </td>
+                                    {loginUser?.authCode === "ADMIN" && (
+                                        <td>
+                                            {task.progress === 100 &&
+                                                (!task.status || task.status === "N") && (
+                                                    <div className="task-approval-buttons">
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleTaskStatus(task.taskNo, "Y");
+                                                            }}
+                                                        >
+                                                            승인
+                                                        </button>
 
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-secondary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setRejectTask(task);
+                                                                setRejectContent("");
+                                                            }}
+                                                        >
+                                                            거부
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                            {task.progress === 100 && task.status === "R" && (
                                                 <button
                                                     type="button"
                                                     className="btn btn-secondary"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setRejectTask(task);
-                                                        setRejectContent("");
+                                                        handleTaskStatus(task.taskNo, "N");
                                                     }}
                                                 >
-                                                    거부
+                                                    재검토
                                                 </button>
-                                            </div>
-                                        )}
-
-                                    {task.progress === 100 && task.status === "R" && (
-                                        <button
-                                            type="button"
-                                            className="btn btn-secondary"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleTaskStatus(task.taskNo, "N");
-                                            }}
-                                        >
-                                            재검토
-                                        </button>
+                                            )}
+                                        </td>
                                     )}
-                                </td>
-                            )}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-            {fileList.length > 0 && (
-                <div className="task-file-area">
-                    <strong>첨부파일</strong>
+                    {fileList.length > 0 && (
+    <div className="task-file-area">
+        <h4>첨부파일</h4>
 
-                    {fileList.map((file) => (
-                        <div key={file.taskFileNo}>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    downloadWorkFile(
-                                        file.taskFileNo,
-                                        file.originName
-                                    )
-                                }
-                            >
-                                {file.originName}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-            {(!data.taskList || data.taskList.length === 0) && (
-                <div className="wf-state">
-                    <div className="wf-state-title">등록된 업무가 없습니다.</div>
-                </div>
-            )}
-
-            {selectedTask && (
-                <div
-                    className="task-history-overlay"
-                    onClick={() => setSelectedTask(null)}>
-
-                    <div className="task-history-panel"
-                        style={{ top: `${panelTop}px` }}
-                        onClick={(e) => e.stopPropagation()}>
-
-                        <div className="task-history-header">
-                            <strong>{selectedTask.taskTitle} </strong>
-                        </div>
-
-                        <div className="task-history-body">
-                            {selectedTask.historyList?.length > 0 ? (
-                                selectedTask.historyList.map((history) => (
-                                    <div
-                                        key={history.historyNo}
-                                        className="task-history-content">
-                                        {history.content}
-                                    </div>
-                                ))
-                            ) : (
-                                <div>작성 된 업무 내용이 없습니다.</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="wf-page-actions btn-set">
-                <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => navigate("/task/list")}
-                >
-                    목록
-                </button>
-            </div>
-            {rejectTask && (
-                <div
-                    className="reject-modal-overlay"
-                    onClick={() => setRejectTask(null)}>
+        {/* 이미지 최대 4개 */}
+        {thumbnailUrls.length > 0 && (
+            <div className="work-file-thumbnail-list">
+                {thumbnailUrls.map(file => (
                     <div
-                        className="reject-modal"
-                        onClick={(e) => e.stopPropagation()}>
-                        <div>
-                            업무 : {rejectTask.taskTitle}
-                        </div>
+                        className="work-file-thumbnail-item"
+                        key={file.taskFileNo}
+                        onClick={() => downloadWorkFile(file.taskFileNo, file.originName)}
+                    >
+                        <img src={file.url} alt={file.originName} />
 
-                        <textarea
-                            value={rejectContent}
-                            onChange={(e) => setRejectContent(e.target.value)}
-                            placeholder="거부 사유를 입력하세요." />
-
-                        <div className="reject-modal-buttons">
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={handleReject} >
-                                거부
-                            </button>
-
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={() => {
-                                    setRejectTask(null);
-                                    setRejectContent("");
-                                }} >
-                                취소
-                            </button>
+                        <div
+                            className="thumbnail-file-name"
+                            title={file.originName}
+                        >
+                            {getShortFileName(file.originName)}
                         </div>
                     </div>
-                </div>
-            )}
+                ))}
             </div>
+        )}
+
+        {/* 일반 파일 + 이미지 5번째 이후 */}
+        {normalFileList.length > 0 && (
+            <div className="non-image-file-list">
+                {normalFileList.map(file => (
+                    <button
+                        type="button"
+                        className="admin-file-link"
+                        key={file.taskFileNo}
+                        title={file.originName}
+                        onClick={() =>
+                            downloadWorkFile(file.taskFileNo, file.originName)
+                        }
+                    >
+                        {getShortFileName(file.originName)}
+                    </button>
+                ))}
+            </div>
+        )}
+    </div>
+)}
+
+
+
+
+                    {(!data.taskList || data.taskList.length === 0) && (
+                        <div className="wf-state">
+                            <div className="wf-state-title">등록된 업무가 없습니다.</div>
+                        </div>
+                    )}
+
+                    {selectedTask && (
+                        <div
+                            className="task-history-overlay"
+                            onClick={() => setSelectedTask(null)}>
+
+                            <div className="task-history-panel"
+                                style={{ top: `${panelTop}px` }}
+                                onClick={(e) => e.stopPropagation()}>
+
+                                <div className="task-history-header">
+                                    <strong>{selectedTask.taskTitle} </strong>
+                                </div>
+
+                                <div className="task-history-body">
+                                    {selectedTask.historyList?.length > 0 ? (
+                                        selectedTask.historyList.map((history) => (
+                                            <div
+                                                key={history.historyNo}
+                                                className="task-history-content">
+                                                {history.content}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div>작성 된 업무 내용이 없습니다.</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="wf-page-actions btn-set">
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => navigate("/task/list")}
+                        >
+                            목록
+                        </button>
+                    </div>
+                    {rejectTask && (
+                        <div
+                            className="reject-modal-overlay"
+                            onClick={() => setRejectTask(null)}>
+                            <div
+                                className="reject-modal"
+                                onClick={(e) => e.stopPropagation()}>
+                                <div>
+                                    업무 : {rejectTask.taskTitle}
+                                </div>
+
+                                <textarea
+                                    value={rejectContent}
+                                    onChange={(e) => setRejectContent(e.target.value)}
+                                    placeholder="거부 사유를 입력하세요." />
+
+                                <div className="reject-modal-buttons">
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={handleReject} >
+                                        거부
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => {
+                                            setRejectTask(null);
+                                            setRejectContent("");
+                                        }} >
+                                        취소
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </main>
     );

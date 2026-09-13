@@ -73,7 +73,7 @@ public class TaskServiceImpl implements TaskService {
 	@Transactional(readOnly = true)
 	public Map<String, Object> selectTaskDetail(Integer taskNo) {
 
-		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무 정보를 찾을 수 없습니다."));
+		Task task = taskDao.findById(taskNo).orElseThrow(() -> new IllegalArgumentException("업무 정보를 찾을 수 없습니다."));
 
 		Map<String, Object> result = new LinkedHashMap<>();
 
@@ -149,94 +149,105 @@ public class TaskServiceImpl implements TaskService {
 	@Transactional(readOnly = true)
 	public Map<String, Object> selectWorkcationTasks(Integer workcationNo) {
 
-		// BUG: 존재하지 않는 workcationNo 요청이 RuntimeException으로 던져져
-		// GlobalExceptionHandler(IllegalArgumentException만 처리)를 못 타고
-		// 500으로 응답되던 문제 - IllegalArgumentException으로 변경해 404로 매핑되게 한다.
-		WorkcationInfo workcation = workcationDao.findById(workcationNo)
-				.orElseThrow(() -> new IllegalArgumentException("워케이션 정보를 찾을 수 없습니다."));
+	    WorkcationInfo workcation = workcationDao.findById(workcationNo)
+	            .orElseThrow(() -> new IllegalArgumentException("워케이션 정보를 찾을 수 없습니다."));
 
-		Map<String, Object> result = new HashMap<>();
-		List<Map<String, Object>> taskList = new ArrayList<>();
+	    Map<String, Object> result = new HashMap<>();
 
-		List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
+	    result.put("workcationNo", workcation.getWorkcationNo());
+	    result.put("workcationTitle", workcation.getWorkcationTitle());
 
-		int progressSum = 0;
+	    if (workcation.getEmployee() != null) {
+	        result.put("writer", workcation.getEmployee().getEmpName());
+	    } else {
+	        result.put("writer", "-");
+	    }
 
-		for (Work work : workList) {
+	    List<Map<String, Object>> taskList = new ArrayList<>();
 
-			List<Task> tasks = taskDao.findByWorkWorkNo(work.getWorkNo());
+	    List<Work> workList = workDao.findByWorkcationInfoWorkcationNo(workcationNo);
 
-			for (Task task : tasks) {
+	    for (Work work : workList) {
 
-				Map<String, Object> taskMap = new HashMap<>();
+	        List<Task> tasks = taskDao.findByWorkWorkNo(work.getWorkNo());
 
-				int progress = task.getProgress() != null ? task.getProgress() : 0;
+	        for (Task task : tasks) {
 
-				taskMap.put("taskNo", task.getTaskNo());
-				taskMap.put("taskTitle", task.getTaskTitle());
-				taskMap.put("taskContent", task.getTaskContent());
-				taskMap.put("progress", progress);
-				taskMap.put("status", task.getStatus());
-				taskMap.put("tasktimeAt", task.getTasktimeAt());
-				taskMap.put("taskendAt", task.getTaskendAt());
+	            Map<String, Object> taskMap = new HashMap<>();
 
-				List<WorkFile> files = workFileDao.findByTaskTaskNo(task.getTaskNo());
+	            taskMap.put("taskNo", task.getTaskNo());
+	            taskMap.put("taskTitle", task.getTaskTitle());
+	            taskMap.put("taskContent", task.getTaskContent());
+	            taskMap.put("progress", task.getProgress() != null ? task.getProgress() : 0);
+	            taskMap.put("status", task.getStatus());
+	            taskMap.put("tasktimeAt", task.getTasktimeAt());
+	            taskMap.put("taskendAt", task.getTaskendAt());
 
-				List<Map<String, Object>> fileList = new ArrayList<>();
+	            List<Map<String, Object>> historyList = new ArrayList<>();
 
-				for (WorkFile file : files) {
+	            List<TaskHistory> histories =
+	                    taskHistoryDao.findByTaskTaskNoOrderByCreatedAtDesc(task.getTaskNo());
 
-					Map<String, Object> fileMap = new HashMap<>();
-					
-					fileMap.put("taskFileNo", file.getTaskFileNo());
-					fileMap.put("originName", file.getOriginName());
-					fileMap.put("changeName", file.getChangeName());
-					fileMap.put("filePath", file.getFilePath());
-					fileMap.put("fileSize", file.getFileSize());
-					fileList.add(fileMap);
-				}
+	            for (TaskHistory history : histories) {
 
-				taskMap.put("fileList", fileList);
+	                Map<String, Object> historyMap = new HashMap<>();
 
-				// 업무이력
-				List<TaskHistory> histories = taskHistoryDao.findByTaskTaskNoOrderByCreatedAtDesc(task.getTaskNo());
-				List<Map<String, Object>> historyList = new ArrayList<>();
+	                historyMap.put("historyNo", history.getHistoryNo());
+	                historyMap.put("title", history.getHistoryTitle());
+	                historyMap.put("content", history.getHistoryContent());
+	                historyMap.put("progress", history.getProgress());
+	                historyMap.put("createdAt", history.getCreatedAt());
 
-				for (TaskHistory history : histories) {
-					Map<String, Object> historyMap = new HashMap<>();
+	                historyList.add(historyMap);
+	            }
 
-					historyMap.put("historyNo", history.getHistoryNo());
-					historyMap.put("content", history.getHistoryContent());
-					historyMap.put("createdAt", history.getCreatedAt());
+	            taskMap.put("historyList", historyList);
 
-					historyList.add(historyMap);
-				}
+	            List<Map<String, Object>> fileList = new ArrayList<>();
 
-				taskMap.put("historyList", historyList);
-				taskList.add(taskMap);
-				progressSum += progress;
-			}
-		}
+	            List<WorkFile> files = workFileDao.findByTaskTaskNo(task.getTaskNo());
 
-		int overallProgress = taskList.size() > 0 ? Math.round((float) progressSum / taskList.size()) : 0;
+	            for (WorkFile file : files) {
 
-		result.put("workcationNo", workcation.getWorkcationNo());
-		result.put("workcationTitle", workcation.getWorkcationTitle());
+	                Map<String, Object> fileMap = new HashMap<>();
 
-		result.put("writer", workcation.getEmployee() != null ? workcation.getEmployee().getEmpName() : "-");
+	                fileMap.put("taskFileNo", file.getTaskFileNo());
+	                fileMap.put("originName", file.getOriginName());
+	                fileMap.put("changeName", file.getChangeName());
+	                fileMap.put("filePath", file.getFilePath());
+	                fileMap.put("fileSize", file.getFileSize());
 
-		result.put("taskCount", taskList.size());
-		result.put("overallProgress", overallProgress);
-		result.put("taskList", taskList);
+	                fileList.add(fileMap);
+	            }
 
-		return result;
+	            taskMap.put("fileList", fileList);
+
+	            taskList.add(taskMap);
+	        }
+	    }
+
+	    int taskCount = taskList.size();
+
+	    int totalProgress = 0;
+
+	    for (Map<String, Object> task : taskList) {
+	        totalProgress += (Integer) task.get("progress");
+	    }
+
+	    int overallProgress =
+	            taskCount > 0 ? Math.round((float) totalProgress / taskCount) : 0;
+
+	    result.put("taskCount", taskCount);
+	    result.put("overallProgress", overallProgress);
+	    result.put("taskList", taskList);
+
+	    return result;
 	}
-
 	@Transactional
 	@Override
 	public void updateTaskStatus(Integer taskNo, String status, String content) {
 
-		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무를 찾을 수 없습니다."));
+		Task task = taskDao.findById(taskNo).orElseThrow(() -> new IllegalArgumentException("업무를 찾을 수 없습니다."));
 
 		if (!"Y".equals(status) && !"R".equals(status) && !"N".equals(status)) {
 

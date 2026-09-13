@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 
 import "../style/ApprovalQueueList.css";
 import { ApprovalApi } from "../api/ApprovalApi";
+import { getStatusText, getStatusTone } from "../../../utils/StatusBadge";
 
 function ApprovalQueueList() {
 
@@ -162,11 +163,10 @@ function ApprovalQueueList() {
     };
 
 
-    // 상태 코드 -> 한글 라벨 + 배지 톤(표시 전용, 데이터 값 자체는 변경하지 않음)
+    // BUG-006: 공통 유틸(StatusBadge.js)로 라벨/톤 변환을 통일한다.
     const renderStatusBadge = (state) => {
-        const labelMap = { W: "대기", H: "보류", R: "검토", A: "승인", J: "반려", C: "취소" };
-        const toneMap = { W: "bg-warning", H: "bg-secondary", R: "bg-primary", A: "bg-success", J: "bg-danger", C: "bg-secondary" };
-        return <span className={`badge ${toneMap[state] || "bg-secondary"}`}>{labelMap[state] || state || "-"}</span>;
+        if (!state) return <span className="badge bg-secondary">-</span>;
+        return <span className={`badge ${getStatusTone(state)}`}>{getStatusText(state)}</span>;
     };
 
     return (

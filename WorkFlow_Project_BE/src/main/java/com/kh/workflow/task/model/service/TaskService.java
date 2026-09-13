@@ -16,4 +16,6 @@ public interface TaskService {
 	Map<String, Object> selectWorkcationTasks(Integer workcationNo);
 
 	void updateTaskStatus(Integer taskNo, String status, String content);
+	
+	
 }

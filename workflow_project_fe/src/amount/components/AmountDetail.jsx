@@ -1,272 +1,198 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { amountApi } from "../../amount/api/amountApi";
 
+import { amountApi } from "../../amount/api/amountApi";
 import "../../amount/styles/AmountStyle.css";
+
+
+/* =========================================================
+   상태
+   ========================================================= */
+
+const statusMap = {
+    A: "승인",
+    C: "취소",
+    H: "보류",
+    J: "반려",
+    R: "검토중"
+};
+
+
+/* =========================================================
+   비용 항목
+   ========================================================= */
+
+const itemTypeMap = {
+    S: "숙박",
+    T: "교통",
+    E: "체험",
+    F: "식비",
+    V: "차량",
+    O: "기타"
+};
+
+
+/* =========================================================
+   금액 포맷
+   ========================================================= */
+
+const formatMoney = (value) => {
+    const number = Number(value);
+
+    if (Number.isNaN(number)) {
+        return "0원";
+    }
+
+    return `${number.toLocaleString("ko-KR")}원`;
+};
+
+
+/* =========================================================
+   날짜 포맷
+   ========================================================= */
+
+const formatDate = (value) => {
+    if (!value) {
+        return "-";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value).substring(0, 10);
+    }
+
+    return date.toLocaleDateString("ko-KR");
+};
+
+
+/* =========================================================
+   상태 표시
+   ========================================================= */
+
+const getStatusClass = (status) => {
+    switch (status) {
+        case "A":
+            return "status-approved";
+
+        case "H":
+            return "status-hold";
+
+        case "J":
+            return "status-rejected";
+
+        case "C":
+            return "status-cancelled";
+
+        case "R":
+        default:
+            return "status-review";
+    }
+};
+
+
+/* =========================================================
+   Component
+   ========================================================= */
 
 export default function AmountDetail() {
 
-    const { amountNo } = useParams();
     const navigate = useNavigate();
+    const { amountNo } = useParams();
+
+    // BUG-002: "목록" 버튼이 role과 무관하게 항상 ADMIN 전용 라우트(/admin/cost/list)로
+    // 고정돼 있어, STAFF/MANAGER가 자신의 정산 상세(/cost/detail/:amountNo)에서 클릭하면
+    // 접근 권한이 없는 관리자 화면으로 이동해 에러 페이지로 튕기는 문제가 있었다.
+    // 로그인 사용자의 role에 맞는 목록 경로로 이동하도록 수정.
+    const costListPath = (() => {
+        try {
+            const savedUser = JSON.parse(localStorage.getItem("user"));
+            return savedUser?.authCode === "ADMIN" ? "/admin/cost/list" : "/cost/list";
+        } catch {
+            return "/cost/list";
+        }
+    })();
 
     const [detail, setDetail] = useState(null);
-    const [loading, setLoading] = useState(true);
 
-    // =========================================================
-    // 회사 지원금
-    //
-    // amount_item.amount
-    //      → 신청금액
-    //
-    // amount_item.item_approved_amount
-    //      → 회사 지원금
-    // =========================================================
+    const [loading, setLoading] = useState(true);
 
     const [companySupportRows, setCompanySupportRows] = useState([]);
 
-    // =========================================================
     // 지자체 지원금
-    // =========================================================
+    // DB amount_list 조회 결과
+    const [supportList, setSupportList] = useState([]);
 
-    const [localSupport, setLocalSupport] = useState({
-        sponsorName: "",
-        amount: "",
-        paymentDate: "",
-        status: "UNPAID",
-        remark: "",
-        itemNo: ""
-    });
-
-    // =========================================================
     // 관리자 의견
-    // =========================================================
-
     const [comment, setComment] = useState("");
 
 
-    // =========================================================
-    // 상태명
-    // =========================================================
-
-    const statusMap = {
-        A: "승인",
-        C: "취소",
-        H: "보류",
-        J: "반려",
-        R: "검토중"
-    };
-
-
-    // =========================================================
-    // 비용 항목
-    // =========================================================
-
-    const itemTypeMap = {
-        S: "숙박",
-        T: "교통",
-        E: "체험",
-        F: "식비",
-        V: "차량",
-        O: "기타"
-    };
-
-
-    // =========================================================
-    // 금액 포맷
-    // =========================================================
-
-    const formatMoney = (value) => {
-
-        if (
-            value === null ||
-            value === undefined ||
-            value === ""
-        ) {
-            return "-";
-        }
-
-        const number = Number(value);
-
-        if (!Number.isFinite(number)) {
-            return "-";
-        }
-
-        return `${number.toLocaleString("ko-KR")}원`;
-    };
-
-
-    // =========================================================
-    // 날짜 포맷
-    // =========================================================
-
-    const formatDate = (value) => {
-
-        if (!value) {
-            return "-";
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-            return "-";
-        }
-
-        return date.toLocaleDateString("ko-KR");
-    };
-
-
-    // =========================================================
-    // 상세 조회
-    // =========================================================
+    /* =====================================================
+       상세 조회
+       ===================================================== */
 
     useEffect(() => {
 
-        const loadDetail = async () => {
+        const fetchDetail = async () => {
 
             try {
 
                 setLoading(true);
 
-                const response =
-                    await amountApi.getAmountById(
-                        Number(amountNo)
-                    );
-
                 const data =
-                    response?.data ?? response;
+                    await amountApi.getAmountById(Number(amountNo));
 
-                console.log(
-                    "📌 비용 상세:",
-                    data
-                );
+                console.log("===== 비용 정산 상세 =====");
+                console.log("상세 데이터:", data);
 
                 setDetail(data);
 
 
-                // =================================================
-                // 비용 항목
-                // =================================================
+                /* ---------------------------------------------
+                   회사 지원금
+                   amount_item.item_approved_amount
+                   --------------------------------------------- */
 
                 const items =
                     Array.isArray(data?.itemList)
                         ? data.itemList
                         : [];
 
+                const companyRows = items.map((item) => ({
+                    itemNo: item.itemNo,
+                    amount: Number(item.itemApprovedAmount) || 0
+                }));
 
-                // =================================================
-                // 회사 지원금 초기화
-                //
-                // item.itemAmount
-                //      → 신청금액
-                //
-                // item.itemApprovedAmount
-                //      → 회사 지원금
-                // =================================================
-
-                const companyRows =
-                    items.map((item, index) => {
-
-                        return {
-
-                            rowId:
-                                `existing-${item.itemNo ?? index}`,
-
-                            itemNo:
-                                item.itemNo != null
-                                    ? String(item.itemNo)
-                                    : "",
-
-                            amount:
-                                item.itemApprovedAmount != null
-                                    ? String(
-                                        item.itemApprovedAmount
-                                    )
-                                    : "0"
-                        };
-
-                    });
+                setCompanySupportRows(companyRows);
 
 
-                console.log(
-                    "📌 회사 지원금 목록:",
-                    companyRows
-                );
+                /* ---------------------------------------------
+                   지자체 지원금
+                   amount_list
+                   --------------------------------------------- */
+
+                const supports =
+                    Array.isArray(data?.supportList)
+                        ? data.supportList
+                        : [];
+
+                console.log("지자체 지원금:", supports);
+
+                setSupportList(supports);
 
 
-                setCompanySupportRows(
-                    companyRows
-                );
+                /* ---------------------------------------------
+                   기존 의견
+                   --------------------------------------------- */
 
-
-                // =================================================
-                // 지자체 지원금
-                //
-                // amount_list는 현재 amount_no PK
-                // 따라서 하나의 신청당 1건
-                // =================================================
-
-                if (data?.sponsor) {
-
-                    setLocalSupport({
-
-                        sponsorName:
-                            data.sponsor.sponsorName ?? "",
-
-                        amount:
-                            data.sponsor.amount != null
-                                ? String(
-                                    data.sponsor.amount
-                                )
-                                : "",
-
-                        paymentDate:
-                            data.sponsor.paymentDate
-                                ? String(
-                                    data.sponsor.paymentDate
-                                ).substring(0, 10)
-                                : "",
-
-                        status:
-                            data.sponsor.status ??
-                            "UNPAID",
-
-                        remark:
-                            data.sponsor.remark ?? "",
-
-                        itemNo:
-                            data.sponsor.itemNo != null
-                                ? String(
-                                    data.sponsor.itemNo
-                                )
-                                : ""
-
-                    });
-
-                } else {
-
-                    setLocalSupport({
-
-                        sponsorName: "",
-                        amount: "",
-                        paymentDate: "",
-                        status: "UNPAID",
-                        remark: "",
-
-                        itemNo:
-                            items.length > 0
-                                ? String(
-                                    items[0].itemNo
-                                )
-                                : ""
-
-                    });
-
+                if (data?.amountComment) {
+                    setComment(data.amountComment);
                 }
 
             } catch (error) {
 
                 console.error(
-                    "❌ 비용 상세 조회 실패:",
+                    "❌ 비용 정산 상세 조회 실패:",
                     error
                 );
 
@@ -281,70 +207,117 @@ export default function AmountDetail() {
                 );
 
                 alert(
-                    "비용 상세 정보를 불러오지 못했습니다."
+                    error.response?.data?.message ||
+                    "비용 정산 상세 정보를 불러오지 못했습니다."
                 );
+
+                navigate(costListPath);
 
             } finally {
 
                 setLoading(false);
 
             }
-
         };
 
 
-        loadDetail();
+        if (amountNo) {
+            fetchDetail();
+        }
 
-    }, [amountNo]);
+    }, [amountNo, navigate]);
 
 
-    // =========================================================
-    // 회사 지원금 입력
-    // =========================================================
+    /* =====================================================
+       신청 금액
+       ===================================================== */
+
+    const requestedAmount = useMemo(() => {
+
+        if (!detail?.itemList) {
+            return 0;
+        }
+
+        return detail.itemList.reduce(
+            (sum, item) =>
+                sum + (Number(item.itemAmount) || 0),
+            0
+        );
+
+    }, [detail]);
+
+
+    /* =====================================================
+       회사 지원금 합계
+       ===================================================== */
+
+    const totalCompanySupport = useMemo(() => {
+
+        return companySupportRows.reduce(
+            (sum, row) =>
+                sum + (Number(row.amount) || 0),
+            0
+        );
+
+    }, [companySupportRows]);
+
+
+    /* =====================================================
+       지자체 지원금 합계
+       ※ 승인 지원금 기준
+       ===================================================== */
+
+    const totalLocalSupport = useMemo(() => {
+
+        return supportList.reduce(
+            (sum, support) =>
+                sum +
+                (Number(support.approvedAmount) || 0),
+            0
+        );
+
+    }, [supportList]);
+
+
+    /* =====================================================
+       총 지원금
+       ===================================================== */
+
+    const totalSupport =
+        totalCompanySupport +
+        totalLocalSupport;
+
+
+    /* =====================================================
+       수정/결재 가능 여부
+       ===================================================== */
+
+    const canEditable =
+        detail?.status === "R" ||
+        detail?.status === "H";
+
+
+    /* =====================================================
+       회사 지원금 변경
+       ===================================================== */
 
     const handleCompanySupportChange = (
-        rowId,
+        itemNo,
         value
     ) => {
 
-        if (value === "") {
+        const numericValue =
+            value.replace(/[^0-9]/g, "");
 
-            setCompanySupportRows(prev =>
-                prev.map(row =>
-                    row.rowId === rowId
-                        ? {
-                            ...row,
-                            amount: ""
-                        }
-                        : row
-                )
-            );
-
-            return;
-        }
-
-
-        const number =
-            Number(value);
-
-
-        if (!Number.isFinite(number)) {
-            return;
-        }
-
-
-        // 음수 방지
-        if (number < 0) {
-            value = "0";
-        }
-
-
-        setCompanySupportRows(prev =>
-            prev.map(row =>
-                row.rowId === rowId
+        setCompanySupportRows((prev) =>
+            prev.map((row) =>
+                String(row.itemNo) === String(itemNo)
                     ? {
                         ...row,
-                        amount: value
+                        amount:
+                            numericValue === ""
+                                ? 0
+                                : Number(numericValue)
                     }
                     : row
             )
@@ -353,565 +326,323 @@ export default function AmountDetail() {
     };
 
 
-    // =========================================================
-    // 회사 지원금 합계
-    // =========================================================
+    /* =====================================================
+       회사 지원금 적용
+       ===================================================== */
 
-    const totalCompanySupport =
-        companySupportRows.reduce(
-            (sum, row) => {
+    const handleCompanySupportApply = async (item) => {
 
-                const amount =
-                    Number(row.amount) || 0;
+    if (!canEditable) {
+        return;
+    }
 
-                return sum + amount;
-
-            },
-            0
+    const row =
+        companySupportRows.find(
+            (r) =>
+                String(r.itemNo) ===
+                String(item.itemNo)
         );
 
+    const companyAmount =
+        Number(row?.amount) || 0;
 
-    // =========================================================
-    // 지자체 지원금
-    // =========================================================
-
-    const totalLocalSupport =
-        Number(localSupport.amount) || 0;
+    const requestAmount =
+        Number(item.itemAmount) || 0;
 
 
-    // =========================================================
-    // 신청금액 합계
-    //
-    // amount_item.amount 합계
-    //
-    // 회사 지원금과 별개의 값
-    // =========================================================
+    if (companyAmount < 0) {
 
-    const requestedAmount =
-        Array.isArray(detail?.itemList)
-            ? detail.itemList.reduce(
-                (sum, item) => {
+        alert(
+            "회사 지원금은 0원 이상이어야 합니다."
+        );
 
-                    return sum +
-                        (
-                            Number(item.itemAmount) || 0
-                        );
-
-                },
-                0
-            )
-            : 0;
+        return;
+    }
 
 
-    // =========================================================
-    // 전체 지원금
-    // =========================================================
+    if (companyAmount > requestAmount) {
 
-    const totalSupport =
-        totalCompanySupport +
-        totalLocalSupport;
+        alert(
+            `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금은 신청금액을 초과할 수 없습니다.`
+        );
 
-
-    // =========================================================
-    // 수정 가능 여부
-    //
-    // R : 검토중
-    // H : 보류
-    // =========================================================
-
-    const canEditable =
-        detail?.status === "R" ||
-        detail?.status === "H";
+        return;
+    }
 
 
-    // =========================================================
-    // 회사 지원금 적용
-    //
-    // 여기서는 DB 저장이 아니라
-    // 현재 입력값을 검증하여 화면 상태에 반영
-    //
-    // 실제 DB 저장은 최종 승인 시 처리
-    // =========================================================
+    try {
 
-    const handleCompanySupportApply = () => {
+        await amountApi.updateItemSupport(
+            item.itemNo,
+            detail.amountNo,
+            companyAmount
+        );
 
-        if (!detail) {
-            return;
-        }
+        alert(
+            `${itemTypeMap[item.itemType] || "비용 항목"} 회사 지원금이 적용되었습니다.`
+        );
 
+    } catch (error) {
+
+        console.error(
+            "회사 지원금 저장 실패:",
+            error
+        );
+
+        alert(
+            error.response?.data?.message ||
+            "회사 지원금 저장 중 오류가 발생했습니다."
+        );
+
+    }
+
+};
+
+
+    /* =====================================================
+       전체 회사 지원금 검증
+       ===================================================== */
+
+    const validateCompanySupport = () => {
 
         const items =
-            Array.isArray(detail.itemList)
+            Array.isArray(detail?.itemList)
                 ? detail.itemList
                 : [];
 
-
-        // =====================================================
-        // 항목별 검증
-        // =====================================================
 
         for (const item of items) {
 
             const row =
                 companySupportRows.find(
-                    r =>
+                    (r) =>
                         String(r.itemNo) ===
                         String(item.itemNo)
                 );
 
-
             const requestAmount =
                 Number(item.itemAmount) || 0;
-
 
             const companyAmount =
                 Number(row?.amount) || 0;
 
 
-            // 음수
             if (companyAmount < 0) {
 
                 alert(
                     "회사 지원금은 0원 이상이어야 합니다."
                 );
 
-                return;
-
+                return false;
             }
 
 
-            // 신청금액 초과
-            if (
-                companyAmount >
-                requestAmount
-            ) {
+            if (companyAmount > requestAmount) {
 
                 alert(
                     `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금은 신청금액을 초과할 수 없습니다.`
                 );
 
-                return;
-
+                return false;
             }
 
         }
 
-
-        // =====================================================
-        // 회사 + 지자체 전체 금액
-        // =====================================================
-
-        const total =
-            totalCompanySupport +
-            totalLocalSupport;
-
-
-        if (
-            total >
-            requestedAmount
-        ) {
-
-            alert(
-                `총 지원금이 신청금액을 초과할 수 없습니다.\n\n` +
-                `신청금액: ${formatMoney(requestedAmount)}\n` +
-                `회사 지원금: ${formatMoney(totalCompanySupport)}\n` +
-                `지자체 지원금: ${formatMoney(totalLocalSupport)}`
-            );
-
-            return;
-        }
-
-
-        alert(
-            `회사 지원금 ${formatMoney(totalCompanySupport)}이 적용되었습니다.`
-        );
-
+        return true;
     };
 
 
-    // =========================================================
-    // 지자체 지원금 적용
-    // =========================================================
+    /* =====================================================
+       승인 / 보류 / 반려
+       ===================================================== */
 
-    const handleLocalSupportApply = () => {
-
-        const amount =
-            Number(localSupport.amount) || 0;
-
-
-        // =====================================================
-        // 금액 검증
-        // =====================================================
-
-        if (amount < 0) {
-
-            alert(
-                "지자체 지원금은 0원 이상 입력해주세요."
-            );
-
-            return;
-
-        }
-
-
-        // =====================================================
-        // 지자체 지원금이 있는 경우
-        // 지원기관 필수
-        // =====================================================
-
-        if (
-            amount > 0 &&
-            !localSupport.sponsorName.trim()
-        ) {
-
-            alert(
-                "지자체 지원금이 있는 경우 지원기관을 입력해주세요."
-            );
-
-            return;
-
-        }
-
-
-        // =====================================================
-        // 지급일
-        // =====================================================
-
-        if (
-            amount > 0 &&
-            !localSupport.paymentDate
-        ) {
-
-            alert(
-                "지자체 지원금 지급일을 입력해주세요."
-            );
-
-            return;
-
-        }
-
-
-        // =====================================================
-        // 전체 금액 검증
-        // =====================================================
-
-        const total =
-            totalCompanySupport +
-            amount;
-
-
-        if (
-            total >
-            requestedAmount
-        ) {
-
-            alert(
-                `회사 지원금과 지자체 지원금의 합계가 신청금액을 초과할 수 없습니다.\n\n` +
-                `신청금액: ${formatMoney(requestedAmount)}\n` +
-                `회사 지원금: ${formatMoney(totalCompanySupport)}\n` +
-                `지자체 지원금: ${formatMoney(amount)}`
-            );
-
-            return;
-
-        }
-
-
-        alert(
-            `지자체 지원금 ${formatMoney(amount)}이 적용되었습니다.`
-        );
-
-    };
-
-
-    // =========================================================
-    // 지자체 지원금 삭제
-    // =========================================================
-
-    const handleRemoveLocalSupport = () => {
-
-        if (
-            !window.confirm(
-                "지자체 지원금 정보를 삭제하시겠습니까?"
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        setLocalSupport({
-
-            sponsorName: "",
-
-            amount: "",
-
-            paymentDate: "",
-
-            status: "UNPAID",
-
-            remark: "",
-
-            itemNo:
-                detail?.itemList?.length > 0
-                    ? String(
-                        detail.itemList[0].itemNo
-                    )
-                    : ""
-
-        });
-
-    };
-
-
-    // =========================================================
-    // 최종 승인
-    // =========================================================
-
-    const handleApprovalSubmit = async () => {
+    const handleApprovalSubmit = async (
+        approvalStatus
+    ) => {
 
         if (!detail) {
             return;
         }
 
 
-        const items =
-            Array.isArray(detail.itemList)
-                ? detail.itemList
-                : [];
+        /* ---------------------------------------------
+           현재 상태 확인
+           --------------------------------------------- */
+
+        if (!canEditable) {
+
+            alert(
+                "현재 결재 처리할 수 없는 상태입니다."
+            );
+
+            return;
+        }
 
 
-        // =====================================================
-        // 항목별 회사 지원금 검증
-        // =====================================================
+        /* ---------------------------------------------
+           보류 / 반려 사유 필수
+           --------------------------------------------- */
 
-        for (const item of items) {
+        if (
+            approvalStatus === "H" ||
+            approvalStatus === "J"
+        ) {
 
-            const row =
-                companySupportRows.find(
-                    r =>
-                        String(r.itemNo) ===
-                        String(item.itemNo)
-                );
-
-
-            const requestAmount =
-                Number(item.itemAmount) || 0;
-
-
-            const companyAmount =
-                Number(row?.amount) || 0;
-
-
-            // 음수
-            if (companyAmount < 0) {
+            if (!comment.trim()) {
 
                 alert(
-                    "회사 지원금은 0원 이상이어야 합니다."
+                    approvalStatus === "H"
+                        ? "보류 사유를 입력해주세요."
+                        : "반려 사유를 입력해주세요."
                 );
 
                 return;
+            }
 
+        }
+
+
+        /* ---------------------------------------------
+           승인 시 회사 지원금 검증
+           --------------------------------------------- */
+
+        if (approvalStatus === "A") {
+
+            const valid =
+                validateCompanySupport();
+
+            if (!valid) {
+                return;
             }
 
 
-            // 신청금액 초과
+            /* -----------------------------------------
+               총 지원금 검증
+               ----------------------------------------- */
+
             if (
-                companyAmount >
-                requestAmount
+                totalSupport >
+                requestedAmount
             ) {
 
                 alert(
-                    `${itemTypeMap[item.itemType] || "비용 항목"}의 회사 지원금이 신청금액을 초과했습니다.`
+                    `총 지원금이 신청금액을 초과할 수 없습니다.\n\n` +
+                    `신청금액: ${formatMoney(requestedAmount)}\n` +
+                    `회사 지원금: ${formatMoney(totalCompanySupport)}\n` +
+                    `지자체 지원금: ${formatMoney(totalLocalSupport)}\n` +
+                    `총 지원금: ${formatMoney(totalSupport)}`
                 );
 
                 return;
-
             }
 
         }
 
 
-        // =====================================================
-        // 회사 지원금
-        // =====================================================
+        /* ---------------------------------------------
+           확인 메시지
+           --------------------------------------------- */
 
-        const parsedCompanyAmount =
-            totalCompanySupport;
-
-
-        // =====================================================
-        // 지자체 지원금
-        // =====================================================
-
-        const parsedLocalAmount =
-            Number(localSupport.amount) || 0;
+        let confirmMessage = "";
 
 
-        // =====================================================
-        // 지자체 지원기관
-        // =====================================================
+        if (approvalStatus === "A") {
 
-        if (
-            parsedLocalAmount > 0 &&
-            !localSupport.sponsorName.trim()
-        ) {
-
-            alert(
-                "지자체 지원금이 있는 경우 지원기관을 입력해주세요."
-            );
-
-            return;
-
-        }
-
-
-        // =====================================================
-        // 지급일
-        // =====================================================
-
-        if (
-            parsedLocalAmount > 0 &&
-            !localSupport.paymentDate
-        ) {
-
-            alert(
-                "지자체 지원금 지급일을 입력해주세요."
-            );
-
-            return;
-
-        }
-
-
-        // =====================================================
-        // 전체 지원금 검증
-        // =====================================================
-
-        if (
-            parsedCompanyAmount +
-            parsedLocalAmount >
-            requestedAmount
-        ) {
-
-            alert(
-                `총 지원금이 신청금액을 초과할 수 없습니다.\n\n` +
+            confirmMessage =
+                `승인하시겠습니까?\n\n` +
                 `신청금액: ${formatMoney(requestedAmount)}\n` +
-                `회사 지원금: ${formatMoney(parsedCompanyAmount)}\n` +
-                `지자체 지원금: ${formatMoney(parsedLocalAmount)}`
-            );
+                `회사 지원금: ${formatMoney(totalCompanySupport)}\n` +
+                `지자체 지원금: ${formatMoney(totalLocalSupport)}\n` +
+                `총 지원금: ${formatMoney(totalSupport)}`;
 
-            return;
+        } else if (approvalStatus === "H") {
 
-        }
+            confirmMessage =
+                "해당 비용 신청을 보류 처리하시겠습니까?\n\n" +
+                `보류 사유:\n${comment.trim()}`;
 
+        } else if (approvalStatus === "J") {
 
-        // =====================================================
-        // 승인 확인
-        // =====================================================
-
-        const confirmMessage =
-            `승인하시겠습니까?\n\n` +
-
-            `신청금액: ${formatMoney(requestedAmount)}\n` +
-
-            `회사 지원금: ${formatMoney(parsedCompanyAmount)}\n` +
-
-            `지자체 지원금: ${formatMoney(parsedLocalAmount)}\n\n` +
-
-            `회사 지원금은 항목별로 저장됩니다.`;
-
-
-        if (
-            !window.confirm(
-                confirmMessage
-            )
-        ) {
-
-            return;
+            confirmMessage =
+                "해당 비용 신청을 반려 처리하시겠습니까?\n\n" +
+                `반려 사유:\n${comment.trim()}`;
 
         }
 
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+
+        /* ---------------------------------------------
+           API 호출
+           --------------------------------------------- */
 
         try {
 
             console.log(
-                "================================="
+                "===== 비용 결재 처리 ====="
             );
 
             console.log(
-                "📌 비용 승인 처리"
-            );
-
-            console.log(
-                "📌 amountNo:",
+                "amountNo:",
                 detail.amountNo
             );
 
             console.log(
-                "📌 신청금액:",
-                requestedAmount
+                "status:",
+                approvalStatus
             );
 
             console.log(
-                "📌 회사 지원금:",
-                parsedCompanyAmount
+                "companySupport:",
+                totalCompanySupport
             );
 
             console.log(
-                "📌 지자체 지원금:",
-                parsedLocalAmount
+                "localSupport:",
+                totalLocalSupport
             );
 
-            console.log(
-                "📌 항목별 회사 지원금:",
-                companySupportRows
-            );
-
-            console.log(
-                "📌 지자체 지원금 정보:",
-                localSupport
-            );
-
-            console.log(
-                "================================="
-            );
-
-
-            // =================================================
-            // 승인 API
-            //
-            // 중요
-            //
-            // item.itemAmount
-            //      → 신청금액
-            //      → 수정하지 않음
-            //
-            // item.itemApprovedAmount
-            //      → 회사 지원금
-            //      → 항목별 저장
-            //
-            // sponsor.amount
-            //      → 지자체 지원금
-            // =================================================
 
             await amountApi.updateApproval(
-                detail.amountNo,
-                "A",
-                parsedCompanyAmount,
-                comment,
-                "",
-                parsedLocalAmount,
-                localSupport.sponsorName || "",
-                localSupport.status || "UNPAID"
+            detail.amountNo,
+            approvalStatus,
+            approvalStatus === "A" ? totalCompanySupport : 0,
+            comment.trim(),
+            approvalStatus === "A" ? companySupportRows : []   // 항목별 지원금 추가
             );
 
 
-            alert(
-                "승인 및 지원금 반영이 완료되었습니다."
-            );
+            /* -----------------------------------------
+               완료 메시지
+               ----------------------------------------- */
 
+            if (approvalStatus === "A") {
+
+                alert(
+                    "승인이 완료되었습니다."
+                );
+
+            } else if (approvalStatus === "H") {
+
+                alert(
+                    "보류 처리가 완료되었습니다."
+                );
+
+            } else if (approvalStatus === "J") {
+
+                alert(
+                    "반려 처리가 완료되었습니다."
+                );
+
+            }
+
+
+            /* -----------------------------------------
+               목록 이동
+               ----------------------------------------- */
 
             navigate(
                 "/admin/cost/list"
@@ -921,7 +652,7 @@ export default function AmountDetail() {
         } catch (error) {
 
             console.error(
-                "❌ 승인 처리 실패:",
+                "❌ 결재 처리 실패:",
                 error
             );
 
@@ -937,8 +668,8 @@ export default function AmountDetail() {
 
 
             alert(
-                error?.response?.data?.message ||
-                "승인 처리 중 오류가 발생했습니다."
+                error.response?.data?.message ||
+                "결재 처리 중 오류가 발생했습니다."
             );
 
         }
@@ -946,135 +677,245 @@ export default function AmountDetail() {
     };
 
 
-    // =========================================================
-    // 로딩
-    // =========================================================
+    /* =====================================================
+       첨부파일 보기
+       ===================================================== */
+
+    const handleFileView = (file) => {
+
+        const filePath =
+            file?.filePath ||
+            file?.file_path;
+
+        if (!filePath) {
+
+            alert(
+                "파일 경로를 찾을 수 없습니다."
+            );
+
+            return;
+        }
+
+
+        const baseUrl =
+            "http://localhost:8006/workflow";
+
+
+        const fileUrl =
+            filePath.startsWith("http")
+                ? filePath
+                : `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
+
+
+        window.open(
+            fileUrl,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+    };
+
+
+    /* =====================================================
+       Loading
+       ===================================================== */
 
     if (loading) {
 
         return (
+            <div className="amount-container">
 
-            <div className="amount-detail-loading">
-
-                로딩 중...
+                <div className="loading-message">
+                    비용 정산 정보를 불러오는 중입니다...
+                </div>
 
             </div>
-
         );
 
     }
 
 
-    // =========================================================
-    // 상세 없음
-    // =========================================================
+    /* =====================================================
+       데이터 없음
+       ===================================================== */
 
     if (!detail) {
 
         return (
+            <div className="amount-container">
 
-            <div className="amount-detail-empty">
+                <div className="empty-message">
+                    비용 정산 정보를 찾을 수 없습니다.
+                </div>
 
-                비용 신청 정보를 찾을 수 없습니다.
+                <div className="amount-detail-buttons">
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            navigate(costListPath)
+                        }
+                    >
+                        목록
+                    </button>
+
+                </div>
 
             </div>
-
         );
 
     }
 
 
-    // =========================================================
-    // 화면
-    // =========================================================
+    /* =====================================================
+       Render
+       ===================================================== */
 
     return (
 
-        <main className="amount-detail-container">
-
+        <div className="amount-container">
 
             {/* =================================================
                 제목
-            ================================================== */}
+               ================================================= */}
 
-            <section className="wf-page-header">
+            <div className="amount-header">
 
-                <div>
-                    <h1 className="wf-page-title">비용 신청 상세</h1>
+                <h2>
+                    비용 정산 상세
+                </h2>
+
+                <div className="amount-number">
+                    신청번호 #{detail.amountNo}
                 </div>
 
-                <span
-                    className={`status status-${detail.status}`}
-                >
-
-                    {
-                        statusMap[detail.status] ||
-                        detail.status
-                    }
-
-                </span>
-
-            </section>
+            </div>
 
 
             {/* =================================================
                 기본 정보
-            ================================================== */}
+               ================================================= */}
 
-            <div className="amount-info-box">
+            <div className="amount-section">
 
-                <div className="info-row">
-
-                    <div className="info-item">
-
-                        <span className="info-label">
-                            신청번호
-                        </span>
-
-                        <span className="info-value">
-                            {detail.amountNo}
-                        </span>
-
-                    </div>
+                <h3>
+                    신청 정보
+                </h3>
 
 
-                    <div className="info-item">
+                <table className="amount-item-table">
 
-                        <span className="info-label">
-                            신청자
-                        </span>
+                    <tbody>
 
-                        <span className="info-value">
-                            {detail.empName || "-"}
-                        </span>
+                        <tr>
 
-                    </div>
+                            <th>
+                                신청번호
+                            </th>
+
+                            <td>
+                                {detail.amountNo}
+                            </td>
+
+                            <th>
+                                신청자
+                            </th>
+
+                            <td>
+                                {detail.empName || "-"}
+                            </td>
+
+                        </tr>
 
 
-                    <div className="info-item">
+                        <tr>
 
-                        <span className="info-label">
-                            신청일
-                        </span>
+                            <th>
+                                워케이션 번호
+                            </th>
 
-                        <span className="info-value">
-                            {
-                                formatDate(
-                                    detail.requestedAt
-                                )
-                            }
-                        </span>
+                            <td>
+                                {detail.workcationNo}
+                            </td>
 
-                    </div>
+                            <th>
+                                신청일
+                            </th>
 
-                </div>
+                            <td>
+                                {formatDate(detail.requestedAt)}
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <th>
+                                신청금액
+                            </th>
+
+                            <td className="money-cell">
+                                {formatMoney(requestedAmount)}
+                            </td>
+
+                            <th>
+                                상태
+                            </th>
+
+                            <td>
+
+                                <span
+                                    className={`status-badge ${getStatusClass(detail.status)}`}
+                                >
+                                    {statusMap[detail.status] ||
+                                        detail.status}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <th>
+                                승인금액
+                            </th>
+
+                            <td className="money-cell">
+
+                                {detail.approvedAmount != null
+                                    ? formatMoney(
+                                        detail.approvedAmount
+                                    )
+                                    : "-"
+                                }
+
+                            </td>
+
+                            <th>
+                                승인일
+                            </th>
+
+                            <td>
+                                {formatDate(
+                                    detail.approvedAt
+                                )}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
 
             </div>
 
 
             {/* =================================================
                 비용 항목
-            ================================================== */}
+               ================================================= */}
 
             <div className="amount-section">
 
@@ -1083,382 +924,282 @@ export default function AmountDetail() {
                 </h3>
 
 
-                <table className="amount-item-table">
+                {detail.itemList?.length > 0 ? (
 
-                    <thead>
+                    <table className="amount-item-table">
 
-                        <tr>
+                        <thead>
 
-                            <th>
-                                비용 항목
-                            </th>
+                            <tr>
 
-                            <th>
-                                설명
-                            </th>
+                                <th>
+                                    항목
+                                </th>
 
-                            <th>
-                                사용일
-                            </th>
+                                <th>
+                                    설명
+                                </th>
 
-                            <th>
-                                신청금액
-                            </th>
+                                <th>
+                                    비용일
+                                </th>
 
-                            <th>
-                                회사 지원금
-                            </th>
+                                <th>
+                                    신청금액
+                                </th>
 
-                            <th>
-                                관리
-                            </th>
+                                <th>
+                                    회사 지원금
+                                </th>
 
-                        </tr>
+                                {canEditable && (
+                                    <th>
+                                        적용
+                                    </th>
+                                )}
 
-                    </thead>
+                            </tr>
 
+                        </thead>
 
-                    <tbody>
 
-                        {
-                            detail.itemList?.length > 0
+                        <tbody>
 
-                                ? detail.itemList.map(
-                                    (item, index) => {
+                            {detail.itemList.map(
+                                (item) => {
 
-                                        const row =
-                                            companySupportRows.find(
-                                                r =>
-                                                    String(
-                                                        r.itemNo
-                                                    ) ===
-                                                    String(
-                                                        item.itemNo
-                                                    )
-                                            );
-
-
-                                        const requestAmount =
-                                            Number(
-                                                item.itemAmount
-                                            ) || 0;
-
-
-                                        const companyAmount =
-                                            Number(
-                                                row?.amount
-                                            ) || 0;
-
-
-                                        return (
-
-                                            <tr
-                                                key={
-                                                    item.itemNo ??
-                                                    index
-                                                }
-                                            >
-
-
-                                                {/* 비용 항목 */}
-
-                                                <td>
-
-                                                    {
-                                                        itemTypeMap[
-                                                            item.itemType
-                                                        ] ||
-
-                                                        item.itemType ||
-
-                                                        "-"
-                                                    }
-
-                                                </td>
-
-
-                                                {/* 설명 */}
-
-                                                <td>
-
-                                                    {
-                                                        item.itemDescription ||
-                                                        "-"
-                                                    }
-
-                                                </td>
-
-
-                                                {/* 사용일 */}
-
-                                                <td>
-
-                                                    {
-                                                        formatDate(
-                                                            item.itemDate
-                                                        )
-                                                    }
-
-                                                </td>
-
-
-                                                {/* 신청금액 */}
-
-                                                <td className="money-cell">
-
-                                                    {
-                                                        formatMoney(
-                                                            requestAmount
-                                                        )
-                                                    }
-
-                                                </td>
-
-
-                                                {/* 회사 지원금 */}
-
-                                                <td>
-
-                                                    {
-                                                        canEditable
-
-                                                            ? (
-
-                                                                <input
-                                                                    type="number"
-                                                                    className="company-support-input"
-                                                                    min="0"
-                                                                    max={
-                                                                        requestAmount
-                                                                    }
-                                                                    step="1"
-
-                                                                    value={
-                                                                        row?.amount ??
-                                                                        "0"
-                                                                    }
-
-                                                                    placeholder="금액 입력"
-
-                                                                    onChange={
-                                                                        (e) =>
-                                                                            handleCompanySupportChange(
-                                                                                row?.rowId,
-                                                                                e.target.value
-                                                                            )
-                                                                    }
-                                                                />
-
-                                                            )
-
-                                                            : (
-
-                                                                <span>
-
-                                                                    {
-                                                                        row?.amount !==
-                                                                            undefined &&
-                                                                        row?.amount !==
-                                                                            null &&
-                                                                        row?.amount !==
-                                                                            ""
-
-                                                                            ? formatMoney(
-                                                                                row.amount
-                                                                            )
-
-                                                                            : "-"
-                                                                    }
-
-                                                                </span>
-
-                                                            )
-                                                    }
-
-                                                </td>
-
-
-                                                {/* 관리 */}
-
-                                                <td>
-
-                                                    {
-                                                        canEditable && (
-
-                                                            <button
-                                                                type="button"
-                                                                className="btn-small"
-
-                                                                onClick={() => {
-
-                                                                    if (
-                                                                        row?.amount ===
-                                                                        undefined ||
-                                                                        row?.amount ===
-                                                                        ""
-                                                                    ) {
-
-                                                                        alert(
-                                                                            "회사 지원금을 입력해주세요."
-                                                                        );
-
-                                                                        return;
-
-                                                                    }
-
-
-                                                                    if (
-                                                                        companyAmount <
-                                                                        0
-                                                                    ) {
-
-                                                                        alert(
-                                                                            "회사 지원금은 0원 이상이어야 합니다."
-                                                                        );
-
-                                                                        return;
-
-                                                                    }
-
-
-                                                                    if (
-                                                                        companyAmount >
-                                                                        requestAmount
-                                                                    ) {
-
-                                                                        alert(
-                                                                            "회사 지원금은 신청금액을 초과할 수 없습니다."
-                                                                        );
-
-                                                                        return;
-
-                                                                    }
-
-
-                                                                    if (
-                                                                        totalCompanySupport +
-                                                                        totalLocalSupport >
-                                                                        requestedAmount
-                                                                    ) {
-
-                                                                        alert(
-                                                                            "회사 지원금과 지자체 지원금의 합계가 신청금액을 초과할 수 없습니다."
-                                                                        );
-
-                                                                        return;
-
-                                                                    }
-
-
-                                                                    alert(
-                                                                        `${formatMoney(companyAmount)} 회사 지원금이 적용되었습니다.`
-                                                                    );
-
-                                                                }}
-                                                            >
-
-                                                                적용
-
-                                                            </button>
-
-                                                        )
-                                                    }
-
-                                                </td>
-
-                                            </tr>
-
+                                    const row =
+                                        companySupportRows.find(
+                                            (r) =>
+                                                String(r.itemNo) ===
+                                                String(item.itemNo)
                                         );
 
-                                    }
-                                )
 
-                                : (
-
-                                    <tr>
-
-                                        <td colSpan="6">
-
-                                            등록된 비용 항목이 없습니다.
-
-                                        </td>
-
-                                    </tr>
-
-                                )
-                        }
-
-                    </tbody>
-
-                </table>
+                                    const companyAmount =
+                                        Number(row?.amount) || 0;
 
 
-                {/* =================================================
-                    비용 합계
-                ================================================== */}
+                                    return (
+
+                                        <tr
+                                            key={item.itemNo}
+                                        >
+
+                                            <td>
+                                                {
+                                                    itemTypeMap[
+                                                        item.itemType
+                                                    ] ||
+                                                    item.itemType
+                                                }
+                                            </td>
+
+
+                                            <td>
+                                                {
+                                                    item.itemDescription ||
+                                                    "-"
+                                                }
+                                            </td>
+
+
+                                            <td>
+                                                {formatDate(
+                                                    item.itemDate
+                                                )}
+                                            </td>
+
+
+                                            <td className="money-cell">
+                                                {formatMoney(
+                                                    item.itemAmount
+                                                )}
+                                            </td>
+
+
+                                            <td>
+
+                                                {canEditable ? (
+
+                                                    <input
+                                                        type="text"
+                                                        className="amount-input"
+                                                        value={
+                                                            companyAmount
+                                                                .toLocaleString(
+                                                                    "ko-KR"
+                                                                )
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleCompanySupportChange(
+                                                                item.itemNo,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+
+                                                ) : (
+
+                                                    <span className="money-cell">
+                                                        {formatMoney(
+                                                            item.itemApprovedAmount
+                                                        )}
+                                                    </span>
+
+                                                )}
+
+                                            </td>
+
+
+                                            {canEditable && (
+
+                                                <td>
+
+                                                    <button
+                                                        type="button"
+                                                        className="btn-small"
+                                                        onClick={() =>
+                                                            handleCompanySupportApply(
+                                                                item
+                                                            )
+                                                        }
+                                                    >
+                                                        적용
+                                                    </button>
+
+                                                </td>
+
+                                            )}
+
+                                        </tr>
+
+                                    );
+
+                                }
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                ) : (
+
+                    <div className="empty-message">
+                        등록된 비용 항목이 없습니다.
+                    </div>
+
+                )}
+
+            </div>
+
+
+            {/* =================================================
+                첨부파일
+               ================================================= */}
+
+            <div className="amount-section">
+
+                <h3>
+                    첨부파일
+                </h3>
+
+
+                {Array.isArray(detail.amountFile) &&
+                detail.amountFile.length > 0 ? (
+
+                    <div className="amount-file-list">
+
+                        {detail.amountFile.map(
+                            (file, index) => {
+
+                                const fileName =
+                                    file?.originName ||
+                                    file?.origin_name ||
+                                    file?.changeName ||
+                                    file?.change_name ||
+                                    `첨부파일 ${index + 1}`;
+
+
+                                return (
+
+                                    <div
+                                        key={
+                                            file?.amountattachmentNo ||
+                                            file?.amountAttachmentNo ||
+                                            file?.fileNo ||
+                                            index
+                                        }
+                                        className="amount-file-item"
+                                    >
+
+                                        <span className="amount-file-name">
+                                            {fileName}
+                                        </span>
+
+
+                                        <button
+                                            type="button"
+                                            className="amount-file-view"
+                                            onClick={() =>
+                                                handleFileView(file)
+                                            }
+                                        >
+                                            보기
+                                        </button>
+
+                                    </div>
+
+                                );
+
+                            }
+                        )}
+
+                    </div>
+
+                ) : (
+
+                    <div className="empty-message">
+                        첨부된 파일이 없습니다.
+                    </div>
+
+                )}
+
+            </div>
+
+
+            {/* =================================================
+                회사 지원금
+               ================================================= */}
+
+            <div className="amount-section">
+
+                <h3>
+                    회사 지원금
+                </h3>
+
 
                 <div className="amount-summary">
 
-                    <div>
+                    <span>
+                        회사 지원금
+                    </span>
 
-                        <span>
-                            신청금액
-                        </span>
-
-                        <strong>
-                            {
-                                formatMoney(
-                                    requestedAmount
-                                )
-                            }
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            회사 지원금
-                        </span>
-
-                        <strong>
-                            {
-                                formatMoney(
-                                    totalCompanySupport
-                                )
-                            }
-                        </strong>
-
-                    </div>
+                    <strong>
+                        {formatMoney(
+                            totalCompanySupport
+                        )}
+                    </strong>
 
                 </div>
-
-
-                {
-                    canEditable && (
-
-                        <button
-                            type="button"
-                            className="btn-apply-company"
-                            onClick={
-                                handleCompanySupportApply
-                            }
-                        >
-
-                            회사 지원금 적용
-
-                        </button>
-
-                    )
-                }
 
             </div>
 
 
             {/* =================================================
                 지자체 지원금
-            ================================================== */}
+                DB amount_list 조회 전용
+               ================================================= */}
 
             <div className="amount-section">
 
@@ -1467,202 +1208,133 @@ export default function AmountDetail() {
                 </h3>
 
 
-                <div className="local-support-form">
+                {supportList.length > 0 ? (
+
+                    <table className="amount-item-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    지원기관
+                                </th>
+
+                                <th>
+                                    신청 지원금
+                                </th>
+
+                                <th>
+                                    승인 지원금
+                                </th>
+
+                                <th>
+                                    지급일
+                                </th>
+
+                                <th>
+                                    상태
+                                </th>
+
+                                <th>
+                                    비고
+                                </th>
+
+                            </tr>
+
+                        </thead>
 
 
-                    {/* 지원기관 */}
+                        <tbody>
 
-                    <div className="form-row">
+                            {supportList.map(
+                                (support) => (
 
-                        <label>
-                            지원기관
-                        </label>
+                                    <tr
+                                        key={
+                                            support.supportNo
+                                        }
+                                    >
 
-                        <input
-                            type="text"
-                            value={
-                                localSupport.sponsorName
-                            }
-                            disabled={!canEditable}
+                                        <td>
+                                            {
+                                                support.sponsorName ||
+                                                "-"
+                                            }
+                                        </td>
 
-                            onChange={(e) =>
-                                setLocalSupport(
-                                    prev => ({
-                                        ...prev,
-                                        sponsorName:
-                                            e.target.value
-                                    })
+
+                                        <td className="money-cell">
+                                            {formatMoney(
+                                                support.requestAmount
+                                            )}
+                                        </td>
+
+
+                                        <td className="money-cell">
+                                            {formatMoney(
+                                                support.approvedAmount
+                                            )}
+                                        </td>
+
+
+                                        <td>
+                                            {formatDate(
+                                                support.paymentDate
+                                            )}
+                                        </td>
+
+
+                                        <td>
+
+                                            {support.status ===
+                                                "PAID"
+                                                ? "지급완료"
+                                                : support.status ===
+                                                    "HOLD"
+                                                    ? "보류"
+                                                    : "미지급"
+                                            }
+
+                                        </td>
+
+
+                                        <td>
+                                            {
+                                                support.remark ||
+                                                "-"
+                                            }
+                                        </td>
+
+                                    </tr>
+
                                 )
-                            }
-                        />
+                            )}
 
+                        </tbody>
+
+                    </table>
+
+                ) : (
+
+                    <div className="empty-message">
+                        등록된 지자체 지원금이 없습니다.
                     </div>
 
-
-                    {/* 지원금 */}
-
-                    <div className="form-row">
-
-                        <label>
-                            지원금
-                        </label>
-
-                        <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                                localSupport.amount
-                            }
-                            disabled={!canEditable}
-
-                            onChange={(e) =>
-                                setLocalSupport(
-                                    prev => ({
-                                        ...prev,
-                                        amount:
-                                            e.target.value
-                                    })
-                                )
-                            }
-                        />
-
-                    </div>
+                )}
 
 
-                    {/* 지급일 */}
+                <div className="amount-summary">
 
-                    <div className="form-row">
+                    <span>
+                        지자체 지원금
+                    </span>
 
-                        <label>
-                            지급일
-                        </label>
-
-                        <input
-                            type="date"
-                            value={
-                                localSupport.paymentDate
-                            }
-                            disabled={!canEditable}
-
-                            onChange={(e) =>
-                                setLocalSupport(
-                                    prev => ({
-                                        ...prev,
-                                        paymentDate:
-                                            e.target.value
-                                    })
-                                )
-                            }
-                        />
-
-                    </div>
-
-
-                    {/* 상태 */}
-
-                    <div className="form-row">
-
-                        <label>
-                            상태
-                        </label>
-
-                        <select
-                            value={
-                                localSupport.status
-                            }
-                            disabled={!canEditable}
-
-                            onChange={(e) =>
-                                setLocalSupport(
-                                    prev => ({
-                                        ...prev,
-                                        status:
-                                            e.target.value
-                                    })
-                                )
-                            }
-                        >
-
-                            <option value="UNPAID">
-                                미지급
-                            </option>
-
-                            <option value="PAID">
-                                지급완료
-                            </option>
-
-                            <option value="HOLD">
-                                보류
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    {/* 비고 */}
-
-                    <div className="form-row">
-
-                        <label>
-                            비고
-                        </label>
-
-                        <textarea
-                            value={
-                                localSupport.remark
-                            }
-                            disabled={!canEditable}
-
-                            onChange={(e) =>
-                                setLocalSupport(
-                                    prev => ({
-                                        ...prev,
-                                        remark:
-                                            e.target.value
-                                    })
-                                )
-                            }
-                        />
-
-                    </div>
-
-
-                    {/* 버튼 */}
-
-                    {
-                        canEditable && (
-
-                            <div className="local-support-buttons">
-
-                                <button
-                                    type="button"
-                                    onClick={
-                                        handleLocalSupportApply
-                                    }
-                                >
-
-                                    적용
-
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    onClick={
-                                        handleRemoveLocalSupport
-                                    }
-                                >
-
-                                    삭제
-
-                                </button>
-
-                            </div>
-
-                        )
-                    }
+                    <strong>
+                        {formatMoney(
+                            totalLocalSupport
+                        )}
+                    </strong>
 
                 </div>
 
@@ -1671,152 +1343,188 @@ export default function AmountDetail() {
 
             {/* =================================================
                 지원금 합계
-            ================================================== */}
+               ================================================= */}
 
-            <div className="amount-total-box">
+            <div className="amount-section">
 
-                <div>
-
-                    <span>
-                        신청금액
-                    </span>
-
-                    <strong>
-                        {
-                            formatMoney(
-                                requestedAmount
-                            )
-                        }
-                    </strong>
-
-                </div>
+                <h3>
+                    지원금 합계
+                </h3>
 
 
-                <div>
+                <table className="amount-item-table">
 
-                    <span>
-                        회사 지원금
-                    </span>
+                    <tbody>
 
-                    <strong>
-                        {
-                            formatMoney(
-                                totalCompanySupport
-                            )
-                        }
-                    </strong>
+                        <tr>
 
-                </div>
+                            <th>
+                                신청금액
+                            </th>
 
+                            <td className="money-cell">
+                                {formatMoney(
+                                    requestedAmount
+                                )}
+                            </td>
 
-                <div>
-
-                    <span>
-                        지자체 지원금
-                    </span>
-
-                    <strong>
-                        {
-                            formatMoney(
-                                totalLocalSupport
-                            )
-                        }
-                    </strong>
-
-                </div>
+                        </tr>
 
 
-                <div className="final-total">
+                        <tr>
 
-                    <span>
-                        총 지원금
-                    </span>
+                            <th>
+                                회사 지원금
+                            </th>
 
-                    <strong>
-                        {
-                            formatMoney(
-                                totalSupport
-                            )
-                        }
-                    </strong>
+                            <td className="money-cell">
+                                {formatMoney(
+                                    totalCompanySupport
+                                )}
+                            </td>
 
-                </div>
+                        </tr>
+
+
+                        <tr>
+
+                            <th>
+                                지자체 지원금
+                            </th>
+
+                            <td className="money-cell">
+                                {formatMoney(
+                                    totalLocalSupport
+                                )}
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <th>
+                                총 지원금
+                            </th>
+
+                            <td className="money-cell">
+
+                                <strong>
+                                    {formatMoney(
+                                        totalSupport
+                                    )}
+                                </strong>
+
+                            </td>
+
+                        </tr>
+
+
+                    </tbody>
+
+                </table>
 
             </div>
 
 
             {/* =================================================
-                관리자 코멘트
-            ================================================== */}
+                관리자 의견
+               ================================================= */}
 
-            {
-                canEditable && (
+            <div className="amount-section">
 
-                    <div className="amount-section">
+                <h3>
+                    관리자 의견
+                </h3>
 
-                        <h3>
-                            관리자 의견
-                        </h3>
 
-                        <textarea
-                            className="admin-comment"
-                            value={comment}
-                            placeholder="승인 의견을 입력해주세요."
+                {canEditable ? (
 
-                            onChange={(e) =>
-                                setComment(
-                                    e.target.value
-                                )
-                            }
-                        />
+                    <textarea
+                        className="admin-comment"
+                        value={comment}
+                        placeholder="승인 / 보류 / 반려 처리 시 의견을 입력할 수 있습니다."
+                        onChange={(e) =>
+                            setComment(e.target.value)
+                        }
+                        style={{ resize: "none" }}
+                    />
+
+                ) : (
+
+                    <div className="comment-display">
+
+                        {detail.amountComment
+                            ? detail.amountComment
+                            : "등록된 관리자 의견이 없습니다."
+                        }
 
                     </div>
 
-                )
-            }
+                )}
+
+            </div>
 
 
             {/* =================================================
-                하단 버튼
-            ================================================== */}
+                버튼
+               ================================================= */}
 
             <div className="amount-detail-buttons">
 
                 <button
                     type="button"
                     onClick={() =>
-                        navigate(
-                            "/admin/cost/list"
-                        )
+                        navigate(costListPath)
                     }
                 >
-
                     목록
-
                 </button>
 
 
-                {
-                    canEditable && (
+                {canEditable && (
+
+                    <>
 
                         <button
                             type="button"
                             className="btn-approval"
-                            onClick={
-                                handleApprovalSubmit
+                            onClick={() =>
+                                handleApprovalSubmit("A")
                             }
                         >
-
-                            승인 및 지원금 반영
-
+                            승인
                         </button>
 
-                    )
-                }
+
+                        <button
+                            type="button"
+                            className="btn-hold"
+                            onClick={() =>
+                                handleApprovalSubmit("H")
+                            }
+                        >
+                            보류
+                        </button>
+
+
+                        <button
+                            type="button"
+                            className="btn-reject"
+                            onClick={() =>
+                                handleApprovalSubmit("J")
+                            }
+                        >
+                            반려
+                        </button>
+
+                    </>
+
+                )}
 
             </div>
 
-        </main>
+        </div>
 
     );
 

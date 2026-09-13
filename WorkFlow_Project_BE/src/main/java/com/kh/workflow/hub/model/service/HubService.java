@@ -86,5 +86,11 @@ public interface HubService {
      */
 	Hub updateHub(int hubNo, Hub hubData, List<Integer> fileNos, List<MultipartFile> upfiles,
 			List<Integer> upfileIndexes, HttpSession session);
+
+	/**
+     * 거점 목록 조회 (AI 전용)
+     * @return 거점& 여행/지역정보 목록
+     */
+	List<Hub> selectAIHubList();
 	
 }

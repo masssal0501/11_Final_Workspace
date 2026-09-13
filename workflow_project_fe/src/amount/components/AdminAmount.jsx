@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { amountApi } from '../api/amountApi';
 import '../styles/AmountStyle.css';
+
 
 export default function AdminAmount() {
 
     console.log('🔥🔥 AdminAmount 컴포넌트 실행');
+
 
     const navigate = useNavigate();
 
@@ -37,9 +40,11 @@ export default function AdminAmount() {
         console.log('🔥 fetchAmountList 시작');
         console.log('🔥 요청 페이지:', currentPage);
 
+
         try {
 
             setLoading(true);
+
 
             console.log(
                 '🔥 관리자 전체 비용 목록 API 호출:',
@@ -47,7 +52,8 @@ export default function AdminAmount() {
             );
 
 
-            const data = await amountApi.getAmountList(currentPage);
+            const data =
+                await amountApi.getAmountList(currentPage);
 
 
             console.log(
@@ -60,14 +66,14 @@ export default function AdminAmount() {
             // 목록 데이터 처리
             // =====================================================
 
+            // TO-BE
             let list = [];
 
             if (Array.isArray(data)) {
-
                 list = data;
-
+            } else if (Array.isArray(data?.content)) {
+                list = data.content;
             } else if (Array.isArray(data?.list)) {
-
                 list = data.list;
             }
 
@@ -76,6 +82,7 @@ export default function AdminAmount() {
                 '📋 관리자 정산 신청 목록:',
                 list
             );
+
 
             console.log(
                 '📋 관리자 정산 신청 개수:',
@@ -93,40 +100,48 @@ export default function AdminAmount() {
                     `===== 정산 데이터 ${index + 1} =====`
                 );
 
+
                 console.log(
                     '신청번호:',
                     amount.amountNo
                 );
+
 
                 console.log(
                     '사원명:',
                     amount.empName
                 );
 
+
                 console.log(
                     '워케이션 번호:',
                     amount.workcationNo
                 );
+
 
                 console.log(
                     '신청금액:',
                     amount.requestedAmount
                 );
 
+
                 console.log(
                     '승인금액:',
                     amount.approvedAmount
                 );
+
 
                 console.log(
                     '상태:',
                     amount.status
                 );
 
+
                 console.log(
                     '신청일:',
                     amount.requestedAt
                 );
+
             });
 
 
@@ -139,61 +154,40 @@ export default function AdminAmount() {
 
             // =====================================================
             // 페이징 정보 저장
-            //
-            // 서버 응답 예:
-            //
-            // {
-            //     pageLimit: 5,
-            //     startPage: 1,
-            //     boardLimit: 10,
-            //     limit: 10,
-            //     page: 1,
-            //     endPage: 1,
-            //     maxPage: 1,
-            //     listCount: 5,
-            //     list: [...]
-            // }
             // =====================================================
+
+            // TO-BE
+            const pageLimit = 5; // 화면에 보여줄 페이지 번호 버튼 개수
+
+            // Spring Page의 number는 0부터 시작하므로 +1
+            const springCurrentPage =
+                Number(data?.number ?? (currentPage - 1)) + 1;
+
+            const maxPage =
+                Number(data?.totalPages ?? 1) || 1;
+
+            // 페이지 버튼 그룹 계산 (예: pageLimit=5면 1~5, 6~10 ...)
+            const startPage =
+                Math.floor((springCurrentPage - 1) / pageLimit) * pageLimit + 1;
+
+            const endPage =
+                Math.min(startPage + pageLimit - 1, maxPage);
 
             const newPageInfo = {
 
-                currentPage:
-                    Number(
-                        data?.page ??
-                        data?.currentPage ??
-                        currentPage
-                    ),
+                currentPage: springCurrentPage,
 
-                pageLimit:
-                    Number(
-                        data?.pageLimit ??
-                        5
-                    ),
+                pageLimit,
 
                 boardLimit:
-                    Number(
-                        data?.boardLimit ??
-                        data?.limit ??
-                        10
-                    ),
+                    Number(data?.size ?? 10),
 
-                maxPage:
-                    Number(
-                        data?.maxPage ??
-                        1
-                    ),
+                maxPage,
 
-                startPage:
-                    Number(
-                        data?.startPage ??
-                        1
-                    ),
+                startPage,
 
-                endPage:
-                    Number(
-                        data?.endPage ??
-                        1
-                    )
+                endPage
+
             };
 
 
@@ -213,10 +207,12 @@ export default function AdminAmount() {
                 error
             );
 
+
             console.error(
                 '❌ 서버 응답:',
                 error.response?.data
             );
+
 
             console.error(
                 '❌ HTTP 상태:',
@@ -233,8 +229,11 @@ export default function AdminAmount() {
                 '🔥 fetchAmountList finally'
             );
 
+
             setLoading(false);
+
         }
+
     };
 
 
@@ -247,6 +246,7 @@ export default function AdminAmount() {
         console.log(
             '🔥🔥 AdminAmount useEffect 실행'
         );
+
 
         fetchAmountList(1);
 
@@ -265,7 +265,9 @@ export default function AdminAmount() {
         );
 
 
+        // =====================================================
         // 페이지 범위 검사
+        // =====================================================
 
         if (
             newPage < 1 ||
@@ -277,11 +279,14 @@ export default function AdminAmount() {
                 newPage
             );
 
+
             return;
+
         }
 
 
         fetchAmountList(newPage);
+
     };
 
 
@@ -292,7 +297,9 @@ export default function AdminAmount() {
     const formatDate = (date) => {
 
         if (!date) {
+
             return '-';
+
         }
 
 
@@ -300,17 +307,21 @@ export default function AdminAmount() {
 
 
         if (Number.isNaN(d.getTime())) {
+
             return '-';
+
         }
 
 
         const year =
             d.getFullYear();
 
+
         const month =
             String(
                 d.getMonth() + 1
             ).padStart(2, '0');
+
 
         const day =
             String(
@@ -319,6 +330,7 @@ export default function AdminAmount() {
 
 
         return `${year}-${month}-${day}`;
+
     };
 
 
@@ -335,6 +347,7 @@ export default function AdminAmount() {
         ) {
 
             return '-';
+
         }
 
 
@@ -345,10 +358,12 @@ export default function AdminAmount() {
         if (Number.isNaN(number)) {
 
             return '-';
+
         }
 
 
         return `${number.toLocaleString('ko-KR')} 원`;
+
     };
 
 
@@ -360,6 +375,10 @@ export default function AdminAmount() {
 
         const statusMap = {
 
+            // BUG-NEW: 공식 상태값에는 없는 'W'(구버전 코드가 남긴 데이터)가 일부
+            // 기존 신청 건에 남아 있어 방어적으로 매핑을 추가한다.
+            W: '대기',
+
             R: '검토중',
 
             A: '승인됨',
@@ -369,282 +388,115 @@ export default function AdminAmount() {
             H: '보류됨',
 
             C: '취소됨'
+
         };
 
 
         return (
+
             <span
                 className={`amount-status-badge status-${status}`}
             >
+
                 {
                     statusMap[status] ||
                     status ||
                     '-'
                 }
+
             </span>
+
         );
+
     };
 
 
     // =========================================================
-    // 결재 처리
+    // 결재 처리 상태
+    //
+    // 목록에서는 실제 결재를 처리하지 않음.
+    // 실제 승인 / 반려 / 보류는 상세 페이지에서 처리.
     // =========================================================
 
-    const handleApproval = async (
-        e,
-        item,
-        status
-    ) => {
+    const getApprovalStatus = (status) => {
 
-        // 행 클릭 이벤트 방지
-
-        e.stopPropagation();
-
-
-        let comment = '';
-
-        let approvedAmount = 0;
-
-
-        // =====================================================
-        // 보류 / 반려
-        // =====================================================
+        // -----------------------------------------------------
+        // 검토중 / 보류
+        // -----------------------------------------------------
 
         if (
-            status === 'H' ||
+            status === 'R' ||
+            status === 'H'
+        ) {
+
+            return (
+
+                <span className="text-pending">
+
+                    미처리
+
+                </span>
+
+            );
+
+        }
+
+
+        // -----------------------------------------------------
+        // 신청자 취소
+        // -----------------------------------------------------
+
+        if (status === 'C') {
+
+            return (
+
+                <span className="text-disabled">
+
+                    신청자 취소
+
+                </span>
+
+            );
+
+        }
+
+
+        // -----------------------------------------------------
+        // 승인 / 반려
+        // -----------------------------------------------------
+
+        if (
+            status === 'A' ||
             status === 'J'
         ) {
 
-            const reasonTitle =
-                status === 'H'
-                    ? '보류 사유를 입력하세요.'
-                    : '반려 사유를 입력하세요.';
+            return (
 
+                <span className="text-disabled">
 
-            const inputComment =
-                window.prompt(
-                    reasonTitle
-                );
+                    처리완료
 
+                </span>
 
-            // 취소
+            );
 
-            if (
-                inputComment === null
-            ) {
-
-                return;
-            }
-
-
-            comment =
-                inputComment.trim();
-
-
-            // 사유 필수
-
-            if (!comment) {
-
-                alert(
-                    status === 'H'
-                        ? '보류 사유를 입력해주세요.'
-                        : '반려 사유를 입력해주세요.'
-                );
-
-                return;
-            }
         }
 
 
-        // =====================================================
-        // 승인
-        // =====================================================
+        // -----------------------------------------------------
+        // 기타 상태
+        // -----------------------------------------------------
 
-        if (status === 'A') {
+        return (
 
-            const inputAmt =
-                window.prompt(
-                    '승인 금액을 입력하세요:',
-                    item.approvedAmount ??
-                    item.requestedAmount ??
-                    0
-                );
+            <span className="text-disabled">
 
+                -
 
-            // 취소
+            </span>
 
-            if (
-                inputAmt === null
-            ) {
+        );
 
-                return;
-            }
-
-
-            // 콤마 제거
-
-            const cleanAmount =
-                String(inputAmt)
-                    .replace(/,/g, '')
-                    .trim();
-
-
-            approvedAmount =
-                Number(cleanAmount);
-
-
-            // 숫자 검증
-
-            if (
-                cleanAmount === '' ||
-                Number.isNaN(approvedAmount) ||
-                approvedAmount < 0
-            ) {
-
-                alert(
-                    '올바른 금액을 입력해 주세요.'
-                );
-
-                return;
-            }
-
-
-            // 신청 금액
-
-            const requestedAmount =
-                Number(
-                    item.requestedAmount
-                ) || 0;
-
-
-            // 신청 금액 초과 방지
-
-            if (
-                approvedAmount >
-                requestedAmount
-            ) {
-
-                alert(
-                    `승인 금액(${approvedAmount.toLocaleString()}원)은 ` +
-                    `신청 금액(${requestedAmount.toLocaleString()}원)을 ` +
-                    `초과할 수 없습니다.`
-                );
-
-                return;
-            }
-        }
-
-
-        // =====================================================
-        // 서버 요청
-        // =====================================================
-
-        try {
-
-            console.log(
-                '================================'
-            );
-
-            console.log(
-                '===== 정산 결재 처리 ====='
-            );
-
-            console.log(
-                'amountNo:',
-                item.amountNo
-            );
-
-            console.log(
-                'status:',
-                status
-            );
-
-            console.log(
-                'approvedAmount:',
-                approvedAmount
-            );
-
-            console.log(
-                'comment:',
-                comment
-            );
-
-            console.log(
-                '================================'
-            );
-
-
-            await amountApi.updateApproval(
-
-                item.amountNo,
-
-                status,
-
-                approvedAmount,
-
-                comment
-            );
-
-
-            // =================================================
-            // 완료 메시지
-            // =================================================
-
-            const statusMessage = {
-
-                A:
-                    '승인 처리가 완료되었습니다.',
-
-                H:
-                    '보류 처리가 완료되었습니다.',
-
-                J:
-                    '반려 처리가 완료되었습니다.'
-            };
-
-
-            alert(
-                statusMessage[status] ||
-                '결재 처리가 완료되었습니다.'
-            );
-
-
-            // =================================================
-            // 현재 페이지 유지하면서 다시 조회
-            // =================================================
-
-            await fetchAmountList(
-                pageInfo.currentPage
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                '❌ 결재 처리 실패:',
-                error
-            );
-
-            console.error(
-                '❌ 서버 응답:',
-                error.response?.data
-            );
-
-            console.error(
-                '❌ HTTP 상태:',
-                error.response?.status
-            );
-
-
-            alert(
-
-                error.response?.data?.message ||
-
-                error.response?.data ||
-
-                '결재 처리에 실패했습니다.'
-            );
-        }
     };
 
 
@@ -669,12 +521,16 @@ export default function AdminAmount() {
                         textAlign: 'center'
                     }}
                 >
+
                     정산 신청 목록을
                     불러오는 중입니다...
+
                 </div>
 
             </div>
+
         );
+
     }
 
 
@@ -686,6 +542,7 @@ export default function AdminAmount() {
         '🔥🔥 화면 렌더링 amounts:',
         amounts
     );
+
 
     console.log(
         '🔥🔥 amounts length:',
@@ -705,11 +562,26 @@ export default function AdminAmount() {
             <section className="wf-page-header">
 
                 <div>
-                    <h1 className="wf-page-title">비용 정산 관리</h1>
-                    <p className="wf-page-description">전사 비용 정산 신청을 검토하고 승인/반려 처리합니다.</p>
+
+                    <h1 className="wf-page-title">
+
+                        비용 정산 관리
+
+                    </h1>
+
+
+                    <p className="wf-page-description">
+
+                        전사 비용 정산 신청을 검토하고
+                        상세 페이지에서 결재 처리합니다.
+
+                    </p>
+
                 </div>
 
+
                 <div className="wf-page-actions">
+
                     <button
                         type="button"
                         className="btn btn-secondary"
@@ -719,8 +591,11 @@ export default function AdminAmount() {
                             )
                         }
                     >
+
                         정산 통계 보기
+
                     </button>
+
                 </div>
 
             </section>
@@ -737,31 +612,51 @@ export default function AdminAmount() {
                     <tr className="admin-table-header">
 
                         <th className="text-center">
+
                             신청번호
+
                         </th>
 
+
                         <th className="text-center">
+
                             사원명
+
                         </th>
 
+
                         <th className="text-right">
+
                             신청 금액
+
                         </th>
+
 
                         <th className="text-right">
+
                             승인 금액
+
                         </th>
 
+
                         <th className="text-center">
+
                             상태
+
                         </th>
 
+
                         <th className="text-center">
+
                             신청일
+
                         </th>
 
+
                         <th className="text-center">
+
                             결재 처리
+
                         </th>
 
                     </tr>
@@ -780,7 +675,9 @@ export default function AdminAmount() {
                                     colSpan="7"
                                     className="text-center"
                                 >
+
                                     정산 신청 내역이 없습니다.
+
                                 </td>
 
                             </tr>
@@ -801,7 +698,9 @@ export default function AdminAmount() {
                                     }}
                                 >
 
-                                    {/* 신청번호 */}
+                                    {/* =================================
+                                        신청번호
+                                    ================================= */}
 
                                     <td className="text-center">
 
@@ -810,7 +709,9 @@ export default function AdminAmount() {
                                     </td>
 
 
-                                    {/* 사원명 */}
+                                    {/* =================================
+                                        사원명
+                                    ================================= */}
 
                                     <td className="text-center">
 
@@ -822,7 +723,9 @@ export default function AdminAmount() {
                                     </td>
 
 
-                                    {/* 신청 금액 */}
+                                    {/* =================================
+                                        신청 금액
+                                    ================================= */}
 
                                     <td className="text-right">
 
@@ -835,23 +738,29 @@ export default function AdminAmount() {
                                     </td>
 
 
-                                    {/* 승인 금액 */}
+                                    {/* =================================
+                                        승인 금액
+                                    ================================= */}
 
                                     <td className="text-right">
 
                                         {
                                             item.approvedAmount !== null &&
                                             item.approvedAmount !== undefined
+
                                                 ? formatMoney(
                                                     item.approvedAmount
                                                 )
+
                                                 : '-'
                                         }
 
                                     </td>
 
 
-                                    {/* 상태 */}
+                                    {/* =================================
+                                        상태
+                                    ================================= */}
 
                                     <td className="text-center">
 
@@ -864,7 +773,9 @@ export default function AdminAmount() {
                                     </td>
 
 
-                                    {/* 신청일 */}
+                                    {/* =================================
+                                        신청일
+                                    ================================= */}
 
                                     <td className="text-center">
 
@@ -877,87 +788,15 @@ export default function AdminAmount() {
                                     </td>
 
 
-                                    {/* 결재 처리 */}
+                                    {/* =================================
+                                        결재 처리
+                                    ================================= */}
 
                                     <td className="text-center">
 
                                         {
-                                            ['R', 'H'].includes(
+                                            getApprovalStatus(
                                                 item.status
-                                            ) ? (
-
-                                                <>
-
-                                                    {/* 승인 */}
-
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-approve"
-                                                        onClick={(e) =>
-                                                            handleApproval(
-                                                                e,
-                                                                item,
-                                                                'A'
-                                                            )
-                                                        }
-                                                    >
-                                                        승인
-                                                    </button>
-
-
-                                                    {/* 반려 */}
-
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-reject"
-                                                        onClick={(e) =>
-                                                            handleApproval(
-                                                                e,
-                                                                item,
-                                                                'J'
-                                                            )
-                                                        }
-                                                    >
-                                                        반려
-                                                    </button>
-
-
-                                                    {/* 보류 */}
-
-                                                    {
-                                                        item.status === 'R' && (
-
-                                                            <button
-                                                                type="button"
-                                                                className="btn btn-hold"
-                                                                onClick={(e) =>
-                                                                    handleApproval(
-                                                                        e,
-                                                                        item,
-                                                                        'H'
-                                                                    )
-                                                                }
-                                                            >
-                                                                보류
-                                                            </button>
-
-                                                        )
-                                                    }
-
-                                                </>
-
-                                            ) : (
-
-                                                <span className="text-disabled">
-
-                                                    {
-                                                        item.status === 'C'
-                                                            ? '신청자 취소건'
-                                                            : '처리 완료'
-                                                    }
-
-                                                </span>
-
                                             )
                                         }
 
@@ -984,7 +823,10 @@ export default function AdminAmount() {
 
                     <div className="pagination">
 
-                        {/* 이전 */}
+
+                        {/* =========================================
+                            이전
+                        ========================================= */}
 
                         <button
                             type="button"
@@ -997,11 +839,15 @@ export default function AdminAmount() {
                                 )
                             }
                         >
+
                             이전
+
                         </button>
 
 
-                        {/* 페이지 번호 */}
+                        {/* =========================================
+                            페이지 번호
+                        ========================================= */}
 
                         {
                             Array.from(
@@ -1040,16 +886,22 @@ export default function AdminAmount() {
                                                 )
                                             }
                                         >
+
                                             {pageNumber}
+
                                         </button>
 
                                     );
+
                                 }
+
                             )
                         }
 
 
-                        {/* 다음 */}
+                        {/* =========================================
+                            다음
+                        ========================================= */}
 
                         <button
                             type="button"
@@ -1063,15 +915,19 @@ export default function AdminAmount() {
                                 )
                             }
                         >
+
                             다음
+
                         </button>
 
                     </div>
 
                 )
+
             }
 
         </main>
-    );
-}
 
+    );
+
+}

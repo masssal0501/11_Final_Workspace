@@ -25,6 +25,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS verification;
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS notice_file;
+DROP TABLE IF EXISTS workcation_review;
 DROP TABLE IF EXISTS survey_answer;
 DROP TABLE IF EXISTS workcation_survey;
 DROP TABLE IF EXISTS survey_question;
@@ -225,7 +226,7 @@ CREATE TABLE workcation_info (
         COMMENT '결재 의견',
 
     approver_state VARCHAR(1) NOT NULL DEFAULT 'W'
-        COMMENT 'W 대기, A 승인, C 취소, H 보류, J 반려, R 검토',
+        COMMENT 'W 대기, A 승인, C 취소, H 보류, J 반려, R 검토, D 완료(TODO-N03)',
 
     emp_no INT NOT NULL
         COMMENT '신청자 회원 PK',
@@ -737,6 +738,55 @@ CREATE TABLE survey_answer (
 
 
 /* =========================================================
+   10-1. 워케이션 후기
+   TODO-N02: 만족도 조사(workcation_survey/survey_answer, 점수·텍스트형)와는
+   별개의 기능. 워케이션당 1건, 별점+후기글+사진(선택) 형태.
+   ========================================================= */
+
+CREATE TABLE workcation_review (
+    review_no INT NOT NULL AUTO_INCREMENT
+        COMMENT '후기 PK',
+
+    rating INT NOT NULL
+        COMMENT '별점 1~5',
+
+    content VARCHAR(500) NOT NULL
+        COMMENT '후기 내용',
+
+    photo_path VARCHAR(500) NULL
+        COMMENT '사진 저장 경로(선택)',
+
+    photo_origin_name VARCHAR(255) NULL
+        COMMENT '사진 원본 파일명',
+
+    photo_change_name VARCHAR(255) NULL
+        COMMENT '사진 저장 파일명',
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    workcation_no INT NOT NULL
+        COMMENT '워케이션 PK',
+
+    emp_no INT NOT NULL
+        COMMENT '작성자 사원 PK',
+
+    CONSTRAINT pk_workcation_review
+        PRIMARY KEY (review_no),
+
+    CONSTRAINT uk_workcation_review_workcation
+        UNIQUE (workcation_no),
+
+    CONSTRAINT fk_workcation_review_workcation
+        FOREIGN KEY (workcation_no)
+        REFERENCES workcation_info (workcation_no),
+
+    CONSTRAINT fk_workcation_review_employee
+        FOREIGN KEY (emp_no)
+        REFERENCES employee (emp_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+/* =========================================================
    11. 인증
    ========================================================= */
 
@@ -821,6 +871,11 @@ CREATE INDEX idx_notice_employee
 /* 만족도 조회 */
 CREATE INDEX idx_survey_answer_question
     ON survey_answer (question_no);
+
+
+/* 후기 조회 */
+CREATE INDEX idx_workcation_review_employee
+    ON workcation_review (emp_no);
 
 
 /* 인증 조회 */

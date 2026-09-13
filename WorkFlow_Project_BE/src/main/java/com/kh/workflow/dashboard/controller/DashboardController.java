@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +22,8 @@ import com.kh.workflow.dashboard.model.dto.ReservationListDto;
 import com.kh.workflow.dashboard.model.dto.StaffDto;
 import com.kh.workflow.dashboard.model.dto.WorkcationListDto;
 import com.kh.workflow.dashboard.model.service.DashboardService;
+import com.kh.workflow.employee.model.dao.EmployeeDao;
+import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.reservation.model.vo.Reservation;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +45,54 @@ public class DashboardController {
 	
 	@Autowired
 	private DashboardService dashboardService;
-	
+
+	@Autowired
+	private EmployeeDao employeeDao;
+
+	// BUG-N04: 대시보드 API 6종이 경로 파라미터(empNo/depId)와 로그인 사용자를 대조하지 않아
+	// 파라미터만 바꾸면 다른 직원/부서의 대시보드를 조회할 수 있던 문제 수정.
+	// STAFF: 본인 empNo만, MANAGER: 본인 depId만, ADMIN: 전체 접근 가능.
+	private Employee currentEmployee(Authentication authentication) {
+
+		return employeeDao.findByEmpId(authentication.getName())
+				.orElseThrow(() -> new AccessDeniedException("로그인 사용자 정보를 찾을 수 없습니다."));
+	}
+
+	private void requireAdmin(Authentication authentication) {
+
+		Employee me = currentEmployee(authentication);
+
+		if (!"ADMIN".equals(me.getAuthCode())) {
+			throw new AccessDeniedException("관리자만 조회할 수 있습니다.");
+		}
+	}
+
+	private void requireOwnDept(String depId, Authentication authentication) {
+
+		Employee me = currentEmployee(authentication);
+
+		if ("ADMIN".equals(me.getAuthCode())) {
+			return;
+		}
+
+		if (!"MANAGER".equals(me.getAuthCode()) || !me.getDepId().equals(depId)) {
+			throw new AccessDeniedException("본인 소속 부서만 조회할 수 있습니다.");
+		}
+	}
+
+	private void requireOwnStaff(int empNo, Authentication authentication) {
+
+		Employee me = currentEmployee(authentication);
+
+		if ("ADMIN".equals(me.getAuthCode())) {
+			return;
+		}
+
+		if (!me.getEmpNo().equals(empNo)) {
+			throw new AccessDeniedException("본인 대시보드만 조회할 수 있습니다.");
+		}
+	}
+
 	/* =====================================================================
 	 * 1. 관리자 전용 API
 	 * ===================================================================== */
@@ -49,14 +100,17 @@ public class DashboardController {
 	@ApiResponse(responseCode="200", description="조회 성공")
 	@SecurityRequirement(name="JWT")
 	@GetMapping("/dashboard/admin")
-	public ResponseEntity<AdminDto> selectAdminDashboard() {
+	public ResponseEntity<AdminDto> selectAdminDashboard(Authentication authentication) {
+
+		requireAdmin(authentication);
+
 		// 서비스에서 관리자 권한의 대시보드 데이터를 가져옴
 		AdminDto adminDto = dashboardService.selectAdminDashboard();
 		// HTTP 200 상태 코드와 함께 데이터를 JSON으로 반환
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(adminDto);
 	}
-	
+
 	/* =====================================================================
 	 * 2. 부서장 전용 API
 	 * ===================================================================== */
@@ -68,9 +122,12 @@ public class DashboardController {
 	@SecurityRequirement(name="JWT")
 	@GetMapping("/dashboard/manager/{depId}")
 	// @PathVariable: URL 경로에 포함된 '{depId}' 값을 메서드 파라미터로 추출
-	public ResponseEntity<ManagerDto> selectManagerDashboard(@PathVariable String depId) {
+	public ResponseEntity<ManagerDto> selectManagerDashboard(@PathVariable String depId, Authentication authentication) {
+
+		requireOwnDept(depId, authentication);
+
 		ManagerDto managerDto = dashboardService.selectManagerDashboard(depId);
-		
+
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(managerDto);
 	}
@@ -95,8 +152,11 @@ public class DashboardController {
 	public ResponseEntity<List<WorkcationListDto>> selectManagerWorkcationList(@PathVariable String depId,
 																			   @RequestParam(required=false) String keyword,
 																			   @RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate startAt,
-																			   @RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate endAt) {
-		
+																			   @RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate endAt,
+																			   Authentication authentication) {
+
+		requireOwnDept(depId, authentication);
+
 		// DB 조회를 위해 LocalDate를 LocalDateTime으로 변환
 		// 시작일이 있으면 해당 날짜의 00시 00분 00초로 설정
 		LocalDateTime startDate = (startAt != null) ? startAt.atStartOfDay() : null;
@@ -121,9 +181,12 @@ public class DashboardController {
 	})
 	@SecurityRequirement(name="JWT")
 	@GetMapping("/dashboard/staff/{empNo}")
-	public ResponseEntity<StaffDto> selectStaffDashboard(@PathVariable int empNo) {
+	public ResponseEntity<StaffDto> selectStaffDashboard(@PathVariable int empNo, Authentication authentication) {
+
+		requireOwnStaff(empNo, authentication);
+
 		StaffDto staffDto = dashboardService.selectStaffDashboard(empNo);
-		
+
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(staffDto);
 	}
@@ -147,7 +210,11 @@ public class DashboardController {
 	public ResponseEntity<List<ReservationListDto>> selectStaffReservationList(@PathVariable int empNo,
 																		@RequestParam(required=false) String keyword,
 																		@RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate startAt,
-																		@RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate endAt) {
+																		@RequestParam(required=false) @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate endAt,
+																		Authentication authentication) {
+
+		requireOwnStaff(empNo, authentication);
+
 		// 부서장 검색 로직과 동일하게 날짜 범위 조건 생성
 		LocalDateTime startDate = (startAt != null) ? startAt.atStartOfDay() : null;
 	    LocalDateTime endDate = (endAt != null) ? endAt.atTime(LocalTime.MAX) : null;

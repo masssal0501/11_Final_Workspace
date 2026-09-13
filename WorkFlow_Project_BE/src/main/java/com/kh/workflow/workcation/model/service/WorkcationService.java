@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.workflow.employee.model.vo.Employee;
 import com.kh.workflow.workcation.model.vo.WorkcationInfo;
 
 public interface WorkcationService {
@@ -37,5 +38,9 @@ public interface WorkcationService {
 	Map<String, Object> getWorkcationSchedule(LocalDate date, int empNo);
 
 	void uploadWorkFile(Integer workcationNo, MultipartFile file);
+
+	void deleteWorkFile(Integer taskFileNo);
+	// TODO-N03: 워케이션 최종 완료 처리(MANAGER/ADMIN 전용, 전체 업무 완료 후)
+	void completeWorkcation(Integer workcationNo, Employee loginEmployee);
 
 }

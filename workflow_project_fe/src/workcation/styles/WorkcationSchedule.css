@@ -139,3 +139,20 @@
     background-color: #ccc;
     border-radius: 6px;
 }
+.schedule-list {
+    width: 100%;
+    text-align: center;
+}
+
+
+ .schedule-list p {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #142d50;
+    font-size: 13px;
+}

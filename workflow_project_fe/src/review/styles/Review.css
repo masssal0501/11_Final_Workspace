@@ -1,0 +1,106 @@
+.review-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.review-message-box {
+    margin-top: 40px;
+    padding: 30px;
+    text-align: center;
+    background: var(--wf-gray-50);
+    border-radius: var(--wf-radius-sm);
+    color: var(--wf-text-secondary);
+}
+
+.review-question-box {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
+    box-shadow: var(--wf-shadow-sm);
+}
+
+.review-question-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--wf-text-primary);
+}
+
+.review-star-group {
+    display: flex;
+    gap: 6px;
+}
+
+.review-star-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--wf-gray-300);
+    padding: 0;
+    transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.review-star-btn:hover {
+    transform: scale(1.1);
+}
+
+.review-star-btn.selected {
+    color: #f5a623;
+}
+
+.review-star-display {
+    font-size: 28px;
+    color: #f5a623;
+    letter-spacing: 2px;
+}
+
+.review-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px 13px;
+    box-sizing: border-box;
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 9px;
+    resize: none; /* BUG-007: 텍스트박스 크기 고정 원칙과 동일하게 적용 */
+    outline: none;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-textarea:focus {
+    border-color: var(--wf-primary);
+    box-shadow: 0 0 0 3px rgba(23, 105, 213, 0.1);
+}
+
+.review-btn-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.review-view-box {
+    padding: 24px;
+    background: var(--wf-white);
+    border: 1px solid var(--wf-border);
+    border-radius: var(--wf-radius);
+    box-shadow: var(--wf-shadow-sm);
+}
+
+.review-content-display {
+    margin: 16px 0;
+    white-space: pre-wrap;
+    color: var(--wf-text-primary);
+    line-height: 1.6;
+}
+
+.review-photo-display {
+    max-width: 100%;
+    border-radius: var(--wf-radius-sm);
+    margin-top: 12px;
+}

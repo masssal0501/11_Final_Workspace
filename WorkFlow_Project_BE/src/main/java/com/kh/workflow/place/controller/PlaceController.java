@@ -43,6 +43,9 @@ public class PlaceController {
     @Autowired
     private PlaceService placeService;
 
+    @Autowired
+    private FileRenamePolicy fileRenamePolicy;
+
 
     @Operation(summary = "거점(장소) 등록", description = "워케이션 거점(장소) 정보를 등록합니다. 대표 이미지 파일을 함께 업로드할 수 있으며, ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
     @ApiResponses({
@@ -71,7 +74,7 @@ public class PlaceController {
                 && !file.isEmpty()) {
 
             String changeName =
-                    FileRenamePolicy.saveFile(
+                    fileRenamePolicy.saveFile(
                             file,
                             session,
                             "/resources/upload/hub/"
@@ -193,7 +196,7 @@ public class PlaceController {
                 && !file.isEmpty()) {
 
             String changeName =
-                    FileRenamePolicy.saveFile(
+                    fileRenamePolicy.saveFile(
                             file,
                             session,
                             "/resources/upload/hub/"
