@@ -45,8 +45,7 @@ public class TaskController {
 
 	@GetMapping("/workcation/{workcationNo}")
 	public ResponseEntity<?> selectWorkcationTasks(@PathVariable Integer workcationNo) {
-
-		return ResponseEntity.ok(taskService.selectWorkcationTasks(workcationNo));
+	    return ResponseEntity.ok(taskService.selectWorkcationTasks(workcationNo));
 	}
 
 	@PatchMapping("/{taskNo}/status")

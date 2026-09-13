@@ -172,204 +172,214 @@ function WorkcationDetailComponent() {
 
             <div className="wf-page-content">
 
-            <table className="workcation-form-table">
-                <tbody>
-                    <tr>
-                        <th>워케이션 제목</th>
-                        <td colSpan={5}>
-                            <input
-                                type="text"
-                                value={workcationTitle || ""}
-                                readOnly
-                            />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>신청기간</th>
-                        <td colSpan={3}>
-                            <div className="cell-box">
-                                <span>{startDate}</span> ~ <span>{endDate}</span>
-                            </div>
-                        </td>
-                        <th>신청현황</th>
-                        <td>
-                            <div className="cell-box status-cell-box">
-                                <span className={`wf-badge ${getStatusTone(approverState)}`}>{getStatusLabel(approverState)}</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>근무 목적</th>
-                        <td colSpan={5}>
-                            <div className="cell-box">
-                                {purpose || "등록 된 목적이 없습니다."}
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>지역</th>
-                        <td style={{ width: "190px" }}>
-                            <div className="cell-box">
-                                <span>{mainRegion} {subRegion} </span>
-                            </div>
-                        </td>
-                        <th>거점 유형</th>
-                        <td style={{ width: "320px" }}>
-                            <div className="cell-box radio-group-box">
-                                <label className="radio-btn">
-                                    <input type="radio"
-                                        checked={placeType === "office"}
-                                        disabled />
-                                    공유오피스
-                                </label>
-                                <label className="radio-btn">
-                                    <input type="radio"
-                                        checked={placeType === "accommodation"} disabled />
-                                    숙소
-                                </label>
-                            </div>
-                        </td>
-                        <th>신청인원</th>
-                        <td style={{ width: "110px" }}>
-                            <div className="cell-box">
-                                <span>{peopleCount}</span> 명
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th>{placeType === "office" ? "오피스 선택" : "숙소 선택"}</th>
-                        <td>
-                            <div className="cell-box">
-                                <span>{hubName || "선택된 장소 없음"}</span>
-                            </div>
-                        </td>
-                        <th>위치 주소</th>
-                        <td colSpan={3}>
-                            <div className="cell-box">
-                                {hubAddress || "주소 위치 정보 없음"}
-                            </div>
-                        </td>
-                    </tr>
-
-                    {option && option.map((opt, index) => (
-                        <tr key={index} >
-                            <th>{opt.type === `program`
-                                ? '프로그램' : opt.type === 'restaurant' ? '맛집' : '관광지'}</th>
-                            <td colSpan={2}>
+                <table className="workcation-form-table">
+                    <tbody>
+                        <tr>
+                            <th>워케이션 제목</th>
+                            <td colSpan={5}>
+                                <input
+                                    type="text"
+                                    value={workcationTitle || ""}
+                                    readOnly
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>신청기간</th>
+                            <td colSpan={3}>
                                 <div className="cell-box">
-                                    <span>{opt.hubName || "장소 명 없음"}</span>
+                                    <span>{startDate}</span> ~ <span>{endDate}</span>
                                 </div>
                             </td>
-                            <th>방문일</th>
-                            <td colSpan={2}>
-                                <div className="cell-box">
-                                    <span>{opt.visitDate || "-"}</span>
+                            <th>신청현황</th>
+                            <td>
+                                <div className="cell-box status-cell-box">
+                                    <span className={`wf-badge ${getStatusTone(approverState)}`}>{getStatusLabel(approverState)}</span>
                                 </div>
                             </td>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                        <tr>
+                            <th>근무 목적</th>
+                            <td colSpan={5}>
+                                <div className="cell-box">
+                                    {purpose || "등록 된 목적이 없습니다."}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>지역</th>
+                            <td style={{ width: "190px" }}>
+                                <div className="cell-box">
+                                    <span>{mainRegion} {subRegion} </span>
+                                </div>
+                            </td>
+                            <th>거점 유형</th>
+                            <td style={{ width: "320px" }}>
+                                <div className="cell-box radio-group-box">
+                                    <label className="radio-btn">
+                                        <input type="radio"
+                                            checked={placeType === "office"}
+                                            disabled />
+                                        공유오피스
+                                    </label>
+                                    <label className="radio-btn">
+                                        <input type="radio"
+                                            checked={placeType === "accommodation"} disabled />
+                                        숙소
+                                    </label>
+                                </div>
+                            </td>
+                            <th>신청인원</th>
+                            <td style={{ width: "110px" }}>
+                                <div className="cell-box">
+                                    <span>{peopleCount}</span> 명
+                                </div>
+                            </td>
+                        </tr>
 
-            <div className="task-plan-container">
-                <h3 className="task-plan-title">업무 계획</h3>
-                <div className="task-plan-split-container">
-                    <div className="task-plan-box">
-                        <ul className="task-plan-list">
-                            {planList.map((item, index) => (
-                                <li className="task-item-row" key={item.id || index}>
-                                    <span className="task-name">{item.taskName}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                        <tr>
+                            <th>{placeType === "office" ? "오피스 선택" : "숙소 선택"}</th>
+                            <td>
+                                <div className="cell-box">
+                                    <span>{hubName || "선택된 장소 없음"}</span>
+                                </div>
+                            </td>
+                            <th>위치 주소</th>
+                            <td colSpan={3}>
+                                <div className="cell-box">
+                                    {hubAddress || "주소 위치 정보 없음"}
+                                </div>
+                            </td>
+                        </tr>
 
-                    <div className="task-plan-box right-box">
-                        <ul className="task-plan-list">
-                            {planList.map((item, index) => (
-                                <li className="task-item-row" key={item.id || index}>
-                                    <span className="task-days">{item.days}일</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                        {option && option.map((opt, index) => (
+                            <tr key={index} >
+                                <th>{opt.type === `program`
+                                    ? '프로그램' : opt.type === 'restaurant' ? '맛집' : '관광지'}</th>
+                                <td colSpan={2}>
+                                    <div className="cell-box">
+                                        <span>{opt.hubName || "장소 명 없음"}</span>
+                                    </div>
+                                </td>
+                                <th>방문일</th>
+                                <td colSpan={2}>
+                                    <div className="cell-box">
+                                        <span>{opt.visitDate || "-"}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
 
-                    {/* 업무 완료 확인(MANAGER/ADMIN)용 진행률/완료 여부 - task_no가 있는
-                        (실제 Task 레코드로 생성된) 업무에 대해서만 표시 가능하다 */}
-                    <div className="task-plan-box right-box">
-                        <ul className="task-plan-list">
-                            {planList.map((item, index) => (
-                                <li className="task-item-row" key={item.id || index}>
-                                    <span className="task-days">
+                <div className="task-plan-container">
+                    <h3 className="task-plan-title">업무 계획</h3>
+
+                    <div className="detail-task-plan-container">
+
+                        <div className="detail-task-box detail-task-name-box">
+                            <ul className="detail-task-list">
+                                {planList.map((item, index) => (
+                                    <li
+                                        className="detail-task-row"
+                                        key={item.id || index}
+                                    >
+                                        {item.taskName}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="detail-task-box detail-task-days-box">
+                            <ul className="detail-task-list">
+                                {planList.map((item, index) => (
+                                    <li
+                                        className="detail-task-row"
+                                        key={item.id || index}
+                                    >
+                                        {item.days}일
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="detail-task-box detail-task-progress-box">
+                            <ul className="detail-task-list">
+                                {planList.map((item, index) => (
+                                    <li
+                                        className="detail-task-row"
+                                        key={item.id || index}
+                                    >
                                         {item.taskNo
-                                            ? `${item.status === "Y" ? "완료" : "진행중"} (${item.progress ?? 0}%)`
+                                            ? `${item.status === "Y"
+                                                ? "완료"
+                                                : "진행중"} (${item.progress ?? 0}%)`
                                             : "-"}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
                     </div>
                 </div>
-            </div>
+                <div className="all-price-container">
+                    <div className="price-box-sync">
+                        <div>
+                            <h3>지출 내역</h3>
+                            <div className="price-row-sync">
+                                <span>{placeType === "office" ? "오피스 이용료" : "숙박비"}</span>
+                                <span>{Number(hubPrice).toLocaleString()}원</span>
+                            </div>
+                            <div className="price-row-sync">
+                                <span>프로그램 활동비</span>
+                                <span>{Number(optionPrice).toLocaleString()}원</span>
+                            </div>
+                            <div className="price-row-sync">
+                                <span>교통비</span>
+                                <span>{Number(transportText).toLocaleString()}원</span>
+                            </div>
+                            <div className="price-row-sync">
+                                <span>기타</span>
+                                <span>{Number(etcText).toLocaleString()}원</span>
+                            </div>
+                        </div>
 
-            <div className="all-price-container">
-                <div className="price-box-sync">
-                    <div>
-                        <h3>지출 내역</h3>
-                        <div className="price-row-sync">
-                            <span>{placeType === "office" ? "오피스 이용료" : "숙박비"}</span>
-                            <span>{Number(hubPrice).toLocaleString()}원</span>
-                        </div>
-                        <div className="price-row-sync">
-                            <span>프로그램 활동비</span>
-                            <span>{Number(optionPrice).toLocaleString()}원</span>
-                        </div>
-                        <div className="price-row-sync">
-                            <span>교통비</span>
-                            <span>{Number(transportText).toLocaleString()}원</span>
-                        </div>
-                        <div className="price-row-sync">
-                            <span>기타</span>
-                            <span>{Number(etcText).toLocaleString()}원</span>
+                        <div className="box-bottom-area">
+                            <hr className="price-divider" />
+                            <div className="price-row-sync total-row">
+                                <span>예상 총액</span>
+                                <strong>{Number(totalCost).toLocaleString()}원</strong>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="box-bottom-area">
-                        <hr className="price-divider" />
-                        <div className="price-row-sync total-row">
-                            <span>예상 총액</span>
-                            <strong>{Number(totalCost).toLocaleString()}원</strong>
+                    <div className="price-box-sync">
+                        <div>
+                            <h3>지원금 혜택</h3>
+                            <div className="price-row-sync">
+                                <span>예상 회사지원금</span>
+                                <span>{Number(companySupport).toLocaleString()}원</span>
+                            </div>
+                            <div className="price-row-sync">
+                                <span>예상 지자체 지원금</span>
+                                <span>{Number(localGovSupport).toLocaleString()}원</span>
+                            </div>
+                            <div className="price-row-sync total-row">
+                                <span>예상 총 지원금</span>
+                                <span>{Number(totalSupport).toLocaleString()}원</span>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div className="price-box-sync">
-                    <div>
-                        <h3>지원금 혜택</h3>
-                        <div className="price-row-sync">
-                            <span>예상 회사지원금</span>
-                            <span>{Number(companySupport).toLocaleString()}원</span>
+                        <div className="box-bottom-area">
+                            <hr className="price-divider" />
+                            <div className="price-row-sync">
+                                <span>예상  개인 부담금</span>
+                                <strong>{Number(personalCost).toLocaleString()}원</strong>
+                            </div>
+                            <p className="notice-text-sync">
+                                ※ 증빙 및 승인에 따라 실제 지급액이 달라질 수 있습니다.
+                            </p>
                         </div>
-                        <div className="price-row-sync">
-                            <span>예상 지자체 지원금</span>
-                            <span>{Number(localGovSupport).toLocaleString()}원</span>
-                        </div>
-                        <div className="price-row-sync total-row">
-                            <span>예상 총 지원금</span>
-                            <span>{Number(totalSupport).toLocaleString()}원</span>
-                        </div>
-                    </div>
-
-                    <div className="box-bottom-area">
-                        <hr className="price-divider" />
-                        <div className="price-row-sync">
-                            <span>예상  개인 부담금</span>
-                            <strong>{Number(personalCost).toLocaleString()}원</strong>
-                        </div>
-                        <p className="notice-text-sync">
-                            ※ 증빙 및 승인에 따라 실제 지급액이 달라질 수 있습니다.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -399,8 +409,7 @@ function WorkcationDetailComponent() {
 
                 </div>
             )}
-            </div>
-        </main>
+        </main >
     );
 }
 

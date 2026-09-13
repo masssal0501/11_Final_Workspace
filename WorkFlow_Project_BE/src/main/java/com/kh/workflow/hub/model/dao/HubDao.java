@@ -132,9 +132,8 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
 	List<Hub> findByMainRegionAndSubRegionAndHubType(@Param("mainRegion") String mainRegion,
 			@Param("subRegion") String subRegion, @Param("hubType") int hubType);
 
-	// BUG: DISTINCT가 없어 거점이 여러 개인 지역이 드롭다운에 중복 노출되던 문제 수정
-	// BUG-010: "제주"/"제주도"처럼 같은 지역의 서로 다른 표기를 하나의 표시명으로 정규화해서 반환
-	@Query("SELECT DISTINCT " + REGION_NORMALIZE_EXPR + " FROM Hub h")
+// mainRegion 중복 제거 및 NULL 제외
+	@Query("SELECT DISTINCT h.mainRegion FROM Hub h WHERE h.mainRegion IS NOT NULL ORDER BY h.mainRegion")
 	List<String> selectMainRegionList();
 
     // BUG-011: 직원이 워케이션을 2건 이상 신청하면 이 쿼리가 여러 건을 반환해
@@ -155,8 +154,7 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     		""")
 	List<CurrentHubDto> selectHubAddress(@Param("empNo") int empNo);
 
-    // BUG-010: 프런트에서는 정규화된 표시명(예: "제주도")으로 요청이 오므로, 실제 저장된
-    // 표기("제주"/"제주도")와 무관하게 매칭되도록 좌변도 동일하게 정규화한다.
-    @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE " + REGION_NORMALIZE_EXPR + " = :mainRegion")
-	List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
+// 동일 지역의 허브가 여러 개 존재해 mainRegion/subRegion이 중복 조회되므로 DISTINCT로 중복 제거
+    @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE h.mainRegion = :mainRegion AND h.subRegion IS NOT NULL ORDER BY h.subRegion")
+    List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
 }

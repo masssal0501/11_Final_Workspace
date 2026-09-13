@@ -20,7 +20,7 @@ export const getWorkcationTasks = async (workcationNo) => {
     return response.data;
 };
 
-//업무상세 내역 승인
+// 업무상세 내역 승인
 export const updateTaskStatus = async (taskNo, status, content = "") => {
     const response = await axiosInstance.patch(
         `/task/${taskNo}/status`,
@@ -28,4 +28,4 @@ export const updateTaskStatus = async (taskNo, status, content = "") => {
     );
 
     return response.data;
-}
+};

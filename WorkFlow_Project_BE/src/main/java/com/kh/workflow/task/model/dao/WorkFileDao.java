@@ -9,5 +9,6 @@ import com.kh.workflow.task.model.vo.WorkFile;
 public interface WorkFileDao
         extends JpaRepository<WorkFile, Integer> {
 
-    List<WorkFile> findByTaskTaskNo(Integer taskNo);
+	List<WorkFile> findByWorkWorkNo(Integer workNo);
+	
 }

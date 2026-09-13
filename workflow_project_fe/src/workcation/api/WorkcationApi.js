@@ -148,3 +148,22 @@ export const downloadWorkFile = async (taskFileNo, originName) => {
 
     window.URL.revokeObjectURL(url);
 };
+
+export const getWorkFilePreview = async (taskFileNo) => {
+
+    const response =
+        await axiosInstance.get(
+            `/workcation/file/${taskFileNo}/download`,
+            {
+                responseType: "blob"
+            }
+        );
+
+    return response.data;
+};
+
+
+export const deleteWorkFile = async (taskFileNo) => {
+    const response = await axiosInstance.delete(`/workcation/file/${taskFileNo}`);
+    return response.data;
+};

@@ -316,7 +316,7 @@ function WorkcationEnrollFormComponent() {
     }, 0);
 
     const totalCost = hubPrice + optionsPrice + Number(transportText || 0) + Number(etcText || 0);
-    
+
     // 예상 최소 지자체 지원금과 회사 지원금을 반영한 총 지원금/개인부담금 계산
     const appliedCompanySupport = Math.min(companySupport, Math.max(0, totalCost - localGovSupport));
     const totalExpectedSupport = localGovSupport + appliedCompanySupport;
@@ -327,6 +327,7 @@ function WorkcationEnrollFormComponent() {
         if (!startDate || !endDate) return alert("신청기간 입력");
         if (!mainRegion || !subRegion) return alert("지역선택");
         if (!selectHubNo) return alert("오피스 또는 숙소 선택");
+
 
         const insertworkcationData = {
             workcationTitle,
@@ -360,13 +361,22 @@ function WorkcationEnrollFormComponent() {
 
         try {
             const response = await enrollWorkcation(insertworkcationData);
+
             if (response.status === 200 || response.status === 201) {
                 alert("신청이 완료되었습니다.");
                 navigate("/workcation/list");
             }
-        } catch (err) {
-            console.error("실패", err);
-            alert("오류가 발생했습니다.");
+
+        } catch (error) {
+
+            console.error("신청 등록 중 오류 발생:", error);
+            console.error("서버 응답:", error.response?.data);
+            console.error("상태 코드:", error.response?.status);
+
+            alert(
+                error.response?.data ||
+                "신청 등록 중 오류가 발생했습니다."
+            );
         }
     };
 

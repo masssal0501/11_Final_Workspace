@@ -63,5 +63,8 @@ public interface TaskDao extends JpaRepository<Task, Integer> {
 	Page<Task> findAllByOrderByTaskNoDesc(Pageable pageable);
 
 	Page<Task> findByTaskTitleContainingOrderByTaskNoDesc(String keyword, Pageable pageable);
+	
+	
+	
 
 }

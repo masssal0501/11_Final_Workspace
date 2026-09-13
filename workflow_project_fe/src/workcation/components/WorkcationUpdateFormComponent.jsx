@@ -593,17 +593,27 @@ function WorkcationUpdateFormComponent() {
 
                 <div className="task-paln-input">
                     <div className="task-plan-box">
-                        <input type="text"
+                        <input
+                            type="text"
                             placeholder="업무명"
                             value={taskName}
-                            onChange={(e) => setTaskName(e.target.value)} />
-                        <input type="number"
+                            onChange={(e) => setTaskName(e.target.value)}
+                        />
+
+                        <input
+                            type="number"
                             placeholder="예상기간"
                             value={days}
-                            onChange={(e) => setDays(e.target.value)} />일
-                        <button type="button"
+                            onChange={(e) => setDays(e.target.value)}
+                        />
+
+                        <span className="day-unit">일</span>
+
+                        <button
+                            type="button"
                             className="add-btn"
-                            onClick={handleAddPlan}>
+                            onClick={handleAddPlan}
+                        >
                             + 추가
                         </button>
                     </div>

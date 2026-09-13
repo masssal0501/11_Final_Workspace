@@ -39,7 +39,7 @@ public class AmountItem {
     private String itemType;
 
     @Schema(description = "항목 금액")
-    @Column(name = "amount", nullable = false)
+    @Column(name = "item_amount", nullable = false)
     private Integer itemAmount;
 
     @Schema(description = "항목별 결재 상태(A승인, C취소, H보류, J반려, R검토)")

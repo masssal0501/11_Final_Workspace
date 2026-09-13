@@ -39,6 +39,7 @@ public interface WorkcationService {
 
 	void uploadWorkFile(Integer workcationNo, MultipartFile file);
 
+	void deleteWorkFile(Integer taskFileNo);
 	// TODO-N03: 워케이션 최종 완료 처리(MANAGER/ADMIN 전용, 전체 업무 완료 후)
 	void completeWorkcation(Integer workcationNo, Employee loginEmployee);
 

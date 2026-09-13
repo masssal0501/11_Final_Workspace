@@ -75,25 +75,17 @@ public class WorkcationController {
 
 	// 워케이션 목록 조회 (STAFF는 본인 신청 건만, MANAGER는 소속 부서 신청 건만, ADMIN은 전체 조회)
 	@Operation(summary = "워케이션 목록 조회", description = "지역/조건/키워드로 검색한 워케이션 신청 목록을 페이징 조회합니다. STAFF는 본인이 신청한 건만, MANAGER는 소속 부서의 신청 건만, ADMIN은 전체를 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/list")
 	public ResponseEntity<?> selectWorkcationList(
-			@Parameter(description = "조회할 페이지 번호(1부터 시작)", example = "1")
-			@RequestParam(value = "cpage", defaultValue = "1") int currentPage,
-			@Parameter(description = "검색 조건", example = "all")
-			@RequestParam(value = "condition", defaultValue = "all") String condition,
-			@Parameter(description = "검색 키워드(선택)", example = "")
-			@RequestParam(value = "keyword", defaultValue = "") String keyword,
-			@Parameter(description = "메인 지역 필터(선택)", example = "제주도")
-			@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
-			@Parameter(description = "세부 지역 필터(선택)", example = "서귀포시")
-			@RequestParam(value = "subRegion", defaultValue = "") String subRegion,
-			@Parameter(description = "검색 대상 유형", example = "all")
-			@RequestParam(value = "searchType", defaultValue = "all") String searchType,
+			@Parameter(description = "조회할 페이지 번호(1부터 시작)", example = "1") @RequestParam(value = "cpage", defaultValue = "1") int currentPage,
+			@Parameter(description = "검색 조건", example = "all") @RequestParam(value = "condition", defaultValue = "all") String condition,
+			@Parameter(description = "검색 키워드(선택)", example = "") @RequestParam(value = "keyword", defaultValue = "") String keyword,
+			@Parameter(description = "메인 지역 필터(선택)", example = "제주도") @RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
+			@Parameter(description = "세부 지역 필터(선택)", example = "서귀포시") @RequestParam(value = "subRegion", defaultValue = "") String subRegion,
+			@Parameter(description = "검색 대상 유형", example = "all") @RequestParam(value = "searchType", defaultValue = "all") String searchType,
 			Authentication authentication) {
 
 		if (authentication == null || !authentication.isAuthenticated()
@@ -144,21 +136,15 @@ public class WorkcationController {
 	}
 
 	@Operation(summary = "내 워케이션 목록 조회", description = "로그인한 본인이 신청한 워케이션 목록을 지역/검색 조건으로 페이징 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/mylist")
 	public ResponseEntity<?> selectMyWorkcationList(
-			@Parameter(description = "조회할 페이지 번호(1부터 시작)", example = "1")
-			@RequestParam(value = "cpage", defaultValue = "1") int currentPage,
-			@Parameter(description = "메인 지역 필터(선택)", example = "제주도")
-			@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
-			@Parameter(description = "세부 지역 필터(선택)", example = "서귀포시")
-			@RequestParam(value = "subRegion", defaultValue = "") String subRegion,
-			@Parameter(description = "검색 대상 유형", example = "all")
-			@RequestParam(value = "searchType", defaultValue = "all") String searchType,
+			@Parameter(description = "조회할 페이지 번호(1부터 시작)", example = "1") @RequestParam(value = "cpage", defaultValue = "1") int currentPage,
+			@Parameter(description = "메인 지역 필터(선택)", example = "제주도") @RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
+			@Parameter(description = "세부 지역 필터(선택)", example = "서귀포시") @RequestParam(value = "subRegion", defaultValue = "") String subRegion,
+			@Parameter(description = "검색 대상 유형", example = "all") @RequestParam(value = "searchType", defaultValue = "all") String searchType,
 			Authentication authentication) {
 
 		if (authentication == null || !authentication.isAuthenticated()
@@ -201,15 +187,12 @@ public class WorkcationController {
 	}
 
 	@Operation(summary = "내 워케이션 상세 조회", description = "로그인한 본인이 신청한 워케이션의 상세 정보를 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/mydetail/{workcationNo}")
 	public ResponseEntity<?> getMyWorkcationDetail(
-			@Parameter(description = "조회할 워케이션 번호", example = "1", required = true)
-			@PathVariable Integer workcationNo,
+			@Parameter(description = "조회할 워케이션 번호", example = "1", required = true) @PathVariable Integer workcationNo,
 			Authentication authentication) {
 
 		if (authentication == null || !authentication.isAuthenticated()
@@ -228,33 +211,42 @@ public class WorkcationController {
 	}
 
 	@Operation(summary = "워케이션 신청용 거점 목록 조회", description = "워케이션 신청 화면에서 지역/유형 조건으로 선택 가능한 거점(hub) 목록을 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/hub/list")
-	public ResponseEntity<List<com.kh.workflow.hub.model.vo.Hub>> selectHubList(
-			@Parameter(description = "메인 지역 필터(선택)", example = "제주도")
-			@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
-			@Parameter(description = "세부 지역 필터(선택)", example = "서귀포시")
+	public ResponseEntity<?> selectHubList(@RequestParam(value = "mainRegion", defaultValue = "") String mainRegion,
 			@RequestParam(value = "subRegion", defaultValue = "") String subRegion,
-			@Parameter(description = "거점 유형 코드(0: 전체)", example = "0")
 			@RequestParam(value = "hubType", defaultValue = "0") int hubType) {
 
-		// hubDao를 이용해 DB의 거점(workcation_hub) 테이블을 조회합니다.
 		List<com.kh.workflow.hub.model.vo.Hub> list = hubDao.findByMainRegionAndSubRegionAndHubType(mainRegion,
 				subRegion, hubType);
 
-		return ResponseEntity.ok(list);
+		List<Map<String, Object>> result = list.stream().map(hub -> {
+			Map<String, Object> map = new HashMap<>();
+
+			map.put("hubNo", hub.getHubNo());
+			map.put("hubName", hub.getHubName());
+			map.put("hubAddress", hub.getHubAddress());
+			map.put("hubType", hub.getHubType());
+			map.put("mainRegion", hub.getMainRegion());
+			map.put("subRegion", hub.getSubRegion());
+			map.put("price", hub.getPrice());
+			map.put("hubStatus", hub.getHubStatus());
+			map.put("maxCapacity", hub.getMaxCapacity());
+			map.put("phone", hub.getPhone());
+			map.put("description", hub.getDescription());
+
+			return map;
+		}).toList();
+
+		return ResponseEntity.ok(result);
 	}
 
 	// 메인지역 드롭에 따른 목록 조회
 	@Operation(summary = "메인 지역 드롭다운 목록 조회", description = "워케이션 신청/검색 화면의 메인 지역 드롭다운을 채우기 위한 지역명 목록을 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/hub/mainRegion")
 	public ResponseEntity<List<String>> getMainRegionList() {
@@ -264,57 +256,72 @@ public class WorkcationController {
 
 	// 상세지역 드롭에 따른 목록 조회
 	@Operation(summary = "세부 지역 드롭다운 목록 조회", description = "선택한 메인 지역에 속한 세부 지역명 목록을 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/hub/subRegion")
 	public ResponseEntity<List<String>> getSubRegionList(
-			@Parameter(description = "세부 지역을 조회할 메인 지역명", example = "제주도", required = true)
-			@RequestParam String mainRegion) {
+			@Parameter(description = "세부 지역을 조회할 메인 지역명", example = "제주도", required = true) @RequestParam String mainRegion) {
 		List<String> list = hubDao.selectSubRegionList(mainRegion);
 		return ResponseEntity.ok(list);
 	}
 
 	// 워케이션 신청등록 폼
 	@Operation(summary = "워케이션 신청 등록", description = "선택한 거점/기간 등 정보를 바탕으로 새 워케이션 신청서를 등록합니다. 관리자(ADMIN) 계정은 신청할 수 없습니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "신청 완료"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
-		@ApiResponse(responseCode = "403", description = "관리자 계정은 신청 불가", content = @Content)
-	})
-	@SecurityRequirement(name = "JWT")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "신청 완료"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+			@ApiResponse(responseCode = "403", description = "관리자 계정은 신청 불가", content = @Content) })
 	@PostMapping("/hub/enrollForm")
-	public ResponseEntity<String> insertWorkcationEnrollForm(
-				@Parameter(description = "워케이션 신청 정보(거점, 기간 등 키-값 쌍)", required = true)
-				@RequestBody Map<String, Object> paramMap,
-				Authentication authentication) {
+	public ResponseEntity<String> insertWorkcationEnrollForm(@RequestBody Map<String, Object> paramMap,
+			Authentication authentication) {
 
-		String empId = (String) authentication.getPrincipal();
+		try {
 
-		Employee employee = employeeDao.findByEmpId(empId)
-				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+			System.out.println("===== 워케이션 신청 요청 시작 =====");
+			System.out.println("받은 데이터 : " + paramMap);
 
-		// 관리자는 워케이션을 직접 신청하지 않는다 (프런트엔드 라우트도 ADMIN에게는 노출되지 않음)
-		if ("ADMIN".equals(employee.getAuthCode())) {
+			String empId = (String) authentication.getPrincipal();
 
-			return ResponseEntity.status(403).body("관리자계정으로는 신청할 수 없습니다.");
+			System.out.println("로그인 empId : " + empId);
+
+			Employee employee = employeeDao.findByEmpId(empId)
+					.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+			System.out.println("로그인 empNo : " + employee.getEmpNo());
+			System.out.println("권한 : " + employee.getAuthCode());
+
+			if ("ADMIN".equals(employee.getAuthCode())) {
+				return ResponseEntity.status(403).body("관리자계정으로는 신청할 수 없습니다.");
+			}
+
+			int empNo = employee.getEmpNo();
+
+			paramMap.put("empNo", empNo);
+
+			System.out.println("서비스 전달 데이터 : " + paramMap);
+
+			workcationService.insertWorkcationEnrollForm(paramMap);
+
+			System.out.println("===== 워케이션 신청 성공 =====");
+
+			return ResponseEntity.ok("신청 완료");
+
+		} catch (Exception e) {
+
+			System.err.println("===== 워케이션 신청 실패 =====");
+			System.err.println("에러 타입 : " + e.getClass().getName());
+			System.err.println("에러 메시지 : " + e.getMessage());
+
+			e.printStackTrace();
+
+			return ResponseEntity.status(500).body("신청 실패 : " + e.getMessage());
 		}
-
-		int empNo = employee.getEmpNo();
-		paramMap.put("empNo", empNo);
-
-		workcationService.insertWorkcationEnrollForm(paramMap);
-		return ResponseEntity.ok("신청 완료");
 	}
 
 	// 회사 지원금 정보 조회 API추가
 	@Operation(summary = "회사 지원금 정보 조회", description = "워케이션 신청 시 안내되는 회사 지원금(1인당 지원 한도 등) 정보를 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/amount/supportInfo")
 	public ResponseEntity<Map<String, Object>> getAmountSupportInfo() {
@@ -324,15 +331,12 @@ public class WorkcationController {
 
 	// 워케이션 상세 조회 + 로그인 사용자 기준 수정/삭제 가능 여부 계산
 	@Operation(summary = "워케이션 상세 조회", description = "워케이션 번호로 신청/승인/거점 등 상세 정보를 조회합니다. 응답에 로그인한 사용자 기준 수정(canUpdate)/삭제(canDelete) 가능 여부가 포함됩니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/detail/{workcationNo}")
 	public ResponseEntity<Map<String, Object>> getWorkcationDetail(
-			@Parameter(description = "조회할 워케이션 번호", example = "1", required = true)
-			@PathVariable("workcationNo") Integer workcationNo,
+			@Parameter(description = "조회할 워케이션 번호", example = "1", required = true) @PathVariable("workcationNo") Integer workcationNo,
 			Authentication authentication) {
 
 		Map<String, Object> detail = workcationService.getWorkcationDetail(workcationNo);
@@ -379,18 +383,14 @@ public class WorkcationController {
 
 	// 워케이션 수정 (실제 수정 권한 검사 포함)
 	@Operation(summary = "워케이션 정보 수정", description = "워케이션 신청 정보를 수정합니다. STAFF/MANAGER는 본인 신청 건만, ADMIN은 모든 건을 수정할 수 있습니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "수정완료"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
-		@ApiResponse(responseCode = "403", description = "수정 권한 없음", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "수정완료"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+			@ApiResponse(responseCode = "403", description = "수정 권한 없음", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@PutMapping("/update/{workcationNo}")
 	public ResponseEntity<?> update(
-			@Parameter(description = "수정할 워케이션 번호", example = "1", required = true)
-			@PathVariable Integer workcationNo,
-			@Parameter(description = "수정할 워케이션 정보(키-값 쌍)", required = true)
-			@RequestBody Map<String, Object> updateData,
+			@Parameter(description = "수정할 워케이션 번호", example = "1", required = true) @PathVariable Integer workcationNo,
+			@Parameter(description = "수정할 워케이션 정보(키-값 쌍)", required = true) @RequestBody Map<String, Object> updateData,
 			Authentication authentication) {
 
 		String empId = (String) authentication.getPrincipal();
@@ -415,16 +415,13 @@ public class WorkcationController {
 
 	// 워케이션 삭제 (실제 삭제 권한 검사 포함)
 	@Operation(summary = "워케이션 삭제", description = "워케이션 신청 건을 삭제합니다. STAFF/MANAGER는 본인 신청 건만 삭제할 수 있고, ADMIN은 삭제할 수 없습니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "삭제완료"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
-		@ApiResponse(responseCode = "403", description = "삭제 권한 없음", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "삭제완료"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+			@ApiResponse(responseCode = "403", description = "삭제 권한 없음", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@DeleteMapping("/delete/{workcationNo}")
 	public ResponseEntity<?> deleteWorkcation(
-			@Parameter(description = "삭제할 워케이션 번호", example = "1", required = true)
-			@PathVariable("workcationNo") Integer workcationNo,
+			@Parameter(description = "삭제할 워케이션 번호", example = "1", required = true) @PathVariable("workcationNo") Integer workcationNo,
 			Authentication authentication) {
 
 		String empId = (String) authentication.getPrincipal();
@@ -492,23 +489,16 @@ public class WorkcationController {
 	}
 
 	@Operation(summary = "워케이션 업무 진행 상황 저장", description = "워케이션 중 수행한 업무의 진행률/제목/내용을 저장하고, 증빙 파일을 함께 첨부할 수 있습니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "업무 진행 상황 저장 완료"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "업무 진행 상황 저장 완료"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@PutMapping("/task/{taskNo}")
 	public ResponseEntity<?> updateTask(
-			@Parameter(description = "업무 번호", example = "1", required = true)
-			@PathVariable Integer taskNo,
-			@Parameter(description = "업무 진행률(%)", example = "50", required = true)
-			@RequestParam Integer progress,
-			@Parameter(description = "업무 제목", example = "1주차 업무 보고서", required = true)
-			@RequestParam String title,
-			@Parameter(description = "업무 내용", example = "이번 주 진행한 업무 내용입니다.", required = true)
-			@RequestParam String content,
-			@Parameter(description = "업무 증빙 첨부파일(선택)")
-			@RequestParam(required = false) MultipartFile file,
+			@Parameter(description = "업무 번호", example = "1", required = true) @PathVariable Integer taskNo,
+			@Parameter(description = "업무 진행률(%)", example = "50", required = true) @RequestParam Integer progress,
+			@Parameter(description = "업무 제목", example = "1주차 업무 보고서", required = true) @RequestParam String title,
+			@Parameter(description = "업무 내용", example = "이번 주 진행한 업무 내용입니다.", required = true) @RequestParam String content,
+			@Parameter(description = "업무 증빙 첨부파일(선택)") @RequestParam(required = false) MultipartFile file,
 			Authentication authentication) {
 
 		// BUG-N05: 이 API는 /task/**(TaskController, MANAGER/ADMIN 전용 업무 게시판)와는
@@ -521,8 +511,7 @@ public class WorkcationController {
 		Employee loginEmployee = employeeDao.findByEmpId(empId)
 				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-		Task task = taskDao.findById(taskNo)
-				.orElseThrow(() -> new RuntimeException("업무 정보를 찾을 수 없습니다."));
+		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무 정보를 찾을 수 없습니다."));
 
 		Employee owner = task.getWork().getWorkcationInfo().getEmployee();
 
@@ -554,15 +543,12 @@ public class WorkcationController {
 
 	// 워케이션 일정(내 일정/부서 일정) 조회
 	@Operation(summary = "워케이션 일정 조회", description = "선택한 날짜 기준으로 로그인한 사용자 본인의 일정과 소속 부서의 일정을 함께 조회합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/schedule")
 	public ResponseEntity<?> getWorkcationSchedule(
-			@Parameter(description = "조회할 날짜(yyyy-MM-dd)", example = "2026-09-10", required = true)
-			@RequestParam String date,
+			@Parameter(description = "조회할 날짜(yyyy-MM-dd)", example = "2026-09-10", required = true) @RequestParam String date,
 			Authentication authentication) {
 
 		String empId = (String) authentication.getPrincipal();
@@ -578,16 +564,13 @@ public class WorkcationController {
 
 	// 업무 증빙/첨부파일 다운로드
 	@Operation(summary = "업무 첨부파일 다운로드", description = "업무 진행 상황 저장 시 첨부한 파일을 다운로드합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "다운로드 성공"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
-		@ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "다운로드 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+			@ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@GetMapping("/file/{taskFileNo}/download")
 	public ResponseEntity<Resource> downloadWorkFile(
-			@Parameter(description = "다운로드할 첨부파일 번호", example = "1", required = true)
-			@PathVariable Integer taskFileNo,
+			@Parameter(description = "다운로드할 첨부파일 번호", example = "1", required = true) @PathVariable Integer taskFileNo,
 			Authentication authentication) {
 
 		WorkFile workFile = workFileDao.findById(taskFileNo)
@@ -600,7 +583,7 @@ public class WorkcationController {
 		Employee loginEmployee = employeeDao.findByEmpId(empId)
 				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-		Employee fileOwner = workFile.getTask().getWork().getWorkcationInfo().getEmployee();
+		Employee fileOwner = workFile.getWork().getWorkcationInfo().getEmployee();
 
 		if (!canAccessEmployeeScope(fileOwner, loginEmployee)) {
 			throw new AccessDeniedException("해당 첨부파일에 접근할 권한이 없습니다.");
@@ -623,17 +606,14 @@ public class WorkcationController {
 	// TODO-N03: 워케이션 최종 완료 처리 - 모든 업무가 완료(Y) 상태인 승인된
 	// 워케이션을 관리자/부서장이 확인 후 최종 완료(D) 상태로 확정한다.
 	@Operation(summary = "워케이션 최종 완료 처리", description = "승인된 워케이션의 모든 업무가 완료 상태일 때, 관리자 또는 소속 부서장이 최종 완료로 확정합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "완료 처리 성공"),
-		@ApiResponse(responseCode = "400", description = "완료 처리 조건 미충족(미승인/업무 미완료 등)", content = @Content),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
-		@ApiResponse(responseCode = "403", description = "완료 처리 권한 없음", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "완료 처리 성공"),
+			@ApiResponse(responseCode = "400", description = "완료 처리 조건 미충족(미승인/업무 미완료 등)", content = @Content),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+			@ApiResponse(responseCode = "403", description = "완료 처리 권한 없음", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@PatchMapping("/{workcationNo}/complete")
 	public ResponseEntity<?> completeWorkcation(
-			@Parameter(description = "완료 처리할 워케이션 번호", example = "1", required = true)
-			@PathVariable Integer workcationNo,
+			@Parameter(description = "완료 처리할 워케이션 번호", example = "1", required = true) @PathVariable Integer workcationNo,
 			Authentication authentication) {
 
 		String empId = (String) authentication.getPrincipal();
@@ -648,17 +628,13 @@ public class WorkcationController {
 
 	// 워케이션 업무 첨부파일 등록
 	@Operation(summary = "워케이션 업무 첨부파일 등록", description = "워케이션에 속한 업무의 증빙 파일을 추가로 업로드합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "첨부파일 등록 완료"),
-		@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content)
-	})
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "첨부파일 등록 완료"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content) })
 	@SecurityRequirement(name = "JWT")
 	@PostMapping("/{workcationNo}/file")
 	public ResponseEntity<?> uploadWorkFile(
-			@Parameter(description = "워케이션 번호", example = "1", required = true)
-			@PathVariable Integer workcationNo,
-			@Parameter(description = "업로드할 첨부파일", required = true)
-			@RequestParam MultipartFile file,
+			@Parameter(description = "워케이션 번호", example = "1", required = true) @PathVariable Integer workcationNo,
+			@Parameter(description = "업로드할 첨부파일", required = true) @RequestParam MultipartFile file,
 			Authentication authentication) {
 
 		// BUG-N11: 소유권 검증 없이 누구나 타인의 워케이션에 첨부파일을 등록할 수 있었다.
@@ -677,6 +653,12 @@ public class WorkcationController {
 		workcationService.uploadWorkFile(workcationNo, file);
 
 		return ResponseEntity.ok("첨부파일 등록 완료");
+	}
+
+	@DeleteMapping("/file/{taskFileNo}")
+	public ResponseEntity<?> deleteWorkFile(@PathVariable Integer taskFileNo) {
+		workcationService.deleteWorkFile(taskFileNo);
+		return ResponseEntity.ok("첨부파일 삭제 완료");
 	}
 
 }
