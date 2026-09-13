@@ -15,6 +15,13 @@ export default function NoticeUpdate() {
         noticeStatus: 'VISIBLE'
     });
 
+    // 기존 첨부파일 (읽기 전용 표시용)
+    const [existingFiles, setExistingFiles] = useState([]);
+
+    // 새로 추가할 첨부파일
+    const [newFiles, setNewFiles] = useState([]);
+
+
     // =========================================================
     // 공지사항 조회
     // =========================================================
@@ -23,8 +30,7 @@ export default function NoticeUpdate() {
 
         try {
 
-            const data =
-                await noticeApi.getNoticeDetail(noticeNo);
+            const data = await noticeApi.getNoticeForEdit(noticeNo);
 
             console.log(
                 '공지사항 수정 조회:',
@@ -41,6 +47,10 @@ export default function NoticeUpdate() {
                 noticeStatus:
                     data.noticeStatus || 'VISIBLE'
             });
+
+            setExistingFiles(
+                data.fileList || []
+            );
 
         } catch (error) {
 
@@ -71,6 +81,65 @@ export default function NoticeUpdate() {
         }
 
     }, [noticeNo]);
+
+
+    // =========================================================
+    // 파일 선택
+    // =========================================================
+
+    const handleFileChange = (e) => {
+
+        const selected =
+            Array.from(e.target.files || []);
+
+        setNewFiles((prev) => [
+            ...prev,
+            ...selected
+        ]);
+
+        // 같은 파일을 다시 선택할 수 있도록 input 값 초기화
+        e.target.value = '';
+
+    };
+
+
+    // 삭제할 기존 파일 번호를 모아둠 (즉시 API 호출하지 않고 저장 시 함께 처리하거나, 바로 삭제)
+const handleRemoveExistingFile = async (noticefileNo) => {
+
+    const confirmed = window.confirm('첨부파일을 삭제하시겠습니까?');
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        await noticeApi.deleteFile(noticefileNo);
+
+        setExistingFiles((prev) =>
+            prev.filter((f) => f.noticefileNo !== noticefileNo)
+        );
+
+        alert('첨부파일이 삭제되었습니다.');
+
+    } catch (error) {
+
+        console.error('첨부파일 삭제 실패:', error);
+        alert('첨부파일 삭제에 실패했습니다.');
+    }
+};
+
+    // =========================================================
+    // 새 파일 제거
+    // =========================================================
+
+    const handleRemoveNewFile = (index) => {
+
+        setNewFiles((prev) =>
+            prev.filter((_, i) => i !== index)
+        );
+
+    };
 
 
     // =========================================================
@@ -136,9 +205,31 @@ export default function NoticeUpdate() {
             );
 
 
+            // -------------------------------------------------
+            // 새 첨부파일
+            //
+            // 서버 @RequestPart(value = "files", required = false)
+            // List<MultipartFile>와 매칭되도록 같은 파트 이름으로 반복 append
+            // -------------------------------------------------
+
+            newFiles.forEach((file) => {
+
+                formData.append(
+                    'files',
+                    file
+                );
+
+            });
+
+
             console.log(
                 '공지사항 수정 요청:',
                 notice
+            );
+
+            console.log(
+                '새 첨부파일 개수:',
+                newFiles.length
             );
 
 
@@ -204,6 +295,12 @@ export default function NoticeUpdate() {
                     setForm={setForm}
                     onSubmit={handleSubmit}
                     submitText="수정"
+                    existingFiles={existingFiles}
+                    newFiles={newFiles}
+                    onFileChange={handleFileChange}
+                    onRemoveNewFile={handleRemoveNewFile}
+                    onRemoveExistingFile={handleRemoveExistingFile}
+                    getFileDownloadUrl={noticeApi.getFileDownloadUrl}
                 />
             </div>
 

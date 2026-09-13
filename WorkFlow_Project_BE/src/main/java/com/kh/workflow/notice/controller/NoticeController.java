@@ -583,4 +583,131 @@ public class NoticeController {
                     );
         }
     }
+    @Operation(summary = "공지사항 첨부파일 삭제", description = "첨부파일 번호로 파일을 삭제합니다. ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
+    @SecurityRequirement(name = "JWT")
+    @DeleteMapping("/file/{noticefileNo}")
+    public ResponseEntity<?> deleteFile(
+
+            @PathVariable int noticefileNo,
+            Authentication authentication) {
+
+        try {
+
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            }
+
+            String loginId = authentication.getName();
+
+            if (!noticeService.isAdmin(loginId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 첨부파일을 삭제할 수 있습니다.");
+            }
+
+            int result = noticeService.deleteFile(noticefileNo);
+
+            if (result > 0) {
+                return ResponseEntity.ok("첨부파일이 삭제되었습니다.");
+            }
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("첨부파일 삭제에 실패했습니다.");
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("첨부파일 삭제 중 오류가 발생했습니다.");
+        }
+    }
+    
+ // =========================================================
+ // 공지사항 조회 (수정 화면 전용, 조회수 증가 없음)
+ //
+ // GET /api/v1/notice/{noticeNo}/edit
+ // =========================================================
+
+ @Operation(summary = "공지사항 수정용 조회", description = "수정 화면 진입 시 사용하며, 조회수를 증가시키지 않습니다. ADMIN 권한을 가진 로그인 사용자만 호출할 수 있습니다.")
+ @ApiResponses({
+     @ApiResponse(responseCode = "200", description = "조회 성공"),
+     @ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+     @ApiResponse(responseCode = "403", description = "ADMIN 권한이 아닌 경우", content = @Content),
+     @ApiResponse(responseCode = "404", description = "해당 번호의 공지사항이 존재하지 않음", content = @Content),
+     @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+ })
+ @SecurityRequirement(name = "JWT")
+ @GetMapping("/{noticeNo}/edit")
+ public ResponseEntity<?> selectNoticeForEdit(
+
+         @Parameter(description = "조회할 공지사항 번호", example = "1", required = true)
+         @PathVariable int noticeNo,
+
+         Authentication authentication) {
+
+     try {
+
+         if (authentication == null || !authentication.isAuthenticated()) {
+
+             return ResponseEntity
+                     .status(HttpStatus.UNAUTHORIZED)
+                     .body("로그인이 필요합니다.");
+         }
+
+         String loginId = authentication.getName();
+
+         if (!noticeService.isAdmin(loginId)) {
+
+             return ResponseEntity
+                     .status(HttpStatus.FORBIDDEN)
+                     .body("관리자만 공지사항을 수정할 수 있습니다.");
+         }
+
+         Notice notice =
+                 noticeService.selectNoticeForEdit(noticeNo);
+
+         if (notice == null) {
+
+             return ResponseEntity
+                     .status(HttpStatus.NOT_FOUND)
+                     .body("공지사항을 찾을 수 없습니다.");
+         }
+
+         return ResponseEntity.ok(notice);
+
+     } catch (Exception e) {
+
+         e.printStackTrace();
+
+         return ResponseEntity
+                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body("공지사항 조회 중 오류가 발생했습니다.");
+     }
+ }
+    
+ // =========================================================
+ // 첨부파일 다운로드
+ //
+ // GET /api/v1/notice/file/{noticefileNo}
+ // =========================================================
+
+ @Operation(summary = "공지사항 첨부파일 다운로드", description = "첨부파일 번호로 파일을 다운로드합니다. 로그인 없이 누구나 다운로드할 수 있습니다.")
+ @GetMapping("/file/{noticefileNo}")
+ public ResponseEntity<?> downloadFile(
+         @PathVariable int noticefileNo) {
+
+     try {
+
+         return noticeService.downloadFile(noticefileNo);
+
+     } catch (Exception e) {
+
+         e.printStackTrace();
+
+         return ResponseEntity
+                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body("파일 다운로드 중 오류가 발생했습니다.");
+     }
+ }
 }

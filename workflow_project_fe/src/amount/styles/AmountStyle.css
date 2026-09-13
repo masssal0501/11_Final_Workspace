@@ -1,3 +1,4 @@
+
 /* =========================================================
    AmountStyle.css
    비용 정산 신청 / 수정 / 상세 공통
@@ -1336,3 +1337,477 @@
     font-weight: 700;
 }
 
+
+/* =========================================================
+   45. 신청 폼 전용 (AmountForm.jsx)
+   ========================================================= */
+
+.amount-form-wrapper {
+    width: 100%;
+}
+
+
+/* 신청 폼 제목 (h2 + p 버전) */
+
+.amount-page-header h2 {
+    margin: 0;
+    color: var(--wf-text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.amount-page-header p {
+    margin: 7px 0 0;
+    color: var(--wf-text-secondary);
+    font-size: 14px;
+}
+
+
+/* 섹션 헤더 (제목 + 버튼 가로 배치) */
+
+.amount-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.amount-section-header h3 {
+    margin: 0;
+}
+
+
+/* 항목 추가 버튼 */
+
+.amount-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 36px;
+    padding: 0 14px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 5px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.amount-add-button:hover {
+    background: var(--wf-gray-50);
+}
+
+
+/* 비용 항목 카드 사이 간격 */
+
+.amount-section > .amount-item-card {
+    margin-bottom: 14px;
+}
+
+.amount-section > .amount-item-card:last-child {
+    margin-bottom: 0;
+}
+
+
+/* 항목 카드 헤더 (제목 + 삭제 버튼) */
+
+.amount-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+
+    border-bottom: 1px solid var(--wf-border);
+}
+
+.amount-item-header strong {
+    color: var(--wf-text-primary);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+/* 항목 삭제 버튼 */
+
+.amount-remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 30px;
+    padding: 0 10px;
+
+    border: 1px solid var(--wf-danger);
+    border-radius: 5px;
+
+    background: var(--wf-white);
+    color: var(--wf-danger);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.amount-remove-button:hover {
+    background: #fef2f2;
+}
+
+
+/* 신청 폼의 form-row: label + input을 세로로 쌓는 구조 */
+
+.amount-form .amount-form-row {
+    display: block;
+    margin-bottom: 16px;
+}
+
+.amount-form .amount-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.amount-form .amount-form-row > label {
+    display: block;
+    margin-bottom: 7px;
+
+    color: var(--wf-text-primary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.amount-form .amount-form-row > input,
+.amount-form .amount-form-row > select,
+.amount-form .amount-form-row > textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 5px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 14px;
+
+    outline: none;
+}
+
+.amount-form .amount-form-row > input,
+.amount-form .amount-form-row > select {
+    height: 42px;
+    padding: 0 12px;
+}
+
+.amount-form .amount-form-row > textarea {
+    min-height: 100px;
+    padding: 12px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.amount-form .amount-form-row > input:focus,
+.amount-form .amount-form-row > select:focus,
+.amount-form .amount-form-row > textarea:focus {
+    border-color: var(--wf-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+}
+
+
+/* 금액 입력 + 단위(원) */
+
+.amount-input-with-unit {
+    display: flex;
+    align-items: center;
+}
+
+.amount-input-with-unit input {
+    flex: 1;
+    min-width: 0;
+
+    height: 42px;
+    padding: 0 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 5px 0 0 5px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 14px;
+
+    outline: none;
+    box-sizing: border-box;
+}
+
+.amount-input-with-unit input:focus {
+    border-color: var(--wf-primary);
+}
+
+.amount-input-with-unit span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 42px;
+    padding: 0 14px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-left: none;
+    border-radius: 0 5px 5px 0;
+
+    background: var(--wf-gray-50);
+    color: var(--wf-text-secondary);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    box-sizing: border-box;
+}
+
+
+/* 신청 금액 합계 섹션 */
+
+.amount-summary-section {
+    margin-bottom: 28px;
+    padding: 20px 24px;
+
+    background: var(--wf-gray-50);
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 8px;
+
+    box-sizing: border-box;
+}
+
+.amount-summary-section .amount-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.amount-summary-section .amount-summary-row span {
+    color: var(--wf-text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.amount-summary-section .amount-summary-row strong {
+    color: var(--wf-primary);
+    font-size: 22px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* 기존 첨부파일 (수정 화면) */
+
+.amount-existing-files {
+    margin-bottom: 14px;
+    padding: 14px;
+
+    background: var(--wf-gray-50);
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 6px;
+}
+
+.amount-existing-files > p {
+    margin: 0 0 8px;
+
+    color: var(--wf-text-primary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.amount-existing-file {
+    padding: 8px 10px;
+
+    background: var(--wf-white);
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 4px;
+
+    color: var(--wf-text-secondary);
+    font-size: 13px;
+
+    word-break: break-all;
+}
+
+.amount-existing-file + .amount-existing-file {
+    margin-top: 6px;
+}
+
+
+/* 선택된 새 파일 목록 */
+
+.amount-selected-files {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    margin-top: 10px;
+}
+
+.amount-selected-files > div {
+    padding: 7px 10px;
+
+    background: var(--wf-gray-50);
+    border: 1px solid var(--wf-gray-200);
+    border-radius: 4px;
+
+    color: var(--wf-text-primary);
+    font-size: 13px;
+
+    word-break: break-all;
+}
+
+
+/* 파일 안내 문구 */
+
+.amount-file-help {
+    margin: 10px 0 0;
+
+    color: var(--wf-text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* 파일 input (신청 폼) */
+
+.amount-section input[type="file"] {
+    display: block;
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px dashed var(--wf-gray-300);
+    border-radius: 6px;
+
+    background: var(--wf-gray-50);
+    color: var(--wf-text-secondary);
+
+    font-family: inherit;
+    font-size: 13px;
+
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.amount-section input[type="file"]:hover {
+    border-color: var(--wf-gray-300);
+    opacity: 0.85;
+}
+
+
+/* 신청자 의견 textarea (섹션 안 직접 배치) */
+
+.amount-section > textarea {
+    display: block;
+    width: 100%;
+    min-height: 120px;
+
+    padding: 12px;
+
+    border: 1px solid var(--wf-gray-300);
+    border-radius: 5px;
+
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.amount-section > textarea:focus {
+    border-color: var(--wf-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+}
+
+
+/* 신청 폼 하단 버튼 */
+
+.amount-form-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    margin-top: 30px;
+    padding-top: 20px;
+
+    border-top: 1px solid var(--wf-border);
+}
+
+.amount-form-buttons button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+    height: 42px;
+    padding: 0 18px;
+
+    border-radius: 5px;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.amount-cancel-button {
+    border: 1px solid var(--wf-gray-300);
+    background: var(--wf-white);
+    color: var(--wf-text-primary);
+}
+
+.amount-cancel-button:hover {
+    background: var(--wf-gray-50);
+}
+
+.amount-submit-button {
+    border: 1px solid var(--wf-primary);
+    background: var(--wf-primary);
+    color: var(--wf-white);
+}
+
+.amount-submit-button:hover {
+    background: var(--wf-primary-dark);
+    border-color: var(--wf-primary-dark);
+}
+
+.amount-form-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* 신청 폼 로딩 */
+
+.amount-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 300px;
+
+    color: var(--wf-text-secondary);
+    font-size: 15px;
+}

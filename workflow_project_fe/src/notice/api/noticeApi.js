@@ -40,6 +40,13 @@ export const noticeApi = {
         return response.data;
     },
 
+
+    deleteFile: async (noticefileNo) => {
+    const response = await axiosInstance.delete(
+        `${API_URL}/file/${noticefileNo}`
+    );
+    return response.data;
+},
     // =========================================================
     // 공지사항 등록
     // POST /api/v1/notice
@@ -97,5 +104,18 @@ export const noticeApi = {
     getFileDownloadUrl: (noticefileNo) => {
 
         return `${API_URL}/file/${noticefileNo}`;
-    }
+    },
+
+    // =========================================================
+// 공지사항 수정용 조회 (조회수 증가 없음)
+// GET /api/v1/notice/{noticeNo}/edit
+// =========================================================
+getNoticeForEdit: async (noticeNo) => {
+
+    const response = await axiosInstance.get(
+        `${API_URL}/${noticeNo}/edit`
+    );
+
+    return response.data;
+},
 };
