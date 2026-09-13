@@ -230,21 +230,14 @@ function ApprovalReject() {
             {/* 신청자 / 작성날짜 / 워케이션 기간 */}
             <div align="left">
 
-                <h6>신청자</h6>
-
-                <span>
-                    {workcationInfo.employee?.deptName}
-                </span>
-
-                &nbsp;
-
-                <span>-</span>
-
-                &nbsp;
-
-                <span>
-                    {workcationInfo.employee?.empName}
-                </span>
+                        <h6>신청자</h6>
+                        <span>
+                            {workcationInfo.employee?.deptTitle ||
+                            workcationInfo.employee?.depId ||
+                            "-"}
+                            &nbsp;-&nbsp;
+                            {workcationInfo.employee?.empName || "-"}
+                        </span>
 
             </div>
 
