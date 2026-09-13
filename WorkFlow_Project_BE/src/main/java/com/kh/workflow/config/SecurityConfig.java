@@ -232,11 +232,15 @@ public class SecurityConfig {
 	                    	    "/workcation/**" // 워케이션 관련 조회 경로를 열어주어야 하는 경우
 	                    	).authenticated()
 
-	                    // 업무 상태 변경 - 관리자만
+	                    // BUG-13: 업무 완료 검토(승인/거부)를 ADMIN만 할 수 있었는데,
+	                    // 요구사항상 부서장도 자신의 부서 업무는 검토할 수 있어야 한다.
+	                    // "자신의 부서만"이라는 조건은 URL 단위 역할 검사로는 표현할 수
+	                    // 없으므로, 여기서는 MANAGER/ADMIN 둘 다 우선 허용하고 실제 부서
+	                    // 범위 제한은 TaskController.updateTaskStatus에서 검증한다.
 	                    .requestMatchers(
 	                    		HttpMethod.PATCH,
 	                    		"/task/*/status"
-	                    		).hasRole("ADMIN")
+	                    		).hasAnyRole("MANAGER", "ADMIN")
 
 	                    // 업무 관리 - 관리자/부서장만
 	                    .requestMatchers("/task/**")

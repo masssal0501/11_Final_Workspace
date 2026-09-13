@@ -1057,6 +1057,14 @@ public class WorkcationServiceImpl implements WorkcationService {
 			throw new IllegalArgumentException("진행률은 0~100 사이의 5단위 값");
 		}
 
+		// BUG-13: 이미 부서장/관리자가 최종 승인(Y)한 업무를 직원이 이 API로 계속
+		// 수정할 수 있으면, 승인권자가 확인한 내용과 실제 저장된 내용이 달라져
+		// 승인 자체가 무의미해진다. 승인 이후에는 이 API로 더 이상 수정할 수 없다
+		// (재작업이 필요하면 관리자/부서장이 재검토(N)로 되돌린 뒤 진행해야 한다).
+		if ("Y".equals(task.getStatus())) {
+			throw new IllegalStateException("이미 승인 완료된 업무는 수정할 수 없습니다.");
+		}
+
 		// 기존 제목
 		String oldTitle = task.getTaskTitle();
 
@@ -1064,17 +1072,17 @@ public class WorkcationServiceImpl implements WorkcationService {
 		task.setProgress(progress);
 		task.setTaskTitle(title);
 		task.setTaskContent(content);
-		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
-		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
-		// BUG: nam_final 병합본은 이 조건이 항상 "N"만 재설정하도록 되어 있어 이 API로는
-		// 업무가 영원히 완료(Y) 처리될 수 없었다(TODO-N03 최종완료 선행조건까지 막힘).
-		// 단, 업무게시판(TaskController)에서 반려(R) 처리된 건은 진행률 재저장만으로
-		// 조용히 초기화되지 않도록, 100%에 도달하기 전까지는 반려 상태를 유지한다.
-		if ("R".equals(task.getStatus()) && progress < 100) {
-			// 반려 상태 유지
-		} else {
-			task.setStatus(progress == 100 ? "Y" : "N");
-		}
+		// BUG-13: 진행률이 100%가 되는 즉시 최종 완료(Y)로 바꿔버려, 부서장/관리자의
+		// 검토·승인 없이 직원 스스로 업무를 "완료" 처리할 수 있었다. 최종 완료(Y)는
+		// TaskController.updateTaskStatus(부서장/관리자 검토 API)를 통해서만 부여되어야
+		// 하므로, 이 API(직원 본인의 진행률 저장)는 절대 상태를 "Y"로 바꾸지 않는다.
+		// 진행률이 100%에 도달하면 상태는 "N"으로 두고, 화면에서는 진행률=100% +
+		// 상태=N 조합을 "완료 요청(검토 대기)"로 표시한다(TaskStatusBadge 기준 -
+		// 새 상태값을 추가하지 않고 기존 체계를 그대로 재사용).
+		// 반려(R) 이후 다시 진행률을 저장(재처리)하는 경우에도 동일하게 "N"으로 되돌려
+		// 재검토를 받을 수 있게 한다 - 그렇지 않으면 반려 상태가 계속 남아있다가
+		// 100%에 정확히 다시 도달하는 순간 검토 없이 곧바로 Y로 넘어가 버린다.
+		task.setStatus("N");
 
 		// 워케이션 업무계획 제목 동기화
 		Work work = task.getWork();

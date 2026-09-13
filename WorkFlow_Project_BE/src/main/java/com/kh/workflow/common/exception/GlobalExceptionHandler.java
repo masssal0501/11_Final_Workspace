@@ -79,6 +79,25 @@ public class GlobalExceptionHandler {
                 .body(buildBody(HttpStatus.BAD_REQUEST, message, request));
     }
 
+    // BUG-13 점검 중 발견: Service 계층 곳곳(TaskServiceImpl.updateTaskStatus,
+    // WorkcationServiceImpl.updateTask 등)이 "상태가 맞지 않아 처리할 수 없음" 류의
+    // 오류를 IllegalStateException으로 던지는데, 이를 처리하는 핸들러가 전혀 없어
+    // IllegalArgumentException과 마찬가지로 전부 HTTP 500으로 흘러가고 있었다.
+    // 클라이언트 요청 자체는 문법적으로 올바르지만 현재 리소스 상태와 충돌하는
+    // 경우이므로 409(Conflict)로 응답한다.
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(
+            IllegalStateException ex,
+            WebRequest request
+    ) {
+
+        String message = ex.getMessage() == null ? "현재 상태에서는 처리할 수 없는 요청입니다." : ex.getMessage();
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(buildBody(HttpStatus.CONFLICT, message, request));
+    }
+
     private boolean isNotFoundMessage(String message) {
 
         for (String keyword : NOT_FOUND_KEYWORDS) {

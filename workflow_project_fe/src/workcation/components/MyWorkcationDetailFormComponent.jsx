@@ -129,6 +129,13 @@ function MyWorkcationDetailFormComponent() {
             return;
         }
 
+        // BUG-13: 이미 부서장/관리자가 승인 완료(Y)한 업무는 백엔드에서도 수정을
+        // 막아뒀으므로, 열어봐야 저장 시점에 실패하는 것보다 먼저 안내한다.
+        if (task.status === "Y") {
+            alert("이미 승인 완료된 업무는 수정할 수 없습니다.");
+            return;
+        }
+
         setSelectedTask(task);
         setTaskProgress(task.progress ?? 0);
         setTaskReportTitle(task.taskTitle ?? "");
@@ -317,10 +324,14 @@ function MyWorkcationDetailFormComponent() {
     };
 
     // 전체 업무 진행률 계산
+    // BUG-13: 진행률 100%는 "완료 요청(검토 대기)"일 뿐 최종 완료가 아닌데, 여기서는
+    // progress===100만으로 "완료"를 판단하고 있어 부서장/관리자 승인 전에도 체크
+    // 표시와 완료 건수가 올라가 있었다("체크 표시가 되어야 완료!!" 안내와도 모순).
+    // 실제 승인 여부(status==='Y')를 기준으로 계산한다.
     const totalTasks = planList.length;
 
     const completedTasks = planList.filter(
-        item => (item.progress || 0) === 100
+        item => item.status === "Y"
     ).length;
 
     const overallProgress = totalTasks > 0
@@ -446,10 +457,14 @@ function MyWorkcationDetailFormComponent() {
                                     <span
                                         className={`progress-label ${isRejected ? "rejected-task" : ""}`}
                                     >
+                                        {/* BUG-13: 100%는 검토 대기일 뿐 완료가 아니므로,
+                                            실제 승인(isApproved)된 경우에만 "완료"로 표시한다. */}
                                         {progress === 100
-                                            ? isRejected
-                                                ? "100% 거부"
-                                                : "100% 완료"
+                                            ? isApproved
+                                                ? "100% 완료"
+                                                : isRejected
+                                                    ? "100% 거부"
+                                                    : "완료 요청(검토 대기)"
                                             : progress > 0
                                                 ? `${progress}% 진행`
                                                 : "0% 대기"}

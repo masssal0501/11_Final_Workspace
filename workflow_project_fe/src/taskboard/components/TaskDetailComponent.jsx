@@ -13,6 +13,11 @@ function TaskDetailComponent() {
     const navigate = useNavigate();
     const loginUser = JSON.parse(localStorage.getItem("user"));
 
+    // BUG-13: 완료 검토(승인/거부)는 관리자뿐 아니라 부서장도 할 수 있어야 한다
+    // (실제 "자신의 부서만"이라는 범위 제한은 백엔드 TaskController에서 검증하며,
+    // 다른 부서 업무를 열람하더라도 승인/거부 요청은 403으로 거부된다).
+    const canReviewTask = loginUser?.authCode === "ADMIN" || loginUser?.authCode === "MANAGER";
+
     const [data, setData] = useState(null);
     const [loadError, setLoadError] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
@@ -275,7 +280,7 @@ function TaskDetailComponent() {
                                 <th>업무 제목</th>
                                 <th>진행도</th>
                                 <th>업무 시작일</th>
-                                {loginUser?.authCode === "ADMIN" && (
+                                {canReviewTask && (
                                     <th></th>
                                 )}
                             </tr>
@@ -301,7 +306,7 @@ function TaskDetailComponent() {
                                             ? task.tasktimeAt.substring(0, 10)
                                             : "-"}
                                     </td>
-                                    {loginUser?.authCode === "ADMIN" && (
+                                    {canReviewTask && (
                                         <td>
                                             {task.progress === 100 &&
                                                 (!task.status || task.status === "N") && (
