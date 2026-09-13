@@ -976,23 +976,6 @@ public class WorkcationServiceImpl implements WorkcationService {
 		for (Work work : workList) {
 
 			List<Task> tasks = taskDao.findByWorkWorkNo(work.getWorkNo());
-			List<WorkFile> files = workFileDao.findByWorkWorkNo(work.getWorkNo());
-
-			for (WorkFile file : files) {
-
-				if (!"Y".equals(file.getStatus())) {
-					continue;
-				}
-
-				Map<String, Object> fileMap = new HashMap<>();
-
-				fileMap.put("taskFileNo", file.getTaskFileNo());
-				fileMap.put("originName", file.getOriginName());
-				fileMap.put("changeName", file.getChangeName());
-				fileMap.put("filePath", file.getFilePath());
-				fileMap.put("fileSize", file.getFileSize());
-				fileList.add(fileMap);
-			}
 
 			for (Task task : tasks) {
 				Map<String, Object> taskMap = new HashMap<>();
@@ -1019,6 +1002,25 @@ public class WorkcationServiceImpl implements WorkcationService {
 					historyMap.put("createdAt", history.getCreatedAt());
 					historyList.add(historyMap);
 
+				}
+
+				// BUG: WorkFile은 work_no가 아니라 task_no로 Task를 참조하므로 task 단위로 조회한다.
+				List<WorkFile> files = workFileDao.findByTaskTaskNo(task.getTaskNo());
+
+				for (WorkFile file : files) {
+
+					if (!"Y".equals(file.getStatus())) {
+						continue;
+					}
+
+					Map<String, Object> fileMap = new HashMap<>();
+
+					fileMap.put("taskFileNo", file.getTaskFileNo());
+					fileMap.put("originName", file.getOriginName());
+					fileMap.put("changeName", file.getChangeName());
+					fileMap.put("filePath", file.getFilePath());
+					fileMap.put("fileSize", file.getFileSize());
+					fileList.add(fileMap);
 				}
 			}
 		}
@@ -1052,8 +1054,14 @@ public class WorkcationServiceImpl implements WorkcationService {
 		task.setTaskContent(content);
 		// 진행률이 100%가 되면 완료 처리 - TaskDao의 부서/개인 평균 진행률 통계
 		// 쿼리가 status='Y' 기준으로 계산하므로 이 갱신이 없으면 통계가 항상 0으로 나온다.
-		if (!"Y".equals(task.getStatus()) && !"R".equals(task.getStatus())) {
-			task.setStatus("N");
+		// BUG: nam_final 병합본은 이 조건이 항상 "N"만 재설정하도록 되어 있어 이 API로는
+		// 업무가 영원히 완료(Y) 처리될 수 없었다(TODO-N03 최종완료 선행조건까지 막힘).
+		// 단, 업무게시판(TaskController)에서 반려(R) 처리된 건은 진행률 재저장만으로
+		// 조용히 초기화되지 않도록, 100%에 도달하기 전까지는 반려 상태를 유지한다.
+		if ("R".equals(task.getStatus()) && progress < 100) {
+			// 반려 상태 유지
+		} else {
+			task.setStatus(progress == 100 ? "Y" : "N");
 		}
 
 		// 워케이션 업무계획 제목 동기화
@@ -1141,7 +1149,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 			workFile.setStatus("Y");
 
 			// 실제 work_file 테이블은 work_no가 아닌 task_no로 task를 참조한다
-			workFile.setWork(task.getWork());
+			workFile.setTask(task);
 
 			workFileDao.save(workFile);
 		}
@@ -1271,6 +1279,16 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		Work work = workList.get(0);
 
+		// 실제 work_file 테이블은 work_no가 아니라 task_no로 task를 참조하므로
+		// 첨부파일을 연결할 구체적인 task가 필요하다.
+		List<Task> taskList = taskDao.findByWorkWorkNo(work.getWorkNo());
+
+		if (taskList.isEmpty()) {
+			throw new IllegalArgumentException("첨부파일을 연결할 업무 정보를 찾을 수 없습니다.");
+		}
+
+		Task task = taskList.get(0);
+
 		String originName = file.getOriginalFilename();
 		String extension = "";
 
@@ -1295,7 +1313,7 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		WorkFile workFile = new WorkFile();
 
-		workFile.setWork(work);
+		workFile.setTask(task);
 		workFile.setOriginName(originName);
 		workFile.setChangeName(changeName);
 		workFile.setFilePath("/uploads/work/");

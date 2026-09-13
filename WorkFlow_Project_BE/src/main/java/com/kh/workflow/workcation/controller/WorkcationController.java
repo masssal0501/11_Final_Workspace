@@ -583,7 +583,7 @@ public class WorkcationController {
 		Employee loginEmployee = employeeDao.findByEmpId(empId)
 				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-		Employee fileOwner = workFile.getWork().getWorkcationInfo().getEmployee();
+		Employee fileOwner = workFile.getTask().getWork().getWorkcationInfo().getEmployee();
 
 		if (!canAccessEmployeeScope(fileOwner, loginEmployee)) {
 			throw new AccessDeniedException("해당 첨부파일에 접근할 권한이 없습니다.");
@@ -655,8 +655,32 @@ public class WorkcationController {
 		return ResponseEntity.ok("첨부파일 등록 완료");
 	}
 
+	@Operation(summary = "업무 첨부파일 삭제", description = "업무 진행 상황에 첨부된 파일을 삭제합니다.")
+	@ApiResponses({ @ApiResponse(responseCode = "200", description = "삭제 성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패(로그인 필요)", content = @Content),
+			@ApiResponse(responseCode = "403", description = "삭제 권한 없음", content = @Content) })
+	@SecurityRequirement(name = "JWT")
 	@DeleteMapping("/file/{taskFileNo}")
-	public ResponseEntity<?> deleteWorkFile(@PathVariable Integer taskFileNo) {
+	public ResponseEntity<?> deleteWorkFile(
+			@Parameter(description = "삭제할 첨부파일 번호", example = "1", required = true) @PathVariable Integer taskFileNo,
+			Authentication authentication) {
+
+		// nam_final 병합 시 소유권 검증 없이 추가된 엔드포인트였다 - 다운로드/업로드와
+		// 동일하게 WorkFile -> Task -> Work -> WorkcationInfo -> Employee 체인으로 검증한다.
+		WorkFile workFile = workFileDao.findById(taskFileNo)
+				.orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다."));
+
+		String empId = (String) authentication.getPrincipal();
+
+		Employee loginEmployee = employeeDao.findByEmpId(empId)
+				.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+		Employee fileOwner = workFile.getTask().getWork().getWorkcationInfo().getEmployee();
+
+		if (!canAccessEmployeeScope(fileOwner, loginEmployee)) {
+			throw new AccessDeniedException("해당 첨부파일을 삭제할 권한이 없습니다.");
+		}
+
 		workcationService.deleteWorkFile(taskFileNo);
 		return ResponseEntity.ok("첨부파일 삭제 완료");
 	}

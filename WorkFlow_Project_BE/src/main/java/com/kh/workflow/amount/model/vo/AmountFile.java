@@ -37,7 +37,7 @@ public class AmountFile {
     @Schema(description = "첨부파일 번호", accessMode = Schema.AccessMode.READ_ONLY)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "amountfile_no")
+    @Column(name = "amountattachment_no")
     private Integer amountFileNo;
 
     @Schema(description = "파일경로")
@@ -54,7 +54,7 @@ public class AmountFile {
 
     @Schema(description = "첨부파일 등록일", accessMode = Schema.AccessMode.READ_ONLY)
     @Column(
-        name = "created_at",
+        name = "updated_at",
         columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
     )
     private LocalDateTime createdAt;

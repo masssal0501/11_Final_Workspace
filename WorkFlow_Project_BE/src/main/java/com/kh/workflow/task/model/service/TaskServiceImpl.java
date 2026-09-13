@@ -73,7 +73,7 @@ public class TaskServiceImpl implements TaskService {
 	@Transactional(readOnly = true)
 	public Map<String, Object> selectTaskDetail(Integer taskNo) {
 
-		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무 정보를 찾을 수 없습니다."));
+		Task task = taskDao.findById(taskNo).orElseThrow(() -> new IllegalArgumentException("업무 정보를 찾을 수 없습니다."));
 
 		Map<String, Object> result = new LinkedHashMap<>();
 
@@ -150,7 +150,7 @@ public class TaskServiceImpl implements TaskService {
 	public Map<String, Object> selectWorkcationTasks(Integer workcationNo) {
 
 	    WorkcationInfo workcation = workcationDao.findById(workcationNo)
-	            .orElseThrow(() -> new RuntimeException("워케이션 정보를 찾을 수 없습니다."));
+	            .orElseThrow(() -> new IllegalArgumentException("워케이션 정보를 찾을 수 없습니다."));
 
 	    Map<String, Object> result = new HashMap<>();
 
@@ -205,7 +205,7 @@ public class TaskServiceImpl implements TaskService {
 
 	            List<Map<String, Object>> fileList = new ArrayList<>();
 
-	            List<WorkFile> files = workFileDao.findByWorkWorkNo(work.getWorkNo());
+	            List<WorkFile> files = workFileDao.findByTaskTaskNo(task.getTaskNo());
 
 	            for (WorkFile file : files) {
 
@@ -247,7 +247,7 @@ public class TaskServiceImpl implements TaskService {
 	@Override
 	public void updateTaskStatus(Integer taskNo, String status, String content) {
 
-		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무를 찾을 수 없습니다."));
+		Task task = taskDao.findById(taskNo).orElseThrow(() -> new IllegalArgumentException("업무를 찾을 수 없습니다."));
 
 		if (!"Y".equals(status) && !"R".equals(status) && !"N".equals(status)) {
 

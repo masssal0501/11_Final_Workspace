@@ -166,12 +166,6 @@ function App() {
                 {/* 워케이션 */}
                 <Route path="/workcation/list" element={<WorkcationListComponent loginUser={loginUser} />} />
                 <Route path="/workcation/detail/:workcationNo" element={<WorkcationDetailComponent />} />
-                <Route path="/workcation/update/:workcationNo" element={<WorkcationUpdateFormComponent />} />
-
-                {/* 내 워케이션 */}
-                <Route path="/workcation/mylist" element={<MyWorkcationListComponent />} />
-                <Route path="/workcation/mylist/:workcationNo" element={<MyWorkcationDetailFormComponent />} />
-
 
                 {/* 관리자 제외 워케이션 신청 */}
                 {/* BUG-NEW: WorkcationDetailComponent의 "수정" 버튼이 이 경로로 이동하지만
