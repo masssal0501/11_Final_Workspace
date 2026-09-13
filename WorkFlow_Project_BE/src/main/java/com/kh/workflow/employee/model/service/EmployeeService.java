@@ -49,7 +49,7 @@ public interface EmployeeService {
      * USR-004
      * 비밀번호 재설정
      */
-    void changePassword(
+    EmployeeResponse changePassword(
     	    String empId,
     	    ChangePasswordRequest request
     	);

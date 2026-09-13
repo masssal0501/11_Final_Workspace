@@ -190,7 +190,7 @@ function App() {
                 <Route path="/myPage/update" element={<UpdateMyPageForm />} />
 
                 {/* 비밀번호 변경 */}
-                <Route path="/changePW" element={<ChangePWForm />} />
+                <Route path="/changePW" element={<ChangePWForm loginUser={loginUser} onLogin={handleLogin} />} />
 
                 {/* 예약 */}
                 <Route path="/reservations" element={<ReservationListComponent />} />

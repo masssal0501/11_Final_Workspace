@@ -48,6 +48,17 @@ public class AttendanceServiceImpl implements AttendanceService {
 			throw new IllegalArgumentException("승인된 워케이션만 출퇴근 처리할 수 있습니다.");
 		}
 
+		// BUG-09: 승인된 워케이션이어도 기간이 끝난 뒤(혹은 시작 전)에는 출퇴근 처리가
+		// 되면 안 되는데, 기존 코드는 승인 상태만 확인하고 실제 날짜(startAt~endAt)는
+		// 전혀 검사하지 않아 종료된 워케이션도 계속 출퇴근이 가능했다.
+		LocalDateTime now = LocalDateTime.now();
+		if (workcation.getStartAt() != null && now.isBefore(workcation.getStartAt())) {
+			throw new IllegalArgumentException("아직 시작되지 않은 워케이션입니다.");
+		}
+		if (workcation.getEndAt() != null && now.isAfter(workcation.getEndAt())) {
+			throw new IllegalArgumentException("워케이션 기간이 종료되어 출퇴근 처리할 수 없습니다.");
+		}
+
 		// 현재 상태와 요청한 checkType이 어긋나지 않는지 검증(중복 출근/퇴근 방지)
 		Optional<Attendance> latest = attendanceDao
 				.findTopByWorkcation_WorkcationNoOrderByCheckedAtDesc(workcationNo);

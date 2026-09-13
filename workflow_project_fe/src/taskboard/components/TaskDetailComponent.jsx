@@ -234,7 +234,7 @@ function TaskDetailComponent() {
 
 
     return (
-        <main className="wf-container">
+        <main className="wf-container task-detail-page">
 
             <section className="wf-page-header">
                 <div>

@@ -1040,6 +1040,18 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		Task task = taskDao.findById(taskNo).orElseThrow(() -> new RuntimeException("업무를 찾을수 없습니다."));
 
+		// BUG-09: 워케이션 승인 기간이 끝난 뒤에도 업무계획(업무보고) 수정 API를 계속
+		// 호출할 수 있었다 - 프런트에서 버튼을 숨기더라도 API를 직접 호출하면 우회
+		// 가능하므로 백엔드에서도 기간을 검증한다.
+		if (task.getWork() != null && task.getWork().getWorkcationInfo() != null) {
+			WorkcationInfo periodCheckWorkcation = task.getWork().getWorkcationInfo();
+			LocalDateTime now = LocalDateTime.now();
+
+			if (periodCheckWorkcation.getEndAt() != null && now.isAfter(periodCheckWorkcation.getEndAt())) {
+				throw new IllegalArgumentException("워케이션 기간이 종료되어 업무를 수정할 수 없습니다.");
+			}
+		}
+
 		// 진행률 검증
 		if (progress < 0 || progress > 100 || progress % 5 != 0) {
 			throw new IllegalArgumentException("진행률은 0~100 사이의 5단위 값");
@@ -1279,6 +1291,16 @@ public class WorkcationServiceImpl implements WorkcationService {
 
 		Work work = workList.get(0);
 
+		// BUG-09: 워케이션 기간이 끝난 뒤에도 업무 첨부파일을 계속 업로드할 수 있었다.
+		if (work.getWorkcationInfo() != null) {
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime endAt = work.getWorkcationInfo().getEndAt();
+
+			if (endAt != null && now.isAfter(endAt)) {
+				throw new IllegalArgumentException("워케이션 기간이 종료되어 첨부파일을 업로드할 수 없습니다.");
+			}
+		}
+
 		// 실제 work_file 테이블은 work_no가 아니라 task_no로 task를 참조하므로
 		// 첨부파일을 연결할 구체적인 task가 필요하다.
 		List<Task> taskList = taskDao.findByWorkWorkNo(work.getWorkNo());
@@ -1328,6 +1350,17 @@ public class WorkcationServiceImpl implements WorkcationService {
 	public void deleteWorkFile(Integer taskFileNo) {
 		WorkFile workFile = workFileDao.findById(taskFileNo)
 				.orElseThrow(() -> new RuntimeException("첨부파일을 찾을 수 없습니다."));
+
+		// BUG-09: 워케이션 기간이 끝난 뒤에도 업무 첨부파일을 계속 삭제할 수 있었다.
+		if (workFile.getTask() != null && workFile.getTask().getWork() != null
+				&& workFile.getTask().getWork().getWorkcationInfo() != null) {
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime endAt = workFile.getTask().getWork().getWorkcationInfo().getEndAt();
+
+			if (endAt != null && now.isAfter(endAt)) {
+				throw new IllegalArgumentException("워케이션 기간이 종료되어 첨부파일을 삭제할 수 없습니다.");
+			}
+		}
 
 		File file = new File(System.getProperty("user.dir") + workFile.getFilePath() + workFile.getChangeName());
 

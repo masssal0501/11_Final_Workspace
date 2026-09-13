@@ -29,63 +29,93 @@
     color: #253858;
 }
 
-/* 업무 테이블 */
-.list-area {
+/* 업무 테이블
+   BUG-12: 아래 .list-area 관련 규칙은 이 업무 상세 페이지 전용이어야 하는데,
+   Hub 목록 페이지(Hub.css)도 우연히 같은 ".list-area" 클래스명을 쓰고 있어
+   전역으로 서로 영향을 줄 수 있었다. 다른 페이지에 영향을 주지 않도록
+   반드시 ".task-detail-page" 아래로 스코프를 좁혀서 작성한다. */
+.task-detail-page .list-area {
     width: 100% !important;
     border-collapse: collapse !important;
     table-layout: fixed !important;
     margin-top: 10px;
 }
 
-.list-area thead {
+.task-detail-page .list-area thead {
     display: table-header-group !important;
 }
 
-.list-area tbody {
+.task-detail-page .list-area tbody {
     display: table-row-group !important;
 }
 
-.list-area tr {
+.task-detail-page .list-area tr {
     display: table-row !important;
     width: 100% !important;
 }
 
-.list-area th,
-.list-area td {
+.task-detail-page .list-area th,
+.task-detail-page .list-area td {
     display: table-cell !important;
     box-sizing: border-box !important;
     vertical-align: middle !important;
 }
 
-/* 컬럼 너비 */
-.list-area th:nth-child(1),
-.list-area td:nth-child(1) {
+/* 컬럼 너비 (기본 4컬럼 기준 - 합계 100%) */
+.task-detail-page .list-area th:nth-child(1),
+.task-detail-page .list-area td:nth-child(1) {
     width: 10% !important;
 }
 
-.list-area th:nth-child(2),
-.list-area td:nth-child(2) {
+.task-detail-page .list-area th:nth-child(2),
+.task-detail-page .list-area td:nth-child(2) {
     width: 35% !important;
 }
 
-.list-area th:nth-child(3),
-.list-area td:nth-child(3) {
+.task-detail-page .list-area th:nth-child(3),
+.task-detail-page .list-area td:nth-child(3) {
     width: 25% !important;
 }
 
-.list-area th:nth-child(4),
-.list-area td:nth-child(4) {
+.task-detail-page .list-area th:nth-child(4),
+.task-detail-page .list-area td:nth-child(4) {
     width: 30% !important;
 }
 
+/* BUG-12: ADMIN에게만 노출되는 5번째(관리 버튼) 컬럼은 원래 1~4번 컬럼이
+   이미 100%를 다 채운 상태에 180px를 추가로 얹는 구조라, ADMIN으로 볼 때만
+   테이블 전체 폭이 넘쳐 레이아웃이 깨졌다. 5번째 컬럼이 실제로 존재할 때만
+   (:has로 감지) 1~4번 컬럼 폭에서 180px를 각 컬럼의 기존 비율(10/35/25/30)만큼
+   미리 덜어내, 5번째 컬럼을 더해도 합계가 정확히 100%가 되도록 한다.
+   (180px * 0.10=18px, *0.35=63px, *0.25=45px, *0.30=54px, 합계 180px) */
+.task-detail-page .list-area:has(th:nth-child(5)) th:nth-child(1),
+.task-detail-page .list-area:has(th:nth-child(5)) td:nth-child(1) {
+    width: calc(10% - 18px) !important;
+}
+
+.task-detail-page .list-area:has(th:nth-child(5)) th:nth-child(2),
+.task-detail-page .list-area:has(th:nth-child(5)) td:nth-child(2) {
+    width: calc(35% - 63px) !important;
+}
+
+.task-detail-page .list-area:has(th:nth-child(5)) th:nth-child(3),
+.task-detail-page .list-area:has(th:nth-child(5)) td:nth-child(3) {
+    width: calc(25% - 45px) !important;
+}
+
+.task-detail-page .list-area:has(th:nth-child(5)) th:nth-child(4),
+.task-detail-page .list-area:has(th:nth-child(5)) td:nth-child(4) {
+    width: calc(30% - 54px) !important;
+}
+
 /* 관리자 버튼 컬럼 */
-.list-area th:nth-child(5),
-.list-area td:nth-child(5) {
+.task-detail-page .list-area th:nth-child(5),
+.task-detail-page .list-area td:nth-child(5) {
     width: 180px;
 }
 
 /* 테이블 헤더 */
-.list-area thead th {
+.task-detail-page .list-area thead th {
     height: 44px;
     padding: 12px 16px !important;
     text-align: center !important;
@@ -95,18 +125,27 @@
     border-bottom: 1px solid #dce4ef;
 }
 
-/* 테이블 본문 */
-.list-area tbody td {
+/* 테이블 본문 - BUG-12: 모든 컬럼에 걸려 있던 white-space:nowrap이 폭이 좁은
+   "업무 제목"(2번째) 컬럼의 긴 텍스트까지 줄바꿈 없이 밀어내 표를 깨뜨렸다.
+   짧은 값만 오는 번호/진행도/시작일/버튼 컬럼은 줄바꿈 없이 유지하고,
+   제목 컬럼만 줄바꿈되도록 분리한다. */
+.task-detail-page .list-area tbody td {
     height: 58px;
     padding: 14px 16px !important;
     text-align: center !important;
     border-bottom: 1px solid #e5eaf1;
-    white-space: nowrap !important;
-    overflow: visible !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.list-area tbody td:nth-child(2) {
+.task-detail-page .list-area tbody td:nth-child(2) {
     text-align: left !important;
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
 }
 
 /* 업무 행 */

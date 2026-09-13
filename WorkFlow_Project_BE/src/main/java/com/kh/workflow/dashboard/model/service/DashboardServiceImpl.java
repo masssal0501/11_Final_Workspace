@@ -115,7 +115,10 @@ public class DashboardServiceImpl implements DashboardService {
 		/* --- [2] 리스트 및 차트 데이터 --- */
 		// 결재 처리를 위한 부서원 승인대기 목록
 		managerDto.setWaitingList(workcationDao.managerSelectWaitingList(depId));
-	
+
+		// BUG-10: 부서원 비용 신청 중 아직 최종 처리되지 않은 정산 대기 목록
+		managerDto.setSettlementWaitingList(amountDao.managerSelectSettlementWaitingList(depId));
+
 		// 부서원 전체의 워케이션 신청/진행 내역 목록
 		managerDto.setWorkcationList(workcationDao.managerSelectWorkcationList(depId));		
 		

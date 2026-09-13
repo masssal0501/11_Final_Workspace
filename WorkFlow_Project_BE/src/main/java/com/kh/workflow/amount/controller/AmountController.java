@@ -79,6 +79,39 @@ public class AmountController {
         }
     }
 
+    // BUG-10: 부서장 대시보드의 "정산 대기 목록"에서 부서원의 정산 상세로 클릭해
+    // 들어갈 수 있어야 한다. 위 checkAmountAccess(취소 등 상태를 바꾸는 작업에 사용)는
+    // 그대로 본인 소유만 허용하고, "조회"에 한해서만 MANAGER에게 자신과 같은 부서
+    // (depId) 소속 신청자의 정산 열람 권한을 추가로 허용한다(다른 부서는 여전히 차단,
+    // 취소 등 변경 권한까지 넓히지는 않는다).
+    private void checkAmountViewAccess(Amount amount, Authentication authentication) {
+
+        Employee loginEmployee = employeeDao.findByEmpId(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("로그인 사용자 정보를 찾을 수 없습니다."));
+
+        if ("ADMIN".equals(loginEmployee.getAuthCode())) {
+            return;
+        }
+
+        WorkcationInfo workcation = amount.getWorkcationNo() != null
+                ? workcationDao.findById(amount.getWorkcationNo()).orElse(null)
+                : null;
+
+        boolean isOwner = workcation != null
+                && workcation.getEmployee() != null
+                && workcation.getEmployee().getEmpNo().equals(loginEmployee.getEmpNo());
+
+        boolean isManagerOfSameDept = "MANAGER".equals(loginEmployee.getAuthCode())
+                && workcation != null
+                && workcation.getEmployee() != null
+                && workcation.getEmployee().getDepId() != null
+                && workcation.getEmployee().getDepId().equals(loginEmployee.getDepId());
+
+        if (!isOwner && !isManagerOfSameDept) {
+            throw new AccessDeniedException("본인이 신청했거나 소속 부서원이 신청한 정산만 조회할 수 있습니다.");
+        }
+    }
+
     // =========================================================
     // ★ 날짜 문자열 바인딩 커스텀 처리
     // =========================================================
@@ -242,7 +275,7 @@ public class AmountController {
                         .body("해당 비용 정산 내역을 찾을 수 없습니다.");
             }
 
-            checkAmountAccess(amount, authentication);
+            checkAmountViewAccess(amount, authentication);
 
             return ResponseEntity.ok(amount);
 
