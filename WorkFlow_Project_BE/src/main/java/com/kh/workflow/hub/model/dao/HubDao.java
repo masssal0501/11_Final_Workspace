@@ -116,12 +116,13 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     			CASE WHEN h.mainRegion IN ('제주도', '제주') THEN '제주'
     			     WHEN h.mainRegion IN ('강원도', '강원') THEN '강원'
     			     WHEN h.mainRegion IN ('부산시', '부산') THEN '부산'
-    			     ELSE '' END,
+    			     ELSE '' END region,
     			(COUNT(h) * 100) / (SELECT COUNT(h2) FROM Hub h2 WHERE h2.hubType = 2)
     		)
     		FROM Hub h
     		WHERE h.hubType = 2
-    		GROUP BY h.mainRegion
+    		  AND h.hubStatus = 'OPEN'
+    		GROUP BY region
     		""")
     List<ChartDataDto> HubShareData();
 
@@ -161,4 +162,12 @@ public interface HubDao extends JpaRepository<Hub, Integer> {
     @Query("SELECT DISTINCT h.subRegion FROM Hub h WHERE " + REGION_NORMALIZE_EXPR
 			+ " = :mainRegion AND h.subRegion IS NOT NULL ORDER BY h.subRegion")
     List<String> selectSubRegionList(@Param("mainRegion") String mainRegion);
+
+    /**
+     * 거점 목록 조회 (AI 전용)
+     *
+     * @param hubStatus 운영 상태 정보
+     * @return OPEN 상태인 거점 목록
+     */
+	List<Hub> findByHubStatus(String hubStatus);
 }

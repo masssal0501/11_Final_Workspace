@@ -15,7 +15,6 @@ import com.kh.workflow.amount.model.vo.AmountFile;
 import com.kh.workflow.amount.model.vo.AmountItem;
 import com.kh.workflow.amount.model.vo.SupportList;
 import com.kh.workflow.common.model.vo.PageInfo;
-import com.kh.workflow.dashboard.model.dto.BalanceListDto;
 import com.kh.workflow.dashboard.model.dto.ChartDataDto;
 
 public interface AmountDao
@@ -305,14 +304,15 @@ public interface AmountDao
                      WHEN ai.itemType = 'E' THEN '체험'
                      WHEN ai.itemType = 'F' THEN '식비'
                      WHEN ai.itemType = 'V' THEN '차량'
-                     ELSE '기타'
-                END,
+                     WHEN ai.itemType = 'O' THEN '기타'
+                ELSE '' END type,
                 COALESCE(SUM(ai.itemAmount), 0)
             )
               FROM AmountItem ai
               JOIN Amount a ON ai.amount = a
              WHERE a.status = 'A'
-             GROUP BY ai.itemType
+               AND ai.itemType IN ('S', 'T', 'E', 'F', 'V', 'O')
+             GROUP BY type
         """)
 	List<ChartDataDto> selectCategoryData();
 
@@ -357,28 +357,6 @@ public interface AmountDao
               AND a.status = 'A'
         """)
 	int managerSelectBudgetExhaustionRate(String depId);
-
-	/**
-	 * [부서장] 특정 부서의 정산 대기 목록 조회
-	 * 
-	 * @param depId 부서 아이디
-	 * @return List<BalanceListDto> 부서원들의 정산 대기 내역 리스트
-	 */
-    @Query("""
-            SELECT new com.kh.workflow.dashboard.model.dto.BalanceListDto(
-                e.empName,
-                e.empNo,
-                ai.itemAmount,
-                a.status
-            )
-            FROM Amount a
-            JOIN AmountItem ai ON a = ai.amount
-            JOIN WorkcationInfo w ON a.workcationNo = w.workcationNo
-            JOIN Employee e ON w.employee = e
-            WHERE e.depId = :depId
-              AND a.status IN ('H', 'R', 'W')
-        """)
-	List<BalanceListDto> selectBalanceList(String depId);
 
 	/* =====================================================================
 	 * 3. 사원 대시보드 관련 메서드

@@ -25,7 +25,6 @@ function ManagerComponent(props) {
         waitingList: [],
         regionData: [],
         noticeData: [],
-        balanceList: [],
         workcationList: []
     });
 
@@ -215,51 +214,16 @@ function ManagerComponent(props) {
                 </table>
             </div>
             <br /><br />
-            {/* 부서 평균 업무 진행률 및 정산대기 목록 섹션 헤더 */}
-            <div className="d-flex text-center dashboard-1">
-                <p className="w-50 mb-0">부서 평균 업무 진행률</p>
-                <p className="w-50 mb-0">정산대기 목록</p>
-            </div>
+            {/* 부서 평균 업무 진행률 헤더 */}
+            <div className="text-center dashboard-1">부서 평균 업무 진행률</div>
             <br />
-            {/* 부서 평균 업무 진행률 프로그레스 바 및 정산 대기 목록 테이블 영역 */}
-            <div className="d-flex justify-content-between align-items-start">
-                {/* 좌측: 부서 업무 진행률 시각화 프로그레스 바 */}
-                <div style={{ width: '48%' }}>
-                    <div className="progress dashboard-progress w-100">
-                        <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.avgProgressRate}%` }}></div>
-                        <div className="d-flex dashboard-progress-text">
-                            {data.avgProgressRate}% / 100%
-                        </div>
+            {/* 부서 평균 업무 진행률 프로그레스 바 영역 */}
+            <div className="d-flex justify align-items-start">
+                <div className="progress dashboard-progress w-100">
+                    <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${data.avgProgressRate}%` }}></div>
+                    <div className="d-flex dashboard-progress-text">
+                        {data.avgProgressRate}% / 100%
                     </div>
-                </div>
-                {/* 우측: 정산 대기 목록 테이블 */}
-                <div style={{ width: '48%' }}>
-                    <table className="table">
-                        <thead>
-                            <tr style={ { cursor : "auto" } }>
-                                <th>이름</th>
-                                <th>사번</th>
-                                <th>금액</th>
-                                <th>상태</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.balanceList?.length > 0 ? (
-                                data.balanceList.map((item, index) => (
-                                    <tr key={index} style={ { cursor : "auto" } }>
-                                        <td>{item.empName}</td>
-                                        <td>{item.empId}</td>
-                                        <td>{item.amount?.toLocaleString('ko-KR')}원</td>
-                                        <td>{ (item.status === "R") && <span className="badge bg-warning">대기</span>}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr className="wf-empty-row">
-                                    <td colSpan="5">정산 대기 건이 없습니다.</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
                 </div>
             </div>
             <br /><br />
@@ -296,7 +260,7 @@ function ManagerComponent(props) {
                         {data.workcationList?.length > 0 ? (
                             data.workcationList.map((item, index) => (
                                 <tr key={index} onClick={ () => { navigate(`/workcation/detail/${item.workcationNo}`) } }>
-                                    <td>{index+1}</td>
+                                    <td>{item.workcationNo}</td>
                                     <td>{item.workcationTitle}</td>
                                     <td>{item.mainRegion} {item.subRegion}</td>
                                     <td>{item.startAt?.substring(5, 10)}~{item.endAt?.substring(5, 10)}</td>

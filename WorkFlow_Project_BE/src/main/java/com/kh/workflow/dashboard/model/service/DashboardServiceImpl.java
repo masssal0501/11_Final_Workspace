@@ -113,10 +113,9 @@ public class DashboardServiceImpl implements DashboardService {
 		managerDto.setAvgProgressRate(taskDao.AvgProgressRate(depId));
 		
 		/* --- [2] 리스트 및 차트 데이터 --- */
-		// 결재 처리를 위한 부서원 승인대기/정산대기 목록
+		// 결재 처리를 위한 부서원 승인대기 목록
 		managerDto.setWaitingList(workcationDao.managerSelectWaitingList(depId));
-		managerDto.setBalanceList(amountDao.selectBalanceList(depId));
-		
+	
 		// 부서원 전체의 워케이션 신청/진행 내역 목록
 		managerDto.setWorkcationList(workcationDao.managerSelectWorkcationList(depId));		
 		

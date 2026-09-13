@@ -152,4 +152,10 @@ public class HubServiceImpl implements HubService {
 
 	    return hub;
 	}
+
+	@Override
+	public List<Hub> selectAIHubList() {
+		
+		return hubDao.findByHubStatus("OPEN");
+	}
 }
